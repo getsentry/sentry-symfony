@@ -1,0 +1,10 @@
+services:
+    sentry.client:
+        class: '%sentry.client%'
+        arguments: ['%sentry.dsn%']
+
+    sentry.exception_listener:
+        class: '%sentry.exception_listener%'
+        arguments: ['@sentry.client']
+        tags:
+            - { name: kernel.event_listener, event: kernel.exception, method: onKernelException }
