@@ -48,7 +48,8 @@ class AppKernel extends Kernel
 
 Add your DSN to ``app/config/config.yml``:
 
-.. code-block:: yaml
+```yaml
 
-    sentry:
-        dsn: "https://public:secret@sentry.example.com/1"
+sentry:
+    dsn: "https://public:secret@sentry.example.com/1"
+```
