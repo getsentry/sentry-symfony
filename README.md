@@ -43,3 +43,12 @@ class AppKernel extends Kernel
     // ...
 }
 ```
+
+### Step 3: Configure the SDK
+
+Add your DSN to ``app/config/config.yml``:
+
+.. code-block:: yaml
+
+    sentry:
+        dsn: "https://public:secret@sentry.example.com/1"
