@@ -13,7 +13,7 @@
     ],
     "require": {
         "php": ">=5.3.3",
-        "sentry/sentry": "0.*",
+        "sentry/sentry": ">=0.17.0",
         "symfony/symfony": ">=2.2.0"
     },
     "require-dev": {
