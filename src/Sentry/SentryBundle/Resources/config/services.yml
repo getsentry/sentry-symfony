@@ -2,6 +2,11 @@ services:
     sentry.client:
         class: '%sentry.client%'
         arguments: ['%sentry.dsn%']
+        calls:
+            - [setRelease, ['%sentry.release%']]
+            - [setEnvironment, ['%sentry.environment%']]
+            - [setAppPath, ['%sentry.app_path%']]
+            - [setPrefixes, ['%sentry.prefixes%']]
 
     sentry.exception_listener:
         class: '%sentry.exception_listener%'
