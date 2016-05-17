@@ -53,3 +53,52 @@ Add your DSN to ``app/config/config.yml``:
 sentry:
     dsn: "https://public:secret@sentry.example.com/1"
 ```
+
+
+## Configuration
+
+The following can be configured via ``app/config/config.yml``:
+
+### app_path
+
+The base path to your application. Used to trim prefixes and mark frames as part of your application.
+
+```yaml
+sentry:
+    app_path: "/path/to/myapp"
+```
+
+### dsn
+
+```yaml
+sentry:
+    dsn: "https://public:secret@sentry.example.com/1"
+```
+
+### environment
+
+The environment your code is running in (e.g. production).
+
+```yaml
+sentry:
+    environment: "%kernel.environment%"
+```
+
+### release
+
+The version of your application. Often this is the git sha.
+
+```yaml
+sentry:
+    release: "beeee2a06521a60e646bbb8fe38702e61e4929bf"
+```
+
+### prefixes
+
+A list of prefixes to strip from filenames. Often these would be vendor/include paths.
+
+```yaml
+sentry:
+    prefixes:
+        - /usr/lib/include
+```
