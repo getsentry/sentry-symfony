@@ -4,7 +4,6 @@ namespace Sentry\SentryBundle\EventListener;
 
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
-use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -25,16 +24,21 @@ class ExceptionListener
     /** @var \Raven_Client */
     private $client;
 
+    /** @var  string[] */
+    private $skipCapture;
+
     /**
      * ExceptionListener constructor.
      * @param TokenStorageInterface $tokenStorage
      * @param AuthorizationCheckerInterface $authorizationChecker
      * @param \Raven_Client $client
+     * @param array $skipCapture
      */
     public function __construct(
         TokenStorageInterface $tokenStorage,
         AuthorizationCheckerInterface $authorizationChecker,
-        \Raven_Client $client = null
+        \Raven_Client $client = null,
+        array $skipCapture
     ) {
         if (!$client) {
             $client = new \Raven_Client();
@@ -43,6 +47,7 @@ class ExceptionListener
         $this->tokenStorage = $tokenStorage;
         $this->authorizationChecker = $authorizationChecker;
         $this->client = $client;
+        $this->skipCapture = $skipCapture;
     }
 
     /**
@@ -81,9 +86,10 @@ class ExceptionListener
     {
         $exception = $event->getException();
 
-        // don't capture HTTP responses
-        if ($exception instanceof HttpExceptionInterface) {
-            return;
+        foreach ($this->skipCapture as $className) {
+            if ($exception instanceof $className) {
+                return;
+            }
         }
 
         $this->client->captureException($exception);

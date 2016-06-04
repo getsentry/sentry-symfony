@@ -102,3 +102,11 @@ sentry:
     prefixes:
         - /usr/lib/include
 ```
+
+### skip some exceptions
+
+```yaml
+sentry:
+    skip_capture:
+        - "Symfony\Component\HttpKernel\Exception\HttpExceptionInterface"
+```
