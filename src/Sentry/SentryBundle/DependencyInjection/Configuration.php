@@ -38,6 +38,8 @@ class Configuration implements ConfigurationInterface
                     ->defaultValue('Sentry\SentryBundle\EventListener\ExceptionListener')
                 ->end()
                 ->arrayNode('skip_capture')
+                    ->treatNullLike(array())
+                    ->prototype('scalar')->end()
                     ->defaultValue(array('Symfony\Component\HttpKernel\Exception\HttpExceptionInterface'))
                 ->end()
                 ->scalarNode('release')
