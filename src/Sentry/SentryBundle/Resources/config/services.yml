@@ -11,8 +11,8 @@ services:
     sentry.exception_listener:
         class: '%sentry.exception_listener%'
         arguments:
-          - '@security.token_storage'
-          - '@security.authorization_checker'
+          - '@?security.token_storage'
+          - '@?security.authorization_checker'
           - '@sentry.client'
           - '%sentry.skip_capture%'
         tags:

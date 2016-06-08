@@ -35,8 +35,8 @@ class ExceptionListener
      * @param array $skipCapture
      */
     public function __construct(
-        TokenStorageInterface $tokenStorage,
-        AuthorizationCheckerInterface $authorizationChecker,
+        TokenStorageInterface $tokenStorage = null,
+        AuthorizationCheckerInterface $authorizationChecker = null,
         \Raven_Client $client = null,
         array $skipCapture
     ) {
@@ -78,7 +78,7 @@ class ExceptionListener
             $this->setUserValue($token->getUser());
         }
     }
-    
+
     /**
      * @param GetResponseForExceptionEvent $event
      */
