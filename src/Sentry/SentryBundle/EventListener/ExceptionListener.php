@@ -8,6 +8,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Console\Event\ConsoleExceptionEvent;
 
 /**
  * Class ExceptionListener
@@ -93,6 +94,24 @@ class ExceptionListener
         }
 
         $this->client->captureException($exception);
+    }
+
+    /**
+     * @param ConsoleExceptionEvent $event
+     */
+    public function onConsoleException(ConsoleExceptionEvent $event)
+    {
+        $command = $event->getCommand();
+        $exception = $event->getException();
+
+        $data = array(
+            'tags' => array(
+                'command' => $command->getName(),
+                'status_code' => $event->getExitCode(),
+            ),
+        );
+
+        $this->client->captureException($exception, $data);
     }
 
     /**
