@@ -26,7 +26,7 @@ class Configuration implements ConfigurationInterface
                     ->defaultNull()
                 ->end()
                 ->scalarNode('client')
-                    ->defaultValue('Raven_Client')
+                    ->defaultValue('Sentry\SentryBundle\SentrySymfonyClient')
                 ->end()
                 ->scalarNode('environment')
                     ->defaultValue('%kernel.environment%')

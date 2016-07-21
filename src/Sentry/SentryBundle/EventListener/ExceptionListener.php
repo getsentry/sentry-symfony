@@ -2,6 +2,7 @@
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\SentryBundle;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -42,7 +43,7 @@ class ExceptionListener
         array $skipCapture
     ) {
         if (!$client) {
-            $client = new \Raven_Client();
+            $client = new SentrySymfonyClient();
         }
 
         $this->tokenStorage = $tokenStorage;
