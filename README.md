@@ -108,5 +108,5 @@ sentry:
 ```yaml
 sentry:
     skip_capture:
-        - "Symfony\Component\HttpKernel\Exception\HttpExceptionInterface"
+        - "Symfony\\Component\\HttpKernel\\Exception\\HttpExceptionInterface"
 ```
