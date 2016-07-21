@@ -7,6 +7,7 @@ services:
             - [setEnvironment, ['%sentry.environment%']]
             - [setAppPath, ['%sentry.app_path%']]
             - [setPrefixes, ['%sentry.prefixes%']]
+            - [install, []]
 
     sentry.exception_listener:
         class: '%sentry.exception_listener%'
