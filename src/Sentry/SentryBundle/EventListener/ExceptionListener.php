@@ -29,19 +29,26 @@ class ExceptionListener
     /** @var  string[] */
     private $skipCapture;
 
+    /** @var bool */
+    private $reportingIsEnabled;
+
     /**
      * ExceptionListener constructor.
      * @param TokenStorageInterface $tokenStorage
      * @param AuthorizationCheckerInterface $authorizationChecker
      * @param \Raven_Client $client
      * @param array $skipCapture
+     * @param $reportingIsEnabled
      */
     public function __construct(
         TokenStorageInterface $tokenStorage = null,
         AuthorizationCheckerInterface $authorizationChecker = null,
         \Raven_Client $client = null,
-        array $skipCapture
+        array $skipCapture,
+        $reportingIsEnabled
     ) {
+        $this->reportingIsEnabled = $reportingIsEnabled;
+
         if (!$client) {
             $client = new SentrySymfonyClient();
         }
@@ -50,6 +57,14 @@ class ExceptionListener
         $this->authorizationChecker = $authorizationChecker;
         $this->client = $client;
         $this->skipCapture = $skipCapture;
+    }
+
+    /**
+     * @param bool $reportingIsEnabled
+     */
+    public function setReportingEnabled($reportingIsEnabled)
+    {
+        $this->reportingIsEnabled = $reportingIsEnabled;
     }
 
     /**
@@ -86,6 +101,10 @@ class ExceptionListener
      */
     public function onKernelException(GetResponseForExceptionEvent $event)
     {
+        if (!$this->reportingIsEnabled) {
+            return;
+        }
+
         $exception = $event->getException();
 
         foreach ($this->skipCapture as $className) {
@@ -102,6 +121,10 @@ class ExceptionListener
      */
     public function onConsoleException(ConsoleExceptionEvent $event)
     {
+        if (!$this->reportingIsEnabled) {
+            return;
+        }
+
         $command = $event->getCommand();
         $exception = $event->getException();
 
