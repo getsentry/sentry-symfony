@@ -3,6 +3,7 @@
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\SentryBundle;
+use Sentry\SentryBundle\SentrySymfonyClient;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
