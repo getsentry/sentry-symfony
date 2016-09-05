@@ -9,6 +9,7 @@ use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Console\Event\ConsoleExceptionEvent;
 
@@ -77,7 +78,8 @@ class ExceptionListener
         }
 
         $token = $this->tokenStorage->getToken();
-        if (null !== $token && $this->authorizationChecker->isGranted('IS_AUTHENTICATED_REMEMBERED')) {
+
+        if (null !== $token && $this->authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)) {
             $this->setUserValue($token->getUser());
         }
     }
@@ -88,7 +90,6 @@ class ExceptionListener
     public function onKernelException(GetResponseForExceptionEvent $event)
     {
         $exception = $event->getException();
-
         foreach ($this->skipCapture as $className) {
             if ($exception instanceof $className) {
                 return;
@@ -121,14 +122,18 @@ class ExceptionListener
      */
     private function setUserValue($user)
     {
-        switch (true) {
-            case $user instanceof UserInterface:
-                $this->client->set_user_data($user->getUsername());
-                return;
-            case is_object($user):
-            case is_string($user):
-                $this->client->set_user_data((string) $user);
-                return;
+        if ($user instanceof UserInterface) {
+            $this->client->set_user_data($user->getUsername());
+            return;
+        }
+
+        if (is_string($user)) {
+            $this->client->set_user_data($user);
+            return;
+        }
+
+        if (is_object($user) && method_exists($user, '__toString')) {
+            $this->client->set_user_data($user->__toString());
         }
     }
 }
