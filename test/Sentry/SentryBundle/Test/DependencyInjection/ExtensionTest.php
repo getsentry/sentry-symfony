@@ -25,7 +25,7 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
             static::CONFIG_ROOT => array(
                 'app_path' => 'sentry/app/path',
             ),
-        );
+        ));
 
         $this->assertSame(
             'sentry/app/path',
