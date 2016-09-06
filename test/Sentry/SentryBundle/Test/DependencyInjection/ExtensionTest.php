@@ -93,11 +93,11 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
 
     public function test_that_it_uses_dsn_value()
     {
-        $container = $this->getContainer([
-            static::CONFIG_ROOT => [
+        $container = $this->getContainer(array(
+            static::CONFIG_ROOT => array(
                 'dsn' => 'custom_dsn',
-            ],
-        ]);
+            ),
+        ));
 
         $this->assertSame(
             'custom_dsn',
@@ -117,11 +117,11 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
 
     public function test_that_it_uses_exception_listener_value()
     {
-        $container = $this->getContainer([
+        $container = $this->getContainer(array(
             static::CONFIG_ROOT => array(
                 'exception_listener' => 'exceptionListenerClass',
             ),
-        ]);
+        ));
 
         $this->assertSame(
             'exceptionListenerClass',
