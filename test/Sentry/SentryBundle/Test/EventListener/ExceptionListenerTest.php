@@ -342,7 +342,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
     public function test_that_username_is_set_from_user_interface_if_token_present_and_user_set_object_with_to_string()
     {
         $mockUser = $this->getMockBuilder('stdClass')
-            ->setMethods(['__toString'])
+            ->setMethods(array('__toString'))
             ->getMock()
         ;
 
