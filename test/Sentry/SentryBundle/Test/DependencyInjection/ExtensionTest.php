@@ -21,11 +21,11 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
 
     public function test_that_it_uses_app_path_value()
     {
-        $container = $this->getContainer([
+        $container = $this->getContainer(array(
             static::CONFIG_ROOT => array(
                 'app_path' => 'sentry/app/path',
             ),
-        ]);
+        );
 
         $this->assertSame(
             'sentry/app/path',
@@ -45,11 +45,11 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
 
     public function test_that_it_uses_client_value()
     {
-        $container = $this->getContainer([
+        $container = $this->getContainer(array(
             static::CONFIG_ROOT => array(
                 'client' => 'clientClass',
             ),
-        ]);
+        ));
 
         $this->assertSame(
             'clientClass',
