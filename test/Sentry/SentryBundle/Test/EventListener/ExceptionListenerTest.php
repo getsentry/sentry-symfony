@@ -425,7 +425,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
     public function test_that_it_captures_exception()
     {
-        $mockException = new \Exception();
+        $reportableException = new \Exception();
 
         $mockEvent = $this
             ->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent')
@@ -436,14 +436,14 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
         $mockEvent
             ->expects($this->once())
             ->method('getException')
-            ->willReturn($mockException)
+            ->willReturn($reportableException)
         ;
 
         $this
             ->mockSentryClient
             ->expects($this->once())
             ->method('captureException')
-            ->with($this->identicalTo($mockException))
+            ->with($this->identicalTo($reportableException))
         ;
 
         $this->containerBuilder->compile();
@@ -453,7 +453,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
     public function test_that_it_captures_console_exception()
     {
-        $mockException = new \Exception();
+        $reportableException = new \Exception();
 
         $mockCommand = $this
             ->getMockBuilder('Symfony\Component\Console\Command\Command')
@@ -482,7 +482,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
         $mockEvent
             ->expects($this->once())
             ->method('getException')
-            ->willReturn($mockException)
+            ->willReturn($reportableException)
         ;
 
         $mockEvent
@@ -496,7 +496,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('captureException')
             ->with(
-                $this->identicalTo($mockException),
+                $this->identicalTo($reportableException),
                 $this->identicalTo(array(
                     'tags' => array(
                         'command' => 'cmd name',
@@ -519,7 +519,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->getMock()
         ;
 
-        $mockException = new \Exception();
+        $reportableException = new \Exception();
 
         $mockEvent = $this
             ->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent')
@@ -530,7 +530,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
         $mockEvent
             ->expects($this->once())
             ->method('getException')
-            ->willReturn($mockException)
+            ->willReturn($reportableException)
         ;
 
         $this
@@ -543,7 +543,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
         $replacementClient
             ->expects($this->once())
             ->method('captureException')
-            ->with($this->identicalTo($mockException))
+            ->with($this->identicalTo($reportableException))
         ;
 
         $this->containerBuilder->compile();
