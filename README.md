@@ -2,6 +2,8 @@
 
 Symfony integration for [Sentry](https://getsentry.com/).
 
+[![Build Status](https://travis-ci.org/getsentry/sentry-symfony.svg?branch=master)](https://travis-ci.org/getsentry/sentry-symfony)
+
 ## Installation
 
 ### Step 1: Download the Bundle
