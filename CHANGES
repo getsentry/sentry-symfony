@@ -1,3 +1,10 @@
+0.5.0
+-----
+
+- Raise sentry/sentry minimum requirement to 1.2.0.
+- Fixed an issue with a missing import (#24).
+- ``prefixes`` and ``app_path`` will now be bound by default.
+
 0.4.0
 -----
 
