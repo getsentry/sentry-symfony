@@ -26,10 +26,10 @@ class ExceptionListener
     private $authorizationChecker;
 
     /** @var \Raven_Client */
-    private $client;
+    protected $client;
 
     /** @var  string[] */
-    private $skipCapture;
+    protected $skipCapture;
 
     /**
      * ExceptionListener constructor.
