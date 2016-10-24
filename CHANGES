@@ -1,3 +1,8 @@
+0.6.0
+-----
+
+- Improve app path detection to exclude root folder and exclude vendor.
+
 0.5.0
 -----
 
