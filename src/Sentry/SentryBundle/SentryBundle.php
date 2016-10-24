@@ -6,5 +6,5 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class SentryBundle extends Bundle
 {
-    const VERSION = '0.6.x-dev';
+    const VERSION = '0.7.x-dev';
 }
