@@ -6,6 +6,7 @@ services:
             - [setRelease, ['%sentry.release%']]
             - [setEnvironment, ['%sentry.environment%']]
             - [setAppPath, ['%sentry.app_path%']]
+            - [setExcludedAppPaths, ['%sentry.excluded_app_paths%']]
             - [setPrefixes, ['%sentry.prefixes%']]
             - [install, []]
 

@@ -23,7 +23,7 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->scalarNode('app_path')
-                    ->defaultValue('%kernel.root_dir%')
+                    ->defaultValue('%kernel.root_dir%/..')
                 ->end()
                 ->scalarNode('client')
                     ->defaultValue('Sentry\SentryBundle\SentrySymfonyClient')
@@ -49,6 +49,11 @@ class Configuration implements ConfigurationInterface
                     ->prototype('scalar')->end()
                     ->treatNullLike(array())
                     ->defaultValue(array('%kernel.root_dir%/..'))
+                ->end()
+                ->arrayNode('excluded_app_paths')
+                    ->prototype('scalar')->end()
+                    ->treatNullLike(array())
+                    ->defaultValue(array('%kernel.root_dir%/../vendor'))
                 ->end()
             ->end()
         ;
