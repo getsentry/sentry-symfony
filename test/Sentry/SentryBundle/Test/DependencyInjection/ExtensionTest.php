@@ -9,12 +9,12 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
 {
     const CONFIG_ROOT = 'sentry';
 
-    public function test_that_it_uses_kernel_root_as_app_path_by_default()
+    public function test_that_it_uses_kernel_root_parent_as_app_path_by_default()
     {
         $container = $this->getContainer();
 
         $this->assertSame(
-            'kernel/root',
+            'kernel/root/..',
             $container->getParameter('sentry.app_path')
         );
     }
@@ -30,6 +30,16 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
         $this->assertSame(
             'sentry/app/path',
             $container->getParameter('sentry.app_path')
+        );
+    }
+
+    public function test_vendor_in_default_excluded_paths()
+    {
+        $container = $this->getContainer();
+
+        $this->assertContains(
+            'kernel/root/../vendor',
+            $container->getParameter('sentry.excluded_app_paths')
         );
     }
 
