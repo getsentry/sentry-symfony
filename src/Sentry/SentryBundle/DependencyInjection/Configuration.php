@@ -53,7 +53,11 @@ class Configuration implements ConfigurationInterface
                 ->arrayNode('excluded_app_paths')
                     ->prototype('scalar')->end()
                     ->treatNullLike(array())
-                    ->defaultValue(array('%kernel.root_dir%/../vendor'))
+                    ->defaultValue(array(
+                        '%kernel.root_dir%/../vendor',
+                        '%kernel.root_dir%/../app/cache',
+                        '%kernel.root_dir%/../var/cache',
+                    ))
                 ->end()
             ->end()
         ;
