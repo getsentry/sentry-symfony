@@ -56,8 +56,7 @@ class Configuration implements ConfigurationInterface
                     ->defaultValue(array(
                         '%kernel.root_dir%/../vendor',
                         '%kernel.root_dir%/../app/cache',
-                        '%kernel.root_dir%/../app/logs',
-                        '%kernel.root_dir%/../var',
+                        '%kernel.root_dir%/../var/cache',
                     ))
                 ->end()
             ->end()
