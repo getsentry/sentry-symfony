@@ -112,3 +112,12 @@ sentry:
     skip_capture:
         - "Symfony\\Component\\HttpKernel\\Exception\\HttpExceptionInterface"
 ```
+
+### error types
+
+Define which error types should be reported.
+
+```yaml
+sentry:
+    error_types: E_ALL & ~E_DEPRECATED & ~E_NOTICE
+```

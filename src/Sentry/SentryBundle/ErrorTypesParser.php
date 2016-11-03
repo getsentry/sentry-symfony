@@ -28,7 +28,11 @@ class ErrorTypesParser
     {
         // convert constants to ints
         $this->expression = $this->convertErrorConstants($this->expression);
-        $this->expression = str_replace([",", " "], [".", ""], $this->expression);
+        $this->expression = str_replace(
+            array(",", " "),
+            array(".", ""),
+            $this->expression
+        );
         // remove anything which could be a security issue
         $this->expression = preg_replace("/[^\d.+*%^|&~<>\/()-]/", "", $this->expression);
 
@@ -56,7 +60,7 @@ class ErrorTypesParser
 
     /**
      * Let PHP compute the prepared expression for us.
-     * 
+     *
      * @param  string $expression prepared expression e.g. 32767&~8192&~8
      * @return int  computed expression e.g. 24567
      */
