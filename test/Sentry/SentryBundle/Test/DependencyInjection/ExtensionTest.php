@@ -125,9 +125,11 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
+        $options = $container->getParameter('sentry.options');
+
         $this->assertSame(
             'http://user:password@host:port',
-            $container->getParameter('sentry.options')['http_proxy']
+            $options['http_proxy']
         );
     }
 
