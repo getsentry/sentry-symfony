@@ -1,7 +1,7 @@
 services:
     sentry.client:
         class: '%sentry.client%'
-        arguments: ['%sentry.dsn%', {'error_types': '%sentry.error_types%'}]
+        arguments: ['%sentry.dsn%', %sentry.options%, '%sentry.error_types%']
         calls:
             - [setRelease, ['%sentry.release%']]
             - [setEnvironment, ['%sentry.environment%']]

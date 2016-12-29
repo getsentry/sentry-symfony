@@ -115,6 +115,22 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    public function test_that_it_uses_options_value()
+    {
+        $container = $this->getContainer(array(
+            static::CONFIG_ROOT => array(
+                'options' => array(
+                    'http_proxy' => 'http://user:password@host:port'
+                ),
+            ),
+        ));
+
+        $this->assertSame(
+            'http://user:password@host:port',
+            $container->getParameter('sentry.options')['http_proxy']
+        );
+    }
+
     public function test_that_it_uses_defined_class_as_exception_listener_class_by_default()
     {
         $container = $this->getContainer();
