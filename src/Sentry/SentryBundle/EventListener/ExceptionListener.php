@@ -63,20 +63,10 @@ class ExceptionListener
     }
 
     /**
-     * Set the username from the security context by listening on core.request
-     *
-     * @param GetResponseEvent $event
+     * Set the username from the security context
      */
-    public function onKernelRequest(GetResponseEvent $event)
+    private function setCurrentUser()
     {
-        if (HttpKernelInterface::MASTER_REQUEST !== $event->getRequestType()) {
-            return;
-        }
-
-        if (null === $this->tokenStorage || null === $this->authorizationChecker) {
-            return;
-        }
-
         $token = $this->tokenStorage->getToken();
 
         if (null !== $token && $this->authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)) {
@@ -96,6 +86,7 @@ class ExceptionListener
             }
         }
 
+        $this->setCurrentUser();
         $this->client->captureException($exception);
     }
 
@@ -114,6 +105,7 @@ class ExceptionListener
             ),
         );
 
+        $this->setCurrentUser();
         $this->client->captureException($exception, $data);
     }
 
