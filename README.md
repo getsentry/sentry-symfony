@@ -72,6 +72,9 @@ sentry:
 
 ### dsn
 
+[Sentry DSN](https://docs.sentry.io/quickstart/#configure-the-dsn) value of your project.
+ Leaving this value empty will effectively disable Sentry reporting.
+
 ```yaml
 sentry:
     dsn: "https://public:secret@sentry.example.com/1"
