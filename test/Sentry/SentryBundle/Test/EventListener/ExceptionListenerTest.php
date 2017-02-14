@@ -397,7 +397,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
     public function test_that_it_does_not_report_http_exception_if_included_in_capture_skip()
     {
-        $mockException = $this->getMock('Symfony\Component\HttpKernel\Exception\HttpExceptionInterface');
+        $mockException = new \Symfony\Component\HttpKernel\Exception\HttpException(401);
 
         $mockEvent = $this
             ->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent')
