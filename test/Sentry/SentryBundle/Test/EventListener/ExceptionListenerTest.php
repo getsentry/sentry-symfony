@@ -49,7 +49,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
         ;
 
         $this->mockEventDispatcher = $this
-            ->createMock('Symfony\Component\EventDispatcher\EventDispatcherInterface')
+            ->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface')
         ;
 
         $containerBuilder = new ContainerBuilder();

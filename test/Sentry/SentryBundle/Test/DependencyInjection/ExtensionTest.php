@@ -275,7 +275,7 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
         $containerBuilder->setParameter('kernel.environment', 'test');
 
         $mockEventDispatcher = $this
-            ->createMock('Symfony\Component\EventDispatcher\EventDispatcherInterface')
+            ->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface')
         ;
 
         $containerBuilder->set('event_dispatcher', $mockEventDispatcher);
