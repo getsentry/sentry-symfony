@@ -10,5 +10,4 @@ namespace Sentry\SentryBundle\Event;
  */
 interface SentryContextEventInterface
 {
-
 }
