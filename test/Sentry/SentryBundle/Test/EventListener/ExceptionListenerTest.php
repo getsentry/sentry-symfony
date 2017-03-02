@@ -2,6 +2,7 @@
 
 namespace Sentry\SentryBundle\Test\EventListener;
 
+use Sentry\SentryBundle\SentrySymfonyEvents;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -47,6 +48,10 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->getMock()
         ;
 
+        $this->mockEventDispatcher = $this
+            ->createMock('Symfony\Component\EventDispatcher\EventDispatcherInterface')
+        ;
+
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->setParameter('kernel.root_dir', 'kernel/root');
         $containerBuilder->setParameter('kernel.environment', 'test');
@@ -54,6 +59,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
         $containerBuilder->set('security.token_storage', $this->mockTokenStorage);
         $containerBuilder->set('security.authorization_checker', $this->mockAuthorizationChecker);
         $containerBuilder->set('sentry.client', $this->mockSentryClient);
+        $containerBuilder->set('event_dispatcher', $this->mockEventDispatcher);
 
         $extension = new SentryExtension();
         $extension->load(array(), $containerBuilder);
@@ -90,6 +96,13 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->withAnyParameters()
         ;
 
+        $this
+            ->mockEventDispatcher
+            ->expects($this->never())
+            ->method('dispatch')
+            ->withAnyParameters()
+        ;
+
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');
         $listener->onKernelRequest($mockEvent);
@@ -115,6 +128,13 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->mockSentryClient
             ->expects($this->never())
             ->method('set_user_data')
+            ->withAnyParameters()
+        ;
+
+        $this
+            ->mockEventDispatcher
+            ->expects($this->never())
+            ->method('dispatch')
             ->withAnyParameters()
         ;
 
@@ -146,6 +166,13 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->mockSentryClient
             ->expects($this->never())
             ->method('set_user_data')
+            ->withAnyParameters()
+        ;
+
+        $this
+            ->mockEventDispatcher
+            ->expects($this->never())
+            ->method('dispatch')
             ->withAnyParameters()
         ;
 
@@ -190,6 +217,13 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->mockSentryClient
             ->expects($this->never())
             ->method('set_user_data')
+            ->withAnyParameters()
+        ;
+
+        $this
+            ->mockEventDispatcher
+            ->expects($this->never())
+            ->method('dispatch')
             ->withAnyParameters()
         ;
 
@@ -241,6 +275,13 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->withAnyParameters()
         ;
 
+        $this
+            ->mockEventDispatcher
+            ->expects($this->never())
+            ->method('dispatch')
+            ->withAnyParameters()
+        ;
+
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');
         $listener->onKernelRequest($mockEvent);
@@ -289,6 +330,15 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->with($this->identicalTo('username'))
         ;
 
+        $this
+            ->mockEventDispatcher
+            ->expects($this->once())
+            ->method('dispatch')
+            ->with(
+                $this->identicalTo(SentrySymfonyEvents::SET_USER_CONTEXT),
+                $this->isInstanceOf('Sentry\SentryBundle\Event\SentryUserContextEvent'))
+        ;
+
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');
         $listener->onKernelRequest($mockEvent);
@@ -332,6 +382,15 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('set_user_data')
             ->with($this->identicalTo('some_user'))
+        ;
+
+        $this
+            ->mockEventDispatcher
+            ->expects($this->once())
+            ->method('dispatch')
+            ->with(
+                $this->identicalTo(SentrySymfonyEvents::SET_USER_CONTEXT),
+                $this->isInstanceOf('Sentry\SentryBundle\Event\SentryUserContextEvent'))
         ;
 
         $this->containerBuilder->compile();
@@ -390,6 +449,15 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->with($this->identicalTo('std_user'))
         ;
 
+        $this
+            ->mockEventDispatcher
+            ->expects($this->once())
+            ->method('dispatch')
+            ->with(
+                $this->identicalTo(SentrySymfonyEvents::SET_USER_CONTEXT),
+                $this->isInstanceOf('Sentry\SentryBundle\Event\SentryUserContextEvent'))
+        ;
+
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');
         $listener->onKernelRequest($mockEvent);
@@ -409,6 +477,13 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('getException')
             ->willReturn($mockException)
+        ;
+
+        $this
+            ->mockEventDispatcher
+            ->expects($this->never())
+            ->method('dispatch')
+            ->withAnyParameters()
         ;
 
         $this
@@ -437,6 +512,13 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('getException')
             ->willReturn($reportableException)
+        ;
+
+        $this
+            ->mockEventDispatcher
+            ->expects($this->once())
+            ->method('dispatch')
+            ->with($this->identicalTo(SentrySymfonyEvents::PRE_CAPTURE), $this->identicalTo($mockEvent))
         ;
 
         $this
@@ -492,6 +574,13 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
         ;
 
         $this
+            ->mockEventDispatcher
+            ->expects($this->once())
+            ->method('dispatch')
+            ->with($this->identicalTo(SentrySymfonyEvents::PRE_CAPTURE), $this->identicalTo($mockEvent))
+        ;
+
+        $this
             ->mockSentryClient
             ->expects($this->once())
             ->method('captureException')
@@ -531,6 +620,13 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('getException')
             ->willReturn($reportableException)
+        ;
+
+        $this
+            ->mockEventDispatcher
+            ->expects($this->once())
+            ->method('dispatch')
+            ->with($this->identicalTo(SentrySymfonyEvents::PRE_CAPTURE), $this->identicalTo($mockEvent))
         ;
 
         $this

@@ -56,7 +56,6 @@ sentry:
     dsn: "https://public:secret@sentry.example.com/1"
 ```
 
-
 ## Configuration
 
 The following can be configured via ``app/config/config.yml``:
@@ -120,4 +119,112 @@ Define which error types should be reported.
 ```yaml
 sentry:
     error_types: E_ALL & ~E_DEPRECATED & ~E_NOTICE
+```
+
+## Customization
+
+It is possible to customize the configuration of the user context, as well
+as modify the client immediately before an exception is captured by wiring
+up an event subscriber to the events that are emitted by the default
+configured `ExceptionListener` (alternatively, you can also just defined
+your own custom exception listener).
+
+### Create a Custom ExceptionListener
+
+You can always replace the default `ExceptionListener` with your own custom
+listener. To do this, assign a different class to the `exception_listener`
+property in your Sentry configuration, e.g.:
+
+```yaml
+sentry:
+    exception_listener: AppBundle\EventListener\MySentryExceptionListener
+```
+
+... and then define the custom `ExceptionListener`, e.g.:
+
+```php
+// src/AppBundle/EventSubscriber/MySentryEventListener.php
+namespace AppBundle\EventSubscriber;
+
+use Symfony\Component\Console\Event\ConsoleExceptionEvent;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+
+class MySentryExceptionListener
+{
+    // ...
+
+    public function __construct(TokenStorageInterface $tokenStorage = null, AuthorizationCheckerInterface $authorizationChecker = null, EventDispatcherInterface $dispatcher = null, \Raven_Client $client = null, array $skipCapture)
+    {
+        // ...
+    }
+
+    public function onKernelRequest(GetResponseEvent $event)
+    {
+        // ...
+    }
+
+    public function onKernelException(GetResponseForExceptionEvent $event)
+    {
+        // ...
+    }
+
+    public function onConsoleException(ConsoleExceptionEvent $event)
+    {
+        // ...
+    }
+}
+```
+
+
+### Add an EventSubscriber for Sentry Events
+
+Create a new class, e.g. `MySentryEventSubscriber`:
+
+```php
+// src/AppBundle/EventSubscriber/MySentryEventListener.php
+namespace AppBundle\EventSubscriber;
+
+use Sentry\SentryBundle\Event\SentryUserContextEvent;
+use Sentry\SentryBundle\SentrySymfonyEvents;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+class MySentryEventSubscriber implements EventSubscriberInterface
+{
+    /** @var \Raven_Client */
+    protected $client;
+
+    public function __construct(\Raven_Client $client)
+    {
+        $this->client = $client;
+    }
+
+    public static function getSubscribedEvents()
+    {
+        // return the subscribed events, their methods and priorities
+        return array(
+            SentrySymfonyEvents::SET_USER_CONTEXT => 'onSetUserContext'
+        );
+    }
+
+    public function onSetUserContext(SentryUserContextEvent $event)
+    {
+        // ...
+    }
+}
+```
+
+To configure the above add the following configuration to your services
+definitions:
+
+```yaml
+app.my_sentry_event_subscriber:
+    class: AppBundle\EventSubscriber\MySentryEventSubscriber
+    arguments:
+      - '@sentry.client'
+    tags:
+      - { name: kernel.event_subscriber }
 ```

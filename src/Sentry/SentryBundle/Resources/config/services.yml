@@ -15,6 +15,7 @@ services:
         arguments:
           - '@?security.token_storage'
           - '@?security.authorization_checker'
+          - '@event_dispatcher'
           - '@sentry.client'
           - '%sentry.skip_capture%'
         tags:
