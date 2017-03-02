@@ -109,7 +109,7 @@ class ExceptionListener
         }
 
         if (null !== $this->dispatcher) {
-          $this->dispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
+            $this->dispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
         }
         $this->client->captureException($exception);
     }
@@ -134,7 +134,7 @@ class ExceptionListener
         );
 
         if (null !== $this->dispatcher) {
-          $this->dispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
+            $this->dispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
         }
         $this->client->captureException($exception, $data);
     }
