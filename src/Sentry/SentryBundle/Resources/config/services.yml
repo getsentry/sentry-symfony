@@ -18,6 +18,8 @@ services:
           - '@sentry.client'
           - '%sentry.skip_capture%'
           - '@event_dispatcher'
+        calls:
+          - [setLogger, ['@?logger']]
         tags:
             - { name: kernel.event_listener, event: kernel.request,    method: onKernelRequest }
             - { name: kernel.event_listener, event: kernel.exception,  method: onKernelException }

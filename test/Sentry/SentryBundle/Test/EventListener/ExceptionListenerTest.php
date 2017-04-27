@@ -649,4 +649,52 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
         $listener->onKernelException($mockEvent);
     }
+
+    public function test_that_it_logs_sentry_errors_if_logger_is_set()
+    {
+        $reportableException = new \Exception();
+
+        $mockEvent = $this
+            ->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent')
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
+
+        $mockEvent
+            ->expects($this->once())
+            ->method('getException')
+            ->willReturn($reportableException)
+        ;
+
+        $mockLogger = $this
+            ->getMockBuilder('\Psr\Log\LoggerInterface')
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
+
+        $this
+            ->mockSentryClient
+            ->expects($this->once())
+            ->method('captureException')
+            ->with($this->identicalTo($reportableException))
+        ;
+
+        $this
+            ->mockSentryClient
+            ->expects($this->exactly(2))
+            ->method('getLastError')
+            ->willReturn('some_error')
+        ;
+
+        $mockLogger
+            ->expects($this->once())
+            ->method('error')
+            ->with('Sentry error: some_error')
+        ;
+
+        $this->containerBuilder->compile();
+        $listener = $this->containerBuilder->get('sentry.exception_listener');
+        $listener->setLogger($mockLogger);
+        $listener->onKernelException($mockEvent);
+    }
 }
