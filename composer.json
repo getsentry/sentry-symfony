@@ -1,5 +1,5 @@
 {
-    "name": "sentry/sentry-symfony",
+    "name": "duxet/sentry-symfony",
     "type": "library",
     "description": "Symfony integration for Sentry (http://getsentry.com)",
     "keywords": ["logging", "errors", "symfony", "sentry"],
