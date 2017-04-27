@@ -28,6 +28,9 @@ class ExceptionListener
     /** @var \Raven_Client */
     protected $client;
 
+    /** @var \Psr\Log\LoggerInterface */
+    protected $logger;
+
     /** @var  string[] */
     protected $skipCapture;
 
@@ -63,6 +66,14 @@ class ExceptionListener
     }
 
     /**
+    * @param \Psr\Log\LoggerInterface $logger
+    */
+    public function setLogger($logger)
+    {
+        $this->logger = $logger;
+    }
+
+    /**
      * Set the username from the security context by listening on core.request
      *
      * @param GetResponseEvent $event
@@ -95,7 +106,7 @@ class ExceptionListener
             return;
         }
 
-        $this->client->captureException($exception);
+        $this->captureException($exception);
     }
 
     /**
@@ -117,7 +128,17 @@ class ExceptionListener
             ),
         );
 
+        $this->captureException($exception, $data);
+    }
+
+    private function captureException($exception, $data = array())
+    {
         $this->client->captureException($exception, $data);
+
+        if ($this->logger && $this->client->getLastError() !== null) {
+            $error = $this->client->getLastError();
+            $this->logger->error('Sentry error: ' . $error);
+        }
     }
     
     private function shouldExceptionCaptureBeSkipped(\Exception $exception)
