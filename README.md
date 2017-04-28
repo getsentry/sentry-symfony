@@ -179,7 +179,6 @@ class MySentryExceptionListener
 }
 ```
 
-
 ### Add an EventSubscriber for Sentry Events
 
 Create a new class, e.g. `MySentryEventSubscriber`:
@@ -206,6 +205,7 @@ class MySentryEventSubscriber implements EventSubscriberInterface
     {
         // return the subscribed events, their methods and priorities
         return array(
+            SentrySymfonyEvents::PRE_CAPTURE => 'onPreCapture',
             SentrySymfonyEvents::SET_USER_CONTEXT => 'onSetUserContext'
         );
     }
@@ -214,8 +214,26 @@ class MySentryEventSubscriber implements EventSubscriberInterface
     {
         // ...
     }
+
+    public function onPreCapture(Event $event)
+    {
+        if ($event instanceof GetResponseForExceptionEvent) {
+            // ...
+        }
+        elseif ($event instanceof ConsoleExceptionEvent) {
+            // ...
+        }
+    }
 }
 ```
+
+In the example above, if you subscribe to the `PRE_CAPTURE` event you may
+get an event object that caters more toward a response to a web request (e.g.
+`GetResponseForExceptionEvent`) or one for actions taken at the command line
+(e.g. `ConsoleExceptionEvent`). Depending on what and how the code was
+invoked, and whether or not you need to distinguish between these events
+during pre-capture, it might be best to test for the type of the event (as is
+demonstrated above) before you do any relevant processing of the object.
 
 To configure the above add the following configuration to your services
 definitions:
