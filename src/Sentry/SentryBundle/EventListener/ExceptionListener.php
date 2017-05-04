@@ -43,13 +43,14 @@ class ExceptionListener
      * @param AuthorizationCheckerInterface $authorizationChecker
      * @param \Raven_Client $client
      * @param array $skipCapture
+     * @param EventDispatcherInterface $dispatcher
      */
     public function __construct(
         TokenStorageInterface $tokenStorage = null,
         AuthorizationCheckerInterface $authorizationChecker = null,
-        EventDispatcherInterface $dispatcher = null,
         \Raven_Client $client = null,
-        array $skipCapture
+        array $skipCapture,
+        EventDispatcherInterface $dispatcher = null
     ) {
         if (!$client) {
             $client = new SentrySymfonyClient();
