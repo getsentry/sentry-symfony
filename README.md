@@ -157,7 +157,7 @@ class MySentryExceptionListener
 {
     // ...
 
-    public function __construct(TokenStorageInterface $tokenStorage = null, AuthorizationCheckerInterface $authorizationChecker = null, EventDispatcherInterface $dispatcher = null, \Raven_Client $client = null, array $skipCapture)
+    public function __construct(TokenStorageInterface $tokenStorage = null, AuthorizationCheckerInterface $authorizationChecker = null, \Raven_Client $client = null, array $skipCapture, EventDispatcherInterface $dispatcher = null)
     {
         // ...
     }
@@ -178,6 +178,10 @@ class MySentryExceptionListener
     }
 }
 ```
+
+As a side note, while the above demonstrates a custom exception listener that
+does not extend anything you could choose to extend the default
+`ExceptionListener` and only override the functionality that you want to.
 
 ### Add an EventSubscriber for Sentry Events
 
