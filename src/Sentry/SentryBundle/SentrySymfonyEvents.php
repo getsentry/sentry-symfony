@@ -5,9 +5,6 @@ namespace Sentry\SentryBundle;
 /**
  * Event names that are triggered to allow for further modification of the
  * Raven client during error processing.
- *
- * @author Sean Quinn <swquinn@gmail.com>
- * @package Sentry\SentryBundle\EventListener
  */
 class SentrySymfonyEvents
 {
