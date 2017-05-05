@@ -6,25 +6,25 @@ php:
   - 5.5
   - 5.6
   - 7.0
+  - 7.1
   - hhvm
 
 matrix:
   allow_failures:
     - php: hhvm
-    - php: 7.0
   fast_finish: true
 
 sudo: false
 
 cache:
   directories:
-    - $HOME/.composer/cache
+    - $HOME/.composer/cache/files
 
 before_install:
   - composer self-update
 
-install: travis_retry composer install --no-interaction --prefer-source
+install: travis_retry composer install --no-interaction --prefer-dist
 
 script:
-  - vendor/bin/php-cs-fixer fix --config-file=.php_cs --verbose --diff --dry-run
   - vendor/bin/phpunit
+  - vendor/bin/php-cs-fixer fix --config-file=.php_cs --verbose --diff --dry-run
