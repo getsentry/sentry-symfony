@@ -146,6 +146,7 @@ sentry:
 // src/AppBundle/EventSubscriber/MySentryEventListener.php
 namespace AppBundle\EventSubscriber;
 
+use Sentry\SentryBundle\EventListener\SentryExceptionListenerInterface;
 use Symfony\Component\Console\Event\ConsoleExceptionEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
@@ -153,7 +154,7 @@ use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
-class MySentryExceptionListener
+class MySentryExceptionListener implements SentryExceptionListenerInterface
 {
     // ...
 

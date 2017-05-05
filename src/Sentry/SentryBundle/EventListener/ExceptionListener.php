@@ -20,7 +20,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
  * Class ExceptionListener
  * @package Sentry\SentryBundle\EventListener
  */
-class ExceptionListener
+class ExceptionListener implements SentryExceptionListenerInterface
 {
     /** @var  TokenStorageInterface */
     private $tokenStorage;
