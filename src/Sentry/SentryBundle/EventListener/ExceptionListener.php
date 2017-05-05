@@ -50,7 +50,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
         AuthorizationCheckerInterface $authorizationChecker = null,
         \Raven_Client $client = null,
         array $skipCapture,
-        EventDispatcherInterface $dispatcher = null
+        EventDispatcherInterface $dispatcher
     ) {
         if (!$client) {
             $client = new SentrySymfonyClient();
@@ -109,9 +109,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
             return;
         }
 
-        if (null !== $this->dispatcher) {
-            $this->dispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
-        }
+        $this->dispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
         $this->client->captureException($exception);
     }
 
@@ -134,9 +132,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
             ),
         );
 
-        if (null !== $this->dispatcher) {
-            $this->dispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
-        }
+        $this->dispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
         $this->client->captureException($exception, $data);
     }
 
