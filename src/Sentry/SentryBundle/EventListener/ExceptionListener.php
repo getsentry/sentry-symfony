@@ -91,10 +91,8 @@ class ExceptionListener implements SentryExceptionListenerInterface
         if (null !== $token && $this->authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)) {
             $this->setUserValue($token->getUser());
 
-            if (null !== $this->dispatcher) {
-                $contextEvent = new SentryUserContextEvent($token);
-                $this->dispatcher->dispatch(SentrySymfonyEvents::SET_USER_CONTEXT, $contextEvent);
-            }
+            $contextEvent = new SentryUserContextEvent($token);
+            $this->dispatcher->dispatch(SentrySymfonyEvents::SET_USER_CONTEXT, $contextEvent);
         }
     }
 
