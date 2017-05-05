@@ -35,5 +35,4 @@ interface SentryExceptionListenerInterface
      * @param ConsoleExceptionEvent $event
      */
     public function onConsoleException(ConsoleExceptionEvent $event);
-
 }
