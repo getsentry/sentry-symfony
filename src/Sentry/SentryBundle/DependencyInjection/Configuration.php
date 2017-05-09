@@ -22,6 +22,9 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
+                ->booleanNode('enabled')
+                    ->defaultTrue()
+                ->end()
                 ->scalarNode('app_path')
                     ->defaultValue('%kernel.root_dir%/..')
                 ->end()

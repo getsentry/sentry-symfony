@@ -67,6 +67,10 @@ sentry:
 
 The following can be configured via ``app/config/config.yml``:
 
+### enabled
+
+Enable or disable reporting to Sentry. Defaults to true.
+
 ### app_path
 
 The base path to your application. Used to trim prefixes and mark frames as part of your application.
