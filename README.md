@@ -2,7 +2,13 @@
 
 Symfony integration for [Sentry](https://getsentry.com/).
 
-[![Build Status](https://travis-ci.org/getsentry/sentry-symfony.svg?branch=master)](https://travis-ci.org/getsentry/sentry-symfony)
+[![Stable release][Last stable image]][Packagist link]
+[![Unstable release][Last unstable image]][Packagist link]
+
+[![Build status][Master build image]][Master build link]
+[![Scrutinizer][Master scrutinizer image]][Master scrutinizer link]
+[![Coverage Status][Master coverage image]][Master coverage link]
+
 
 ## Installation
 
@@ -124,3 +130,14 @@ Define which error types should be reported.
 sentry:
     error_types: E_ALL & ~E_DEPRECATED & ~E_NOTICE
 ```
+
+[Last stable image]: https://poser.pugx.org/sentry/sentry-symfony/version.svg
+[Last unstable image]: https://poser.pugx.org/sentry/sentry-symfony/v/unstable.svg
+[Master build image]: https://travis-ci.org/getsentry/sentry-symfony.svg?branch=master
+[Master scrutinizer image]: https://scrutinizer-ci.com/g/getsentry/sentry-symfony/badges/quality-score.png?b=master
+[Master coverage image]: https://coveralls.io/repos/getsentry/sentry-symfony/badge.svg?branch=master&service=github
+
+[Packagist link]: https://packagist.org/packages/sentry/sentry-symfony
+[Master build link]: https://travis-ci.org/getsentry/sentry-symfony
+[Master scrutinizer link]: https://scrutinizer-ci.com/g/getsentry/sentry-symfony/?branch=master
+[Master coverage link]: https://coveralls.io/github/getsentry/sentry-symfony?branch=master
