@@ -5,7 +5,7 @@ namespace Sentry\SentryBundle\Event;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
-class SentryUserContextEvent extends Event implements SentryContextEventInterface
+class SentryUserContextEvent extends Event
 {
     private $authenticationToken;
 
