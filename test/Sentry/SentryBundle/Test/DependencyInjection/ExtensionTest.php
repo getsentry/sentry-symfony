@@ -133,6 +133,19 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    /**
+     * @expectedException Symfony\Component\Config\Definition\Exception\InvalidConfigurationException
+     */
+    public function test_that_it_is_invalid_if_exception_listener_fails_to_implement_required_interface()
+    {
+        $class = 'Sentry\SentryBundle\Test\Fixtures\InvalidExceptionListener';
+        $container = $this->getContainer(array(
+            static::CONFIG_ROOT => array(
+                'exception_listener' => $class,
+            ),
+        ));
+    }
+
     public function test_that_it_uses_defined_class_as_exception_listener_class_by_default()
     {
         $container = $this->getContainer();
@@ -145,14 +158,15 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
 
     public function test_that_it_uses_exception_listener_value()
     {
+        $class = 'Sentry\SentryBundle\Test\Fixtures\CustomExceptionListener';
         $container = $this->getContainer(array(
             static::CONFIG_ROOT => array(
-                'exception_listener' => 'exceptionListenerClass',
+                'exception_listener' => $class,
             ),
         ));
 
         $this->assertSame(
-            'exceptionListenerClass',
+            $class,
             $container->getParameter('sentry.exception_listener')
         );
     }
