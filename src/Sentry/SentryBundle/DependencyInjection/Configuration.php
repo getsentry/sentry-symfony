@@ -44,6 +44,10 @@ class Configuration implements ConfigurationInterface
                 ->end()
                 ->scalarNode('exception_listener')
                     ->defaultValue('Sentry\SentryBundle\EventListener\ExceptionListener')
+                    ->validate()
+                    ->ifTrue($this->getExceptionListenerInvalidationClosure())
+                        ->thenInvalid('The "sentry.exception_listener" parameter should be a FQCN of a class implementing the SentryExceptionListenerInterface interface')
+                    ->end()
                 ->end()
                 ->arrayNode('skip_capture')
                     ->treatNullLike(array())
@@ -71,5 +75,19 @@ class Configuration implements ConfigurationInterface
         ;
 
         return $treeBuilder;
+    }
+
+    /**
+     * @return \Closure
+     */
+    private function getExceptionListenerInvalidationClosure()
+    {
+        return function ($value) {
+            $implements = class_implements($value);
+            if ($implements === false) {
+                return true;
+            }
+            return !in_array('Sentry\SentryBundle\EventListener\SentryExceptionListenerInterface', $implements, true);
+        };
     }
 }

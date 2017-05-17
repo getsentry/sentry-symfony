@@ -3,7 +3,11 @@
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\SentryBundle;
+use Sentry\SentryBundle\Event\SentryUserContextEvent;
 use Sentry\SentryBundle\SentrySymfonyClient;
+use Sentry\SentryBundle\SentrySymfonyEvents;
+use Symfony\Component\Console\Event\ConsoleExceptionEvent;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -11,13 +15,12 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Console\Event\ConsoleExceptionEvent;
 
 /**
  * Class ExceptionListener
  * @package Sentry\SentryBundle\EventListener
  */
-class ExceptionListener
+class ExceptionListener implements SentryExceptionListenerInterface
 {
     /** @var  TokenStorageInterface */
     private $tokenStorage;
@@ -28,6 +31,9 @@ class ExceptionListener
     /** @var \Raven_Client */
     protected $client;
 
+    /** @var EventDispatcherInterface */
+    protected $eventDispatcher;
+
     /** @var  string[] */
     protected $skipCapture;
 
@@ -37,12 +43,14 @@ class ExceptionListener
      * @param AuthorizationCheckerInterface $authorizationChecker
      * @param \Raven_Client $client
      * @param array $skipCapture
+     * @param EventDispatcherInterface $dispatcher
      */
     public function __construct(
         TokenStorageInterface $tokenStorage = null,
         AuthorizationCheckerInterface $authorizationChecker = null,
         \Raven_Client $client = null,
-        array $skipCapture
+        array $skipCapture,
+        EventDispatcherInterface $dispatcher
     ) {
         if (!$client) {
             $client = new SentrySymfonyClient();
@@ -50,6 +58,7 @@ class ExceptionListener
 
         $this->tokenStorage = $tokenStorage;
         $this->authorizationChecker = $authorizationChecker;
+        $this->dispatcher = $dispatcher;
         $this->client = $client;
         $this->skipCapture = $skipCapture;
     }
@@ -81,6 +90,9 @@ class ExceptionListener
 
         if (null !== $token && $this->authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)) {
             $this->setUserValue($token->getUser());
+
+            $contextEvent = new SentryUserContextEvent($token);
+            $this->dispatcher->dispatch(SentrySymfonyEvents::SET_USER_CONTEXT, $contextEvent);
         }
     }
 
@@ -90,11 +102,12 @@ class ExceptionListener
     public function onKernelException(GetResponseForExceptionEvent $event)
     {
         $exception = $event->getException();
-        
+
         if ($this->shouldExceptionCaptureBeSkipped($exception)) {
             return;
         }
 
+        $this->dispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
         $this->client->captureException($exception);
     }
 
@@ -105,7 +118,7 @@ class ExceptionListener
     {
         $command = $event->getCommand();
         $exception = $event->getException();
-        
+
         if ($this->shouldExceptionCaptureBeSkipped($exception)) {
             return;
         }
@@ -117,9 +130,10 @@ class ExceptionListener
             ),
         );
 
+        $this->dispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
         $this->client->captureException($exception, $data);
     }
-    
+
     private function shouldExceptionCaptureBeSkipped(\Exception $exception)
     {
         foreach ($this->skipCapture as $className) {
