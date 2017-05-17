@@ -2,6 +2,7 @@
 -----
  - Add `SentryExceptionListenerInterface` and the `exception_listener` option in the configuration (#47) to allow customization of the exception listener
  - Add `SentrySymfonyEvents::PRE_CAPTURE` and `SentrySymfonyEvents::SET_USER_CONTEXT` events (#47) to customize event capturing information 
+ - Make SkipCapture work on console exceptions too
 
 0.7.1
 -----
