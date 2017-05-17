@@ -52,13 +52,13 @@ class ExceptionListener implements SentryExceptionListenerInterface
         array $skipCapture,
         EventDispatcherInterface $dispatcher
     ) {
-        if (!$client) {
+        if (! $client) {
             $client = new SentrySymfonyClient();
         }
 
         $this->tokenStorage = $tokenStorage;
         $this->authorizationChecker = $authorizationChecker;
-        $this->dispatcher = $dispatcher;
+        $this->eventDispatcher = $dispatcher;
         $this->client = $client;
         $this->skipCapture = $skipCapture;
     }
@@ -92,7 +92,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
             $this->setUserValue($token->getUser());
 
             $contextEvent = new SentryUserContextEvent($token);
-            $this->dispatcher->dispatch(SentrySymfonyEvents::SET_USER_CONTEXT, $contextEvent);
+            $this->eventDispatcher->dispatch(SentrySymfonyEvents::SET_USER_CONTEXT, $contextEvent);
         }
     }
 
@@ -107,7 +107,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
             return;
         }
 
-        $this->dispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
+        $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
         $this->client->captureException($exception);
     }
 
@@ -130,7 +130,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
             ),
         );
 
-        $this->dispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
+        $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
         $this->client->captureException($exception, $data);
     }
 
@@ -153,11 +153,13 @@ class ExceptionListener implements SentryExceptionListenerInterface
     {
         if ($user instanceof UserInterface) {
             $this->client->set_user_data($user->getUsername());
+
             return;
         }
 
         if (is_string($user)) {
             $this->client->set_user_data($user);
+
             return;
         }
 
