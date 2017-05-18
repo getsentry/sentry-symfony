@@ -1,6 +1,6 @@
 {
     "name": "sentry/sentry-symfony",
-    "type": "library",
+    "type": "symfony-bundle",
     "description": "Symfony integration for Sentry (http://getsentry.com)",
     "keywords": ["logging", "errors", "symfony", "sentry"],
     "homepage": "http://getsentry.com",
@@ -14,7 +14,7 @@
     "require": {
         "php": ">=5.3.3",
         "sentry/sentry": ">=1.5.0",
-        "symfony/symfony": ">=2.4.0"
+        "symfony/framework-bundle": ">=2.4.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^1.8.0",
