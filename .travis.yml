@@ -17,8 +17,6 @@ matrix:
   include:
     - php: 7.0
       env: COMPOSER_OPTIONS="--prefer-lowest --prefer-stable"
-    - php: 7.0
-      env: COMPOSER_OPTIONS=""
     - php: 7.1
       env: TEST_COVERAGE=true
   allow_failures:
