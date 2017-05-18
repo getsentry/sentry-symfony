@@ -20,6 +20,7 @@
         "friendsofphp/php-cs-fixer": "^1.8.0",
         "phpunit/phpunit": "^4.6.6"
     },
+    "minimum-stability": "dev",
     "autoload": {
         "psr-0" : {
             "Sentry\\SentryBundle\\": "src/"
