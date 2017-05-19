@@ -14,12 +14,12 @@
     "require": {
         "php": ">=5.3.3",
         "sentry/sentry": ">=1.5.0",
-        "symfony/config": "^2.4|^3.0",
-        "symfony/console": "^2.4|^3.0",
-        "symfony/dependency-injection": "^2.4|^3.0",
-        "symfony/event-dispatcher": "^2.4|^3.0",
-        "symfony/http-kernel": "^2.4|^3.0",
-        "symfony/security-core": "^2.4|^3.0"
+        "symfony/config": "^2.7|^3.0",
+        "symfony/console": "^2.7|^3.0",
+        "symfony/dependency-injection": "^2.7|^3.0",
+        "symfony/event-dispatcher": "^2.7|^3.0",
+        "symfony/http-kernel": "^2.7|^3.0",
+        "symfony/security-core": "^2.7|^3.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^1.8.0",
