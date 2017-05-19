@@ -12,6 +12,10 @@ php:
 
 matrix:
   include:
+    - php: 5.3
+      env: COMPOSER_OPTIONS="--prefer-lowest"
+    - php: 7.0
+      env: COMPOSER_OPTIONS="--prefer-lowest"
     - php: 7.1
       env: TEST_COVERAGE=true
   allow_failures:
@@ -26,7 +30,7 @@ before_install:
   - composer self-update
   - if [[ $TEST_COVERAGE ]]; then PHPUNIT_FLAGS="--coverage-clover clover.xml"; fi
 
-install: travis_retry composer install --no-interaction --prefer-dist
+install: travis_retry composer update --no-interaction --prefer-dist --prefer-stable $COMPOSER_OPTIONS
 
 script:
   - vendor/bin/phpunit -v $PHPUNIT_FLAGS
