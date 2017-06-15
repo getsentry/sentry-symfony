@@ -23,8 +23,13 @@ class SentryExtension extends Extension
         $config = $this->processConfiguration($configuration, $configs);
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yml');
+
         foreach ($config as $key => $value) {
             $container->setParameter('sentry.' . $key, $value);
+        }
+
+        foreach ($config['listener_priorities'] as $key => $priority) {
+            $container->setParameter('sentry.listener_priorities.' . $key, $priority);
         }
     }
 }

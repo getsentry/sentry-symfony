@@ -133,6 +133,20 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    public function test_that_it_has_default_priority_values()
+    {
+        $container = $this->getContainer();
+
+        $this->assertTrue($container->hasParameter('sentry.listener_priorities'));
+
+        $priorities = $container->getParameter('sentry.listener_priorities');
+        $this->assertInternalType('array', $priorities);
+
+        $this->assertSame(0, $priorities['request']);
+        $this->assertSame(0, $priorities['kernel_exception']);
+        $this->assertSame(0, $priorities['console_exception']);
+    }
+
     /**
      * @expectedException Symfony\Component\Config\Definition\Exception\InvalidConfigurationException
      */
@@ -274,9 +288,9 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(
             array(
-                array('event' => 'kernel.request', 'method' => 'onKernelRequest'),
-                array('event' => 'kernel.exception', 'method' => 'onKernelException'),
-                array('event' => 'console.exception', 'method' => 'onConsoleException'),
+                array('event' => 'kernel.request', 'method' => 'onKernelRequest', 'priority' => '%sentry.listener_priorities.request%' ),
+                array('event' => 'kernel.exception', 'method' => 'onKernelException', 'priority' => '%sentry.listener_priorities.kernel_exception%'),
+                array('event' => 'console.exception', 'method' => 'onConsoleException', 'priority' => '%sentry.listener_priorities.console_exception%'),
             ),
             $tags
         );
