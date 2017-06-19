@@ -71,6 +71,14 @@ class Configuration implements ConfigurationInterface
                         '%kernel.root_dir%/../var/cache',
                     ))
                 ->end()
+                ->arrayNode('listener_priorities')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('request')->defaultValue(0)->end()
+                        ->scalarNode('kernel_exception')->defaultValue(0)->end()
+                        ->scalarNode('console_exception')->defaultValue(0)->end()
+                    ->end()
+                ->end()
             ->end()
         ;
 
