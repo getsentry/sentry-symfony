@@ -130,6 +130,19 @@ sentry:
     error_types: E_ALL & ~E_DEPRECATED & ~E_NOTICE
 ```
 
+### Listeners' priority
+
+You can change the priority of the 3 default listeners of this bundle with the `listener_priorities` key of your config.
+The default value is `0`, and here are the 3 possible sub-keys:
+
+```yaml
+listener_priorities:
+    request: 0
+    kernel_exception: 0
+    console_exception: 0
+```
+
+... respectively for the `onKernelRequest`, `onKernelException` and `onConsoleException` events.
 
 ## Customization
 
