@@ -5,6 +5,7 @@ namespace Sentry\SentryBundle\EventListener;
 use Sentry\SentryBundle\Event\SentryUserContextEvent;
 use Sentry\SentryBundle\SentrySymfonyClient;
 use Sentry\SentryBundle\SentrySymfonyEvents;
+use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleExceptionEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
@@ -108,6 +109,19 @@ class ExceptionListener implements SentryExceptionListenerInterface
 
         $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
         $this->client->captureException($exception);
+    }
+
+    /**
+     * This method only ensures that the client and error handlers are registered at the start of the command
+     * execution cycle, and not only on exceptions
+     *
+     * @param ConsoleCommandEvent $event
+     *
+     * @return void
+     */
+    public function onConsoleCommand(ConsoleCommandEvent $event)
+    {
+        // only triggers loading of client, does not need to do anything.
     }
 
     /**
