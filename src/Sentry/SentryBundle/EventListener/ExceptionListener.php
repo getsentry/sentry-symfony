@@ -2,6 +2,7 @@
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Psr\Log\LoggerInterface;
 use Sentry\SentryBundle;
 use Sentry\SentryBundle\Event\SentryUserContextEvent;
 use Sentry\SentryBundle\SentrySymfonyClient;
@@ -38,6 +39,9 @@ class ExceptionListener implements SentryExceptionListenerInterface
     /** @var  string[] */
     protected $skipCapture;
 
+    /** @var \Psr\Log\LoggerInterface */
+    protected $logger;
+
     /**
      * ExceptionListener constructor.
      * @param TokenStorageInterface $tokenStorage
@@ -70,6 +74,14 @@ class ExceptionListener implements SentryExceptionListenerInterface
     public function setClient(\Raven_Client $client)
     {
         $this->client = $client;
+    }
+
+    /**
+    * @param \Psr\Log\LoggerInterface $logger
+    */
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
     }
 
     /**
@@ -108,8 +120,11 @@ class ExceptionListener implements SentryExceptionListenerInterface
             return;
         }
 
+
         $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
         $this->client->captureException($exception);
+
+        $this->captureException($exception);
     }
 
     /**
@@ -144,8 +159,19 @@ class ExceptionListener implements SentryExceptionListenerInterface
             ),
         );
 
+
         $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
+        $this->captureException($exception, $data);
+    }
+
+    private function captureException($exception, $data = array())
+    {
         $this->client->captureException($exception, $data);
+
+        if ($this->logger && $this->client->getLastError() !== null) {
+            $error = $this->client->getLastError();
+            $this->logger->error('Sentry error: ' . $error);
+        }
     }
 
     private function shouldExceptionCaptureBeSkipped(\Exception $exception)
