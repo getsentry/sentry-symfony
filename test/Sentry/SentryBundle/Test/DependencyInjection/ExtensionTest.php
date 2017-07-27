@@ -290,6 +290,7 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
             array(
                 array('event' => 'kernel.request', 'method' => 'onKernelRequest', 'priority' => '%sentry.listener_priorities.request%' ),
                 array('event' => 'kernel.exception', 'method' => 'onKernelException', 'priority' => '%sentry.listener_priorities.kernel_exception%'),
+                array('event' => 'console.command', 'method' => 'onConsoleCommand'),
                 array('event' => 'console.exception', 'method' => 'onConsoleException', 'priority' => '%sentry.listener_priorities.console_exception%'),
             ),
             $tags
