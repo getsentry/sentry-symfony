@@ -2,7 +2,6 @@
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\SentryBundle;
 use Sentry\SentryBundle\Event\SentryUserContextEvent;
 use Sentry\SentryBundle\SentrySymfonyClient;
 use Sentry\SentryBundle\SentrySymfonyEvents;
