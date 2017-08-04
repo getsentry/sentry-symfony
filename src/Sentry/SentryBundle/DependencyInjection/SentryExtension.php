@@ -24,15 +24,15 @@ class SentryExtension extends Extension
     {
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
-        $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yml');
 
         foreach ($config as $key => $value) {
-            $container->setParameter('sentry.'.$key, $value);
+            $container->setParameter('sentry.' . $key, $value);
         }
 
         foreach ($config['listener_priorities'] as $key => $priority) {
-            $container->setParameter('sentry.listener_priorities.'.$key, $priority);
+            $container->setParameter('sentry.listener_priorities.' . $key, $priority);
         }
 
         // TODO Can be removed when deprecated config options are removed
@@ -54,17 +54,17 @@ class SentryExtension extends Extension
 
             // old option is used
             if ($config[$option] !== $default && $config['options'][$option] === $default) {
-                $container->setParameter('sentry.options.'.$option, $config[$option]);
+                $container->setParameter('sentry.options.' . $option, $config[$option]);
             }
 
             // new option is used
             if ($config[$option] === $default && $config['options'][$option] !== $default) {
-                $container->setParameter('sentry.'.$option, $config[$option]);
+                $container->setParameter('sentry.' . $option, $config[$option]);
             }
 
             // both are used
             if ($config[$option] !== $default && $config['options'][$option] !== $default) {
-                $message = 'The configuration option sentry.'.$option.' is deprecated. Use sentry.options.'.$option.' instead!';
+                $message = 'The configuration option sentry.' . $option . ' is deprecated. Use sentry.options.' . $option . ' instead!';
                 throw new InvalidConfigurationException($message);
             }
         }
