@@ -54,66 +54,19 @@ class AppKernel extends Kernel
 
 ### Step 3: Configure the SDK
 
-Add your DSN to ``app/config/config.yml``:
-
-```yaml
-
-sentry:
-    dsn: "https://public:secret@sentry.example.com/1"
-```
-
-## Configuration
-
-The following can be configured via ``app/config/config.yml``:
-
-### app_path
-
-The base path to your application. Used to trim prefixes and mark frames as part of your application.
-
-```yaml
-sentry:
-    app_path: "/path/to/myapp"
-```
-
-### dsn
-
-[Sentry DSN](https://docs.sentry.io/quickstart/#configure-the-dsn) value of your project.
- Leaving this value empty will effectively disable Sentry reporting.
+Add your [Sentry DSN](https://docs.sentry.io/quickstart/#configure-the-dsn) value of your project to ``app/config/config.yml``.
+Leaving this value empty will effectively disable Sentry reporting.
 
 ```yaml
 sentry:
     dsn: "https://public:secret@sentry.example.com/1"
 ```
 
-### environment
+### Configuration
 
-The environment your code is running in (e.g. production).
+The following can be configured via ``app/config/config.yml``.
 
-```yaml
-sentry:
-    environment: "%kernel.environment%"
-```
-
-### release
-
-The version of your application. Often this is the git sha.
-
-```yaml
-sentry:
-    release: "beeee2a06521a60e646bbb8fe38702e61e4929bf"
-```
-
-### prefixes
-
-A list of prefixes to strip from filenames. Often these would be vendor/include paths.
-
-```yaml
-sentry:
-    prefixes:
-        - /usr/lib/include
-```
-
-### skip some exceptions
+#### Skip some exceptions
 
 ```yaml
 sentry:
@@ -121,16 +74,7 @@ sentry:
         - "Symfony\\Component\\HttpKernel\\Exception\\HttpExceptionInterface"
 ```
 
-### error types
-
-Define which error types should be reported.
-
-```yaml
-sentry:
-    error_types: E_ALL & ~E_DEPRECATED & ~E_NOTICE
-```
-
-### Listeners' priority
+#### Listeners' priority
 
 You can change the priority of the 3 default listeners of this bundle with the `listener_priorities` key of your config.
 The default value is `0`, and here are the 3 possible sub-keys:
@@ -143,6 +87,87 @@ listener_priorities:
 ```
 
 ... respectively for the `onKernelRequest`, `onKernelException` and `onConsoleException` events.
+
+#### Deprecated configuration options
+
+In previous releases of this bundle, some of the previous options where set outside of the options level of the configuration file. Those still work but are deprecated, and they will be dropped in the 2.x release, so you are advised to abandon them; to provide forward compatibility, they can be used alongside the standard syntax, but values must match. This is a list of those options:
+
+```yaml
+sentry:
+    app_path: ~
+    environment: ~
+    error_types: ~
+    prefixes: ~
+    release: ~
+    excluded_app_paths: ~
+```
+
+#### Options
+
+In the following section you will find some of the available options you can configure. All available options and a more detailed description of each can be found [here](https://docs.sentry.io/clients/php/config/).
+
+##### app_path
+
+The base path to your application. Used to trim prefixes and mark frames as part of your application.
+
+```yaml
+sentry:
+    options:
+        app_path: "/path/to/myapp"
+```
+
+##### environment
+
+The environment your code is running in (e.g. production).
+
+```yaml
+sentry:
+    options:
+        environment: "%kernel.environment%"
+```
+
+##### release
+
+The version of your application. Often this is the git sha.
+
+```yaml
+sentry:
+    options:
+        release: "beeee2a06521a60e646bbb8fe38702e61e4929bf"
+```
+
+##### prefixes
+
+A list of prefixes to strip from filenames. Often these would be vendor/include paths.
+
+```yaml
+sentry:
+    options:
+        prefixes:
+            - /usr/lib/include
+```
+
+##### error types
+
+Define which error types should be reported.
+
+```yaml
+sentry:
+    options:
+        error_types: E_ALL & ~E_DEPRECATED & ~E_NOTICE
+```
+
+##### tags
+
+Define tags for the logged errors.
+
+```yaml
+sentry:
+    options:
+        tags:
+            tag1: tagvalue
+            tag2: tagvalue
+```
 
 ## Customization
 
@@ -160,7 +185,8 @@ property in your Sentry configuration, e.g.:
 
 ```yaml
 sentry:
-    exception_listener: AppBundle\EventListener\MySentryExceptionListener
+    options:
+        exception_listener: AppBundle\EventListener\MySentryExceptionListener
 ```
 
 ... and then define the custom `ExceptionListener`, e.g.:
@@ -284,4 +310,3 @@ app.my_sentry_event_subscriber:
 [Packagist link]: https://packagist.org/packages/sentry/sentry-symfony
 [Master build link]: https://travis-ci.org/getsentry/sentry-symfony
 [Master scrutinizer link]: https://scrutinizer-ci.com/g/getsentry/sentry-symfony/?branch=master
-
