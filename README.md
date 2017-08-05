@@ -88,6 +88,20 @@ listener_priorities:
 
 ... respectively for the `onKernelRequest`, `onKernelException` and `onConsoleException` events.
 
+#### Deprecated configuration options
+
+In previous releases of this bundle, some of the previous options where set outside of the options level of the configuration file. Those still work but are deprecated, and they will be dropped in the 2.x release, so you are advised to abandon them; to provide forward compatibility, they can be used alongside the standard syntax, but values must match. This is a list of those options:
+
+```yaml
+sentry:
+    app_path: ~
+    environment: ~
+    error_types: ~
+    prefixes: ~
+    release: ~
+    excluded_app_paths: ~
+```
+
 #### Options
 
 In the following section you will find some of the available options you can configure. All available options and a more detailed description of each can be found [here](https://docs.sentry.io/clients/php/config/).
