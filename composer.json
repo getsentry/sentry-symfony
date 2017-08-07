@@ -27,7 +27,7 @@
     },
     "autoload": {
         "psr-0" : {
-            "Sentry\\SentryBundle\\": "src/"
+            "Sentry\\SentryBundle\\": "src/Sentry/SentryBundle"
         }
     },
     "extra": {
