@@ -2,6 +2,7 @@
 
 namespace Sentry\SentryBundle\DependencyInjection;
 
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
@@ -16,6 +17,8 @@ class SentryExtension extends Extension
 {
     /**
      * {@inheritDoc}
+     *
+     * @throws InvalidConfigurationException
      */
     public function load(array $configs, ContainerBuilder $container)
     {
@@ -31,5 +34,57 @@ class SentryExtension extends Extension
         foreach ($config['listener_priorities'] as $key => $priority) {
             $container->setParameter('sentry.listener_priorities.' . $key, $priority);
         }
+
+        // TODO Can be removed when deprecated config options are removed
+        $this->checkConfigurationOnForInvalidSettings($config, $container);
+    }
+
+    /**
+     * Synchronises old deprecated and new configuration values to have the same value.
+     * An exception will be thrown if new and deprecated options are both set to non default values.
+     *
+     * @param array            $config
+     * @param ContainerBuilder $container
+     *
+     * @throws InvalidConfigurationException
+     */
+    private function checkConfigurationOnForInvalidSettings(array $config, ContainerBuilder $container)
+    {
+        foreach ($this->getDeprecatedOptionsWithDefaults() as $option => $default) {
+
+            // old option is used
+            if ($config[$option] !== $default && $config['options'][$option] === $default) {
+                $container->setParameter('sentry.options.' . $option, $config[$option]);
+            }
+
+            // new option is used
+            if ($config[$option] === $default && $config['options'][$option] !== $default) {
+                $container->setParameter('sentry.' . $option, $config[$option]);
+            }
+
+            // both are used
+            if ($config[$option] !== $default && $config['options'][$option] !== $default) {
+                $message = 'The configuration option sentry.' . $option . ' is deprecated. Use sentry.options.' . $option . ' instead!';
+                throw new InvalidConfigurationException($message);
+            }
+        }
+    }
+
+    /**
+     * @return array
+     */
+    private function getDeprecatedOptionsWithDefaults()
+    {
+        return array(
+            'environment' => '%kernel.environment%',
+            'app_path' => '%kernel.root_dir%/..',
+            'release' => null,
+            'prefixes' => array('%kernel.root_dir%/..'),
+            'excluded_app_paths' => array(
+                '%kernel.root_dir%/../vendor',
+                '%kernel.root_dir%/../app/cache',
+                '%kernel.root_dir%/../var/cache',
+            ),
+        );
     }
 }

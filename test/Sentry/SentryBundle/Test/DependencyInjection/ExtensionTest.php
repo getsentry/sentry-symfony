@@ -19,13 +19,15 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    public function test_that_it_uses_app_path_value()
+    public function test_that_it_uses_deprecated_app_path_value()
     {
-        $container = $this->getContainer(array(
-            static::CONFIG_ROOT => array(
-                'app_path' => 'sentry/app/path',
-            ),
-        ));
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'app_path' => 'sentry/app/path',
+                ),
+            )
+        );
 
         $this->assertSame(
             'sentry/app/path',
@@ -33,13 +35,41 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    public function test_vendor_in_default_excluded_paths()
+    public function test_that_it_uses_app_path_value()
+    {
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'options' => array('app_path' => 'sentry/app/path'),
+                ),
+            )
+        );
+
+        $options = $container->getParameter('sentry.options');
+        $this->assertSame(
+            'sentry/app/path',
+            $options['app_path']
+        );
+    }
+
+    public function test_vendor_in_deprecated_default_excluded_paths()
     {
         $container = $this->getContainer();
 
         $this->assertContains(
             'kernel/root/../vendor',
             $container->getParameter('sentry.excluded_app_paths')
+        );
+    }
+
+    public function test_vendor_in_default_excluded_paths()
+    {
+        $container = $this->getContainer();
+
+        $options = $container->getParameter('sentry.options');
+        $this->assertContains(
+            'kernel/root/../vendor',
+            $options['excluded_app_paths']
         );
     }
 
@@ -55,11 +85,13 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
 
     public function test_that_it_uses_client_value()
     {
-        $container = $this->getContainer(array(
-            static::CONFIG_ROOT => array(
-                'client' => 'clientClass',
-            ),
-        ));
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'client' => 'clientClass',
+                ),
+            )
+        );
 
         $this->assertSame(
             'clientClass',
@@ -67,7 +99,7 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    public function test_that_it_uses_kernel_environment_as_environment_by_default()
+    public function test_that_it_uses_kernel_environment_as_environment_by_default_for_deprecated_config()
     {
         $container = $this->getContainer();
 
@@ -77,13 +109,26 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    public function test_that_it_uses_environment_value()
+    public function test_that_it_uses_kernel_environment_as_environment_by_default()
     {
-        $container = $this->getContainer(array(
-            static::CONFIG_ROOT => array(
-                'environment' => 'custom_env',
-            ),
-        ));
+        $container = $this->getContainer();
+
+        $options = $container->getParameter('sentry.options');
+        $this->assertSame(
+            'test',
+            $options['environment']
+        );
+    }
+
+    public function test_that_it_uses_environment_value_for_deprecated_config()
+    {
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'environment' => 'custom_env',
+                ),
+            )
+        );
 
         $this->assertSame(
             'custom_env',
@@ -91,23 +136,41 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    public function test_that_it_uses_environment_value()
+    {
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'options' => array('environment' => 'custom_env'),
+                ),
+            )
+        );
+
+        $options = $container->getParameter('sentry.options');
+        $this->assertSame(
+            'custom_env',
+            $options['environment']
+        );
+    }
+
     public function test_that_it_uses_null_as_dsn_default_value()
     {
         $container = $this->getContainer();
 
-        $this->assertSame(
-            null,
+        $this->assertNull(
             $container->getParameter('sentry.dsn')
         );
     }
 
     public function test_that_it_uses_dsn_value()
     {
-        $container = $this->getContainer(array(
-            static::CONFIG_ROOT => array(
-                'dsn' => 'custom_dsn',
-            ),
-        ));
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'dsn' => 'custom_dsn',
+                ),
+            )
+        );
 
         $this->assertSame(
             'custom_dsn',
@@ -117,13 +180,15 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
 
     public function test_that_it_uses_options_value()
     {
-        $container = $this->getContainer(array(
-            static::CONFIG_ROOT => array(
-                'options' => array(
-                    'http_proxy' => 'http://user:password@host:port'
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'options' => array(
+                        'http_proxy' => 'http://user:password@host:port',
+                    ),
                 ),
-            ),
-        ));
+            )
+        );
 
         $options = $container->getParameter('sentry.options');
 
@@ -153,11 +218,13 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
     public function test_that_it_is_invalid_if_exception_listener_fails_to_implement_required_interface()
     {
         $class = 'Sentry\SentryBundle\Test\Fixtures\InvalidExceptionListener';
-        $container = $this->getContainer(array(
-            static::CONFIG_ROOT => array(
-                'exception_listener' => $class,
-            ),
-        ));
+        $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'exception_listener' => $class,
+                ),
+            )
+        );
     }
 
     public function test_that_it_uses_defined_class_as_exception_listener_class_by_default()
@@ -173,11 +240,13 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
     public function test_that_it_uses_exception_listener_value()
     {
         $class = 'Sentry\SentryBundle\Test\Fixtures\CustomExceptionListener';
-        $container = $this->getContainer(array(
-            static::CONFIG_ROOT => array(
-                'exception_listener' => $class,
-            ),
-        ));
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'exception_listener' => $class,
+                ),
+            )
+        );
 
         $this->assertSame(
             $class,
@@ -199,14 +268,16 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
 
     public function test_that_it_uses_skipped_capture_value()
     {
-        $container = $this->getContainer(array(
-            static::CONFIG_ROOT => array(
-                'skip_capture' => array(
-                    'classA',
-                    'classB',
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'skip_capture' => array(
+                        'classA',
+                        'classB',
+                    ),
                 ),
-            ),
-        ));
+            )
+        );
 
         $this->assertSame(
             array('classA', 'classB'),
@@ -214,23 +285,34 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    public function test_that_it_uses_null_as_release_by_default()
+    public function test_that_it_uses_null_as_release_by_default_for_deprecated_config()
     {
         $container = $this->getContainer();
 
-        $this->assertSame(
-            null,
+        $this->assertNull(
             $container->getParameter('sentry.release')
         );
     }
 
-    public function test_that_it_uses_release_value()
+    public function test_that_it_uses_null_as_release_by_default()
     {
-        $container = $this->getContainer(array(
-            static::CONFIG_ROOT => array(
-                'release' => '1.0',
-            ),
-        ));
+        $container = $this->getContainer();
+
+        $options = $container->getParameter('sentry.options');
+        $this->assertNull(
+            $options['release']
+        );
+    }
+
+    public function test_that_it_uses_release_value_for_deprecated_config()
+    {
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'release' => '1.0',
+                ),
+            )
+        );
 
         $this->assertSame(
             '1.0',
@@ -238,7 +320,24 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    public function test_that_it_uses_array_with_kernel_parent_as_prefix_by_default()
+    public function test_that_it_uses_release_value()
+    {
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'options' => array('release' => '1.0'),
+                ),
+            )
+        );
+
+        $options = $container->getParameter('sentry.options');
+        $this->assertSame(
+            '1.0',
+            $options['release']
+        );
+    }
+
+    public function test_that_it_uses_array_with_kernel_parent_as_prefix_by_default_for_deprecated_config()
     {
         $container = $this->getContainer();
 
@@ -248,20 +347,55 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    public function test_that_it_uses_prefixes_value()
+    public function test_that_it_uses_array_with_kernel_parent_as_prefix_by_default()
     {
-        $container = $this->getContainer(array(
-            static::CONFIG_ROOT => array(
-                'prefixes' => array(
-                    'dirA',
-                    'dirB',
+        $container = $this->getContainer();
+
+        $options = $container->getParameter('sentry.options');
+        $this->assertSame(
+            array('kernel/root/..'),
+            $options['prefixes']
+        );
+    }
+
+    public function test_that_it_uses_prefixes_value_for_deprecated_config()
+    {
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'prefixes' => array(
+                        'dirA',
+                        'dirB',
+                    ),
                 ),
-            ),
-        ));
+            )
+        );
 
         $this->assertSame(
             array('dirA', 'dirB'),
             $container->getParameter('sentry.prefixes')
+        );
+    }
+
+    public function test_that_it_uses_prefixes_value()
+    {
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'options' => array(
+                        'prefixes' => array(
+                            'dirA',
+                            'dirB',
+                        ),
+                    ),
+                ),
+            )
+        );
+
+        $options = $container->getParameter('sentry.options');
+        $this->assertSame(
+            array('dirA', 'dirB'),
+            $options['prefixes']
         );
     }
 
@@ -288,12 +422,102 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(
             array(
-                array('event' => 'kernel.request', 'method' => 'onKernelRequest', 'priority' => '%sentry.listener_priorities.request%' ),
-                array('event' => 'kernel.exception', 'method' => 'onKernelException', 'priority' => '%sentry.listener_priorities.kernel_exception%'),
+                array(
+                    'event' => 'kernel.request',
+                    'method' => 'onKernelRequest',
+                    'priority' => '%sentry.listener_priorities.request%',
+                ),
+                array(
+                    'event' => 'kernel.exception',
+                    'method' => 'onKernelException',
+                    'priority' => '%sentry.listener_priorities.kernel_exception%',
+                ),
                 array('event' => 'console.command', 'method' => 'onConsoleCommand'),
-                array('event' => 'console.exception', 'method' => 'onConsoleException', 'priority' => '%sentry.listener_priorities.console_exception%'),
+                array(
+                    'event' => 'console.exception',
+                    'method' => 'onConsoleException',
+                    'priority' => '%sentry.listener_priorities.console_exception%',
+                ),
             ),
             $tags
+        );
+    }
+
+    /**
+     * @expectedException Symfony\Component\Config\Definition\Exception\InvalidConfigurationException
+     */
+    public function test_that_it_throws_an_exception_on_a_mismatch_between_deprecated_and_new_configuration_options()
+    {
+        $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'environment' => '123test',
+                    'options' => array(
+                        'environment' => 'test123',
+                    ),
+                ),
+            )
+        );
+    }
+
+    public function test_that_it_sets_all_options()
+    {
+        $config = array(
+            'options' => array(
+                'logger' => 'logger',
+                'server' => 'server',
+                'secret_key' => 'secret_key',
+                'public_key' => 'public_key',
+                'project' => 'project',
+                'auto_log_stacks' => true,
+                'name' => 'name',
+                'site' => 'site',
+                'tags' => array(
+                    'tag1' => 'tagname',
+                    'tag2' => 'tagename 2',
+                ),
+                'release' => 'release',
+                'environment' => 'environment',
+                'sample_rate' => 0.9,
+                'trace' => false,
+                'timeout' => 1,
+                'message_limit' => 512,
+                'exclude' => array(
+                    'test1',
+                    'test2',
+                ),
+                'http_proxy' => 'http_proxy',
+                'extra' => array(
+                    'extra1' => 'extra1',
+                    'extra2' => 'extra2',
+                ),
+                'curl_method' => 'curl_method',
+                'curl_path' => 'curl_path',
+                'curl_ipv4' => false,
+                'ca_cert' => 'ca_cert',
+                'verify_ssl' => false,
+                'curl_ssl_version' => 'curl_ssl_version',
+                'trust_x_forwarded_proto' => true,
+                'mb_detect_order' => 'mb_detect_order',
+                'error_types' => array('error_types1' => 'error_types1'),
+                'app_path' => 'app_path',
+                'excluded_app_paths' => array('excluded_app_path1', 'excluded_app_path2'),
+                'prefixes' => array('prefix1', 'prefix2'),
+                'install_default_breadcrumb_handlers' => false,
+                'install_shutdown_handler' => false,
+                'processors' => array('processor1', 'processor2'),
+                'processorOptions' => array(
+                    'processorOption1' => 'asasdf',
+                ),
+            ),
+        );
+
+        $container = $this->getContainer(array(static::CONFIG_ROOT => $config));
+
+        $options = $container->getParameter('sentry.options');
+        $this->assertSame(
+            $config['options'],
+            $options
         );
     }
 
@@ -304,8 +528,7 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
         $containerBuilder->setParameter('kernel.environment', 'test');
 
         $mockEventDispatcher = $this
-            ->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface')
-        ;
+            ->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
 
         $containerBuilder->set('event_dispatcher', $mockEventDispatcher);
 
