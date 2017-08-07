@@ -6,6 +6,33 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 0.8.3 - 2017-08-07
+### Changed
+ - Migrate all the options from the config root to `sentry.options` (#68); the affected options are still usable in the old form, but they will generate deprecation notices. They will be dropped in the 1.0 release.
+
+Before:
+```yaml
+sentry:
+  app_path: ~
+  environment: ~
+  error_types: ~
+  excluded_app_paths: ~
+  prefixes: ~
+  release: ~
+```
+After:
+```yaml
+sentry:
+  options:
+    app_path: ~
+    environment: ~
+    error_types: ~
+    excluded_app_paths: ~
+    prefixes: ~
+    release: ~
+```
+ - Migrate from PSR-0 to PSR-4
+
 ## 0.8.2 - 2017-07-28
 ### Fixed
  - Fix previous release with cherry pick of the right commit from #67
