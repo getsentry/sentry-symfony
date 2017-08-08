@@ -72,7 +72,7 @@ class SentryExtension extends Extension
 
             // both are used
             if (
-                $config[$option] !== $default 
+                $config[$option] !== $default
                 && $config['options'][$option] !== $default
                 && $config['options'][$option] !== $config[$option]
             ) {
