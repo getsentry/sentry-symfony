@@ -71,7 +71,11 @@ class SentryExtension extends Extension
             }
 
             // both are used
-            if ($config[$option] !== $default && $config['options'][$option] !== $default) {
+            if (
+                $config[$option] !== $default 
+                && $config['options'][$option] !== $default
+                && $config['options'][$option] !== $config[$option]
+            ) {
                 $message = sprintf(
                     'You are using both the deprecated option sentry.%s and the new sentry.options.%s, but values do not match. Drop the deprecated one or make the values identical.',
                     $option,

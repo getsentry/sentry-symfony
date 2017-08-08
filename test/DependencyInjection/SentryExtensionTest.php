@@ -5,7 +5,7 @@ namespace Sentry\SentryBundle\Test\DependencyInjection;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-class ExtensionTest extends \PHPUnit_Framework_TestCase
+class SentryExtensionTest extends \PHPUnit_Framework_TestCase
 {
     const CONFIG_ROOT = 'sentry';
 
@@ -49,6 +49,38 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
         $this->assertSame(
             'sentry/app/path',
             $options['app_path']
+        );
+    }
+
+    public function test_that_it_uses_both_new_and_deprecated_values()
+    {
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'app_path' => 'sentry/app/path',
+                    'options' => array('app_path' => 'sentry/app/path'),
+                ),
+            )
+        );
+
+        $options = $container->getParameter('sentry.options');
+        $this->assertSame(
+            'sentry/app/path',
+            $options['app_path']
+        );
+    }
+
+    public function test_that_throws_exception_if_new_and_deprecated_values_dont_match()
+    {
+        $this->setExpectedException('Symfony\Component\Config\Definition\Exception\InvalidConfigurationException');
+
+        $this->getContainer(
+            array(
+                'app_path' => 'sentry/app/path',
+                static::CONFIG_ROOT => array(
+                    'options' => array('app_path' => 'sentry/different/app/path'),
+                ),
+            )
         );
     }
 
