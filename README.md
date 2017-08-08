@@ -62,11 +62,11 @@ sentry:
     dsn: "https://public:secret@sentry.example.com/1"
 ```
 
-### Configuration
+## Configuration
 
-The following can be configured via ``app/config/config.yml``.
+The following options can be configured via ``app/config/config.yml``.
 
-#### Skip some exceptions
+### Skip some exceptions
 
 ```yaml
 sentry:
@@ -74,7 +74,7 @@ sentry:
         - "Symfony\\Component\\HttpKernel\\Exception\\HttpExceptionInterface"
 ```
 
-#### Listeners' priority
+### Listeners' priority
 
 You can change the priority of the 3 default listeners of this bundle with the `listener_priorities` key of your config.
 The default value is `0`, and here are the 3 possible sub-keys:
@@ -88,27 +88,13 @@ listener_priorities:
 
 ... respectively for the `onKernelRequest`, `onKernelException` and `onConsoleException` events.
 
-#### Deprecated configuration options
+### Options
 
-In previous releases of this bundle, some of the previous options where set outside of the options level of the configuration file. Those still work but are deprecated, and they will be dropped in the 2.x release, so you are advised to abandon them; to provide forward compatibility, they can be used alongside the standard syntax, but values must match. This is a list of those options:
+In the following section you will find some of the available options you can configure, listed alphabetically. All available options and a more detailed description of each can be found [here](https://docs.sentry.io/clients/php/config/), in the Sentry documentation.
 
-```yaml
-sentry:
-    app_path: ~
-    environment: ~
-    error_types: ~
-    prefixes: ~
-    release: ~
-    excluded_app_paths: ~
-```
+#### app_path
 
-#### Options
-
-In the following section you will find some of the available options you can configure. All available options and a more detailed description of each can be found [here](https://docs.sentry.io/clients/php/config/).
-
-##### app_path
-
-The base path to your application. Used to trim prefixes and mark frames as part of your application.
+The base path to your application. Used to trim prefixes and mark frames of the stack trace as part of your application.
 
 ```yaml
 sentry:
@@ -116,7 +102,7 @@ sentry:
         app_path: "/path/to/myapp"
 ```
 
-##### environment
+#### environment
 
 The environment your code is running in (e.g. production).
 
@@ -126,17 +112,27 @@ sentry:
         environment: "%kernel.environment%"
 ```
 
-##### release
+#### error types
 
-The version of your application. Often this is the git sha.
+Define which error types should be reported.
 
 ```yaml
 sentry:
     options:
-        release: "beeee2a06521a60e646bbb8fe38702e61e4929bf"
+        error_types: E_ALL & ~E_DEPRECATED & ~E_NOTICE
 ```
 
-##### prefixes
+#### exception_listener
+
+This is used to replace the default exception listener that this bundle uses. The value must be a FQCN of a class implementing the SentryExceptionListenerInterface interface. See [Create a Custom ExceptionListener](#create-a-custom-exceptionlistener) for more details.
+
+```yaml
+sentry:
+    options:
+        exception_listener: AppBundle\EventListener\MySentryExceptionListener
+```
+
+#### prefixes
 
 A list of prefixes to strip from filenames. Often these would be vendor/include paths.
 
@@ -147,17 +143,17 @@ sentry:
             - /usr/lib/include
 ```
 
-##### error types
+#### release
 
-Define which error types should be reported.
+The version of your application. Often this is the Git SHA hash of the commit.
 
 ```yaml
 sentry:
     options:
-        error_types: E_ALL & ~E_DEPRECATED & ~E_NOTICE
+        release: "beeee2a06521a60e646bbb8fe38702e61e4929bf"
 ```
 
-##### tags
+#### tags
 
 Define tags for the logged errors.
 
@@ -169,19 +165,27 @@ sentry:
             tag2: tagvalue
 ```
 
+### Deprecated configuration options
+
+In previous releases of this bundle, up to 0.8.2, some of the previous options where set outside of the options level of the configuration file. Those still work but are deprecated, and they will be dropped in the stable 1.x release, so **you are advised to abandon them**; to provide forward compatibility, they can still be used alongside the standard syntax, but values must match. This is a list of those options:
+
+```yaml
+sentry:
+    app_path: ~
+    environment: ~
+    error_types: ~
+    excluded_app_paths: ~
+    prefixes: ~
+    release: ~
+```
+
 ## Customization
 
-It is possible to customize the configuration of the user context, as well
-as modify the client immediately before an exception is captured by wiring
-up an event subscriber to the events that are emitted by the default
-configured `ExceptionListener` (alternatively, you can also just defined
-your own custom exception listener).
+It is possible to customize the configuration of the user context, as well as modify the client immediately before an exception is captured by wiring up an event subscriber to the events that are emitted by the default configured `ExceptionListener` (alternatively, you can also just define your own custom exception listener).
 
-### Create a Custom ExceptionListener
+### Create a custom ExceptionListener
 
-You can always replace the default `ExceptionListener` with your own custom
-listener. To do this, assign a different class to the `exception_listener`
-property in your Sentry configuration, e.g.:
+You can always replace the default `ExceptionListener` with your own custom listener. To do this, assign a different class to the `exception_listener` property in your Sentry configuration, e.g.:
 
 ```yaml
 sentry:
@@ -189,7 +193,7 @@ sentry:
         exception_listener: AppBundle\EventListener\MySentryExceptionListener
 ```
 
-... and then define the custom `ExceptionListener`, e.g.:
+... and then define the custom `ExceptionListener` that implements the `SentryExceptionListenerInterface`, e.g.:
 
 ```php
 // src/AppBundle/EventSubscriber/MySentryEventListener.php

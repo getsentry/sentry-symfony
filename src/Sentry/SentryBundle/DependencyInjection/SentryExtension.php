@@ -51,8 +51,16 @@ class SentryExtension extends Extension
     private function checkConfigurationOnForInvalidSettings(array $config, ContainerBuilder $container)
     {
         foreach ($this->getDeprecatedOptionsWithDefaults() as $option => $default) {
-
             // old option is used
+            if ($config[$option] !== $default) {
+                $deprecationMessage = sprintf(
+                    'The usage of sentry.%s is deprecated since version 0.8.3 and will be removed in 1.0. Use sentry.options.%s instead.',
+                    $option,
+                    $option
+                );
+                @trigger_error($deprecationMessage, E_USER_DEPRECATED);
+            }
+
             if ($config[$option] !== $default && $config['options'][$option] === $default) {
                 $container->setParameter('sentry.options.' . $option, $config[$option]);
             }
@@ -64,7 +72,11 @@ class SentryExtension extends Extension
 
             // both are used
             if ($config[$option] !== $default && $config['options'][$option] !== $default) {
-                $message = 'The configuration option sentry.' . $option . ' is deprecated. Use sentry.options.' . $option . ' instead!';
+                $message = sprintf(
+                    'You are using both the deprecated option sentry.%s and the new sentry.options.%s, but values do not match. Drop the deprecated one or make the values identical.',
+                    $option,
+                    $option
+                );
                 throw new InvalidConfigurationException($message);
             }
         }

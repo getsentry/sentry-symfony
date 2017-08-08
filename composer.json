@@ -26,13 +26,18 @@
         "phpunit/phpunit": "^4.6.6"
     },
     "autoload": {
-        "psr-0" : {
-            "Sentry\\SentryBundle\\": "src/"
+        "psr-4" : {
+            "Sentry\\SentryBundle\\": "src/Sentry/SentryBundle"
+        }
+    },
+    "autoload-dev": {
+        "psr-4" : {
+            "Sentry\\SentryBundle\\Test\\": "test"
         }
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "0.9.x-dev"
+            "dev-master": "0.8.x-dev"
         }
     }
 }
