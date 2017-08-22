@@ -194,6 +194,32 @@ class SentryExtensionTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    /**
+     * @dataProvider emptyDsnValueProvider
+     */
+    public function test_that_it_ignores_empty_dsn_value($emptyDsn)
+    {
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'dsn' => $emptyDsn,
+                ),
+            )
+        );
+
+        $this->assertNull($container->getParameter('sentry.dsn'));
+    }
+
+    public function emptyDsnValueProvider()
+    {
+        return array(
+            array(null),
+            array(''),
+            array(' '),
+            array('    '),
+        );
+    }
+
     public function test_that_it_uses_dsn_value()
     {
         $container = $this->getContainer(

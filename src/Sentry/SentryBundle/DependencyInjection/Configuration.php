@@ -23,6 +23,14 @@ class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('sentry');
+        $trimClosure = function ($str) {
+            $value = trim($str);
+            if ($value === '') {
+                return null;
+            }
+
+            return $value;
+        };
 
         $rootNode
             ->children()
@@ -36,6 +44,10 @@ class Configuration implements ConfigurationInterface
                     ->defaultValue('%kernel.environment%')
                 ->end()
                 ->scalarNode('dsn')
+                    ->beforeNormalization()
+                        ->ifString()
+                        ->then($trimClosure)
+                    ->end()
                     ->defaultNull()
                 ->end()
                 ->arrayNode('options')

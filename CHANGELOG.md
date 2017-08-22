@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 0.8.5 - 2017-08-22
+### Fixed
+ - `trim()` DSN value from config, to avoid issues with .env files on BitBucket (see https://github.com/getsentry/sentry-symfony/pull/21#issuecomment-323673938)
+
 ## 0.8.4 - 2017-08-08
 ### Fixed
  - Fix exception being thrown when both deprecated and new options are used.
