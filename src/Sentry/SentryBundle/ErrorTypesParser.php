@@ -33,18 +33,15 @@ class ErrorTypesParser
             array(".", ""),
             $this->expression
         );
-        // remove anything which could be a security issue
-        $this->expression = preg_replace("/[^\d.+*%^|&~<>\/()-]/", "", $this->expression);
 
         return $this->compute($this->expression);
     }
-
 
     /**
      * Converts error constants from string to int.
      *
      * @param  string $expression e.g. E_ALL & ~E_DEPRECATED & ~E_NOTICE
-     * @return string   convertes expression e.g. 32767 & ~8192 & ~8
+     * @return string   converted expression e.g. 32767 & ~8192 & ~8
      */
     private function convertErrorConstants($expression)
     {
@@ -52,6 +49,7 @@ class ErrorTypesParser
             if (defined($errorConstant[1])) {
                 return constant($errorConstant[1]);
             }
+
             return $errorConstant[0];
         }, $expression);
 
@@ -66,8 +64,11 @@ class ErrorTypesParser
      */
     private function compute($expression)
     {
-        $compute = create_function("", "return " . $expression . ";");
+        // catch anything which could be a security issue
+        if (0 !== preg_match("/[^\d.+*%^|&~<>\/()-]/", $this->expression)) {
+            throw new \InvalidArgumentException('Wrong value in error types config value');
+        }
 
-        return 0 + $compute();
+        return 0 + (int)eval('return ' . $expression . ';');
     }
 }
