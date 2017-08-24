@@ -1,13 +1,8 @@
 services:
     sentry.client:
         class: '%sentry.client%'
-        arguments: ['%sentry.dsn%', '%sentry.options%', '%sentry.error_types%']
+        arguments: ['%sentry.dsn%', '%sentry.options%', '%sentry.options.error_types%']
         calls:
-            - [setRelease, ['%sentry.release%']]
-            - [setEnvironment, ['%sentry.environment%']]
-            - [setAppPath, ['%sentry.app_path%']]
-            - [setExcludedAppPaths, ['%sentry.excluded_app_paths%']]
-            - [setPrefixes, ['%sentry.prefixes%']]
             - [install, []]
 
     sentry.exception_listener:

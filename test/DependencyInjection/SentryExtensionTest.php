@@ -70,6 +70,57 @@ class SentryExtensionTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    public function test_that_using_only_deprecated_values_doesnt_trigger_exception()
+    {
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'app_path' => 'sentry/app/path',
+                    'error_types' => 'some-value',
+                ),
+            )
+        );
+
+        $this->assertSame('sentry/app/path', $container->getParameter('sentry.app_path'));
+        $this->assertSame('some-value', $container->getParameter('sentry.error_types'));
+    }
+
+    public function test_that_using_deprecated_values_works_on_both_options()
+    {
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'app_path' => 'sentry/app/path',
+                    'error_types' => 'some-value',
+                ),
+            )
+        );
+
+        $this->assertSame('sentry/app/path', $container->getParameter('sentry.app_path'));
+        $this->assertSame('sentry/app/path', $container->getParameter('sentry.options.app_path'));
+        $this->assertSame('some-value', $container->getParameter('sentry.error_types'));
+        $this->assertSame('some-value', $container->getParameter('sentry.options.error_types'));
+    }
+
+    public function test_that_using_new_values_works_on_both_options()
+    {
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'options' => array(
+                        'app_path' => 'sentry/app/path',
+                        'error_types' => 'some-value',
+                    ),
+                ),
+            )
+        );
+
+        $this->assertSame('sentry/app/path', $container->getParameter('sentry.app_path'));
+        $this->assertSame('sentry/app/path', $container->getParameter('sentry.options.app_path'));
+        $this->assertSame('some-value', $container->getParameter('sentry.error_types'));
+        $this->assertSame('some-value', $container->getParameter('sentry.options.error_types'));
+    }
+
     public function test_that_throws_exception_if_new_and_deprecated_values_dont_match()
     {
         $this->setExpectedException('Symfony\Component\Config\Definition\Exception\InvalidConfigurationException');
