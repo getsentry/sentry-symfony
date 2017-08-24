@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.8.6 - 2017-08-24
 ### Changed
- - Migrate service definitons to non-deprecated option configuration values
+ - Migrate service definitions to non-deprecated option configuration values
 ### Fixed
  - Fix expected type of the `options.error_types` config value (scalar instead of array, discovered in #72)
  - Fix handling of deprecated options value
