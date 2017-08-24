@@ -23,6 +23,14 @@ class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('sentry');
+        $trimClosure = function ($str) {
+            $value = trim($str);
+            if ($value === '') {
+                return null;
+            }
+
+            return $value;
+        };
 
         $rootNode
             ->children()
@@ -36,6 +44,10 @@ class Configuration implements ConfigurationInterface
                     ->defaultValue('%kernel.environment%')
                 ->end()
                 ->scalarNode('dsn')
+                    ->beforeNormalization()
+                        ->ifString()
+                        ->then($trimClosure)
+                    ->end()
                     ->defaultNull()
                 ->end()
                 ->arrayNode('options')
@@ -73,8 +85,8 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('curl_ssl_version')->defaultNull()->end()
                         ->scalarNode('trust_x_forwarded_proto')->defaultFalse()->end()
                         ->scalarNode('mb_detect_order')->defaultNull()->end()
-                        ->arrayNode('error_types')
-                            ->prototype('scalar')->end()
+                        ->scalarNode('error_types')
+                            ->defaultNull()
                         ->end()
                         ->scalarNode('app_path')->defaultValue('%kernel.root_dir%/..')->end()
                         ->arrayNode('excluded_app_paths')

@@ -5,7 +5,7 @@ namespace Sentry\SentryBundle\Test\DependencyInjection;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-class ExtensionTest extends \PHPUnit_Framework_TestCase
+class SentryExtensionTest extends \PHPUnit_Framework_TestCase
 {
     const CONFIG_ROOT = 'sentry';
 
@@ -49,6 +49,89 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
         $this->assertSame(
             'sentry/app/path',
             $options['app_path']
+        );
+    }
+
+    public function test_that_it_uses_both_new_and_deprecated_values()
+    {
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'app_path' => 'sentry/app/path',
+                    'options' => array('app_path' => 'sentry/app/path'),
+                ),
+            )
+        );
+
+        $options = $container->getParameter('sentry.options');
+        $this->assertSame(
+            'sentry/app/path',
+            $options['app_path']
+        );
+    }
+
+    public function test_that_using_only_deprecated_values_doesnt_trigger_exception()
+    {
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'app_path' => 'sentry/app/path',
+                    'error_types' => 'some-value',
+                ),
+            )
+        );
+
+        $this->assertSame('sentry/app/path', $container->getParameter('sentry.app_path'));
+        $this->assertSame('some-value', $container->getParameter('sentry.error_types'));
+    }
+
+    public function test_that_using_deprecated_values_works_on_both_options()
+    {
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'app_path' => 'sentry/app/path',
+                    'error_types' => 'some-value',
+                ),
+            )
+        );
+
+        $this->assertSame('sentry/app/path', $container->getParameter('sentry.app_path'));
+        $this->assertSame('sentry/app/path', $container->getParameter('sentry.options.app_path'));
+        $this->assertSame('some-value', $container->getParameter('sentry.error_types'));
+        $this->assertSame('some-value', $container->getParameter('sentry.options.error_types'));
+    }
+
+    public function test_that_using_new_values_works_on_both_options()
+    {
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'options' => array(
+                        'app_path' => 'sentry/app/path',
+                        'error_types' => 'some-value',
+                    ),
+                ),
+            )
+        );
+
+        $this->assertSame('sentry/app/path', $container->getParameter('sentry.app_path'));
+        $this->assertSame('sentry/app/path', $container->getParameter('sentry.options.app_path'));
+        $this->assertSame('some-value', $container->getParameter('sentry.error_types'));
+        $this->assertSame('some-value', $container->getParameter('sentry.options.error_types'));
+    }
+
+    public function test_that_throws_exception_if_new_and_deprecated_values_dont_match()
+    {
+        $this->setExpectedException('Symfony\Component\Config\Definition\Exception\InvalidConfigurationException');
+
+        $this->getContainer(
+            array(
+                'app_path' => 'sentry/app/path',
+                static::CONFIG_ROOT => array(
+                    'options' => array('app_path' => 'sentry/different/app/path'),
+                ),
+            )
         );
     }
 
@@ -159,6 +242,32 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
 
         $this->assertNull(
             $container->getParameter('sentry.dsn')
+        );
+    }
+
+    /**
+     * @dataProvider emptyDsnValueProvider
+     */
+    public function test_that_it_ignores_empty_dsn_value($emptyDsn)
+    {
+        $container = $this->getContainer(
+            array(
+                static::CONFIG_ROOT => array(
+                    'dsn' => $emptyDsn,
+                ),
+            )
+        );
+
+        $this->assertNull($container->getParameter('sentry.dsn'));
+    }
+
+    public function emptyDsnValueProvider()
+    {
+        return array(
+            array(null),
+            array(''),
+            array(' '),
+            array('    '),
         );
     }
 
@@ -499,7 +608,7 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
                 'curl_ssl_version' => 'curl_ssl_version',
                 'trust_x_forwarded_proto' => true,
                 'mb_detect_order' => 'mb_detect_order',
-                'error_types' => array('error_types1' => 'error_types1'),
+                'error_types' => 'E_ALL & ~E_DEPRECATED & ~E_NOTICE',
                 'app_path' => 'app_path',
                 'excluded_app_paths' => array('excluded_app_path1', 'excluded_app_path2'),
                 'prefixes' => array('prefix1', 'prefix2'),

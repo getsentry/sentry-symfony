@@ -61,17 +61,12 @@ class SentryExtension extends Extension
                 @trigger_error($deprecationMessage, E_USER_DEPRECATED);
             }
 
-            if ($config[$option] !== $default && $config['options'][$option] === $default) {
-                $container->setParameter('sentry.options.' . $option, $config[$option]);
-            }
-
-            // new option is used
-            if ($config[$option] === $default && $config['options'][$option] !== $default) {
-                $container->setParameter('sentry.' . $option, $config[$option]);
-            }
-
-            // both are used
-            if ($config[$option] !== $default && $config['options'][$option] !== $default) {
+            // both are used, check if there are issues
+            if (
+                $config[$option] !== $default
+                && $config['options'][$option] !== $default
+                && $config['options'][$option] !== $config[$option]
+            ) {
                 $message = sprintf(
                     'You are using both the deprecated option sentry.%s and the new sentry.options.%s, but values do not match. Drop the deprecated one or make the values identical.',
                     $option,
@@ -79,6 +74,14 @@ class SentryExtension extends Extension
                 );
                 throw new InvalidConfigurationException($message);
             }
+
+            // new option is used, overrides old one
+            if ($config[$option] === $default && $config['options'][$option] !== $default) {
+                $config[$option] = $config['options'][$option];
+            }
+
+            $container->setParameter('sentry.' . $option, $config[$option]);
+            $container->setParameter('sentry.options.' . $option, $config[$option]);
         }
     }
 
@@ -92,6 +95,7 @@ class SentryExtension extends Extension
             'app_path' => '%kernel.root_dir%/..',
             'release' => null,
             'prefixes' => array('%kernel.root_dir%/..'),
+            'error_types' => null,
             'excluded_app_paths' => array(
                 '%kernel.root_dir%/../vendor',
                 '%kernel.root_dir%/../app/cache',
