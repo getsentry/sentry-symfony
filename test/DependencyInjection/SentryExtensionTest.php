@@ -557,7 +557,7 @@ class SentryExtensionTest extends \PHPUnit_Framework_TestCase
                 'curl_ssl_version' => 'curl_ssl_version',
                 'trust_x_forwarded_proto' => true,
                 'mb_detect_order' => 'mb_detect_order',
-                'error_types' => array('error_types1' => 'error_types1'),
+                'error_types' => 'E_ALL & ~E_DEPRECATED & ~E_NOTICE',
                 'app_path' => 'app_path',
                 'excluded_app_paths' => array('excluded_app_path1', 'excluded_app_path2'),
                 'prefixes' => array('prefix1', 'prefix2'),
