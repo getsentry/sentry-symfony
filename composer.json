@@ -9,11 +9,15 @@
         {
             "name": "David Cramer",
             "email": "dcramer@gmail.com"
+        },
+        {
+            "name": "Alessandro Lai",
+            "email": "alessandro.lai85@gmail.com"
         }
     ],
     "require": {
-        "php": ">=5.3.3",
-        "sentry/sentry": ">=1.5.0",
+        "php": "^5.6|^7.0",
+        "sentry/sentry": "^1.7",
         "symfony/config": "^2.7|^3.0",
         "symfony/console": "^2.7|^3.0",
         "symfony/dependency-injection": "^2.7|^3.0",
@@ -22,8 +26,8 @@
         "symfony/security-core": "^2.7|^3.0"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^1.8.0",
-        "phpunit/phpunit": "^4.6.6"
+        "friendsofphp/php-cs-fixer": "^2.5",
+        "phpunit/phpunit": "^5.7|^6.0"
     },
     "autoload": {
         "psr-4" : {
@@ -37,7 +41,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "0.8.x-dev"
+            "dev-master": "1.0.x-dev"
         }
     }
 }
