@@ -19,7 +19,7 @@ cache:
 
 before_install:
   - composer self-update
-  - if [[ $TRAVIS_PHP_VERSION = '7.2' ]]; composer remove friendsofphp/php-cs-fixer --no-install --no-interaction; fi
+  - if [[ $TRAVIS_PHP_VERSION = '7.2' ]]; then composer remove friendsofphp/php-cs-fixer --no-install --no-interaction; fi
   - if [[ $TEST_COVERAGE ]]; then PHPUNIT_FLAGS="--coverage-clover clover.xml"; fi
 
 install: travis_retry composer update --no-interaction --prefer-dist --prefer-stable $COMPOSER_OPTIONS
