@@ -25,7 +25,6 @@ install: travis_retry composer update --no-interaction --prefer-dist --prefer-st
 
 script:
   - vendor/bin/phpunit -v $PHPUNIT_FLAGS
-  - vendor/bin/php-cs-fixer fix --config-file=.php_cs --verbose --diff --dry-run
 
 jobs:
   include:
