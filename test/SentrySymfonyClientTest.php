@@ -20,9 +20,9 @@ class SentrySymfonyClientTest extends TestCase
 
     public function test_that_it_forwards_options()
     {
-        $client = new SentrySymfonyClient('https://a:b@app.getsentry.com/project', array(
-            'name' => 'test'
-        ));
+        $client = new SentrySymfonyClient('https://a:b@app.getsentry.com/project', [
+            'name' => 'test',
+        ]);
 
         $data = $client->get_default_data();
 

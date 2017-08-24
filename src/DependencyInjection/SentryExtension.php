@@ -3,10 +3,10 @@
 namespace Sentry\SentryBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\HttpKernel\DependencyInjection\Extension;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader;
+use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
 /**
  * This is the class that loads and manages your bundle configuration
@@ -90,17 +90,17 @@ class SentryExtension extends Extension
      */
     private function getDeprecatedOptionsWithDefaults()
     {
-        return array(
+        return [
             'environment' => '%kernel.environment%',
             'app_path' => '%kernel.root_dir%/..',
             'release' => null,
-            'prefixes' => array('%kernel.root_dir%/..'),
+            'prefixes' => ['%kernel.root_dir%/..'],
             'error_types' => null,
-            'excluded_app_paths' => array(
+            'excluded_app_paths' => [
                 '%kernel.root_dir%/../vendor',
                 '%kernel.root_dir%/../app/cache',
                 '%kernel.root_dir%/../var/cache',
-            ),
-        );
+            ],
+        ];
     }
 }

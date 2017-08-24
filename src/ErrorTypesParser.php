@@ -29,8 +29,8 @@ class ErrorTypesParser
         // convert constants to ints
         $this->expression = $this->convertErrorConstants($this->expression);
         $this->expression = str_replace(
-            array(",", " "),
-            array(".", ""),
+            [',', ' '],
+            ['.', ''],
             $this->expression
         );
 
@@ -45,7 +45,7 @@ class ErrorTypesParser
      */
     private function convertErrorConstants($expression)
     {
-        $output = preg_replace_callback("/(E_[a-zA-Z_]+)/", function ($errorConstant) {
+        $output = preg_replace_callback('/(E_[a-zA-Z_]+)/', function ($errorConstant) {
             if (defined($errorConstant[1])) {
                 return constant($errorConstant[1]);
             }

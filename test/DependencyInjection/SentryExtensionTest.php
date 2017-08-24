@@ -23,11 +23,11 @@ class SentryExtensionTest extends TestCase
     public function test_that_it_uses_deprecated_app_path_value()
     {
         $container = $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
+            [
+                static::CONFIG_ROOT => [
                     'app_path' => 'sentry/app/path',
-                ),
-            )
+                ],
+            ]
         );
 
         $this->assertSame(
@@ -39,11 +39,11 @@ class SentryExtensionTest extends TestCase
     public function test_that_it_uses_app_path_value()
     {
         $container = $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
-                    'options' => array('app_path' => 'sentry/app/path'),
-                ),
-            )
+            [
+                static::CONFIG_ROOT => [
+                    'options' => ['app_path' => 'sentry/app/path'],
+                ],
+            ]
         );
 
         $options = $container->getParameter('sentry.options');
@@ -56,12 +56,12 @@ class SentryExtensionTest extends TestCase
     public function test_that_it_uses_both_new_and_deprecated_values()
     {
         $container = $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
+            [
+                static::CONFIG_ROOT => [
                     'app_path' => 'sentry/app/path',
-                    'options' => array('app_path' => 'sentry/app/path'),
-                ),
-            )
+                    'options' => ['app_path' => 'sentry/app/path'],
+                ],
+            ]
         );
 
         $options = $container->getParameter('sentry.options');
@@ -74,12 +74,12 @@ class SentryExtensionTest extends TestCase
     public function test_that_using_only_deprecated_values_doesnt_trigger_exception()
     {
         $container = $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
+            [
+                static::CONFIG_ROOT => [
                     'app_path' => 'sentry/app/path',
                     'error_types' => 'some-value',
-                ),
-            )
+                ],
+            ]
         );
 
         $this->assertSame('sentry/app/path', $container->getParameter('sentry.app_path'));
@@ -89,12 +89,12 @@ class SentryExtensionTest extends TestCase
     public function test_that_using_deprecated_values_works_on_both_options()
     {
         $container = $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
+            [
+                static::CONFIG_ROOT => [
                     'app_path' => 'sentry/app/path',
                     'error_types' => 'some-value',
-                ),
-            )
+                ],
+            ]
         );
 
         $this->assertSame('sentry/app/path', $container->getParameter('sentry.app_path'));
@@ -106,14 +106,14 @@ class SentryExtensionTest extends TestCase
     public function test_that_using_new_values_works_on_both_options()
     {
         $container = $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
-                    'options' => array(
+            [
+                static::CONFIG_ROOT => [
+                    'options' => [
                         'app_path' => 'sentry/app/path',
                         'error_types' => 'some-value',
-                    ),
-                ),
-            )
+                    ],
+                ],
+            ]
         );
 
         $this->assertSame('sentry/app/path', $container->getParameter('sentry.app_path'));
@@ -127,12 +127,12 @@ class SentryExtensionTest extends TestCase
         $this->expectException('Symfony\Component\Config\Definition\Exception\InvalidConfigurationException');
 
         $this->getContainer(
-            array(
+            [
                 'app_path' => 'sentry/app/path',
-                static::CONFIG_ROOT => array(
-                    'options' => array('app_path' => 'sentry/different/app/path'),
-                ),
-            )
+                static::CONFIG_ROOT => [
+                    'options' => ['app_path' => 'sentry/different/app/path'],
+                ],
+            ]
         );
     }
 
@@ -170,11 +170,11 @@ class SentryExtensionTest extends TestCase
     public function test_that_it_uses_client_value()
     {
         $container = $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
+            [
+                static::CONFIG_ROOT => [
                     'client' => 'clientClass',
-                ),
-            )
+                ],
+            ]
         );
 
         $this->assertSame(
@@ -207,11 +207,11 @@ class SentryExtensionTest extends TestCase
     public function test_that_it_uses_environment_value_for_deprecated_config()
     {
         $container = $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
+            [
+                static::CONFIG_ROOT => [
                     'environment' => 'custom_env',
-                ),
-            )
+                ],
+            ]
         );
 
         $this->assertSame(
@@ -223,11 +223,11 @@ class SentryExtensionTest extends TestCase
     public function test_that_it_uses_environment_value()
     {
         $container = $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
-                    'options' => array('environment' => 'custom_env'),
-                ),
-            )
+            [
+                static::CONFIG_ROOT => [
+                    'options' => ['environment' => 'custom_env'],
+                ],
+            ]
         );
 
         $options = $container->getParameter('sentry.options');
@@ -252,11 +252,11 @@ class SentryExtensionTest extends TestCase
     public function test_that_it_ignores_empty_dsn_value($emptyDsn)
     {
         $container = $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
+            [
+                static::CONFIG_ROOT => [
                     'dsn' => $emptyDsn,
-                ),
-            )
+                ],
+            ]
         );
 
         $this->assertNull($container->getParameter('sentry.dsn'));
@@ -264,22 +264,22 @@ class SentryExtensionTest extends TestCase
 
     public function emptyDsnValueProvider()
     {
-        return array(
-            array(null),
-            array(''),
-            array(' '),
-            array('    '),
-        );
+        return [
+            [null],
+            [''],
+            [' '],
+            ['    '],
+        ];
     }
 
     public function test_that_it_uses_dsn_value()
     {
         $container = $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
+            [
+                static::CONFIG_ROOT => [
                     'dsn' => 'custom_dsn',
-                ),
-            )
+                ],
+            ]
         );
 
         $this->assertSame(
@@ -291,13 +291,13 @@ class SentryExtensionTest extends TestCase
     public function test_that_it_uses_options_value()
     {
         $container = $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
-                    'options' => array(
+            [
+                static::CONFIG_ROOT => [
+                    'options' => [
                         'http_proxy' => 'http://user:password@host:port',
-                    ),
-                ),
-            )
+                    ],
+                ],
+            ]
         );
 
         $options = $container->getParameter('sentry.options');
@@ -329,11 +329,11 @@ class SentryExtensionTest extends TestCase
     {
         $class = 'Sentry\SentryBundle\Test\Fixtures\InvalidExceptionListener';
         $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
+            [
+                static::CONFIG_ROOT => [
                     'exception_listener' => $class,
-                ),
-            )
+                ],
+            ]
         );
     }
 
@@ -351,11 +351,11 @@ class SentryExtensionTest extends TestCase
     {
         $class = 'Sentry\SentryBundle\Test\Fixtures\CustomExceptionListener';
         $container = $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
+            [
+                static::CONFIG_ROOT => [
                     'exception_listener' => $class,
-                ),
-            )
+                ],
+            ]
         );
 
         $this->assertSame(
@@ -369,9 +369,9 @@ class SentryExtensionTest extends TestCase
         $container = $this->getContainer();
 
         $this->assertSame(
-            array(
+            [
                 'Symfony\Component\HttpKernel\Exception\HttpExceptionInterface',
-            ),
+            ],
             $container->getParameter('sentry.skip_capture')
         );
     }
@@ -379,18 +379,18 @@ class SentryExtensionTest extends TestCase
     public function test_that_it_uses_skipped_capture_value()
     {
         $container = $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
-                    'skip_capture' => array(
+            [
+                static::CONFIG_ROOT => [
+                    'skip_capture' => [
                         'classA',
                         'classB',
-                    ),
-                ),
-            )
+                    ],
+                ],
+            ]
         );
 
         $this->assertSame(
-            array('classA', 'classB'),
+            ['classA', 'classB'],
             $container->getParameter('sentry.skip_capture')
         );
     }
@@ -417,11 +417,11 @@ class SentryExtensionTest extends TestCase
     public function test_that_it_uses_release_value_for_deprecated_config()
     {
         $container = $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
+            [
+                static::CONFIG_ROOT => [
                     'release' => '1.0',
-                ),
-            )
+                ],
+            ]
         );
 
         $this->assertSame(
@@ -433,11 +433,11 @@ class SentryExtensionTest extends TestCase
     public function test_that_it_uses_release_value()
     {
         $container = $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
-                    'options' => array('release' => '1.0'),
-                ),
-            )
+            [
+                static::CONFIG_ROOT => [
+                    'options' => ['release' => '1.0'],
+                ],
+            ]
         );
 
         $options = $container->getParameter('sentry.options');
@@ -452,7 +452,7 @@ class SentryExtensionTest extends TestCase
         $container = $this->getContainer();
 
         $this->assertSame(
-            array('kernel/root/..'),
+            ['kernel/root/..'],
             $container->getParameter('sentry.prefixes')
         );
     }
@@ -463,7 +463,7 @@ class SentryExtensionTest extends TestCase
 
         $options = $container->getParameter('sentry.options');
         $this->assertSame(
-            array('kernel/root/..'),
+            ['kernel/root/..'],
             $options['prefixes']
         );
     }
@@ -471,18 +471,18 @@ class SentryExtensionTest extends TestCase
     public function test_that_it_uses_prefixes_value_for_deprecated_config()
     {
         $container = $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
-                    'prefixes' => array(
+            [
+                static::CONFIG_ROOT => [
+                    'prefixes' => [
                         'dirA',
                         'dirB',
-                    ),
-                ),
-            )
+                    ],
+                ],
+            ]
         );
 
         $this->assertSame(
-            array('dirA', 'dirB'),
+            ['dirA', 'dirB'],
             $container->getParameter('sentry.prefixes')
         );
     }
@@ -490,21 +490,21 @@ class SentryExtensionTest extends TestCase
     public function test_that_it_uses_prefixes_value()
     {
         $container = $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
-                    'options' => array(
-                        'prefixes' => array(
+            [
+                static::CONFIG_ROOT => [
+                    'options' => [
+                        'prefixes' => [
                             'dirA',
                             'dirB',
-                        ),
-                    ),
-                ),
-            )
+                        ],
+                    ],
+                ],
+            ]
         );
 
         $options = $container->getParameter('sentry.options');
         $this->assertSame(
-            array('dirA', 'dirB'),
+            ['dirA', 'dirB'],
             $options['prefixes']
         );
     }
@@ -525,30 +525,30 @@ class SentryExtensionTest extends TestCase
     {
         $containerBuilder = new ContainerBuilder();
         $extension = new SentryExtension();
-        $extension->load(array(), $containerBuilder);
+        $extension->load([], $containerBuilder);
 
         $definition = $containerBuilder->getDefinition('sentry.exception_listener');
         $tags = $definition->getTag('kernel.event_listener');
 
         $this->assertSame(
-            array(
-                array(
+            [
+                [
                     'event' => 'kernel.request',
                     'method' => 'onKernelRequest',
                     'priority' => '%sentry.listener_priorities.request%',
-                ),
-                array(
+                ],
+                [
                     'event' => 'kernel.exception',
                     'method' => 'onKernelException',
                     'priority' => '%sentry.listener_priorities.kernel_exception%',
-                ),
-                array('event' => 'console.command', 'method' => 'onConsoleCommand'),
-                array(
+                ],
+                ['event' => 'console.command', 'method' => 'onConsoleCommand'],
+                [
                     'event' => 'console.exception',
                     'method' => 'onConsoleException',
                     'priority' => '%sentry.listener_priorities.console_exception%',
-                ),
-            ),
+                ],
+            ],
             $tags
         );
     }
@@ -559,21 +559,21 @@ class SentryExtensionTest extends TestCase
     public function test_that_it_throws_an_exception_on_a_mismatch_between_deprecated_and_new_configuration_options()
     {
         $this->getContainer(
-            array(
-                static::CONFIG_ROOT => array(
+            [
+                static::CONFIG_ROOT => [
                     'environment' => '123test',
-                    'options' => array(
+                    'options' => [
                         'environment' => 'test123',
-                    ),
-                ),
-            )
+                    ],
+                ],
+            ]
         );
     }
 
     public function test_that_it_sets_all_options()
     {
-        $config = array(
-            'options' => array(
+        $config = [
+            'options' => [
                 'logger' => 'logger',
                 'server' => 'server',
                 'secret_key' => 'secret_key',
@@ -582,25 +582,25 @@ class SentryExtensionTest extends TestCase
                 'auto_log_stacks' => true,
                 'name' => 'name',
                 'site' => 'site',
-                'tags' => array(
+                'tags' => [
                     'tag1' => 'tagname',
                     'tag2' => 'tagename 2',
-                ),
+                ],
                 'release' => 'release',
                 'environment' => 'environment',
                 'sample_rate' => 0.9,
                 'trace' => false,
                 'timeout' => 1,
                 'message_limit' => 512,
-                'exclude' => array(
+                'exclude' => [
                     'test1',
                     'test2',
-                ),
+                ],
                 'http_proxy' => 'http_proxy',
-                'extra' => array(
+                'extra' => [
                     'extra1' => 'extra1',
                     'extra2' => 'extra2',
-                ),
+                ],
                 'curl_method' => 'curl_method',
                 'curl_path' => 'curl_path',
                 'curl_ipv4' => false,
@@ -611,18 +611,18 @@ class SentryExtensionTest extends TestCase
                 'mb_detect_order' => 'mb_detect_order',
                 'error_types' => 'E_ALL & ~E_DEPRECATED & ~E_NOTICE',
                 'app_path' => 'app_path',
-                'excluded_app_paths' => array('excluded_app_path1', 'excluded_app_path2'),
-                'prefixes' => array('prefix1', 'prefix2'),
+                'excluded_app_paths' => ['excluded_app_path1', 'excluded_app_path2'],
+                'prefixes' => ['prefix1', 'prefix2'],
                 'install_default_breadcrumb_handlers' => false,
                 'install_shutdown_handler' => false,
-                'processors' => array('processor1', 'processor2'),
-                'processorOptions' => array(
+                'processors' => ['processor1', 'processor2'],
+                'processorOptions' => [
                     'processorOption1' => 'asasdf',
-                ),
-            ),
-        );
+                ],
+            ],
+        ];
 
-        $container = $this->getContainer(array(static::CONFIG_ROOT => $config));
+        $container = $this->getContainer([static::CONFIG_ROOT => $config]);
 
         $options = $container->getParameter('sentry.options');
         $this->assertSame(
@@ -631,7 +631,7 @@ class SentryExtensionTest extends TestCase
         );
     }
 
-    private function getContainer(array $options = array())
+    private function getContainer(array $options = [])
     {
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->setParameter('kernel.root_dir', 'kernel/root');

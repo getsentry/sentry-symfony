@@ -22,10 +22,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
  */
 class ExceptionListener implements SentryExceptionListenerInterface
 {
-    /** @var  TokenStorageInterface */
+    /** @var TokenStorageInterface */
     private $tokenStorage;
 
-    /** @var  AuthorizationCheckerInterface */
+    /** @var AuthorizationCheckerInterface */
     private $authorizationChecker;
 
     /** @var \Raven_Client */
@@ -34,7 +34,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
     /** @var EventDispatcherInterface */
     protected $eventDispatcher;
 
-    /** @var  string[] */
+    /** @var string[] */
     protected $skipCapture;
 
     /**
@@ -136,12 +136,12 @@ class ExceptionListener implements SentryExceptionListenerInterface
             return;
         }
 
-        $data = array(
-            'tags' => array(
+        $data = [
+            'tags' => [
                 'command' => $command->getName(),
                 'status_code' => $event->getExitCode(),
-            ),
-        );
+            ],
+        ];
 
         $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
         $this->client->captureException($exception, $data);
@@ -157,7 +157,6 @@ class ExceptionListener implements SentryExceptionListenerInterface
 
         return false;
     }
-
 
     /**
      * @param UserInterface | object | string $user

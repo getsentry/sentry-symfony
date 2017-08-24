@@ -3,7 +3,6 @@
 namespace Sentry\SentryBundle\DependencyInjection;
 
 use Raven_Compat;
-use Sentry\SentryBundle\SentryBundle;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -91,22 +90,22 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('app_path')->defaultValue('%kernel.root_dir%/..')->end()
                         ->arrayNode('excluded_app_paths')
                             ->defaultValue(
-                                array(
+                                [
                                     '%kernel.root_dir%/../vendor',
                                     '%kernel.root_dir%/../app/cache',
                                     '%kernel.root_dir%/../var/cache',
-                                )
+                                ]
                             )
                             ->prototype('scalar')->end()
                         ->end()
                         ->arrayNode('prefixes')
-                            ->defaultValue(array('%kernel.root_dir%/..'))
+                            ->defaultValue(['%kernel.root_dir%/..'])
                             ->prototype('scalar')->end()
                         ->end()
                         ->booleanNode('install_default_breadcrumb_handlers')->defaultTrue()->end()
                         ->booleanNode('install_shutdown_handler')->defaultTrue()->end()
                         ->arrayNode('processors')
-                            ->defaultValue(array('Raven_SanitizeDataProcessor'))
+                            ->defaultValue(['Raven_SanitizeDataProcessor'])
                             ->prototype('scalar')->end()
                         ->end()
                         ->arrayNode('processorOptions')
@@ -126,22 +125,22 @@ class Configuration implements ConfigurationInterface
                 ->end()
                 ->arrayNode('skip_capture')
                     ->prototype('scalar')->end()
-                    ->defaultValue(array('Symfony\Component\HttpKernel\Exception\HttpExceptionInterface'))
+                    ->defaultValue(['Symfony\Component\HttpKernel\Exception\HttpExceptionInterface'])
                 ->end()
                 ->scalarNode('release')
                     ->defaultNull()
                 ->end()
                 ->arrayNode('prefixes')
                     ->prototype('scalar')->end()
-                    ->defaultValue(array('%kernel.root_dir%/..'))
+                    ->defaultValue(['%kernel.root_dir%/..'])
                 ->end()
                 ->arrayNode('excluded_app_paths')
                     ->prototype('scalar')->end()
-                    ->defaultValue(array(
+                    ->defaultValue([
                         '%kernel.root_dir%/../vendor',
                         '%kernel.root_dir%/../app/cache',
                         '%kernel.root_dir%/../var/cache',
-                    ))
+                    ])
                 ->end()
                 ->arrayNode('listener_priorities')
                     ->addDefaultsIfNotSet()
@@ -167,7 +166,8 @@ class Configuration implements ConfigurationInterface
             if ($implements === false) {
                 return true;
             }
-            return !in_array('Sentry\SentryBundle\EventListener\SentryExceptionListenerInterface', $implements, true);
+
+            return ! in_array('Sentry\SentryBundle\EventListener\SentryExceptionListenerInterface', $implements, true);
         };
     }
 }

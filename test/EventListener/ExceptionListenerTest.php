@@ -3,8 +3,8 @@
 namespace Sentry\SentryBundle\Test\EventListener;
 
 use PHPUnit\Framework\TestCase;
-use Sentry\SentryBundle\SentrySymfonyEvents;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
+use Sentry\SentryBundle\SentrySymfonyEvents;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
@@ -59,7 +59,7 @@ class ExceptionListenerTest extends TestCase
         $containerBuilder->set('event_dispatcher', $this->mockEventDispatcher);
 
         $extension = new SentryExtension();
-        $extension->load(array(), $containerBuilder);
+        $extension->load([], $containerBuilder);
 
         $this->containerBuilder = $containerBuilder;
     }
@@ -372,7 +372,7 @@ class ExceptionListenerTest extends TestCase
     public function test_that_username_is_set_from_user_interface_if_token_present_and_user_set_object_with_to_string()
     {
         $mockUser = $this->getMockBuilder('stdClass')
-            ->setMethods(array('__toString'))
+            ->setMethods(['__toString'])
             ->getMock()
         ;
 
@@ -537,12 +537,12 @@ class ExceptionListenerTest extends TestCase
             ->method('captureException')
             ->with(
                 $this->identicalTo($reportableException),
-                $this->identicalTo(array(
-                    'tags' => array(
+                $this->identicalTo([
+                    'tags' => [
                         'command' => 'cmd name',
-                        'status_code' => 10
-                    )
-                ))
+                        'status_code' => 10,
+                    ],
+                ])
             )
         ;
 
