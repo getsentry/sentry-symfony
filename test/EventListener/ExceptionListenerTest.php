@@ -309,7 +309,8 @@ class ExceptionListenerTest extends TestCase
             ->method('dispatch')
             ->with(
                 $this->identicalTo(SentrySymfonyEvents::SET_USER_CONTEXT),
-                $this->isInstanceOf('Sentry\SentryBundle\Event\SentryUserContextEvent'))
+                $this->isInstanceOf('Sentry\SentryBundle\Event\SentryUserContextEvent')
+            )
         ;
 
         $this->containerBuilder->compile();
@@ -359,7 +360,8 @@ class ExceptionListenerTest extends TestCase
             ->method('dispatch')
             ->with(
                 $this->identicalTo(SentrySymfonyEvents::SET_USER_CONTEXT),
-                $this->isInstanceOf('Sentry\SentryBundle\Event\SentryUserContextEvent'))
+                $this->isInstanceOf('Sentry\SentryBundle\Event\SentryUserContextEvent')
+            )
         ;
 
         $this->containerBuilder->compile();
@@ -420,7 +422,8 @@ class ExceptionListenerTest extends TestCase
             ->method('dispatch')
             ->with(
                 $this->identicalTo(SentrySymfonyEvents::SET_USER_CONTEXT),
-                $this->isInstanceOf('Sentry\SentryBundle\Event\SentryUserContextEvent'))
+                $this->isInstanceOf('Sentry\SentryBundle\Event\SentryUserContextEvent')
+            )
         ;
 
         $this->containerBuilder->compile();

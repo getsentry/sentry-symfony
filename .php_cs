@@ -1,14 +1,16 @@
 <?php
 
-$finder = Symfony\CS\Finder\DefaultFinder::create()
-    ->in(__DIR__ . '/src')
-    ->in(__DIR__ . '/test');
+$config = PhpCsFixer\Config::create();
+$config->setRules([
+    '@PSR2' => true,
+]);
 
-return Symfony\CS\Config\Config::create()
-    ->setUsingCache(true)
-    ->setUsingLinter(true)
-    ->level(Symfony\CS\FixerInterface::PSR2_LEVEL)
-    ->fixers(array(
-        '-psr0',
-    ))
-    ->finder($finder);
+$finder = PhpCsFixer\Finder::create();
+$finder->in([
+    'src',
+    'test',
+]);
+
+$config->setFinder($finder);
+
+return $config;
