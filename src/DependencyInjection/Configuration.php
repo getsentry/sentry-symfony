@@ -26,14 +26,6 @@ class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('sentry');
-        $trimClosure = function ($str) {
-            $value = trim($str);
-            if ($value === '') {
-                return null;
-            }
-
-            return $value;
-        };
 
         $rootNode
             ->children()
@@ -49,10 +41,13 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('dsn')
                     ->beforeNormalization()
                         ->ifString()
-                        ->then($trimClosure)
+                        ->then($this->getTrimClosure())
                     ->end()
                     ->defaultNull()
-                ->end()
+                ->end();
+
+        $rootNode
+            ->children()
                 ->arrayNode('options')
                     ->addDefaultsIfNotSet()
                     ->children()
@@ -88,9 +83,7 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('curl_ssl_version')->defaultNull()->end()
                         ->scalarNode('trust_x_forwarded_proto')->defaultFalse()->end()
                         ->scalarNode('mb_detect_order')->defaultNull()->end()
-                        ->scalarNode('error_types')
-                            ->defaultNull()
-                        ->end()
+                        ->scalarNode('error_types')->defaultNull()->end()
                         ->scalarNode('app_path')->defaultValue('%kernel.root_dir%/..')->end()
                         ->arrayNode('excluded_app_paths')
                             ->defaultValue(
@@ -116,10 +109,10 @@ class Configuration implements ConfigurationInterface
                             ->prototype('scalar')->end()
                         ->end()
                     ->end()
-                ->end()
-                ->scalarNode('error_types')
-                    ->defaultNull()
-                ->end()
+                ->end();
+
+        $rootNode
+            ->children()
                 ->scalarNode('exception_listener')
                     ->defaultValue(ExceptionListener::class)
                     ->validate()
@@ -130,21 +123,6 @@ class Configuration implements ConfigurationInterface
                 ->arrayNode('skip_capture')
                     ->prototype('scalar')->end()
                     ->defaultValue([HttpExceptionInterface::class])
-                ->end()
-                ->scalarNode('release')
-                    ->defaultNull()
-                ->end()
-                ->arrayNode('prefixes')
-                    ->prototype('scalar')->end()
-                    ->defaultValue(['%kernel.root_dir%/..'])
-                ->end()
-                ->arrayNode('excluded_app_paths')
-                    ->prototype('scalar')->end()
-                    ->defaultValue([
-                        '%kernel.root_dir%/../vendor',
-                        '%kernel.root_dir%/../app/cache',
-                        '%kernel.root_dir%/../var/cache',
-                    ])
                 ->end()
                 ->arrayNode('listener_priorities')
                     ->addDefaultsIfNotSet()
@@ -172,6 +150,18 @@ class Configuration implements ConfigurationInterface
             }
 
             return ! in_array(SentryExceptionListenerInterface::class, $implements, true);
+        };
+    }
+
+    private function getTrimClosure()
+    {
+        return function ($str) {
+            $value = trim($str);
+            if ($value === '') {
+                return null;
+            }
+
+            return $value;
         };
     }
 }
