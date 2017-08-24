@@ -9,13 +9,6 @@ php:
   - hhvm
 
 matrix:
-  include:
-    - php: 5.6
-      env: COMPOSER_OPTIONS="--prefer-lowest"
-    - php: 7.0
-      env: COMPOSER_OPTIONS="--prefer-lowest"
-    - php: 7.1
-      env: TEST_COVERAGE=true
   allow_failures:
     - php: hhvm
   fast_finish: true
@@ -34,5 +27,23 @@ script:
   - vendor/bin/phpunit -v $PHPUNIT_FLAGS
   - vendor/bin/php-cs-fixer fix --config-file=.php_cs --verbose --diff --dry-run
 
-after_success:
-  - if [[ $TEST_COVERAGE ]]; then wget https://scrutinizer-ci.com/ocular.phar && php ocular.phar code-coverage:upload --format=php-clover clover.xml; fi
+jobs:
+  include:
+    - stage: Test
+      php: 5.6
+      env: COMPOSER_OPTIONS="--prefer-lowest"
+    - stage: Test
+      php: 7.0
+      env: COMPOSER_OPTIONS="--prefer-lowest"
+
+    - stage: Code style check
+      php: 7.1
+      script: 
+        - vendor/bin/php-cs-fixer fix --verbose --diff --dry-run
+
+    - stage: Test coverage
+      php: 7.1
+      script: 
+        - phpdbg -qrr vendor/bin/phpunit --coverage-clover clover.xml
+      after_success:
+        - vendor/bin/ocular code-coverage:upload --format=php-clover clover.xml --revision=$TRAVIS_COMMIT
