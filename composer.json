@@ -15,6 +15,9 @@
             "email": "alessandro.lai85@gmail.com"
         }
     ],
+    "config": {
+        "sort-packages": true
+    },
     "require": {
         "php": "^5.6|^7.0",
         "sentry/sentry": "^1.7",
