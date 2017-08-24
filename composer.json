@@ -32,7 +32,7 @@
     },
     "autoload": {
         "psr-4" : {
-            "Sentry\\SentryBundle\\": "src/Sentry/SentryBundle"
+            "Sentry\\SentryBundle\\": "src/"
         }
     },
     "autoload-dev": {
