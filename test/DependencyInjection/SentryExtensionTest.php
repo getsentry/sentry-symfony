@@ -2,10 +2,11 @@
 
 namespace Sentry\SentryBundle\Test\DependencyInjection;
 
+use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-class SentryExtensionTest extends \PHPUnit_Framework_TestCase
+class SentryExtensionTest extends TestCase
 {
     const CONFIG_ROOT = 'sentry';
 
@@ -123,7 +124,7 @@ class SentryExtensionTest extends \PHPUnit_Framework_TestCase
 
     public function test_that_throws_exception_if_new_and_deprecated_values_dont_match()
     {
-        $this->setExpectedException('Symfony\Component\Config\Definition\Exception\InvalidConfigurationException');
+        $this->expectException('Symfony\Component\Config\Definition\Exception\InvalidConfigurationException');
 
         $this->getContainer(
             array(
@@ -637,7 +638,7 @@ class SentryExtensionTest extends \PHPUnit_Framework_TestCase
         $containerBuilder->setParameter('kernel.environment', 'test');
 
         $mockEventDispatcher = $this
-            ->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
+            ->createMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
 
         $containerBuilder->set('event_dispatcher', $mockEventDispatcher);
 

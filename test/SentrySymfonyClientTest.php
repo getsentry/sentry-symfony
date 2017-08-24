@@ -2,10 +2,11 @@
 
 namespace Sentry\SentryBundle\Test;
 
+use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\SentrySymfonyClient;
 
-class SentrySymfonyClientTest extends \PHPUnit_Framework_TestCase
+class SentrySymfonyClientTest extends TestCase
 {
     public function test_that_it_sets_sdk_name_and_version()
     {
