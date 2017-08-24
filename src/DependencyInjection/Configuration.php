@@ -5,6 +5,10 @@ namespace Sentry\SentryBundle\DependencyInjection;
 use Raven_Compat;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Sentry\SentryBundle\EventListener\SentryExceptionListenerInterface;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Sentry\SentryBundle\EventListener\ExceptionListener;
+use Sentry\SentryBundle\SentrySymfonyClient;
 
 /**
  * This is the class that validates and merges configuration from your app/config files
@@ -37,7 +41,7 @@ class Configuration implements ConfigurationInterface
                     ->defaultValue('%kernel.root_dir%/..')
                 ->end()
                 ->scalarNode('client')
-                    ->defaultValue('Sentry\SentryBundle\SentrySymfonyClient')
+                    ->defaultValue(SentrySymfonyClient::class)
                 ->end()
                 ->scalarNode('environment')
                     ->defaultValue('%kernel.environment%')
@@ -117,7 +121,7 @@ class Configuration implements ConfigurationInterface
                     ->defaultNull()
                 ->end()
                 ->scalarNode('exception_listener')
-                    ->defaultValue('Sentry\SentryBundle\EventListener\ExceptionListener')
+                    ->defaultValue(ExceptionListener::class)
                     ->validate()
                     ->ifTrue($this->getExceptionListenerInvalidationClosure())
                         ->thenInvalid('The "sentry.exception_listener" parameter should be a FQCN of a class implementing the SentryExceptionListenerInterface interface')
@@ -125,7 +129,7 @@ class Configuration implements ConfigurationInterface
                 ->end()
                 ->arrayNode('skip_capture')
                     ->prototype('scalar')->end()
-                    ->defaultValue(['Symfony\Component\HttpKernel\Exception\HttpExceptionInterface'])
+                    ->defaultValue([HttpExceptionInterface::class])
                 ->end()
                 ->scalarNode('release')
                     ->defaultNull()
@@ -167,7 +171,7 @@ class Configuration implements ConfigurationInterface
                 return true;
             }
 
-            return ! in_array('Sentry\SentryBundle\EventListener\SentryExceptionListenerInterface', $implements, true);
+            return ! in_array(SentryExceptionListenerInterface::class, $implements, true);
         };
     }
 }

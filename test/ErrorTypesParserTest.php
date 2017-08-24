@@ -17,7 +17,7 @@ class ErrorTypesParserTest extends TestCase
     {
         $ex = new ErrorTypesParser('exec(something-dangerous)');
 
-        $this->expectException('\InvalidArgumentException');
+        $this->expectException(\InvalidArgumentException::class);
         $ex->parse();
     }
 }

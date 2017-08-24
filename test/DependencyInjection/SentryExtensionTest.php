@@ -5,6 +5,13 @@ namespace Sentry\SentryBundle\Test\DependencyInjection;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Sentry\SentryBundle\EventListener\ExceptionListener;
+use Sentry\SentryBundle\SentrySymfonyClient;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Sentry\SentryBundle\Test\Fixtures\CustomExceptionListener;
+use Sentry\SentryBundle\Test\Fixtures\InvalidExceptionListener;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 class SentryExtensionTest extends TestCase
 {
@@ -124,7 +131,7 @@ class SentryExtensionTest extends TestCase
 
     public function test_that_throws_exception_if_new_and_deprecated_values_dont_match()
     {
-        $this->expectException('Symfony\Component\Config\Definition\Exception\InvalidConfigurationException');
+        $this->expectException(InvalidConfigurationException::class);
 
         $this->getContainer(
             [
@@ -162,7 +169,7 @@ class SentryExtensionTest extends TestCase
         $container = $this->getContainer();
 
         $this->assertSame(
-            'Sentry\SentryBundle\SentrySymfonyClient',
+            SentrySymfonyClient::class,
             $container->getParameter('sentry.client')
         );
     }
@@ -327,7 +334,7 @@ class SentryExtensionTest extends TestCase
      */
     public function test_that_it_is_invalid_if_exception_listener_fails_to_implement_required_interface()
     {
-        $class = 'Sentry\SentryBundle\Test\Fixtures\InvalidExceptionListener';
+        $class = InvalidExceptionListener::class;
         $this->getContainer(
             [
                 static::CONFIG_ROOT => [
@@ -342,14 +349,14 @@ class SentryExtensionTest extends TestCase
         $container = $this->getContainer();
 
         $this->assertSame(
-            'Sentry\SentryBundle\EventListener\ExceptionListener',
+            ExceptionListener::class,
             $container->getParameter('sentry.exception_listener')
         );
     }
 
     public function test_that_it_uses_exception_listener_value()
     {
-        $class = 'Sentry\SentryBundle\Test\Fixtures\CustomExceptionListener';
+        $class = CustomExceptionListener::class;
         $container = $this->getContainer(
             [
                 static::CONFIG_ROOT => [
@@ -370,7 +377,7 @@ class SentryExtensionTest extends TestCase
 
         $this->assertSame(
             [
-                'Symfony\Component\HttpKernel\Exception\HttpExceptionInterface',
+                HttpExceptionInterface::class,
             ],
             $container->getParameter('sentry.skip_capture')
         );
@@ -512,13 +519,13 @@ class SentryExtensionTest extends TestCase
     public function test_that_it_has_sentry_client_service_and_it_defaults_to_symfony_client()
     {
         $client = $this->getContainer()->get('sentry.client');
-        $this->assertInstanceOf('Sentry\SentryBundle\SentrySymfonyClient', $client);
+        $this->assertInstanceOf(SentrySymfonyClient::class, $client);
     }
 
     public function test_that_it_has_sentry_exception_listener_and_it_defaults_to_default_exception_listener()
     {
         $client = $this->getContainer()->get('sentry.exception_listener');
-        $this->assertInstanceOf('Sentry\SentryBundle\EventListener\ExceptionListener', $client);
+        $this->assertInstanceOf(ExceptionListener::class, $client);
     }
 
     public function test_that_it_has_proper_event_listener_tags_for_exception_listener()
@@ -638,7 +645,7 @@ class SentryExtensionTest extends TestCase
         $containerBuilder->setParameter('kernel.environment', 'test');
 
         $mockEventDispatcher = $this
-            ->createMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
+            ->createMock(EventDispatcherInterface::class);
 
         $containerBuilder->set('event_dispatcher', $mockEventDispatcher);
 
