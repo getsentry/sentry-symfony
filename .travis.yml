@@ -33,6 +33,7 @@ jobs:
     - stage: codestyle and SCA
       php: 7.1
       script:
+        - phpenv config-rm xdebug.ini
         - composer require --dev phpstan/phpstan symfony/expression-language --no-interaction --prefer-dist --prefer-stable
         - vendor/bin/phpstan analyse src --level 7
       env: PHPSTAN=true

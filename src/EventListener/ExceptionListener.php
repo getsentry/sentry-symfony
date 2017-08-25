@@ -3,7 +3,6 @@
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\SentryBundle\Event\SentryUserContextEvent;
-use Sentry\SentryBundle\SentrySymfonyClient;
 use Sentry\SentryBundle\SentrySymfonyEvents;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleExceptionEvent;
