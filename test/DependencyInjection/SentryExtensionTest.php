@@ -7,7 +7,6 @@ use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ExceptionListener;
 use Sentry\SentryBundle\SentrySymfonyClient;
 use Sentry\SentryBundle\Test\Fixtures\CustomExceptionListener;
-use Sentry\SentryBundle\Test\Fixtures\InvalidExceptionListener;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -15,25 +14,69 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class SentryExtensionTest extends TestCase
 {
-    const CONFIG_ROOT = 'sentry';
+    const SUPPORTED_SENTRY_OPTIONS_COUNT = 34;
 
-    public function test_that_it_uses_kernel_root_parent_as_app_path_by_default()
+    public function test_that_configuration_uses_the_right_default_values()
     {
         $container = $this->getContainer();
 
-        $this->assertSame(
-            'kernel/root/..',
-            $container->getParameter('sentry.app_path')
-        );
+        $this->assertSame('kernel/root/..', $container->getParameter('sentry.app_path'));
+        $this->assertSame(SentrySymfonyClient::class, $container->getParameter('sentry.client'));
+        $this->assertNull($container->getParameter('sentry.dsn'));
+        $this->assertSame(ExceptionListener::class, $container->getParameter('sentry.exception_listener'));
+        $this->assertSame([HttpExceptionInterface::class], $container->getParameter('sentry.skip_capture'));
+
+        $priorities = $container->getParameter('sentry.listener_priorities');
+        $this->assertInternalType('array', $priorities);
+        $this->assertSame(0, $priorities['request']);
+        $this->assertSame(0, $priorities['kernel_exception']);
+        $this->assertSame(0, $priorities['console_exception']);
+
+        $options = $container->getParameter('sentry.options');
+        $this->assertCount(self::SUPPORTED_SENTRY_OPTIONS_COUNT, $options);
+        // same order as in Configuration class
+        $this->assertSame('php', $options['logger']);
+        $this->assertNull($options['server']);
+        $this->assertNull($options['secret_key']);
+        $this->assertNull($options['public_key']);
+        $this->assertSame(1, $options['project']);
+        $this->assertFalse($options['auto_log_stacks']);
+        $this->assertSame(\Raven_Compat::gethostname(), $options['name']);
+        $this->assertNull($options['site']);
+        $this->assertSame([], $options['tags']);
+        $this->assertNull($options['release']);
+        $this->assertSame('test', $options['environment']);
+        $this->assertSame(1, $options['sample_rate']);
+        $this->assertTrue($options['trace']);
+        $this->assertSame(\Raven_Client::MESSAGE_LIMIT, $options['message_limit']);
+        $this->assertSame([], $options['exclude']);
+        $this->assertNull($options['http_proxy']);
+        $this->assertSame([], $options['extra']);
+        $this->assertSame('sync', $options['curl_method']);
+        $this->assertSame('curl', $options['curl_path']);
+        $this->assertTrue($options['curl_ipv4']);
+        $this->assertNull($options['ca_cert']);
+        $this->assertTrue($options['verify_ssl']);
+        $this->assertNull($options['curl_ssl_version']);
+        $this->assertFalse($options['trust_x_forwarded_proto']);
+        $this->assertNull($options['mb_detect_order']);
+        $this->assertNull($options['error_types']);
+        $this->assertSame('kernel/root/..', $options['app_path']);
+        $this->assertContains('kernel/root/../vendor', $options['excluded_app_paths']);
+        $this->assertContains('kernel/root/../app/cache', $options['excluded_app_paths']);
+        $this->assertContains('kernel/root/../var/cache', $options['excluded_app_paths']);
+        $this->assertSame(['kernel/root/..'], $options['prefixes']);
+        $this->assertTrue($options['install_default_breadcrumb_handlers']);
+        $this->assertTrue($options['install_shutdown_handler']);
+        $this->assertSame([\Raven_SanitizeDataProcessor::class], $options['processors']);
+        $this->assertSame([], $options['processorOptions']);
     }
 
     public function test_that_it_uses_app_path_value()
     {
         $container = $this->getContainer(
             [
-                static::CONFIG_ROOT => [
-                    'options' => ['app_path' => 'sentry/app/path'],
-                ],
+                'options' => ['app_path' => 'sentry/app/path'],
             ]
         );
 
@@ -44,34 +87,11 @@ class SentryExtensionTest extends TestCase
         );
     }
 
-    public function test_vendor_in_default_excluded_paths()
-    {
-        $container = $this->getContainer();
-
-        $options = $container->getParameter('sentry.options');
-        $this->assertContains(
-            'kernel/root/../vendor',
-            $options['excluded_app_paths']
-        );
-    }
-
-    public function test_that_it_uses_defined_class_as_client_class_by_default()
-    {
-        $container = $this->getContainer();
-
-        $this->assertSame(
-            SentrySymfonyClient::class,
-            $container->getParameter('sentry.client')
-        );
-    }
-
     public function test_that_it_uses_client_value()
     {
         $container = $this->getContainer(
             [
-                static::CONFIG_ROOT => [
-                    'client' => 'clientClass',
-                ],
+                'client' => 'clientClass',
             ]
         );
 
@@ -81,24 +101,11 @@ class SentryExtensionTest extends TestCase
         );
     }
 
-    public function test_that_it_uses_kernel_environment_as_environment_by_default()
-    {
-        $container = $this->getContainer();
-
-        $options = $container->getParameter('sentry.options');
-        $this->assertSame(
-            'test',
-            $options['environment']
-        );
-    }
-
     public function test_that_it_uses_environment_value()
     {
         $container = $this->getContainer(
             [
-                static::CONFIG_ROOT => [
-                    'options' => ['environment' => 'custom_env'],
-                ],
+                'options' => ['environment' => 'custom_env'],
             ]
         );
 
@@ -109,15 +116,6 @@ class SentryExtensionTest extends TestCase
         );
     }
 
-    public function test_that_it_uses_null_as_dsn_default_value()
-    {
-        $container = $this->getContainer();
-
-        $this->assertNull(
-            $container->getParameter('sentry.dsn')
-        );
-    }
-
     /**
      * @dataProvider emptyDsnValueProvider
      */
@@ -125,9 +123,7 @@ class SentryExtensionTest extends TestCase
     {
         $container = $this->getContainer(
             [
-                static::CONFIG_ROOT => [
-                    'dsn' => $emptyDsn,
-                ],
+                'dsn' => $emptyDsn,
             ]
         );
 
@@ -148,9 +144,7 @@ class SentryExtensionTest extends TestCase
     {
         $container = $this->getContainer(
             [
-                static::CONFIG_ROOT => [
-                    'dsn' => 'custom_dsn',
-                ],
+                'dsn' => 'custom_dsn',
             ]
         );
 
@@ -164,10 +158,8 @@ class SentryExtensionTest extends TestCase
     {
         $container = $this->getContainer(
             [
-                static::CONFIG_ROOT => [
-                    'options' => [
-                        'http_proxy' => 'http://user:password@host:port',
-                    ],
+                'options' => [
+                    'http_proxy' => 'http://user:password@host:port',
                 ],
             ]
         );
@@ -180,40 +172,14 @@ class SentryExtensionTest extends TestCase
         );
     }
 
-    public function test_that_it_has_default_priority_values()
-    {
-        $container = $this->getContainer();
-
-        $this->assertTrue($container->hasParameter('sentry.listener_priorities'));
-
-        $priorities = $container->getParameter('sentry.listener_priorities');
-        $this->assertInternalType('array', $priorities);
-
-        $this->assertSame(0, $priorities['request']);
-        $this->assertSame(0, $priorities['kernel_exception']);
-        $this->assertSame(0, $priorities['console_exception']);
-    }
-
     public function test_that_it_is_invalid_if_exception_listener_fails_to_implement_required_interface()
     {
         $this->expectException(InvalidConfigurationException::class);
 
         $this->getContainer(
             [
-                static::CONFIG_ROOT => [
-                    'exception_listener' => 'Some\Invalid\Class',
-                ],
+                'exception_listener' => 'Some\Invalid\Class',
             ]
-        );
-    }
-
-    public function test_that_it_uses_defined_class_as_exception_listener_class_by_default()
-    {
-        $container = $this->getContainer();
-
-        $this->assertSame(
-            ExceptionListener::class,
-            $container->getParameter('sentry.exception_listener')
         );
     }
 
@@ -222,9 +188,7 @@ class SentryExtensionTest extends TestCase
         $class = CustomExceptionListener::class;
         $container = $this->getContainer(
             [
-                static::CONFIG_ROOT => [
-                    'exception_listener' => $class,
-                ],
+                'exception_listener' => $class,
             ]
         );
 
@@ -234,27 +198,13 @@ class SentryExtensionTest extends TestCase
         );
     }
 
-    public function test_that_it_uses_array_with_http_exception_as_skipped_capture_by_default()
-    {
-        $container = $this->getContainer();
-
-        $this->assertSame(
-            [
-                HttpExceptionInterface::class,
-            ],
-            $container->getParameter('sentry.skip_capture')
-        );
-    }
-
     public function test_that_it_uses_skipped_capture_value()
     {
         $container = $this->getContainer(
             [
-                static::CONFIG_ROOT => [
-                    'skip_capture' => [
-                        'classA',
-                        'classB',
-                    ],
+                'skip_capture' => [
+                    'classA',
+                    'classB',
                 ],
             ]
         );
@@ -265,23 +215,11 @@ class SentryExtensionTest extends TestCase
         );
     }
 
-    public function test_that_it_uses_null_as_release_by_default()
-    {
-        $container = $this->getContainer();
-
-        $options = $container->getParameter('sentry.options');
-        $this->assertNull(
-            $options['release']
-        );
-    }
-
     public function test_that_it_uses_release_value()
     {
         $container = $this->getContainer(
             [
-                static::CONFIG_ROOT => [
-                    'options' => ['release' => '1.0'],
-                ],
+                'options' => ['release' => '1.0'],
             ]
         );
 
@@ -292,27 +230,14 @@ class SentryExtensionTest extends TestCase
         );
     }
 
-    public function test_that_it_uses_array_with_kernel_parent_as_prefix_by_default()
-    {
-        $container = $this->getContainer();
-
-        $options = $container->getParameter('sentry.options');
-        $this->assertSame(
-            ['kernel/root/..'],
-            $options['prefixes']
-        );
-    }
-
     public function test_that_it_uses_prefixes_value()
     {
         $container = $this->getContainer(
             [
-                static::CONFIG_ROOT => [
-                    'options' => [
-                        'prefixes' => [
-                            'dirA',
-                            'dirB',
-                        ],
+                'options' => [
+                    'prefixes' => [
+                        'dirA',
+                        'dirB',
                     ],
                 ],
             ]
@@ -369,68 +294,72 @@ class SentryExtensionTest extends TestCase
         );
     }
 
-    public function test_that_it_sets_all_options()
+    public function test_that_it_sets_all_sentry_options()
     {
-        $config = [
-            'options' => [
-                'logger' => 'logger',
-                'server' => 'server',
-                'secret_key' => 'secret_key',
-                'public_key' => 'public_key',
-                'project' => 'project',
-                'auto_log_stacks' => true,
-                'name' => 'name',
-                'site' => 'site',
-                'tags' => [
-                    'tag1' => 'tagname',
-                    'tag2' => 'tagename 2',
-                ],
-                'release' => 'release',
-                'environment' => 'environment',
-                'sample_rate' => 0.9,
-                'trace' => false,
-                'timeout' => 1,
-                'message_limit' => 512,
-                'exclude' => [
-                    'test1',
-                    'test2',
-                ],
-                'http_proxy' => 'http_proxy',
-                'extra' => [
-                    'extra1' => 'extra1',
-                    'extra2' => 'extra2',
-                ],
-                'curl_method' => 'curl_method',
-                'curl_path' => 'curl_path',
-                'curl_ipv4' => false,
-                'ca_cert' => 'ca_cert',
-                'verify_ssl' => false,
-                'curl_ssl_version' => 'curl_ssl_version',
-                'trust_x_forwarded_proto' => true,
-                'mb_detect_order' => 'mb_detect_order',
-                'error_types' => 'E_ALL & ~E_DEPRECATED & ~E_NOTICE',
-                'app_path' => 'app_path',
-                'excluded_app_paths' => ['excluded_app_path1', 'excluded_app_path2'],
-                'prefixes' => ['prefix1', 'prefix2'],
-                'install_default_breadcrumb_handlers' => false,
-                'install_shutdown_handler' => false,
-                'processors' => ['processor1', 'processor2'],
-                'processorOptions' => [
-                    'processorOption1' => 'asasdf',
-                ],
+        $options = [
+            'logger' => 'logger',
+            'server' => 'server',
+            'secret_key' => 'secret_key',
+            'public_key' => 'public_key',
+            'project' => 'project',
+            'auto_log_stacks' => true,
+            'name' => 'name',
+            'site' => 'site',
+            'tags' => [
+                'tag1' => 'tagname',
+                'tag2' => 'tagename 2',
+            ],
+            'release' => 'release',
+            'environment' => 'environment',
+            'sample_rate' => 0.9,
+            'trace' => false,
+            'timeout' => 1,
+            'message_limit' => 512,
+            'exclude' => [
+                'test1',
+                'test2',
+            ],
+            'http_proxy' => 'http_proxy',
+            'extra' => [
+                'extra1' => 'extra1',
+                'extra2' => 'extra2',
+            ],
+            'curl_method' => 'curl_method',
+            'curl_path' => 'curl_path',
+            'curl_ipv4' => false,
+            'ca_cert' => 'ca_cert',
+            'verify_ssl' => false,
+            'curl_ssl_version' => 'curl_ssl_version',
+            'trust_x_forwarded_proto' => true,
+            'mb_detect_order' => 'mb_detect_order',
+            'error_types' => 'E_ALL & ~E_DEPRECATED & ~E_NOTICE',
+            'app_path' => 'app_path',
+            'excluded_app_paths' => ['excluded_app_path1', 'excluded_app_path2'],
+            'prefixes' => ['prefix1', 'prefix2'],
+            'install_default_breadcrumb_handlers' => false,
+            'install_shutdown_handler' => false,
+            'processors' => ['processor1', 'processor2'],
+            'processorOptions' => [
+                'processorOption1' => 'asasdf',
             ],
         ];
 
-        $container = $this->getContainer([static::CONFIG_ROOT => $config]);
+        $this->assertCount(self::SUPPORTED_SENTRY_OPTIONS_COUNT, $options);
+        $defaultOptions = $this->getContainer()->getParameter('sentry.options');
+        foreach ($options as $name => $value) {
+            $this->assertNotEquals($defaultOptions[$name], $value, 'Test precondition failed: using default value for ' . $name);
+        }
 
-        $options = $container->getParameter('sentry.options');
-        $this->assertSame(
-            $config['options'],
-            $options
-        );
+        $container = $this->getContainer(['options' => $options]);
+
+        $this->assertSame($options, $container->getParameter('sentry.options'));
     }
 
-    private function getContainer(array $options = [])
+    /**
+     * @param array $configuration
+     * @return ContainerBuilder
+     */
+    private function getContainer(array $configuration = [])
     {
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->setParameter('kernel.root_dir', 'kernel/root');
@@ -442,7 +371,7 @@ class SentryExtensionTest extends TestCase
         $containerBuilder->set('event_dispatcher', $mockEventDispatcher);
 
         $extension = new SentryExtension();
-        $extension->load($options, $containerBuilder);
+        $extension->load(['sentry' => $configuration], $containerBuilder);
 
         $containerBuilder->compile();
 

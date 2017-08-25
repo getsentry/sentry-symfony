@@ -27,6 +27,7 @@ class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('sentry');
 
+        // Basic Sentry configuration
         $rootNode
             ->children()
                 ->scalarNode('app_path')
@@ -34,9 +35,6 @@ class Configuration implements ConfigurationInterface
                 ->end()
                 ->scalarNode('client')
                     ->defaultValue(SentrySymfonyClient::class)
-                ->end()
-                ->scalarNode('environment')
-                    ->defaultValue('%kernel.environment%')
                 ->end()
                 ->scalarNode('dsn')
                     ->beforeNormalization()
@@ -46,6 +44,7 @@ class Configuration implements ConfigurationInterface
                     ->defaultNull()
                 ->end();
 
+        // Sentry client options
         $rootNode
             ->children()
                 ->arrayNode('options')
@@ -102,7 +101,7 @@ class Configuration implements ConfigurationInterface
                         ->booleanNode('install_default_breadcrumb_handlers')->defaultTrue()->end()
                         ->booleanNode('install_shutdown_handler')->defaultTrue()->end()
                         ->arrayNode('processors')
-                            ->defaultValue(['Raven_SanitizeDataProcessor'])
+                            ->defaultValue([\Raven_SanitizeDataProcessor::class])
                             ->prototype('scalar')->end()
                         ->end()
                         ->arrayNode('processorOptions')
@@ -111,6 +110,7 @@ class Configuration implements ConfigurationInterface
                     ->end()
                 ->end();
 
+        // Bundle-specific configuration
         $rootNode
             ->children()
                 ->scalarNode('exception_listener')
@@ -153,6 +153,9 @@ class Configuration implements ConfigurationInterface
         };
     }
 
+    /**
+     * @return \Closure
+     */
     private function getTrimClosure()
     {
         return function ($str) {
