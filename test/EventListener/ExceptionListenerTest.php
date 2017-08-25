@@ -464,17 +464,12 @@ class ExceptionListenerTest extends TestCase
         $listener->onKernelException($mockEvent);
     }
 
-    public function test_that_it_captures_console_exception()
+    /**
+     * @dataProvider mockCommandProvider
+     */
+    public function test_that_it_captures_console_exception(Command $mockCommand = null, $expectedCommandName)
     {
         $reportableException = new \Exception();
-
-        $mockCommand = $this->createMock(Command::class);
-
-        $mockCommand
-            ->expects($this->once())
-            ->method('getName')
-            ->willReturn('cmd name')
-        ;
 
         $mockEvent = $this->createMock(ConsoleExceptionEvent::class);
 
@@ -509,7 +504,7 @@ class ExceptionListenerTest extends TestCase
                 $this->identicalTo($reportableException),
                 $this->identicalTo([
                     'tags' => [
-                        'command' => 'cmd name',
+                        'command' => $expectedCommandName,
                         'status_code' => 10,
                     ],
                 ])
@@ -519,6 +514,21 @@ class ExceptionListenerTest extends TestCase
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');
         $listener->onConsoleException($mockEvent);
+    }
+
+    public function mockCommandProvider()
+    {
+        $mockCommand = $this->createMock(Command::class);
+        $mockCommand
+            ->expects($this->once())
+            ->method('getName')
+            ->willReturn('cmd name')
+        ;
+
+        return [
+            [$mockCommand, 'cmd name'],
+            [null, 'N/A'], // the error may have been triggered before the command is loaded
+        ];
     }
 
     public function test_that_it_can_replace_client()

@@ -134,7 +134,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
 
         $data = [
             'tags' => [
-                'command' => $command->getName(),
+                'command' => $command ? $command->getName() : 'N/A',
                 'status_code' => $event->getExitCode(),
             ],
         ];
