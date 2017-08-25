@@ -39,28 +39,28 @@ class ExceptionListener implements SentryExceptionListenerInterface
 
     /**
      * ExceptionListener constructor.
-     * @param TokenStorageInterface $tokenStorage
-     * @param AuthorizationCheckerInterface $authorizationChecker
      * @param \Raven_Client $client
-     * @param array $skipCapture
      * @param EventDispatcherInterface $dispatcher
+     * @param array $skipCapture
+     * @param TokenStorageInterface|null $tokenStorage
+     * @param AuthorizationCheckerInterface|null $authorizationChecker
      */
     public function __construct(
-        TokenStorageInterface $tokenStorage = null,
-        AuthorizationCheckerInterface $authorizationChecker = null,
-        \Raven_Client $client = null,
+        \Raven_Client $client,
+        EventDispatcherInterface $dispatcher,
         array $skipCapture,
-        EventDispatcherInterface $dispatcher
+        TokenStorageInterface $tokenStorage = null,
+        AuthorizationCheckerInterface $authorizationChecker = null
     ) {
         if (! $client) {
             $client = new SentrySymfonyClient();
         }
 
+        $this->client = $client;
+        $this->eventDispatcher = $dispatcher;
+        $this->skipCapture = $skipCapture;
         $this->tokenStorage = $tokenStorage;
         $this->authorizationChecker = $authorizationChecker;
-        $this->eventDispatcher = $dispatcher;
-        $this->client = $client;
-        $this->skipCapture = $skipCapture;
     }
 
     /**

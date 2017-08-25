@@ -8,11 +8,11 @@ services:
     sentry.exception_listener:
         class: '%sentry.exception_listener%'
         arguments:
+          - '@sentry.client'
+          - '@event_dispatcher'
+          - '%sentry.skip_capture%'
           - '@?security.token_storage'
           - '@?security.authorization_checker'
-          - '@sentry.client'
-          - '%sentry.skip_capture%'
-          - '@event_dispatcher'
         tags:
             - { name: kernel.event_listener, event: kernel.request,    method: onKernelRequest, priority: '%sentry.listener_priorities.request%'}
             - { name: kernel.event_listener, event: kernel.exception,  method: onKernelException, priority: '%sentry.listener_priorities.kernel_exception%' }
