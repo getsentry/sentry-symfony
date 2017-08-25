@@ -33,4 +33,13 @@ class SentrySymfonyClientTest extends TestCase
         $this->assertEquals('a', $client->public_key);
         $this->assertEquals('b', $client->secret_key);
     }
+
+    public function test_that_it_processes_error_types_option()
+    {
+        $client = new SentrySymfonyClient('https://a:b@app.getsentry.com/project', [
+            'error_types' => 'E_ALL & ~E_WARNING',
+        ]);
+
+        $this->assertAttributeSame(E_ALL & ~E_WARNING, 'error_types', $client);
+    }
 }
