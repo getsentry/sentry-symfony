@@ -32,7 +32,8 @@ jobs:
       env: COMPOSER_OPTIONS="--prefer-lowest"
     - stage: codestyle and SCA
       php: 7.1
-      script: 
+      script:
+        - composer require --dev phpstan/phpstan symfony/expression-language --no-interaction --prefer-dist --prefer-stable
         - vendor/bin/phpstan analyse src --level 7
         - vendor/bin/php-cs-fixer fix --verbose --diff --dry-run
     - stage: coverage
