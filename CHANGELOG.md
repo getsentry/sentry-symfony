@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.8.3 - 2017-08-07
 ### Changed
- - Migrate all the opions from the config root to `sentry.options` (#68); the affected options are still usable in the old form, but they will generate deprecation notices. They will be dropped in the 1.0 release.
+ - Migrate all the options from the config root to `sentry.options` (#68); the affected options are still usable in the old form, but they will generate deprecation notices. They will be dropped in the 1.0 release.
 
 Before:
 ```yaml
