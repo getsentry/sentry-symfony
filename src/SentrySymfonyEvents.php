@@ -8,7 +8,6 @@ namespace Sentry\SentryBundle;
  */
 class SentrySymfonyEvents
 {
-
     /**
      * The PRE_CAPTURE event is triggered just before the client captures the
      * exception.

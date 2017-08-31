@@ -3,7 +3,6 @@
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\SentryBundle\Event\SentryUserContextEvent;
-use Sentry\SentryBundle\SentrySymfonyClient;
 use Sentry\SentryBundle\SentrySymfonyEvents;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleExceptionEvent;
@@ -22,10 +21,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
  */
 class ExceptionListener implements SentryExceptionListenerInterface
 {
-    /** @var  TokenStorageInterface */
+    /** @var TokenStorageInterface|null */
     private $tokenStorage;
 
-    /** @var  AuthorizationCheckerInterface */
+    /** @var AuthorizationCheckerInterface|null */
     private $authorizationChecker;
 
     /** @var \Raven_Client */
@@ -34,33 +33,29 @@ class ExceptionListener implements SentryExceptionListenerInterface
     /** @var EventDispatcherInterface */
     protected $eventDispatcher;
 
-    /** @var  string[] */
+    /** @var string[] */
     protected $skipCapture;
 
     /**
      * ExceptionListener constructor.
-     * @param TokenStorageInterface $tokenStorage
-     * @param AuthorizationCheckerInterface $authorizationChecker
      * @param \Raven_Client $client
-     * @param array $skipCapture
      * @param EventDispatcherInterface $dispatcher
+     * @param array $skipCapture
+     * @param TokenStorageInterface|null $tokenStorage
+     * @param AuthorizationCheckerInterface|null $authorizationChecker
      */
     public function __construct(
-        TokenStorageInterface $tokenStorage = null,
-        AuthorizationCheckerInterface $authorizationChecker = null,
-        \Raven_Client $client = null,
+        \Raven_Client $client,
+        EventDispatcherInterface $dispatcher,
         array $skipCapture,
-        EventDispatcherInterface $dispatcher
+        TokenStorageInterface $tokenStorage = null,
+        AuthorizationCheckerInterface $authorizationChecker = null
     ) {
-        if (! $client) {
-            $client = new SentrySymfonyClient();
-        }
-
+        $this->client = $client;
+        $this->eventDispatcher = $dispatcher;
+        $this->skipCapture = $skipCapture;
         $this->tokenStorage = $tokenStorage;
         $this->authorizationChecker = $authorizationChecker;
-        $this->eventDispatcher = $dispatcher;
-        $this->client = $client;
-        $this->skipCapture = $skipCapture;
     }
 
     /**
@@ -136,12 +131,12 @@ class ExceptionListener implements SentryExceptionListenerInterface
             return;
         }
 
-        $data = array(
-            'tags' => array(
-                'command' => $command->getName(),
+        $data = [
+            'tags' => [
+                'command' => $command ? $command->getName() : 'N/A',
                 'status_code' => $event->getExitCode(),
-            ),
-        );
+            ],
+        ];
 
         $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
         $this->client->captureException($exception, $data);
@@ -157,7 +152,6 @@ class ExceptionListener implements SentryExceptionListenerInterface
 
         return false;
     }
-
 
     /**
      * @param UserInterface | object | string $user

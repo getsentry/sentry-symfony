@@ -3,9 +3,12 @@
 namespace Sentry\SentryBundle\DependencyInjection;
 
 use Raven_Compat;
-use Sentry\SentryBundle\SentryBundle;
+use Sentry\SentryBundle\EventListener\ExceptionListener;
+use Sentry\SentryBundle\EventListener\SentryExceptionListenerInterface;
+use Sentry\SentryBundle\SentrySymfonyClient;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 /**
  * This is the class that validates and merges configuration from your app/config files
@@ -24,20 +27,26 @@ class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('sentry');
 
+        // Basic Sentry configuration
         $rootNode
             ->children()
                 ->scalarNode('app_path')
                     ->defaultValue('%kernel.root_dir%/..')
                 ->end()
                 ->scalarNode('client')
-                    ->defaultValue('Sentry\SentryBundle\SentrySymfonyClient')
-                ->end()
-                ->scalarNode('environment')
-                    ->defaultValue('%kernel.environment%')
+                    ->defaultValue(SentrySymfonyClient::class)
                 ->end()
                 ->scalarNode('dsn')
+                    ->beforeNormalization()
+                        ->ifString()
+                        ->then($this->getTrimClosure())
+                    ->end()
                     ->defaultNull()
-                ->end()
+                ->end();
+
+        // Sentry client options
+        $rootNode
+            ->children()
                 ->arrayNode('options')
                     ->addDefaultsIfNotSet()
                     ->children()
@@ -73,40 +82,39 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('curl_ssl_version')->defaultNull()->end()
                         ->scalarNode('trust_x_forwarded_proto')->defaultFalse()->end()
                         ->scalarNode('mb_detect_order')->defaultNull()->end()
-                        ->arrayNode('error_types')
-                            ->prototype('scalar')->end()
-                        ->end()
+                        ->scalarNode('error_types')->defaultNull()->end()
                         ->scalarNode('app_path')->defaultValue('%kernel.root_dir%/..')->end()
                         ->arrayNode('excluded_app_paths')
                             ->defaultValue(
-                                array(
+                                [
                                     '%kernel.root_dir%/../vendor',
                                     '%kernel.root_dir%/../app/cache',
                                     '%kernel.root_dir%/../var/cache',
-                                )
+                                ]
                             )
                             ->prototype('scalar')->end()
                         ->end()
                         ->arrayNode('prefixes')
-                            ->defaultValue(array('%kernel.root_dir%/..'))
+                            ->defaultValue(['%kernel.root_dir%/..'])
                             ->prototype('scalar')->end()
                         ->end()
                         ->booleanNode('install_default_breadcrumb_handlers')->defaultTrue()->end()
                         ->booleanNode('install_shutdown_handler')->defaultTrue()->end()
                         ->arrayNode('processors')
-                            ->defaultValue(array('Raven_SanitizeDataProcessor'))
+                            ->defaultValue([\Raven_SanitizeDataProcessor::class])
                             ->prototype('scalar')->end()
                         ->end()
                         ->arrayNode('processorOptions')
                             ->prototype('scalar')->end()
                         ->end()
                     ->end()
-                ->end()
-                ->scalarNode('error_types')
-                    ->defaultNull()
-                ->end()
+                ->end();
+
+        // Bundle-specific configuration
+        $rootNode
+            ->children()
                 ->scalarNode('exception_listener')
-                    ->defaultValue('Sentry\SentryBundle\EventListener\ExceptionListener')
+                    ->defaultValue(ExceptionListener::class)
                     ->validate()
                     ->ifTrue($this->getExceptionListenerInvalidationClosure())
                         ->thenInvalid('The "sentry.exception_listener" parameter should be a FQCN of a class implementing the SentryExceptionListenerInterface interface')
@@ -114,22 +122,7 @@ class Configuration implements ConfigurationInterface
                 ->end()
                 ->arrayNode('skip_capture')
                     ->prototype('scalar')->end()
-                    ->defaultValue(array('Symfony\Component\HttpKernel\Exception\HttpExceptionInterface'))
-                ->end()
-                ->scalarNode('release')
-                    ->defaultNull()
-                ->end()
-                ->arrayNode('prefixes')
-                    ->prototype('scalar')->end()
-                    ->defaultValue(array('%kernel.root_dir%/..'))
-                ->end()
-                ->arrayNode('excluded_app_paths')
-                    ->prototype('scalar')->end()
-                    ->defaultValue(array(
-                        '%kernel.root_dir%/../vendor',
-                        '%kernel.root_dir%/../app/cache',
-                        '%kernel.root_dir%/../var/cache',
-                    ))
+                    ->defaultValue([HttpExceptionInterface::class])
                 ->end()
                 ->arrayNode('listener_priorities')
                     ->addDefaultsIfNotSet()
@@ -155,7 +148,23 @@ class Configuration implements ConfigurationInterface
             if ($implements === false) {
                 return true;
             }
-            return !in_array('Sentry\SentryBundle\EventListener\SentryExceptionListenerInterface', $implements, true);
+
+            return ! in_array(SentryExceptionListenerInterface::class, $implements, true);
+        };
+    }
+
+    /**
+     * @return \Closure
+     */
+    private function getTrimClosure()
+    {
+        return function ($str) {
+            $value = trim($str);
+            if ($value === '') {
+                return null;
+            }
+
+            return $value;
         };
     }
 }

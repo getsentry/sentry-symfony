@@ -2,9 +2,10 @@
 
 namespace Sentry\SentryBundle\Test;
 
+use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\ErrorTypesParser;
 
-class ErrorTypesParserTest extends \PHPUnit_Framework_TestCase
+class ErrorTypesParserTest extends TestCase
 {
     public function test_error_types_parser()
     {
@@ -16,7 +17,7 @@ class ErrorTypesParserTest extends \PHPUnit_Framework_TestCase
     {
         $ex = new ErrorTypesParser('exec(something-dangerous)');
 
-        $this->setExpectedException('\InvalidArgumentException');
+        $this->expectException(\InvalidArgumentException::class);
         $ex->parse();
     }
 }

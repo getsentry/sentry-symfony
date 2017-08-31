@@ -8,7 +8,6 @@ use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 
 interface SentryExceptionListenerInterface
 {
-
     /**
      * Used to capture information from the request before any possible error
      * event is encountered by listening on core.request.

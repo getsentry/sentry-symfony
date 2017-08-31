@@ -5,10 +5,37 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## 1.0.0 - [Unreleased]
 ### Added
  - Add official support to PHP 7.2 (#71)
+### Changed
+ - Changed source folder from `src/Sentry/SentryBundle` to just `src/` (thanks to PSR-4 and Composer this doesn't affect you)
+ - Re-sort the constructor's arguments of `ExceptionListener`
+ - The `SentrySymfonyClient` is no longer an optional argument of `ExceptionListener`; it's now required
 ### Fixed
  - Remove usage of create_function to avoid deprecations (#71)
+ - Fix a possible bug that could make Sentry crash if an error is triggered before loading a console command
+### Removed
+ - Drop deprecated fields from configuration; the same options can be used (since 0.8.3) under `sentry.options`
+ - Dropped the third argument from the `SentrySymfonyClient` constructor; `error_types` are now fetched from the second argument, the options array
+ - Remove support for PHP versions lower than 5.6, since they are now EOL
+ - Remove support for HHVM
+
+## 0.8.6 - 2017-08-24
+### Changed
+ - Migrate service definitions to non-deprecated option configuration values
+### Fixed
+ - Fix expected type of the `options.error_types` config value (scalar instead of array, discovered in #72)
+ - Fix handling of deprecated options value
+
+## 0.8.5 - 2017-08-22
+### Fixed
+ - `trim()` DSN value from config, to avoid issues with .env files on BitBucket (see https://github.com/getsentry/sentry-symfony/pull/21#issuecomment-323673938)
+
+## 0.8.4 - 2017-08-08
+### Fixed
+ - Fix exception being thrown when both deprecated and new options are used.
 
 ## 0.8.3 - 2017-08-07
 ### Changed

@@ -2,55 +2,48 @@
 
 namespace Sentry\SentryBundle\Test\EventListener;
 
-use Sentry\SentryBundle\SentrySymfonyEvents;
+use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
+use Sentry\SentryBundle\Event\SentryUserContextEvent;
+use Sentry\SentryBundle\EventListener\ExceptionListener;
+use Sentry\SentryBundle\SentrySymfonyEvents;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Event\ConsoleExceptionEvent;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
+use Symfony\Component\Security\Core\User\UserInterface;
 
-class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
+class ExceptionListenerTest extends TestCase
 {
-    /**
-     * @var ContainerBuilder
-     */
+    /** @var ContainerBuilder|\PHPUnit_Framework_MockObject_MockObject */
     private $containerBuilder;
 
-    /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
-     */
+    /** @var \Raven_Client|\PHPUnit_Framework_MockObject_MockObject */
     private $mockSentryClient;
 
-    /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
-     */
+    /** @var TokenStorageInterface|\PHPUnit_Framework_MockObject_MockObject */
     private $mockTokenStorage;
 
-    /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
-     */
+    /** @var AuthorizationCheckerInterface|\PHPUnit_Framework_MockObject_MockObject */
     private $mockAuthorizationChecker;
+
+    /** @var EventDispatcherInterface|\PHPUnit_Framework_MockObject_MockObject */
+    private $mockEventDispatcher;
 
     public function setUp()
     {
-        parent::setUp();
-
-        $this->mockTokenStorage = $this
-            ->getMock('Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface')
-        ;
-
-        $this->mockAuthorizationChecker = $this
-            ->getMock('Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface')
-        ;
-
-        $this->mockSentryClient = $this
-            ->getMockBuilder('Raven_Client')
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
-
-        $this->mockEventDispatcher = $this
-            ->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface')
-        ;
+        $this->mockTokenStorage = $this->createMock(TokenStorageInterface::class);
+        $this->mockAuthorizationChecker = $this->createMock(AuthorizationCheckerInterface::class);
+        $this->mockSentryClient = $this->createMock(\Raven_Client::class);
+        $this->mockEventDispatcher = $this->createMock(EventDispatcherInterface::class);
 
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->setParameter('kernel.root_dir', 'kernel/root');
@@ -62,7 +55,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
         $containerBuilder->set('event_dispatcher', $this->mockEventDispatcher);
 
         $extension = new SentryExtension();
-        $extension->load(array(), $containerBuilder);
+        $extension->load([], $containerBuilder);
 
         $this->containerBuilder = $containerBuilder;
     }
@@ -72,16 +65,12 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');
 
-        $this->assertInstanceOf('Sentry\SentryBundle\EventListener\ExceptionListener', $listener);
+        $this->assertInstanceOf(ExceptionListener::class, $listener);
     }
 
     public function test_that_user_data_is_not_set_on_subrequest()
     {
-        $mockEvent = $this
-            ->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseEvent')
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
+        $mockEvent = $this->createMock(GetResponseEvent::class);
 
         $mockEvent
             ->expects($this->once())
@@ -89,15 +78,13 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->willReturn(HttpKernelInterface::SUB_REQUEST)
         ;
 
-        $this
-            ->mockSentryClient
+        $this->mockSentryClient
             ->expects($this->never())
             ->method('set_user_data')
             ->withAnyParameters()
         ;
 
-        $this
-            ->mockEventDispatcher
+        $this->mockEventDispatcher
             ->expects($this->never())
             ->method('dispatch')
             ->withAnyParameters()
@@ -112,11 +99,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
     {
         $this->containerBuilder->set('security.token_storage', null);
 
-        $mockEvent = $this
-            ->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseEvent')
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
+        $mockEvent = $this->createMock(GetResponseEvent::class);
 
         $mockEvent
             ->expects($this->once())
@@ -124,15 +107,13 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->willReturn(HttpKernelInterface::MASTER_REQUEST)
         ;
 
-        $this
-            ->mockSentryClient
+        $this->mockSentryClient
             ->expects($this->never())
             ->method('set_user_data')
             ->withAnyParameters()
         ;
 
-        $this
-            ->mockEventDispatcher
+        $this->mockEventDispatcher
             ->expects($this->never())
             ->method('dispatch')
             ->withAnyParameters()
@@ -150,11 +131,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
     {
         $this->containerBuilder->set('security.authorization_checker', null);
 
-        $mockEvent = $this
-            ->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseEvent')
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
+        $mockEvent = $this->createMock(GetResponseEvent::class);
 
         $mockEvent
             ->expects($this->once())
@@ -162,15 +139,13 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->willReturn(HttpKernelInterface::MASTER_REQUEST)
         ;
 
-        $this
-            ->mockSentryClient
+        $this->mockSentryClient
             ->expects($this->never())
             ->method('set_user_data')
             ->withAnyParameters()
         ;
 
-        $this
-            ->mockEventDispatcher
+        $this->mockEventDispatcher
             ->expects($this->never())
             ->method('dispatch')
             ->withAnyParameters()
@@ -186,14 +161,11 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
     public function test_that_user_data_is_not_set_if_token_not_present()
     {
-        $user = $this->getMock('Symfony\Component\Security\Core\User\UserInterface');
-        $user->method('getUsername')->willReturn('username');
+        $user = $this->createMock(UserInterface::class);
+        $user->method('getUsername')
+            ->willReturn('username');
 
-        $mockEvent = $this
-            ->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseEvent')
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
+        $mockEvent = $this->createMock(GetResponseEvent::class);
 
         $mockEvent
             ->expects($this->once())
@@ -201,8 +173,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->willReturn(HttpKernelInterface::MASTER_REQUEST)
         ;
 
-        $this
-            ->mockAuthorizationChecker
+        $this->mockAuthorizationChecker
             ->method('isGranted')
             ->with($this->identicalTo(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED))
             ->willReturn(true)
@@ -213,15 +184,13 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->willReturn(null)
         ;
 
-        $this
-            ->mockSentryClient
+        $this->mockSentryClient
             ->expects($this->never())
             ->method('set_user_data')
             ->withAnyParameters()
         ;
 
-        $this
-            ->mockEventDispatcher
+        $this->mockEventDispatcher
             ->expects($this->never())
             ->method('dispatch')
             ->withAnyParameters()
@@ -234,30 +203,24 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
     public function test_that_user_data_is_not_set_if_not_authorized()
     {
-        $user = $this->getMock('Symfony\Component\Security\Core\User\UserInterface');
+        $user = $this->createMock(UserInterface::class);
         $user->method('getUsername')->willReturn('username');
 
-        $mockToken = $this->getMock('Symfony\Component\Security\Core\Authentication\Token\TokenInterface');
+        $mockToken = $this->createMock(TokenInterface::class);
 
         $mockToken
             ->method('getUser')
             ->willReturn($user)
         ;
 
-        $mockEvent = $this
-            ->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseEvent')
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
+        $mockEvent = $this->createMock(GetResponseEvent::class);
 
-        $mockEvent
-            ->expects($this->once())
+        $mockEvent->expects($this->once())
             ->method('getRequestType')
             ->willReturn(HttpKernelInterface::MASTER_REQUEST)
         ;
 
-        $this
-            ->mockAuthorizationChecker
+        $this->mockAuthorizationChecker
             ->method('isGranted')
             ->with($this->identicalTo(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED))
             ->willReturn(false)
@@ -268,15 +231,13 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->willReturn($mockToken)
         ;
 
-        $this
-            ->mockSentryClient
+        $this->mockSentryClient
             ->expects($this->never())
             ->method('set_user_data')
             ->withAnyParameters()
         ;
 
-        $this
-            ->mockEventDispatcher
+        $this->mockEventDispatcher
             ->expects($this->never())
             ->method('dispatch')
             ->withAnyParameters()
@@ -289,21 +250,17 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
     public function test_that_username_is_set_from_user_interface_if_token_present_and_user_set_as_user_interface()
     {
-        $user = $this->getMock('Symfony\Component\Security\Core\User\UserInterface');
+        $user = $this->createMock(UserInterface::class);
         $user->method('getUsername')->willReturn('username');
 
-        $mockToken = $this->getMock('Symfony\Component\Security\Core\Authentication\Token\TokenInterface');
+        $mockToken = $this->createMock(TokenInterface::class);
 
         $mockToken
             ->method('getUser')
             ->willReturn($user)
         ;
 
-        $mockEvent = $this
-            ->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseEvent')
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
+        $mockEvent = $this->createMock(GetResponseEvent::class);
 
         $mockEvent
             ->expects($this->once())
@@ -336,7 +293,8 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->method('dispatch')
             ->with(
                 $this->identicalTo(SentrySymfonyEvents::SET_USER_CONTEXT),
-                $this->isInstanceOf('Sentry\SentryBundle\Event\SentryUserContextEvent'))
+                $this->isInstanceOf(SentryUserContextEvent::class)
+            )
         ;
 
         $this->containerBuilder->compile();
@@ -346,18 +304,14 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
     public function test_that_username_is_set_from_user_interface_if_token_present_and_user_set_as_string()
     {
-        $mockToken = $this->getMock('Symfony\Component\Security\Core\Authentication\Token\TokenInterface');
+        $mockToken = $this->createMock(TokenInterface::class);
 
         $mockToken
             ->method('getUser')
             ->willReturn('some_user')
         ;
 
-        $mockEvent = $this
-            ->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseEvent')
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
+        $mockEvent = $this->createMock(GetResponseEvent::class);
 
         $mockEvent
             ->expects($this->once())
@@ -365,8 +319,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->willReturn(HttpKernelInterface::MASTER_REQUEST)
         ;
 
-        $this
-            ->mockAuthorizationChecker
+        $this->mockAuthorizationChecker
             ->method('isGranted')
             ->with($this->identicalTo(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED))
             ->willReturn(true)
@@ -377,20 +330,19 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->willReturn($mockToken)
         ;
 
-        $this
-            ->mockSentryClient
+        $this->mockSentryClient
             ->expects($this->once())
             ->method('set_user_data')
             ->with($this->identicalTo('some_user'))
         ;
 
-        $this
-            ->mockEventDispatcher
+        $this->mockEventDispatcher
             ->expects($this->once())
             ->method('dispatch')
             ->with(
                 $this->identicalTo(SentrySymfonyEvents::SET_USER_CONTEXT),
-                $this->isInstanceOf('Sentry\SentryBundle\Event\SentryUserContextEvent'))
+                $this->isInstanceOf(SentryUserContextEvent::class)
+            )
         ;
 
         $this->containerBuilder->compile();
@@ -401,7 +353,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
     public function test_that_username_is_set_from_user_interface_if_token_present_and_user_set_object_with_to_string()
     {
         $mockUser = $this->getMockBuilder('stdClass')
-            ->setMethods(array('__toString'))
+            ->setMethods(['__toString'])
             ->getMock()
         ;
 
@@ -411,18 +363,14 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->willReturn('std_user')
         ;
 
-        $mockToken = $this->getMock('Symfony\Component\Security\Core\Authentication\Token\TokenInterface');
+        $mockToken = $this->createMock(TokenInterface::class);
 
         $mockToken
             ->method('getUser')
             ->willReturn($mockUser)
         ;
 
-        $mockEvent = $this
-            ->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseEvent')
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
+        $mockEvent = $this->createMock(GetResponseEvent::class);
 
         $mockEvent
             ->expects($this->once())
@@ -430,8 +378,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->willReturn(HttpKernelInterface::MASTER_REQUEST)
         ;
 
-        $this
-            ->mockAuthorizationChecker
+        $this->mockAuthorizationChecker
             ->method('isGranted')
             ->with($this->identicalTo(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED))
             ->willReturn(true)
@@ -442,20 +389,19 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->willReturn($mockToken)
         ;
 
-        $this
-            ->mockSentryClient
+        $this->mockSentryClient
             ->expects($this->once())
             ->method('set_user_data')
             ->with($this->identicalTo('std_user'))
         ;
 
-        $this
-            ->mockEventDispatcher
+        $this->mockEventDispatcher
             ->expects($this->once())
             ->method('dispatch')
             ->with(
                 $this->identicalTo(SentrySymfonyEvents::SET_USER_CONTEXT),
-                $this->isInstanceOf('Sentry\SentryBundle\Event\SentryUserContextEvent'))
+                $this->isInstanceOf(SentryUserContextEvent::class)
+            )
         ;
 
         $this->containerBuilder->compile();
@@ -465,29 +411,21 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
     public function test_that_it_does_not_report_http_exception_if_included_in_capture_skip()
     {
-        $mockException = new \Symfony\Component\HttpKernel\Exception\HttpException(401);
-
-        $mockEvent = $this
-            ->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent')
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
+        $mockEvent = $this->createMock(GetResponseForExceptionEvent::class);
 
         $mockEvent
             ->expects($this->once())
             ->method('getException')
-            ->willReturn($mockException)
+            ->willReturn(new HttpException(401))
         ;
 
-        $this
-            ->mockEventDispatcher
+        $this->mockEventDispatcher
             ->expects($this->never())
             ->method('dispatch')
             ->withAnyParameters()
         ;
 
-        $this
-            ->mockSentryClient
+        $this->mockSentryClient
             ->expects($this->never())
             ->method('captureException')
             ->withAnyParameters()
@@ -502,27 +440,20 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
     {
         $reportableException = new \Exception();
 
-        $mockEvent = $this
-            ->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent')
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
-
+        $mockEvent = $this->createMock(GetResponseForExceptionEvent::class);
         $mockEvent
             ->expects($this->once())
             ->method('getException')
             ->willReturn($reportableException)
         ;
 
-        $this
-            ->mockEventDispatcher
+        $this->mockEventDispatcher
             ->expects($this->once())
             ->method('dispatch')
             ->with($this->identicalTo(SentrySymfonyEvents::PRE_CAPTURE), $this->identicalTo($mockEvent))
         ;
 
-        $this
-            ->mockSentryClient
+        $this->mockSentryClient
             ->expects($this->once())
             ->method('captureException')
             ->with($this->identicalTo($reportableException))
@@ -533,27 +464,14 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
         $listener->onKernelException($mockEvent);
     }
 
-    public function test_that_it_captures_console_exception()
+    /**
+     * @dataProvider mockCommandProvider
+     */
+    public function test_that_it_captures_console_exception(Command $mockCommand = null, $expectedCommandName)
     {
         $reportableException = new \Exception();
 
-        $mockCommand = $this
-            ->getMockBuilder('Symfony\Component\Console\Command\Command')
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
-
-        $mockCommand
-            ->expects($this->once())
-            ->method('getName')
-            ->willReturn('cmd name')
-        ;
-
-        $mockEvent = $this
-            ->getMockBuilder('Symfony\Component\Console\Event\ConsoleExceptionEvent')
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
+        $mockEvent = $this->createMock(ConsoleExceptionEvent::class);
 
         $mockEvent
             ->expects($this->once())
@@ -573,25 +491,23 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->willReturn($mockCommand)
         ;
 
-        $this
-            ->mockEventDispatcher
+        $this->mockEventDispatcher
             ->expects($this->once())
             ->method('dispatch')
             ->with($this->identicalTo(SentrySymfonyEvents::PRE_CAPTURE), $this->identicalTo($mockEvent))
         ;
 
-        $this
-            ->mockSentryClient
+        $this->mockSentryClient
             ->expects($this->once())
             ->method('captureException')
             ->with(
                 $this->identicalTo($reportableException),
-                $this->identicalTo(array(
-                    'tags' => array(
-                        'command' => 'cmd name',
-                        'status_code' => 10
-                    )
-                ))
+                $this->identicalTo([
+                    'tags' => [
+                        'command' => $expectedCommandName,
+                        'status_code' => 10,
+                    ],
+                ])
             )
         ;
 
@@ -600,21 +516,28 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
         $listener->onConsoleException($mockEvent);
     }
 
+    public function mockCommandProvider()
+    {
+        $mockCommand = $this->createMock(Command::class);
+        $mockCommand
+            ->expects($this->once())
+            ->method('getName')
+            ->willReturn('cmd name')
+        ;
+
+        return [
+            [$mockCommand, 'cmd name'],
+            [null, 'N/A'], // the error may have been triggered before the command is loaded
+        ];
+    }
+
     public function test_that_it_can_replace_client()
     {
-        $replacementClient = $this
-            ->getMockBuilder('Raven_Client')
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
+        $replacementClient = $this->createMock('Raven_Client');
 
         $reportableException = new \Exception();
 
-        $mockEvent = $this
-            ->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent')
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
+        $mockEvent = $this->createMock(GetResponseForExceptionEvent::class);
 
         $mockEvent
             ->expects($this->once())
@@ -622,15 +545,13 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->willReturn($reportableException)
         ;
 
-        $this
-            ->mockEventDispatcher
+        $this->mockEventDispatcher
             ->expects($this->once())
             ->method('dispatch')
             ->with($this->identicalTo(SentrySymfonyEvents::PRE_CAPTURE), $this->identicalTo($mockEvent))
         ;
 
-        $this
-            ->mockSentryClient
+        $this->mockSentryClient
             ->expects($this->never())
             ->method('captureException')
             ->withAnyParameters()
