@@ -101,7 +101,7 @@ class Configuration implements ConfigurationInterface
                         ->booleanNode('install_default_breadcrumb_handlers')->defaultTrue()->end()
                         ->booleanNode('install_shutdown_handler')->defaultTrue()->end()
                         ->arrayNode('processors')
-                            ->defaultValue([\Raven_SanitizeDataProcessor::class])
+                            ->defaultValue([\Raven_Processor_SanitizeDataProcessor::class])
                             ->prototype('scalar')->end()
                         ->end()
                         ->arrayNode('processorOptions')

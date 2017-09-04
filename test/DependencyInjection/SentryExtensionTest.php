@@ -68,7 +68,7 @@ class SentryExtensionTest extends TestCase
         $this->assertSame(['kernel/root/..'], $options['prefixes']);
         $this->assertTrue($options['install_default_breadcrumb_handlers']);
         $this->assertTrue($options['install_shutdown_handler']);
-        $this->assertSame([\Raven_SanitizeDataProcessor::class], $options['processors']);
+        $this->assertSame([\Raven_Processor_SanitizeDataProcessor::class], $options['processors']);
         $this->assertSame([], $options['processorOptions']);
     }
 
