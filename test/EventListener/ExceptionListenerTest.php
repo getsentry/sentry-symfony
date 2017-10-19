@@ -299,6 +299,11 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->willReturn($user)
         ;
 
+        $mockToken
+            ->method('isAuthenticated')
+            ->willReturn(true)
+        ;
+
         $mockEvent = $this
             ->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseEvent')
             ->disableOriginalConstructor()
@@ -351,6 +356,11 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
         $mockToken
             ->method('getUser')
             ->willReturn('some_user')
+        ;
+
+        $mockToken
+            ->method('isAuthenticated')
+            ->willReturn(true)
         ;
 
         $mockEvent = $this
@@ -416,6 +426,11 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
         $mockToken
             ->method('getUser')
             ->willReturn($mockUser)
+        ;
+
+        $mockToken
+            ->method('isAuthenticated')
+            ->willReturn(true)
         ;
 
         $mockEvent = $this
