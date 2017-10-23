@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
  - Remove usage of create_function to avoid deprecations (#71)
  - Fix a possible bug that could make Sentry crash if an error is triggered before loading a console command
+ - Fix a fatal error when the user token is not authenticated (#78)
 ### Removed
  - Drop deprecated fields from configuration; the same options can be used (since 0.8.3) under `sentry.options`
  - Dropped the third argument from the `SentrySymfonyClient` constructor; `error_types` are now fetched from the second argument, the options array
