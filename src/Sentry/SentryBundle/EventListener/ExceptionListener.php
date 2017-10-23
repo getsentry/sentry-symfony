@@ -88,7 +88,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
 
         $token = $this->tokenStorage->getToken();
 
-        if (null !== $token && $this->authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)) {
+        if (null !== $token && $token->isAuthenticated() && $this->authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)) {
             $this->setUserValue($token->getUser());
 
             $contextEvent = new SentryUserContextEvent($token);
