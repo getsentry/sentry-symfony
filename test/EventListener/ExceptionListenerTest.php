@@ -260,6 +260,11 @@ class ExceptionListenerTest extends TestCase
             ->willReturn($user)
         ;
 
+        $mockToken
+            ->method('isAuthenticated')
+            ->willReturn(true)
+        ;
+
         $mockEvent = $this->createMock(GetResponseEvent::class);
 
         $mockEvent
@@ -309,6 +314,11 @@ class ExceptionListenerTest extends TestCase
         $mockToken
             ->method('getUser')
             ->willReturn('some_user')
+        ;
+
+        $mockToken
+            ->method('isAuthenticated')
+            ->willReturn(true)
         ;
 
         $mockEvent = $this->createMock(GetResponseEvent::class);
@@ -368,6 +378,11 @@ class ExceptionListenerTest extends TestCase
         $mockToken
             ->method('getUser')
             ->willReturn($mockUser)
+        ;
+
+        $mockToken
+            ->method('isAuthenticated')
+            ->willReturn(true)
         ;
 
         $mockEvent = $this->createMock(GetResponseEvent::class);
