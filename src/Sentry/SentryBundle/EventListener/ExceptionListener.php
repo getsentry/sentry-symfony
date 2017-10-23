@@ -82,6 +82,8 @@ class ExceptionListener implements SentryExceptionListenerInterface
             return;
         }
 
+        $this->client->install();
+
         if (null === $this->tokenStorage || null === $this->authorizationChecker) {
             return;
         }
@@ -111,17 +113,9 @@ class ExceptionListener implements SentryExceptionListenerInterface
         $this->client->captureException($exception);
     }
 
-    /**
-     * This method only ensures that the client and error handlers are registered at the start of the command
-     * execution cycle, and not only on exceptions
-     *
-     * @param ConsoleCommandEvent $event
-     *
-     * @return void
-     */
-    public function onConsoleCommand(ConsoleCommandEvent $event)
+    public function onConsoleCommand()
     {
-        // only triggers loading of client, does not need to do anything.
+        $this->client->install();
     }
 
     /**

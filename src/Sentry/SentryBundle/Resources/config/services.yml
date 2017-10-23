@@ -2,8 +2,6 @@ services:
     sentry.client:
         class: '%sentry.client%'
         arguments: ['%sentry.dsn%', '%sentry.options%', '%sentry.options.error_types%']
-        calls:
-            - [install, []]
 
     sentry.exception_listener:
         class: '%sentry.exception_listener%'
