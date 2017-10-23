@@ -421,7 +421,11 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->willReturn('std_user')
         ;
 
-        $mockToken = $this->getMock('Symfony\Component\Security\Core\Authentication\Token\TokenInterface');
+        $mockToken = $this
+            ->getMockBuilder('Symfony\Component\Security\Core\Authentication\Token\TokenInterface')
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
 
         $mockToken
             ->method('getUser')
@@ -480,13 +484,21 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
     public function test_regression_with_unauthenticated_user_token_PR_78()
     {
-        $mockToken = $this->createMock(TokenInterface::class);
+        $mockToken = $this
+            ->getMockBuilder('Symfony\Component\Security\Core\Authentication\Token\TokenInterface')
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
         $mockToken
             ->method('isAuthenticated')
             ->willReturn(false)
         ;
 
-        $mockEvent = $this->createMock(GetResponseEvent::class);
+        $mockEvent = $this
+            ->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseEvent')
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
 
         $mockEvent
             ->expects($this->once())
