@@ -478,6 +478,32 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
         $listener->onKernelRequest($mockEvent);
     }
 
+    public function test_regression_with_unauthenticated_user_token_PR_78()
+    {
+        $mockToken = $this->createMock(TokenInterface::class);
+        $mockToken
+            ->method('isAuthenticated')
+            ->willReturn(false)
+        ;
+
+        $mockEvent = $this->createMock(GetResponseEvent::class);
+
+        $mockEvent
+            ->expects($this->once())
+            ->method('getRequestType')
+            ->willReturn(HttpKernelInterface::MASTER_REQUEST)
+        ;
+
+        $this->mockTokenStorage
+            ->method('getToken')
+            ->willReturn($mockToken)
+        ;
+
+        $this->containerBuilder->compile();
+        $listener = $this->containerBuilder->get('sentry.exception_listener');
+        $listener->onKernelRequest($mockEvent);
+    }
+
     public function test_that_it_does_not_report_http_exception_if_included_in_capture_skip()
     {
         $mockException = new \Symfony\Component\HttpKernel\Exception\HttpException(401);
