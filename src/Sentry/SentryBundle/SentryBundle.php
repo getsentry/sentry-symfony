@@ -7,9 +7,4 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 class SentryBundle extends Bundle
 {
     const VERSION = '0.8.3';
-
-    public function boot()
-    {
-        $this->container->get('sentry.client')->install();
-    }
 }

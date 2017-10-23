@@ -7,6 +7,7 @@ use Sentry\SentryBundle\SentrySymfonyClient;
 use Sentry\SentryBundle\SentrySymfonyEvents;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleExceptionEvent;
+use Symfony\Component\Debug\ErrorHandler;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
@@ -82,6 +83,9 @@ class ExceptionListener implements SentryExceptionListenerInterface
             return;
         }
 
+        $this->client->install();
+        ErrorHandler::register();
+
         if (null === $this->tokenStorage || null === $this->authorizationChecker) {
             return;
         }
@@ -109,6 +113,12 @@ class ExceptionListener implements SentryExceptionListenerInterface
 
         $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
         $this->client->captureException($exception);
+    }
+
+    public function onConsoleCommand()
+    {
+        $this->client->install();
+        ErrorHandler::register();
     }
 
     /**
