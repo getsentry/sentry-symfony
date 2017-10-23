@@ -82,8 +82,6 @@ class ExceptionListener implements SentryExceptionListenerInterface
             return;
         }
 
-        $this->client->install();
-
         if (null === $this->tokenStorage || null === $this->authorizationChecker) {
             return;
         }
@@ -111,11 +109,6 @@ class ExceptionListener implements SentryExceptionListenerInterface
 
         $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
         $this->client->captureException($exception);
-    }
-
-    public function onConsoleCommand()
-    {
-        $this->client->install();
     }
 
     /**
