@@ -128,8 +128,7 @@ This is used to replace the default exception listener that this bundle uses. Th
 
 ```yaml
 sentry:
-    options:
-        exception_listener: AppBundle\EventListener\MySentryExceptionListener
+    exception_listener: AppBundle\EventListener\MySentryExceptionListener
 ```
 
 #### prefixes
