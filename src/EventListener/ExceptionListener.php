@@ -96,13 +96,14 @@ class ExceptionListener implements SentryExceptionListenerInterface
      */
     public function onKernelException(GetResponseForExceptionEvent $event)
     {
+        $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
+        
         $exception = $event->getException();
 
         if ($this->shouldExceptionCaptureBeSkipped($exception)) {
             return;
         }
-
-        $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
+       
         $this->client->captureException($exception);
     }
 
@@ -124,6 +125,8 @@ class ExceptionListener implements SentryExceptionListenerInterface
      */
     public function onConsoleException(ConsoleExceptionEvent $event)
     {
+        $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
+        
         $command = $event->getCommand();
         $exception = $event->getException();
 
@@ -137,8 +140,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
                 'status_code' => $event->getExitCode(),
             ],
         ];
-
-        $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
+        
         $this->client->captureException($exception, $data);
     }
 
