@@ -142,7 +142,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
         $this->client->captureException($exception, $data);
     }
 
-    private function shouldExceptionCaptureBeSkipped(\Exception $exception)
+    protected function shouldExceptionCaptureBeSkipped(\Exception $exception)
     {
         foreach ($this->skipCapture as $className) {
             if ($exception instanceof $className) {
