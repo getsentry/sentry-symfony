@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Re-sort the constructor's arguments of `ExceptionListener`
  - The `SentrySymfonyClient` is no longer an optional argument of `ExceptionListener`; it's now required
 ### Fixed
- - Remove usage of create_function to avoid deprecations (#71)
+ - Remove usage of `create_function()` to avoid deprecations (#71)
  - Fix a possible bug that could make Sentry crash if an error is triggered before loading a console command
 ### Removed
  - Drop deprecated fields from configuration; the same options can be used (since 0.8.3) under `sentry.options`
