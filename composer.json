@@ -34,7 +34,7 @@
         "phpstan/phpstan": "^0.8.5",
         "phpunit/phpunit": "^6.0",
         "scrutinizer/ocular": "^1.4",
-        "symfony/expression-language ": "^3.0||^4.0"
+        "symfony/expression-language": "^3.0||^4.0"
     },
     "autoload": {
         "psr-4" : {
