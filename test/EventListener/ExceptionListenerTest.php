@@ -8,6 +8,7 @@ use Sentry\SentryBundle\Event\SentryUserContextEvent;
 use Sentry\SentryBundle\EventListener\ExceptionListener;
 use Sentry\SentryBundle\SentrySymfonyEvents;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\Console\Event\ConsoleExceptionEvent;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -75,20 +76,17 @@ class ExceptionListenerTest extends TestCase
         $mockEvent
             ->expects($this->once())
             ->method('getRequestType')
-            ->willReturn(HttpKernelInterface::SUB_REQUEST)
-        ;
+            ->willReturn(HttpKernelInterface::SUB_REQUEST);
 
         $this->mockSentryClient
             ->expects($this->never())
             ->method('set_user_data')
-            ->withAnyParameters()
-        ;
+            ->withAnyParameters();
 
         $this->mockEventDispatcher
             ->expects($this->never())
             ->method('dispatch')
-            ->withAnyParameters()
-        ;
+            ->withAnyParameters();
 
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');
@@ -104,20 +102,17 @@ class ExceptionListenerTest extends TestCase
         $mockEvent
             ->expects($this->once())
             ->method('getRequestType')
-            ->willReturn(HttpKernelInterface::MASTER_REQUEST)
-        ;
+            ->willReturn(HttpKernelInterface::MASTER_REQUEST);
 
         $this->mockSentryClient
             ->expects($this->never())
             ->method('set_user_data')
-            ->withAnyParameters()
-        ;
+            ->withAnyParameters();
 
         $this->mockEventDispatcher
             ->expects($this->never())
             ->method('dispatch')
-            ->withAnyParameters()
-        ;
+            ->withAnyParameters();
 
         $this->assertFalse($this->containerBuilder->has('security.token_storage'));
 
@@ -136,20 +131,17 @@ class ExceptionListenerTest extends TestCase
         $mockEvent
             ->expects($this->once())
             ->method('getRequestType')
-            ->willReturn(HttpKernelInterface::MASTER_REQUEST)
-        ;
+            ->willReturn(HttpKernelInterface::MASTER_REQUEST);
 
         $this->mockSentryClient
             ->expects($this->never())
             ->method('set_user_data')
-            ->withAnyParameters()
-        ;
+            ->withAnyParameters();
 
         $this->mockEventDispatcher
             ->expects($this->never())
             ->method('dispatch')
-            ->withAnyParameters()
-        ;
+            ->withAnyParameters();
 
         $this->containerBuilder->compile();
 
@@ -170,31 +162,26 @@ class ExceptionListenerTest extends TestCase
         $mockEvent
             ->expects($this->once())
             ->method('getRequestType')
-            ->willReturn(HttpKernelInterface::MASTER_REQUEST)
-        ;
+            ->willReturn(HttpKernelInterface::MASTER_REQUEST);
 
         $this->mockAuthorizationChecker
             ->method('isGranted')
             ->with($this->identicalTo(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED))
-            ->willReturn(true)
-        ;
+            ->willReturn(true);
 
         $this->mockTokenStorage
             ->method('getToken')
-            ->willReturn(null)
-        ;
+            ->willReturn(null);
 
         $this->mockSentryClient
             ->expects($this->never())
             ->method('set_user_data')
-            ->withAnyParameters()
-        ;
+            ->withAnyParameters();
 
         $this->mockEventDispatcher
             ->expects($this->never())
             ->method('dispatch')
-            ->withAnyParameters()
-        ;
+            ->withAnyParameters();
 
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');
@@ -210,38 +197,32 @@ class ExceptionListenerTest extends TestCase
 
         $mockToken
             ->method('getUser')
-            ->willReturn($user)
-        ;
+            ->willReturn($user);
 
         $mockEvent = $this->createMock(GetResponseEvent::class);
 
         $mockEvent->expects($this->once())
             ->method('getRequestType')
-            ->willReturn(HttpKernelInterface::MASTER_REQUEST)
-        ;
+            ->willReturn(HttpKernelInterface::MASTER_REQUEST);
 
         $this->mockAuthorizationChecker
             ->method('isGranted')
             ->with($this->identicalTo(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED))
-            ->willReturn(false)
-        ;
+            ->willReturn(false);
 
         $this->mockTokenStorage
             ->method('getToken')
-            ->willReturn($mockToken)
-        ;
+            ->willReturn($mockToken);
 
         $this->mockSentryClient
             ->expects($this->never())
             ->method('set_user_data')
-            ->withAnyParameters()
-        ;
+            ->withAnyParameters();
 
         $this->mockEventDispatcher
             ->expects($this->never())
             ->method('dispatch')
-            ->withAnyParameters()
-        ;
+            ->withAnyParameters();
 
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');
@@ -257,40 +238,34 @@ class ExceptionListenerTest extends TestCase
 
         $mockToken
             ->method('getUser')
-            ->willReturn($user)
-        ;
+            ->willReturn($user);
 
         $mockToken
             ->method('isAuthenticated')
-            ->willReturn(true)
-        ;
+            ->willReturn(true);
 
         $mockEvent = $this->createMock(GetResponseEvent::class);
 
         $mockEvent
             ->expects($this->once())
             ->method('getRequestType')
-            ->willReturn(HttpKernelInterface::MASTER_REQUEST)
-        ;
+            ->willReturn(HttpKernelInterface::MASTER_REQUEST);
 
         $this
             ->mockAuthorizationChecker
             ->method('isGranted')
             ->with($this->identicalTo(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED))
-            ->willReturn(true)
-        ;
+            ->willReturn(true);
 
         $this->mockTokenStorage
             ->method('getToken')
-            ->willReturn($mockToken)
-        ;
+            ->willReturn($mockToken);
 
         $this
             ->mockSentryClient
             ->expects($this->once())
             ->method('set_user_data')
-            ->with($this->identicalTo('username'))
-        ;
+            ->with($this->identicalTo('username'));
 
         $this
             ->mockEventDispatcher
@@ -299,8 +274,7 @@ class ExceptionListenerTest extends TestCase
             ->with(
                 $this->identicalTo(SentrySymfonyEvents::SET_USER_CONTEXT),
                 $this->isInstanceOf(SentryUserContextEvent::class)
-            )
-        ;
+            );
 
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');
@@ -313,38 +287,32 @@ class ExceptionListenerTest extends TestCase
 
         $mockToken
             ->method('getUser')
-            ->willReturn('some_user')
-        ;
+            ->willReturn('some_user');
 
         $mockToken
             ->method('isAuthenticated')
-            ->willReturn(true)
-        ;
+            ->willReturn(true);
 
         $mockEvent = $this->createMock(GetResponseEvent::class);
 
         $mockEvent
             ->expects($this->once())
             ->method('getRequestType')
-            ->willReturn(HttpKernelInterface::MASTER_REQUEST)
-        ;
+            ->willReturn(HttpKernelInterface::MASTER_REQUEST);
 
         $this->mockAuthorizationChecker
             ->method('isGranted')
             ->with($this->identicalTo(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED))
-            ->willReturn(true)
-        ;
+            ->willReturn(true);
 
         $this->mockTokenStorage
             ->method('getToken')
-            ->willReturn($mockToken)
-        ;
+            ->willReturn($mockToken);
 
         $this->mockSentryClient
             ->expects($this->once())
             ->method('set_user_data')
-            ->with($this->identicalTo('some_user'))
-        ;
+            ->with($this->identicalTo('some_user'));
 
         $this->mockEventDispatcher
             ->expects($this->once())
@@ -352,8 +320,7 @@ class ExceptionListenerTest extends TestCase
             ->with(
                 $this->identicalTo(SentrySymfonyEvents::SET_USER_CONTEXT),
                 $this->isInstanceOf(SentryUserContextEvent::class)
-            )
-        ;
+            );
 
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');
@@ -364,51 +331,43 @@ class ExceptionListenerTest extends TestCase
     {
         $mockUser = $this->getMockBuilder('stdClass')
             ->setMethods(['__toString'])
-            ->getMock()
-        ;
+            ->getMock();
 
         $mockUser
             ->expects($this->once())
             ->method('__toString')
-            ->willReturn('std_user')
-        ;
+            ->willReturn('std_user');
 
         $mockToken = $this->createMock(TokenInterface::class);
 
         $mockToken
             ->method('getUser')
-            ->willReturn($mockUser)
-        ;
+            ->willReturn($mockUser);
 
         $mockToken
             ->method('isAuthenticated')
-            ->willReturn(true)
-        ;
+            ->willReturn(true);
 
         $mockEvent = $this->createMock(GetResponseEvent::class);
 
         $mockEvent
             ->expects($this->once())
             ->method('getRequestType')
-            ->willReturn(HttpKernelInterface::MASTER_REQUEST)
-        ;
+            ->willReturn(HttpKernelInterface::MASTER_REQUEST);
 
         $this->mockAuthorizationChecker
             ->method('isGranted')
             ->with($this->identicalTo(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED))
-            ->willReturn(true)
-        ;
+            ->willReturn(true);
 
         $this->mockTokenStorage
             ->method('getToken')
-            ->willReturn($mockToken)
-        ;
+            ->willReturn($mockToken);
 
         $this->mockSentryClient
             ->expects($this->once())
             ->method('set_user_data')
-            ->with($this->identicalTo('std_user'))
-        ;
+            ->with($this->identicalTo('std_user'));
 
         $this->mockEventDispatcher
             ->expects($this->once())
@@ -416,8 +375,7 @@ class ExceptionListenerTest extends TestCase
             ->with(
                 $this->identicalTo(SentrySymfonyEvents::SET_USER_CONTEXT),
                 $this->isInstanceOf(SentryUserContextEvent::class)
-            )
-        ;
+            );
 
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');
@@ -429,21 +387,18 @@ class ExceptionListenerTest extends TestCase
         $mockToken = $this->createMock(TokenInterface::class);
         $mockToken
             ->method('isAuthenticated')
-            ->willReturn(false)
-        ;
+            ->willReturn(false);
 
         $mockEvent = $this->createMock(GetResponseEvent::class);
 
         $mockEvent
             ->expects($this->once())
             ->method('getRequestType')
-            ->willReturn(HttpKernelInterface::MASTER_REQUEST)
-        ;
+            ->willReturn(HttpKernelInterface::MASTER_REQUEST);
 
         $this->mockTokenStorage
             ->method('getToken')
-            ->willReturn($mockToken)
-        ;
+            ->willReturn($mockToken);
 
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');
@@ -457,20 +412,17 @@ class ExceptionListenerTest extends TestCase
         $mockEvent
             ->expects($this->once())
             ->method('getException')
-            ->willReturn(new HttpException(401))
-        ;
+            ->willReturn(new HttpException(401));
 
         $this->mockEventDispatcher
             ->expects($this->never())
             ->method('dispatch')
-            ->withAnyParameters()
-        ;
+            ->withAnyParameters();
 
         $this->mockSentryClient
             ->expects($this->never())
             ->method('captureException')
-            ->withAnyParameters()
-        ;
+            ->withAnyParameters();
 
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');
@@ -485,20 +437,17 @@ class ExceptionListenerTest extends TestCase
         $mockEvent
             ->expects($this->once())
             ->method('getException')
-            ->willReturn($reportableException)
-        ;
+            ->willReturn($reportableException);
 
         $this->mockEventDispatcher
             ->expects($this->once())
             ->method('dispatch')
-            ->with($this->identicalTo(SentrySymfonyEvents::PRE_CAPTURE), $this->identicalTo($mockEvent))
-        ;
+            ->with($this->identicalTo(SentrySymfonyEvents::PRE_CAPTURE), $this->identicalTo($mockEvent));
 
         $this->mockSentryClient
             ->expects($this->once())
             ->method('captureException')
-            ->with($this->identicalTo($reportableException))
-        ;
+            ->with($this->identicalTo($reportableException));
 
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');
@@ -512,31 +461,27 @@ class ExceptionListenerTest extends TestCase
     {
         $reportableException = new \Exception();
 
-        $mockEvent = $this->createMock(ConsoleExceptionEvent::class);
+        $mockEvent = $this->createMock(ConsoleErrorEvent::class);
 
         $mockEvent
             ->expects($this->once())
             ->method('getExitCode')
-            ->willReturn(10)
-        ;
+            ->willReturn(10);
 
         $mockEvent
             ->expects($this->once())
             ->method('getException')
-            ->willReturn($reportableException)
-        ;
+            ->willReturn($reportableException);
 
         $mockEvent
             ->expects($this->once())
             ->method('getCommand')
-            ->willReturn($mockCommand)
-        ;
+            ->willReturn($mockCommand);
 
         $this->mockEventDispatcher
             ->expects($this->once())
             ->method('dispatch')
-            ->with($this->identicalTo(SentrySymfonyEvents::PRE_CAPTURE), $this->identicalTo($mockEvent))
-        ;
+            ->with($this->identicalTo(SentrySymfonyEvents::PRE_CAPTURE), $this->identicalTo($mockEvent));
 
         $this->mockSentryClient
             ->expects($this->once())
@@ -549,8 +494,7 @@ class ExceptionListenerTest extends TestCase
                         'status_code' => 10,
                     ],
                 ])
-            )
-        ;
+            );
 
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');
@@ -563,8 +507,7 @@ class ExceptionListenerTest extends TestCase
         $mockCommand
             ->expects($this->once())
             ->method('getName')
-            ->willReturn('cmd name')
-        ;
+            ->willReturn('cmd name');
 
         return [
             [$mockCommand, 'cmd name'],
@@ -583,26 +526,22 @@ class ExceptionListenerTest extends TestCase
         $mockEvent
             ->expects($this->once())
             ->method('getException')
-            ->willReturn($reportableException)
-        ;
+            ->willReturn($reportableException);
 
         $this->mockEventDispatcher
             ->expects($this->once())
             ->method('dispatch')
-            ->with($this->identicalTo(SentrySymfonyEvents::PRE_CAPTURE), $this->identicalTo($mockEvent))
-        ;
+            ->with($this->identicalTo(SentrySymfonyEvents::PRE_CAPTURE), $this->identicalTo($mockEvent));
 
         $this->mockSentryClient
             ->expects($this->never())
             ->method('captureException')
-            ->withAnyParameters()
-        ;
+            ->withAnyParameters();
 
         $replacementClient
             ->expects($this->once())
             ->method('captureException')
-            ->with($this->identicalTo($reportableException))
-        ;
+            ->with($this->identicalTo($reportableException));
 
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');
