@@ -6,10 +6,13 @@ use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\Event\SentryUserContextEvent;
 use Sentry\SentryBundle\EventListener\ExceptionListener;
+use Sentry\SentryBundle\EventListener\SentryExceptionListenerInterface;
 use Sentry\SentryBundle\SentrySymfonyEvents;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\Console\Event\ConsoleExceptionEvent;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
@@ -457,37 +460,28 @@ class ExceptionListenerTest extends TestCase
     /**
      * @dataProvider mockCommandProvider
      */
-    public function test_that_it_captures_console_exception(Command $mockCommand = null, $expectedCommandName)
+    public function test_that_it_captures_console_exception(?Command $mockCommand, string $expectedCommandName)
     {
-        $reportableException = new \Exception();
+        $error = $this->createMock(\Error::class);
 
-        $mockEvent = $this->createMock(ConsoleErrorEvent::class);
-
-        $mockEvent
-            ->expects($this->once())
-            ->method('getExitCode')
-            ->willReturn(10);
-
-        $mockEvent
-            ->expects($this->once())
-            ->method('getException')
-            ->willReturn($reportableException);
-
-        $mockEvent
-            ->expects($this->once())
-            ->method('getCommand')
-            ->willReturn($mockCommand);
+        $event = new ConsoleErrorEvent(
+            $this->createMock(InputInterface::class),
+            $this->createMock(OutputInterface::class),
+            $error,
+            $mockCommand
+        );
+        $event->setExitCode(10);
 
         $this->mockEventDispatcher
             ->expects($this->once())
             ->method('dispatch')
-            ->with($this->identicalTo(SentrySymfonyEvents::PRE_CAPTURE), $this->identicalTo($mockEvent));
+            ->with($this->identicalTo(SentrySymfonyEvents::PRE_CAPTURE), $this->identicalTo($event));
 
         $this->mockSentryClient
             ->expects($this->once())
             ->method('captureException')
             ->with(
-                $this->identicalTo($reportableException),
+                $this->identicalTo($error),
                 $this->identicalTo([
                     'tags' => [
                         'command' => $expectedCommandName,
@@ -497,8 +491,9 @@ class ExceptionListenerTest extends TestCase
             );
 
         $this->containerBuilder->compile();
+        /** @var SentryExceptionListenerInterface $listener */
         $listener = $this->containerBuilder->get('sentry.exception_listener');
-        $listener->onConsoleException($mockEvent);
+        $listener->onConsoleException($event);
     }
 
     public function mockCommandProvider()

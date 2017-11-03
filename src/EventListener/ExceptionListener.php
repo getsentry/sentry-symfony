@@ -125,7 +125,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
     public function onConsoleException(ConsoleErrorEvent $event)
     {
         $command = $event->getCommand();
-        $exception = $event->getException();
+        $exception = $event->getError();
 
         if ($this->shouldExceptionCaptureBeSkipped($exception)) {
             return;
@@ -142,7 +142,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
         $this->client->captureException($exception, $data);
     }
 
-    protected function shouldExceptionCaptureBeSkipped(\Exception $exception)
+    protected function shouldExceptionCaptureBeSkipped(\Throwable $exception)
     {
         foreach ($this->skipCapture as $className) {
             if ($exception instanceof $className) {
