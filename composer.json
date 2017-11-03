@@ -21,13 +21,13 @@
     "require": {
         "php": "^5.6|^7.0",
         "sentry/sentry": "^1.7",
-        "symfony/config": "^2.7|^3.0",
-        "symfony/console": "^2.7|^3.0",
-        "symfony/dependency-injection": "^2.7|^3.0",
-        "symfony/event-dispatcher": "^2.7|^3.0",
-        "symfony/http-kernel": "^2.7|^3.0",
-        "symfony/security-core": "^2.7|^3.0",
-        "symfony/yaml": "^2.7|^3.0"
+        "symfony/config": "^2.7|^3.0|^4.0",
+        "symfony/console": "^2.7|^3.0|^4.0",
+        "symfony/dependency-injection": "^2.7|^3.0|^4.0",
+        "symfony/event-dispatcher": "^2.7|^3.0|^4.0",
+        "symfony/http-kernel": "^2.7|^3.0|^4.0",
+        "symfony/security-core": "^2.7|^3.0|^4.0",
+        "symfony/yaml": "^2.7|^3.0|^4.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.5",
