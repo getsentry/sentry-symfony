@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 2.0.0 - [Unreleased]
+### Added
+ - Add support for Symfony 4.x
+### Changed
+ - The `SentryBundle::VERSION` constant has been replaced with the `SentryBundle::getVersion(): string` method, to get a more accurate result
+ - Due to a deprecation in `symfony/console`, we require it at at least version 3.3, and we made this change to the `SentryExceptionListenerInterface`:
+```php
+    // before
+    public function onConsoleException(ConsoleExceptionEvent $event);
+    // after
+    public function onConsoleException(ConsoleErrorEvent $event);
+```
+### Removed
+ - Drop support for Symfony 2.x
+ - Drop support for PHP 5 and 7.0
+
 ## 1.0.0 - [Unreleased]
 ### Added
  - Add official support to PHP 7.2 (#71)
