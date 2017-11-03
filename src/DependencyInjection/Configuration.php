@@ -138,10 +138,7 @@ class Configuration implements ConfigurationInterface
         return $treeBuilder;
     }
 
-    /**
-     * @return \Closure
-     */
-    private function getExceptionListenerInvalidationClosure()
+    private function getExceptionListenerInvalidationClosure(): callable
     {
         return function ($value) {
             $implements = class_implements($value);
@@ -153,10 +150,7 @@ class Configuration implements ConfigurationInterface
         };
     }
 
-    /**
-     * @return \Closure
-     */
-    private function getTrimClosure()
+    private function getTrimClosure(): callable
     {
         return function ($str) {
             $value = trim($str);

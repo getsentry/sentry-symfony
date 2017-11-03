@@ -7,14 +7,15 @@ namespace Sentry\SentryBundle;
  */
 class ErrorTypesParser
 {
-    private $expression = null;
+    /** @var string */
+    private $expression;
 
     /**
      * Initialize ErrorParser
      *
      * @param string $expression Error Types e.g. E_ALL & ~E_DEPRECATED & ~E_NOTICE
      */
-    public function __construct($expression)
+    public function __construct(string $expression)
     {
         $this->expression = $expression;
     }
@@ -23,8 +24,9 @@ class ErrorTypesParser
      * Parse and compute the error types expression
      *
      * @return int the parsed expression
+     * @throws \InvalidArgumentException
      */
-    public function parse()
+    public function parse(): int
     {
         // convert constants to ints
         $this->expression = $this->convertErrorConstants($this->expression);
@@ -43,7 +45,7 @@ class ErrorTypesParser
      * @param  string $expression e.g. E_ALL & ~E_DEPRECATED & ~E_NOTICE
      * @return string   converted expression e.g. 32767 & ~8192 & ~8
      */
-    private function convertErrorConstants($expression)
+    private function convertErrorConstants(string $expression): string
     {
         $output = preg_replace_callback('/(E_[a-zA-Z_]+)/', function ($errorConstant) {
             if (defined($errorConstant[1])) {
@@ -61,8 +63,9 @@ class ErrorTypesParser
      *
      * @param  string $expression prepared expression e.g. 32767&~8192&~8
      * @return int  computed expression e.g. 24567
+     * @throws \InvalidArgumentException
      */
-    private function compute($expression)
+    private function compute(string $expression): int
     {
         // catch anything which could be a security issue
         if (0 !== preg_match("/[^\d.+*%^|&~<>\/()-]/", $this->expression)) {

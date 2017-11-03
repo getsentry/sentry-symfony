@@ -7,6 +7,7 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class SentryUserContextEvent extends Event
 {
+    /** @var TokenInterface */
     private $authenticationToken;
 
     public function __construct(TokenInterface $authenticationToken)
@@ -14,7 +15,7 @@ class SentryUserContextEvent extends Event
         $this->authenticationToken = $authenticationToken;
     }
 
-    public function getAuthenticationToken()
+    public function getAuthenticationToken(): TokenInterface
     {
         return $this->authenticationToken;
     }
