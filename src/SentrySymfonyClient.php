@@ -13,7 +13,7 @@ class SentrySymfonyClient extends \Raven_Client
 
         $options['sdk'] = [
             'name' => 'sentry-symfony',
-            'version' => SentryBundle::VERSION,
+            'version' => SentryBundle::getVersion(),
         ];
 
         parent::__construct($dsn, $options);

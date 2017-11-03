@@ -2,9 +2,14 @@
 
 namespace Sentry\SentryBundle;
 
+use Jean85\PrettyVersions;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class SentryBundle extends Bundle
 {
-    const VERSION = '1.0-dev';
+    public static function getVersion(): string
+    {
+        return PrettyVersions::getVersion('sentry/sentry-symfony')
+            ->getPrettyVersion();
+    }
 }
