@@ -3,8 +3,6 @@ sudo: false
 dist: trusty
 
 php:
-  - 5.6
-  - 7.0
   - 7.1
   - 7.2
 
@@ -13,34 +11,29 @@ cache:
     - $HOME/.composer/cache/files
 
 before_install:
+  - phpenv config-rm xdebug.ini
   - composer self-update
   - composer global require hirak/prestissimo
-  - if [[ $TRAVIS_PHP_VERSION = '7.2' ]]; then composer remove --dev friendsofphp/php-cs-fixer --no-update --no-interaction; fi
 
-install: travis_wait travis_retry composer update --no-interaction --prefer-dist --prefer-stable $COMPOSER_OPTIONS
+install: 
+  - travis_wait travis_retry composer update --no-interaction --prefer-dist --prefer-stable $COMPOSER_OPTIONS
 
 script:
   - vendor/bin/phpunit -v
 
 jobs:
   include:
-    - stage: test
-      php: 5.6
-      env: COMPOSER_OPTIONS="--prefer-lowest"
     - stage: Test
-      php: 7.0
-      env: COMPOSER_OPTIONS="--prefer-lowest"
-    - stage: codestyle and SCA
       php: 7.1
+      env: COMPOSER_OPTIONS="--prefer-lowest"
+    - stage: Code style and static analysis
       script:
-        - phpenv config-rm xdebug.ini
-        - composer require --dev phpstan/phpstan symfony/expression-language --no-interaction --prefer-dist --prefer-stable
         - vendor/bin/phpstan analyse src --level 7
       env: PHPSTAN=true
-    - script: vendor/bin/php-cs-fixer fix --verbose --diff --dry-run
+    - script: 
+        - vendor/bin/php-cs-fixer fix --verbose --diff --dry-run
       env: CS-FIXER=true
     - stage: coverage
-      php: 7.1
       script: 
         - phpdbg -qrr vendor/bin/phpunit --coverage-clover clover.xml
       after_success:
