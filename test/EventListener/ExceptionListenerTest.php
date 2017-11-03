@@ -463,13 +463,12 @@ class ExceptionListenerTest extends TestCase
     public function test_that_it_captures_console_exception(?Command $mockCommand, string $expectedCommandName)
     {
         $error = $this->createMock(\Error::class);
+        /** @var InputInterface $input */
+        $input = $this->createMock(InputInterface::class);
+        /** @var OutputInterface $output */
+        $output = $this->createMock(OutputInterface::class);
 
-        $event = new ConsoleErrorEvent(
-            $this->createMock(InputInterface::class),
-            $this->createMock(OutputInterface::class),
-            $error,
-            $mockCommand
-        );
+        $event = new ConsoleErrorEvent($input, $output, $error, $mockCommand);
         $event->setExitCode(10);
 
         $this->mockEventDispatcher

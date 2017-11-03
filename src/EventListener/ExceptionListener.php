@@ -125,6 +125,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
     public function onConsoleException(ConsoleErrorEvent $event)
     {
         $command = $event->getCommand();
+        /** @var \Exception $exception to avoid issues with PHPStan */
         $exception = $event->getError();
 
         if ($this->shouldExceptionCaptureBeSkipped($exception)) {
