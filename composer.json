@@ -21,7 +21,7 @@
     "require": {
         "php": "^7.1",
         "jean85/pretty-package-versions": "^1.0",
-        "sentry/sentry": "^1.7",
+        "sentry/sentry": "^1.8",
         "symfony/config": "^3.0||^4.0",
         "symfony/console": "^3.3||^4.0",
         "symfony/dependency-injection": "^3.0||^4.0",

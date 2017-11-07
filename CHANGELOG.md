@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Drop support for Symfony 2.x
  - Drop support for PHP 5 and 7.0
 
-## 1.0.0 - [Unreleased]
+## 1.0.0 - 2017-11-07
 ### Added
  - Add official support to PHP 7.2 (#71)
 ### Changed
@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Re-sort the constructor's arguments of `ExceptionListener`
  - The `SentrySymfonyClient` is no longer an optional argument of `ExceptionListener`; it's now required
 ### Fixed
- - Remove usage of create_function to avoid deprecations (#71)
+ - Remove usage of `create_function()` to avoid deprecations (#71)
  - Fix a possible bug that could make Sentry crash if an error is triggered before loading a console command
  - Fix a fatal error when the user token is not authenticated (#78)
 ### Removed
