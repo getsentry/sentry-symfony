@@ -41,16 +41,18 @@ class AppKernel extends Kernel
     {
         $bundles = array(
             // ...
-
-            new Sentry\SentryBundle\SentryBundle(),
         );
 
+        if (in_array($this->getEnvironment(), ['staging', 'prod'], true)) {
+            $bundles[] = new Sentry\SentryBundle\SentryBundle();
+        }
         // ...
     }
 
     // ...
 }
 ```
+Note that, with this snippet of code, the bundle will be enabled only for the `staging` and `prod` environment; adjust it to your neeeds. It's discouraged to enable this bundle in the `test` environment, because the Sentry client will change the error handler, which is already used by other packages like Symfony's deprecation handler (see [#46](https://github.com/getsentry/sentry-symfony/issues/46) and [#95](https://github.com/getsentry/sentry-symfony/issues/95)).
 
 ### Step 3: Configure the SDK
 
