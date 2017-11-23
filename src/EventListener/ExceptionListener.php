@@ -136,6 +136,10 @@ class ExceptionListener implements SentryExceptionListenerInterface
                 'command' => $command ? $command->getName() : 'N/A',
                 'status_code' => $event->getExitCode(),
             ],
+            'extra' => [
+                'arguments' => $event->getInput()->getArguments(),
+                'options' => $event->getInput()->getOptions(),
+            ]
         ];
 
         $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
