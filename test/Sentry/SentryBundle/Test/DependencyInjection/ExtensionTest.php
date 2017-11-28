@@ -262,7 +262,7 @@ class ExtensionTest extends \PHPUnit_Framework_TestCase
             array(
                 array('event' => 'kernel.request', 'method' => 'onKernelRequest'),
                 array('event' => 'kernel.exception', 'method' => 'onKernelException'),
-                array('event' => 'console.exception', 'method' => 'onConsoleException'),
+                array('event' => 'console.error', 'method' => 'onConsoleError'),
             ),
             $tags
         );
