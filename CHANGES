@@ -25,7 +25,7 @@
 
 - Added ``skip_capture`` configuration for excluding exceptions.
 - Security services are now optional.
-- Console exceptions are now captured.
+- Console errors are now captured.
 - Default PHP SDK hooks will now be installed (via ``Raven_Client->install``).
 - SDK will now be registered as 'sentry-symfony'.
 

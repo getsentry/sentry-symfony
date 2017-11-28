@@ -451,7 +451,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
         $listener->onKernelException($mockEvent);
     }
 
-    public function test_that_it_captures_console_exception()
+    public function test_that_it_captures_console_error()
     {
         $reportableException = new \Exception();
 
@@ -468,7 +468,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
         ;
 
         $mockEvent = $this
-            ->getMockBuilder('Symfony\Component\Console\Event\ConsoleExceptionEvent')
+            ->getMockBuilder('Symfony\Component\Console\Event\ConsoleErrorEvent')
             ->disableOriginalConstructor()
             ->getMock()
         ;
@@ -508,7 +508,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');
-        $listener->onConsoleException($mockEvent);
+        $listener->onConsoleError($mockEvent);
     }
 
     public function test_that_it_can_replace_client()

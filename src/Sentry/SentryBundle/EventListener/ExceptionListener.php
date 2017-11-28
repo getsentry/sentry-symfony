@@ -11,7 +11,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Console\Event\ConsoleExceptionEvent;
+use Symfony\Component\Console\Event\ConsoleErrorEvent;
 
 /**
  * Class ExceptionListener
@@ -100,9 +100,9 @@ class ExceptionListener
     }
 
     /**
-     * @param ConsoleExceptionEvent $event
+     * @param ConsoleErrorEvent $event
      */
-    public function onConsoleException(ConsoleExceptionEvent $event)
+    public function onConsoleError(ConsoleErrorEvent $event)
     {
         $command = $event->getCommand();
         $exception = $event->getException();
