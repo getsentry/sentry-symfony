@@ -32,7 +32,7 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.5",
-        "phpstan/phpstan": "^0.8.5",
+        "phpstan/phpstan": "^0.9.1",
         "phpunit/phpunit": "^6.0",
         "scrutinizer/ocular": "^1.4",
         "symfony/expression-language": "^3.0||^4.0"
@@ -46,6 +46,11 @@
         "psr-4" : {
             "Sentry\\SentryBundle\\Test\\": "test"
         }
+    },
+    "scripts": {
+        "phpstan": "vendor/bin/phpstan analyse src test --level 7 -c phpstan.neon",
+        "cs-check": "vendor/bin/php-cs-fixer fix --verbose --diff --dry-run",
+        "cs-fix": "vendor/bin/php-cs-fixer fix --verbose --diff"
     },
     "extra": {
         "branch-alias": {

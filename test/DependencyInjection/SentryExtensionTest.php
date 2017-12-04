@@ -350,8 +350,11 @@ class SentryExtensionTest extends TestCase
         $this->assertCount(self::SUPPORTED_SENTRY_OPTIONS_COUNT, $options);
         $defaultOptions = $this->getContainer()->getParameter('sentry.options');
         foreach ($options as $name => $value) {
-            $this->assertNotEquals($defaultOptions[$name], $value,
-                'Test precondition failed: using default value for ' . $name);
+            $this->assertNotEquals(
+                $defaultOptions[$name],
+                $value,
+                'Test precondition failed: using default value for ' . $name
+            );
         }
 
         $container = $this->getContainer(['options' => $options]);

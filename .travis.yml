@@ -28,10 +28,10 @@ jobs:
       env: COMPOSER_OPTIONS="--prefer-lowest"
     - stage: Code style and static analysis
       script:
-        - vendor/bin/phpstan analyse src test --level 7
+        - composer phpstan
       env: PHPSTAN=true
     - script: 
-        - vendor/bin/php-cs-fixer fix --verbose --diff --dry-run
+        - composer cs-check
       env: CS-FIXER=true
     - stage: coverage
       script: 
