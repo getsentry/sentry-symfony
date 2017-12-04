@@ -33,9 +33,8 @@ jobs:
     - stage: codestyle and SCA
       php: 7.1
       script:
-        - phpenv config-rm xdebug.ini
         - composer require --dev phpstan/phpstan symfony/expression-language --no-interaction --prefer-dist --prefer-stable
-        - vendor/bin/phpstan analyse src --level 7
+        - vendor/bin/phpstan analyse src --level 7 -c phpstan.neon
       env: PHPSTAN=true
     - script: vendor/bin/php-cs-fixer fix --verbose --diff --dry-run
       env: CS-FIXER=true
