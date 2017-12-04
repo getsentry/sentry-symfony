@@ -1,0 +1,4 @@
+parameters:
+    ignoreErrors:
+        - '/Call to an undefined method Symfony\\Component\\Config\\Definition\\Builder\\NodeParentInterface::/'
+        - '/Calling method \w+ on possibly null value of type Symfony\\Component\\Config\\Definition\\Builder\\NodeParentInterface|null/'

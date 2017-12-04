@@ -6,6 +6,8 @@ use Raven_Compat;
 use Sentry\SentryBundle\EventListener\ExceptionListener;
 use Sentry\SentryBundle\EventListener\SentryExceptionListenerInterface;
 use Sentry\SentryBundle\SentrySymfonyClient;
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
+use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -25,6 +27,7 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder();
+        /** @var ArrayNodeDefinition $rootNode */
         $rootNode = $treeBuilder->root('sentry');
 
         // Basic Sentry configuration

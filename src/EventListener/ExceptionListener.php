@@ -171,7 +171,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
         }
 
         if (is_object($user) && method_exists($user, '__toString')) {
-            $this->client->set_user_data($user->__toString());
+            $this->client->set_user_data((string)$user);
         }
     }
 }
