@@ -59,7 +59,7 @@ class ExceptionListenerTest extends TestCase
         $containerBuilder->set('security.authorization_checker', $this->mockAuthorizationChecker);
         $containerBuilder->set('sentry.client', $this->mockSentryClient);
         $containerBuilder->set('event_dispatcher', $this->mockEventDispatcher);
-        $containerBuilder->setAlias(self::LISTENER_TEST_PUBLIC_ALIAS, new Alias('sentry.exception_listener'));
+        $containerBuilder->setAlias(self::LISTENER_TEST_PUBLIC_ALIAS, new Alias('sentry.exception_listener', true));
 
         $extension = new SentryExtension();
         $extension->load([], $containerBuilder);

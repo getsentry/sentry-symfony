@@ -5,7 +5,6 @@ namespace Sentry\SentryBundle\Test\DependencyInjection;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ExceptionListener;
-use Sentry\SentryBundle\EventListener\SentryExceptionListenerInterface;
 use Sentry\SentryBundle\SentrySymfonyClient;
 use Sentry\SentryBundle\Test\Fixtures\CustomExceptionListener;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -370,7 +369,7 @@ class SentryExtensionTest extends TestCase
             ->createMock(EventDispatcherInterface::class);
 
         $containerBuilder->set('event_dispatcher', $mockEventDispatcher);
-        $containerBuilder->setAlias(self::LISTENER_TEST_PUBLIC_ALIAS, new Alias('sentry.exception_listener'));
+        $containerBuilder->setAlias(self::LISTENER_TEST_PUBLIC_ALIAS, new Alias('sentry.exception_listener', true));
 
         $extension = new SentryExtension();
         $extension->load(['sentry' => $configuration], $containerBuilder);
