@@ -13,6 +13,7 @@ cache:
     - $HOME/.composer/cache/files
 
 before_install:
+  - phpenv config-rm xdebug.ini
   - composer self-update
   - composer global require hirak/prestissimo
 
