@@ -12,6 +12,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
@@ -26,6 +27,8 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 class ExceptionListenerTest extends TestCase
 {
+    private const LISTENER_TEST_PUBLIC_ALIAS = 'sentry.exception_listener.public_alias';
+
     /** @var ContainerBuilder|\PHPUnit_Framework_MockObject_MockObject */
     private $containerBuilder;
 
@@ -56,6 +59,7 @@ class ExceptionListenerTest extends TestCase
         $containerBuilder->set('security.authorization_checker', $this->mockAuthorizationChecker);
         $containerBuilder->set('sentry.client', $this->mockSentryClient);
         $containerBuilder->set('event_dispatcher', $this->mockEventDispatcher);
+        $containerBuilder->setAlias(self::LISTENER_TEST_PUBLIC_ALIAS, new Alias('sentry.exception_listener'));
 
         $extension = new SentryExtension();
         $extension->load([], $containerBuilder);
@@ -66,7 +70,7 @@ class ExceptionListenerTest extends TestCase
     public function test_that_it_is_an_instance_of_sentry_exception_listener()
     {
         $this->containerBuilder->compile();
-        $listener = $this->containerBuilder->get('sentry.exception_listener');
+        $listener = $this->getListener();
 
         $this->assertInstanceOf(ExceptionListener::class, $listener);
     }
@@ -91,7 +95,7 @@ class ExceptionListenerTest extends TestCase
             ->withAnyParameters();
 
         $this->containerBuilder->compile();
-        $listener = $this->containerBuilder->get('sentry.exception_listener');
+        $listener = $this->getListener();
         $listener->onKernelRequest($mockEvent);
     }
 
@@ -120,7 +124,7 @@ class ExceptionListenerTest extends TestCase
 
         $this->containerBuilder->compile();
 
-        $listener = $this->containerBuilder->get('sentry.exception_listener');
+        $listener = $this->getListener();
         $listener->onKernelRequest($mockEvent);
     }
 
@@ -149,7 +153,7 @@ class ExceptionListenerTest extends TestCase
 
         $this->assertFalse($this->containerBuilder->has('security.authorization_checker'));
 
-        $listener = $this->containerBuilder->get('sentry.exception_listener');
+        $listener = $this->getListener();
         $listener->onKernelRequest($mockEvent);
     }
 
@@ -186,7 +190,7 @@ class ExceptionListenerTest extends TestCase
             ->withAnyParameters();
 
         $this->containerBuilder->compile();
-        $listener = $this->containerBuilder->get('sentry.exception_listener');
+        $listener = $this->getListener();
         $listener->onKernelRequest($mockEvent);
     }
 
@@ -227,7 +231,7 @@ class ExceptionListenerTest extends TestCase
             ->withAnyParameters();
 
         $this->containerBuilder->compile();
-        $listener = $this->containerBuilder->get('sentry.exception_listener');
+        $listener = $this->getListener();
         $listener->onKernelRequest($mockEvent);
     }
 
@@ -279,7 +283,7 @@ class ExceptionListenerTest extends TestCase
             );
 
         $this->containerBuilder->compile();
-        $listener = $this->containerBuilder->get('sentry.exception_listener');
+        $listener = $this->getListener();
         $listener->onKernelRequest($mockEvent);
     }
 
@@ -325,7 +329,7 @@ class ExceptionListenerTest extends TestCase
             );
 
         $this->containerBuilder->compile();
-        $listener = $this->containerBuilder->get('sentry.exception_listener');
+        $listener = $this->getListener();
         $listener->onKernelRequest($mockEvent);
     }
 
@@ -380,7 +384,7 @@ class ExceptionListenerTest extends TestCase
             );
 
         $this->containerBuilder->compile();
-        $listener = $this->containerBuilder->get('sentry.exception_listener');
+        $listener = $this->getListener();
         $listener->onKernelRequest($mockEvent);
     }
 
@@ -403,7 +407,7 @@ class ExceptionListenerTest extends TestCase
             ->willReturn($mockToken);
 
         $this->containerBuilder->compile();
-        $listener = $this->containerBuilder->get('sentry.exception_listener');
+        $listener = $this->getListener();
         $listener->onKernelRequest($mockEvent);
     }
 
@@ -427,7 +431,7 @@ class ExceptionListenerTest extends TestCase
             ->withAnyParameters();
 
         $this->containerBuilder->compile();
-        $listener = $this->containerBuilder->get('sentry.exception_listener');
+        $listener = $this->getListener();
         $listener->onKernelException($mockEvent);
     }
 
@@ -452,7 +456,7 @@ class ExceptionListenerTest extends TestCase
             ->with($this->identicalTo($reportableException));
 
         $this->containerBuilder->compile();
-        $listener = $this->containerBuilder->get('sentry.exception_listener');
+        $listener = $this->getListener();
         $listener->onKernelException($mockEvent);
     }
 
@@ -490,7 +494,7 @@ class ExceptionListenerTest extends TestCase
 
         $this->containerBuilder->compile();
         /** @var SentryExceptionListenerInterface $listener */
-        $listener = $this->containerBuilder->get('sentry.exception_listener');
+        $listener = $this->getListener();
         $listener->onConsoleException($event);
     }
 
@@ -537,10 +541,17 @@ class ExceptionListenerTest extends TestCase
             ->with($this->identicalTo($reportableException));
 
         $this->containerBuilder->compile();
-        $listener = $this->containerBuilder->get('sentry.exception_listener');
+        /** @var ExceptionListener $listener */
+        $listener = $this->getListener();
+        $this->assertInstanceOf(ExceptionListener::class, $listener);
 
         $listener->setClient($replacementClient);
 
         $listener->onKernelException($mockEvent);
+    }
+
+    private function getListener(): SentryExceptionListenerInterface
+    {
+        return $this->containerBuilder->get(self::LISTENER_TEST_PUBLIC_ALIAS);
     }
 }
