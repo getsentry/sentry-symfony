@@ -29,19 +29,14 @@ class ExceptionListenerTest extends TestCase
 {
     private const LISTENER_TEST_PUBLIC_ALIAS = 'sentry.exception_listener.public_alias';
 
-    /** @var ContainerBuilder|\PHPUnit_Framework_MockObject_MockObject */
     private $containerBuilder;
 
-    /** @var \Raven_Client|\PHPUnit_Framework_MockObject_MockObject */
     private $mockSentryClient;
 
-    /** @var TokenStorageInterface|\PHPUnit_Framework_MockObject_MockObject */
     private $mockTokenStorage;
 
-    /** @var AuthorizationCheckerInterface|\PHPUnit_Framework_MockObject_MockObject */
     private $mockAuthorizationChecker;
 
-    /** @var EventDispatcherInterface|\PHPUnit_Framework_MockObject_MockObject */
     private $mockEventDispatcher;
 
     public function setUp()
@@ -514,7 +509,7 @@ class ExceptionListenerTest extends TestCase
 
     public function test_that_it_can_replace_client()
     {
-        $replacementClient = $this->createMock('Raven_Client');
+        $replacementClient = $this->createMock(\Raven_Client::class);
 
         $reportableException = new \Exception();
 
