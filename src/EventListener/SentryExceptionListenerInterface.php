@@ -17,7 +17,7 @@ interface SentryExceptionListenerInterface
      *
      * @param GetResponseEvent $event
      */
-    public function onKernelRequest(GetResponseEvent $event);
+    public function onKernelRequest(GetResponseEvent $event): void;
 
     /**
      * When an exception occurs as part of a web request, this method will be
@@ -25,7 +25,7 @@ interface SentryExceptionListenerInterface
      *
      * @param GetResponseForExceptionEvent $event
      */
-    public function onKernelException(GetResponseForExceptionEvent $event);
+    public function onKernelException(GetResponseForExceptionEvent $event): void;
 
     /**
      * When an exception occurs on the command line, this method will be
@@ -33,5 +33,5 @@ interface SentryExceptionListenerInterface
      *
      * @param ConsoleErrorEvent $event
      */
-    public function onConsoleException(ConsoleErrorEvent $event);
+    public function onConsoleException(ConsoleErrorEvent $event): void;
 }

@@ -94,7 +94,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
     /**
      * @param GetResponseForExceptionEvent $event
      */
-    public function onKernelException(GetResponseForExceptionEvent $event)
+    public function onKernelException(GetResponseForExceptionEvent $event): void
     {
         $exception = $event->getException();
 
@@ -114,7 +114,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
      *
      * @return void
      */
-    public function onConsoleCommand(ConsoleCommandEvent $event)
+    public function onConsoleCommand(ConsoleCommandEvent $event): void
     {
         // only triggers loading of client, does not need to do anything.
     }
@@ -122,7 +122,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
     /**
      * @param ConsoleErrorEvent $event
      */
-    public function onConsoleException(ConsoleErrorEvent $event)
+    public function onConsoleException(ConsoleErrorEvent $event): void
     {
         $command = $event->getCommand();
         /** @var \Exception $exception to avoid issues with PHPStan */
