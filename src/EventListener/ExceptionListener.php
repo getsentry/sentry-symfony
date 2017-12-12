@@ -5,6 +5,8 @@ namespace Sentry\SentryBundle\EventListener;
 use Sentry\SentryBundle\Event\SentryUserContextEvent;
 use Sentry\SentryBundle\SentrySymfonyEvents;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
+use Symfony\Component\Console\Event\ConsoleErrorEvent;
+use Symfony\Component\Console\Event\ConsoleEvent;
 use Symfony\Component\Console\Event\ConsoleExceptionEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
@@ -71,7 +73,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
      *
      * @param GetResponseEvent $event
      */
-    public function onKernelRequest(GetResponseEvent $event)
+    public function onKernelRequest(GetResponseEvent $event): void
     {
         if (HttpKernelInterface::MASTER_REQUEST !== $event->getRequestType()) {
             return;
@@ -94,7 +96,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
     /**
      * @param GetResponseForExceptionEvent $event
      */
-    public function onKernelException(GetResponseForExceptionEvent $event)
+    public function onKernelException(GetResponseForExceptionEvent $event): void
     {
         $exception = $event->getException();
 
@@ -114,18 +116,37 @@ class ExceptionListener implements SentryExceptionListenerInterface
      *
      * @return void
      */
-    public function onConsoleCommand(ConsoleCommandEvent $event)
+    public function onConsoleCommand(ConsoleCommandEvent $event): void
     {
         // only triggers loading of client, does not need to do anything.
     }
 
+    public function onConsoleError(ConsoleErrorEvent $event): void
+    {
+        $this->handleConsoleError($event);
+    }
+
+    public function onConsoleException(ConsoleExceptionEvent $event): void
+    {
+        $this->handleConsoleError($event);
+    }
+
     /**
-     * @param ConsoleExceptionEvent $event
+     * @param ConsoleExceptionEvent|ConsoleErrorEvent $event
      */
-    public function onConsoleException(ConsoleExceptionEvent $event)
+    private function handleConsoleError(ConsoleEvent $event): void
     {
         $command = $event->getCommand();
-        $exception = $event->getException();
+        switch (true) {
+            case $event instanceof ConsoleErrorEvent:
+                $exception = $event->getError();
+                break;
+            case $event instanceof ConsoleExceptionEvent:
+                $exception = $event->getException();
+                break;
+            default:
+                throw new \InvalidArgumentException('Event not recognized: ' . \get_class($event));
+        }
 
         if ($this->shouldExceptionCaptureBeSkipped($exception)) {
             return;
@@ -142,7 +163,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
         $this->client->captureException($exception, $data);
     }
 
-    protected function shouldExceptionCaptureBeSkipped(\Exception $exception)
+    protected function shouldExceptionCaptureBeSkipped(\Throwable $exception): bool
     {
         foreach ($this->skipCapture as $className) {
             if ($exception instanceof $className) {
@@ -171,7 +192,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
         }
 
         if (is_object($user) && method_exists($user, '__toString')) {
-            $this->client->set_user_data($user->__toString());
+            $this->client->set_user_data((string)$user);
         }
     }
 }

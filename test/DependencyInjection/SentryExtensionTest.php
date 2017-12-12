@@ -8,13 +8,16 @@ use Sentry\SentryBundle\EventListener\ExceptionListener;
 use Sentry\SentryBundle\SentrySymfonyClient;
 use Sentry\SentryBundle\Test\Fixtures\CustomExceptionListener;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Symfony\Component\DependencyInjection\Alias;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class SentryExtensionTest extends TestCase
 {
-    const SUPPORTED_SENTRY_OPTIONS_COUNT = 34;
+    private const SUPPORTED_SENTRY_OPTIONS_COUNT = 34;
+    private const LISTENER_TEST_PUBLIC_ALIAS = 'sentry.exception_listener.public_alias';
 
     public function test_that_configuration_uses_the_right_default_values()
     {
@@ -258,8 +261,8 @@ class SentryExtensionTest extends TestCase
 
     public function test_that_it_has_sentry_exception_listener_and_it_defaults_to_default_exception_listener()
     {
-        $client = $this->getContainer()->get('sentry.exception_listener');
-        $this->assertInstanceOf(ExceptionListener::class, $client);
+        $listener = $this->getContainer()->get(self::LISTENER_TEST_PUBLIC_ALIAS);
+        $this->assertInstanceOf(ExceptionListener::class, $listener);
     }
 
     public function test_that_it_has_proper_event_listener_tags_for_exception_listener()
@@ -287,6 +290,11 @@ class SentryExtensionTest extends TestCase
                 [
                     'event' => 'console.exception',
                     'method' => 'onConsoleException',
+                    'priority' => '%sentry.listener_priorities.console_exception%',
+                ],
+                [
+                    'event' => 'console.error',
+                    'method' => 'onConsoleError',
                     'priority' => '%sentry.listener_priorities.console_exception%',
                 ],
             ],
@@ -347,7 +355,11 @@ class SentryExtensionTest extends TestCase
         $this->assertCount(self::SUPPORTED_SENTRY_OPTIONS_COUNT, $options);
         $defaultOptions = $this->getContainer()->getParameter('sentry.options');
         foreach ($options as $name => $value) {
-            $this->assertNotEquals($defaultOptions[$name], $value, 'Test precondition failed: using default value for ' . $name);
+            $this->assertNotEquals(
+                $defaultOptions[$name],
+                $value,
+                'Test precondition failed: using default value for ' . $name
+            );
         }
 
         $container = $this->getContainer(['options' => $options]);
@@ -355,11 +367,7 @@ class SentryExtensionTest extends TestCase
         $this->assertSame($options, $container->getParameter('sentry.options'));
     }
 
-    /**
-     * @param array $configuration
-     * @return ContainerBuilder
-     */
-    private function getContainer(array $configuration = [])
+    private function getContainer(array $configuration = []): Container
     {
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->setParameter('kernel.root_dir', 'kernel/root');
@@ -369,6 +377,7 @@ class SentryExtensionTest extends TestCase
             ->createMock(EventDispatcherInterface::class);
 
         $containerBuilder->set('event_dispatcher', $mockEventDispatcher);
+        $containerBuilder->setAlias(self::LISTENER_TEST_PUBLIC_ALIAS, new Alias('sentry.exception_listener', true));
 
         $extension = new SentryExtension();
         $extension->load(['sentry' => $configuration], $containerBuilder);

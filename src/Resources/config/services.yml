@@ -1,20 +1,22 @@
 services:
-    sentry.client:
-        class: '%sentry.client%'
-        arguments: ['%sentry.dsn%', '%sentry.options%']
-        calls:
-            - [install, []]
+  sentry.client:
+    class: '%sentry.client%'
+    arguments: ['%sentry.dsn%', '%sentry.options%']
+    public: true
+    calls:
+      - [install, []]
 
-    sentry.exception_listener:
-        class: '%sentry.exception_listener%'
-        arguments:
-          - '@sentry.client'
-          - '@event_dispatcher'
-          - '%sentry.skip_capture%'
-          - '@?security.token_storage'
-          - '@?security.authorization_checker'
-        tags:
-            - { name: kernel.event_listener, event: kernel.request,    method: onKernelRequest, priority: '%sentry.listener_priorities.request%'}
-            - { name: kernel.event_listener, event: kernel.exception,  method: onKernelException, priority: '%sentry.listener_priorities.kernel_exception%' }
-            - { name: kernel.event_listener, event: console.command,   method: onConsoleCommand }
-            - { name: kernel.event_listener, event: console.exception, method: onConsoleException, priority: '%sentry.listener_priorities.console_exception%' }
+  sentry.exception_listener:
+    class: '%sentry.exception_listener%'
+    arguments:
+      - '@sentry.client'
+      - '@event_dispatcher'
+      - '%sentry.skip_capture%'
+      - '@?security.token_storage'
+      - '@?security.authorization_checker'
+    tags:
+      - { name: kernel.event_listener, event: kernel.request,    method: onKernelRequest, priority: '%sentry.listener_priorities.request%'}
+      - { name: kernel.event_listener, event: kernel.exception,  method: onKernelException, priority: '%sentry.listener_priorities.kernel_exception%' }
+      - { name: kernel.event_listener, event: console.command,   method: onConsoleCommand }
+      - { name: kernel.event_listener, event: console.exception, method: onConsoleException, priority: '%sentry.listener_priorities.console_exception%' }
+      - { name: kernel.event_listener, event: console.error,     method: onConsoleError, priority: '%sentry.listener_priorities.console_exception%' }

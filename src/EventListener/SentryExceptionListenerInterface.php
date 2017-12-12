@@ -2,6 +2,7 @@
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\Console\Event\ConsoleExceptionEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
@@ -17,7 +18,7 @@ interface SentryExceptionListenerInterface
      *
      * @param GetResponseEvent $event
      */
-    public function onKernelRequest(GetResponseEvent $event);
+    public function onKernelRequest(GetResponseEvent $event): void;
 
     /**
      * When an exception occurs as part of a web request, this method will be
@@ -25,13 +26,22 @@ interface SentryExceptionListenerInterface
      *
      * @param GetResponseForExceptionEvent $event
      */
-    public function onKernelException(GetResponseForExceptionEvent $event);
+    public function onKernelException(GetResponseForExceptionEvent $event): void;
+
+    /**
+     * When an exception occurs on the command line, this method will be
+     * triggered for capturing the error.
+     *
+     * @param ConsoleErrorEvent $event
+     */
+    public function onConsoleError(ConsoleErrorEvent $event): void;
 
     /**
      * When an exception occurs on the command line, this method will be
      * triggered for capturing the error.
      *
      * @param ConsoleExceptionEvent $event
+     * @deprecated This method exists for BC with Symfony 3.x
      */
-    public function onConsoleException(ConsoleExceptionEvent $event);
+    public function onConsoleException(ConsoleExceptionEvent $event): void;
 }

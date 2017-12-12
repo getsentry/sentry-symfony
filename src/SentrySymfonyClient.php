@@ -4,7 +4,7 @@ namespace Sentry\SentryBundle;
 
 class SentrySymfonyClient extends \Raven_Client
 {
-    public function __construct($dsn = null, $options = [])
+    public function __construct(?string $dsn = null, array $options = [])
     {
         if (! empty($options['error_types'])) {
             $exParser = new ErrorTypesParser($options['error_types']);
@@ -13,7 +13,7 @@ class SentrySymfonyClient extends \Raven_Client
 
         $options['sdk'] = [
             'name' => 'sentry-symfony',
-            'version' => SentryBundle::VERSION,
+            'version' => SentryBundle::getVersion(),
         ];
 
         parent::__construct($dsn, $options);
