@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Drop support for Symfony 2.x
  - Drop support for PHP 5 and 7.0
 
+## 1.0.1 - 2017-12-04
+### Changed
+ - The `sentry.client` service is now explicitly declared as public
+
 ## 1.0.0 - 2017-11-07
 ### Added
  - Add official support to PHP 7.2 (#71)

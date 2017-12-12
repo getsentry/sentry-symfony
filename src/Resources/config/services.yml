@@ -2,8 +2,7 @@ services:
   sentry.client:
     class: '%sentry.client%'
     arguments: ['%sentry.dsn%', '%sentry.options%']
-    public: true
-    calls:
+    public: true    calls:
       - [install, []]
 
   sentry.exception_listener:
