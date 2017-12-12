@@ -131,6 +131,9 @@ class ExceptionListener implements SentryExceptionListenerInterface
         $this->handleConsoleError($event);
     }
 
+    /**
+     * @param ConsoleExceptionEvent|ConsoleErrorEvent $event
+     */
     private function handleConsoleError(ConsoleEvent $event): void
     {
         $command = $event->getCommand();

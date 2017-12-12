@@ -40,7 +40,7 @@ interface SentryExceptionListenerInterface
      * When an exception occurs on the command line, this method will be
      * triggered for capturing the error.
      *
-     * @param ConsoleErrorEvent $event
+     * @param ConsoleExceptionEvent $event
      * @deprecated This method exists for BC with Symfony 3.x
      */
     public function onConsoleException(ConsoleExceptionEvent $event): void;
