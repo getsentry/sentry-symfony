@@ -292,6 +292,11 @@ class SentryExtensionTest extends TestCase
                     'method' => 'onConsoleException',
                     'priority' => '%sentry.listener_priorities.console_exception%',
                 ],
+                [
+                    'event' => 'console.error',
+                    'method' => 'onConsoleError',
+                    'priority' => '%sentry.listener_priorities.console_exception%',
+                ],
             ],
             $tags
         );

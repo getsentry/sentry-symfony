@@ -10,6 +10,7 @@ use Sentry\SentryBundle\EventListener\SentryExceptionListenerInterface;
 use Sentry\SentryBundle\SentrySymfonyEvents;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleErrorEvent;
+use Symfony\Component\Console\Event\ConsoleExceptionEvent;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Alias;
@@ -460,6 +461,47 @@ class ExceptionListenerTest extends TestCase
      */
     public function test_that_it_captures_console_exception(?Command $mockCommand, string $expectedCommandName)
     {
+        if (null === $mockCommand) {
+            $this->markTestSkipped('Command missing is not possibile with ConsoleExceptionEvent');
+        }
+
+        $exception = $this->createMock(\Exception::class);
+        /** @var InputInterface $input */
+        $input = $this->createMock(InputInterface::class);
+        /** @var OutputInterface $output */
+        $output = $this->createMock(OutputInterface::class);
+
+        $event = new ConsoleExceptionEvent($mockCommand, $input, $output, $exception, 10);
+
+        $this->mockEventDispatcher
+            ->expects($this->once())
+            ->method('dispatch')
+            ->with($this->identicalTo(SentrySymfonyEvents::PRE_CAPTURE), $this->identicalTo($event));
+
+        $this->mockSentryClient
+            ->expects($this->once())
+            ->method('captureException')
+            ->with(
+                $this->identicalTo($exception),
+                $this->identicalTo([
+                    'tags' => [
+                        'command' => $expectedCommandName,
+                        'status_code' => 10,
+                    ],
+                ])
+            );
+
+        $this->containerBuilder->compile();
+        /** @var SentryExceptionListenerInterface $listener */
+        $listener = $this->getListener();
+        $listener->onConsoleException($event);
+    }
+
+    /**
+     * @dataProvider mockCommandProvider
+     */
+    public function test_that_it_captures_console_error(?Command $mockCommand, string $expectedCommandName)
+    {
         $error = $this->createMock(\Error::class);
         /** @var InputInterface $input */
         $input = $this->createMock(InputInterface::class);
@@ -490,7 +532,7 @@ class ExceptionListenerTest extends TestCase
         $this->containerBuilder->compile();
         /** @var SentryExceptionListenerInterface $listener */
         $listener = $this->getListener();
-        $listener->onConsoleException($event);
+        $listener->onConsoleError($event);
     }
 
     public function mockCommandProvider()

@@ -6,6 +6,8 @@ use Sentry\SentryBundle\Event\SentryUserContextEvent;
 use Sentry\SentryBundle\SentrySymfonyEvents;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleErrorEvent;
+use Symfony\Component\Console\Event\ConsoleEvent;
+use Symfony\Component\Console\Event\ConsoleExceptionEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
@@ -119,14 +121,29 @@ class ExceptionListener implements SentryExceptionListenerInterface
         // only triggers loading of client, does not need to do anything.
     }
 
-    /**
-     * @param ConsoleErrorEvent $event
-     */
-    public function onConsoleException(ConsoleErrorEvent $event): void
+    public function onConsoleError(ConsoleErrorEvent $event): void
+    {
+        $this->handleConsoleError($event);
+    }
+
+    public function onConsoleException(ConsoleExceptionEvent $event): void
+    {
+        $this->handleConsoleError($event);
+    }
+
+    private function handleConsoleError(ConsoleEvent $event): void
     {
         $command = $event->getCommand();
-        /** @var \Exception $exception to avoid issues with PHPStan */
-        $exception = $event->getError();
+        switch (true) {
+            case $event instanceof ConsoleErrorEvent:
+                $exception = $event->getError();
+                break;
+            case $event instanceof ConsoleExceptionEvent:
+                $exception = $event->getException();
+                break;
+            default:
+                throw new \InvalidArgumentException('Event not recognized: ' . \get_class($event));
+        }
 
         if ($this->shouldExceptionCaptureBeSkipped($exception)) {
             return;
