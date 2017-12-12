@@ -98,13 +98,14 @@ class ExceptionListener implements SentryExceptionListenerInterface
      */
     public function onKernelException(GetResponseForExceptionEvent $event): void
     {
+        $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
+        
         $exception = $event->getException();
 
         if ($this->shouldExceptionCaptureBeSkipped($exception)) {
             return;
         }
-
-        $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
+       
         $this->client->captureException($exception);
     }
 
@@ -136,6 +137,8 @@ class ExceptionListener implements SentryExceptionListenerInterface
      */
     private function handleConsoleError(ConsoleEvent $event): void
     {
+        $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
+        
         $command = $event->getCommand();
         switch (true) {
             case $event instanceof ConsoleErrorEvent:
@@ -158,8 +161,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
                 'status_code' => $event->getExitCode(),
             ],
         ];
-
-        $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
+        
         $this->client->captureException($exception, $data);
     }
 
