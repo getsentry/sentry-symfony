@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 2.0.1 - 2018-01-31
+### Fixed
+ - Avoid reporting CLI errors twice (#104)
+
 ## 2.0.0 - 2017-12-12
 ### Added
  - Add support for Symfony 4.x

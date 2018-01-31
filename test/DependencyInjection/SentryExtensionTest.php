@@ -288,11 +288,6 @@ class SentryExtensionTest extends TestCase
                 ],
                 ['event' => 'console.command', 'method' => 'onConsoleCommand'],
                 [
-                    'event' => 'console.exception',
-                    'method' => 'onConsoleException',
-                    'priority' => '%sentry.listener_priorities.console_exception%',
-                ],
-                [
                     'event' => 'console.error',
                     'method' => 'onConsoleError',
                     'priority' => '%sentry.listener_priorities.console_exception%',
