@@ -343,7 +343,12 @@ class SentryExtensionTest extends TestCase
             'install_shutdown_handler' => false,
             'processors' => ['processor1', 'processor2'],
             'processorOptions' => [
-                'processorOption1' => 'asasdf',
+                'processor1'    =>  [
+                    'processorOption1' => 'asasdf',
+                ],
+                'processor2'    =>  [
+                    'processorOption2' => 'asasdf',
+                ]
             ],
         ];
 
