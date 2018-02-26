@@ -31,8 +31,8 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.5",
-        "phpunit/phpunit": "^5.7|^6.0",
-        "scrutinizer/ocular": "^1.4"
+        "phpunit/phpunit": "^5.7|^6.5",
+        "scrutinizer/ocular": "^1.5"
     },
     "autoload": {
         "psr-4" : {
