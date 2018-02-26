@@ -461,6 +461,10 @@ class ExceptionListenerTest extends TestCase
      */
     public function test_that_it_captures_console_exception(?Command $mockCommand, string $expectedCommandName)
     {
+        if (! class_exists('Symfony\Component\Console\Event\ConsoleExceptionEvent')) {
+            $this->markTestSkipped('ConsoleExceptionEvent does not exist anymore on Symfony 4');
+        }
+
         if (null === $mockCommand) {
             $this->markTestSkipped('Command missing is not possibile with ConsoleExceptionEvent');
         }
