@@ -2,5 +2,7 @@ parameters:
     ignoreErrors:
          - '/Symfony\\Component\\Console\\Event\\ConsoleExceptionEvent/'
          - '/Call to an undefined method Symfony\\Component\\Console\\Event\\ConsoleEvent::getExitCode\(\)\./'
+    excludes_analyse:
+         - '%currentWorkingDirectory%/src/DependencyInjection/Configuration.php'
 includes:
 	- vendor/phpstan/phpstan-phpunit/extension.neon
