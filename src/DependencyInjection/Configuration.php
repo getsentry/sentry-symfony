@@ -107,7 +107,7 @@ class Configuration implements ConfigurationInterface
                             ->prototype('scalar')->end()
                         ->end()
                         ->arrayNode('processorOptions')
-                            ->arrayPrototype()
+                            ->prototype('array')
                                 ->prototype('scalar')->end()
                             ->end()
                         ->end()
