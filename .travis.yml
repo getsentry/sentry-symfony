@@ -18,7 +18,6 @@ before_install:
   - composer global require hirak/prestissimo
 
 install:
-  - composer install --prefer-dist
   - composer remove friendsofphp/php-cs-fixer --dev
   - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable $COMPOSER_OPTIONS
 
