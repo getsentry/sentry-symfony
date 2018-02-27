@@ -18,7 +18,7 @@ before_install:
   - composer global require hirak/prestissimo
 
 install:
-  - '[ "$LOCK_FILE" != "" ] && cp $LOCK_FILE ./composer.lock'
+  - '[ "$LOCK_FILE" != "" ] && [ -d "$LOCK_FILE" ] && cp "$LOCK_FILE" ./composer.lock && composer install --prefer-dist'
   - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable $COMPOSER_OPTIONS
 
 script:
@@ -31,7 +31,7 @@ jobs:
       env: COMPOSER_OPTIONS="--prefer-lowest" LOCK_FILE="./build/composer-5.6-lowest.lock"
     - stage: Test
       php: 7.0
-      env: COMPOSER_OPTIONS="--prefer-lowest LOCK_FILE="./build/composer-7.0-lowest.lock"
+      env: COMPOSER_OPTIONS="--prefer-lowest" LOCK_FILE="./build/composer-7.0-lowest.lock
     - stage: codestyle and SCA
       php: 7.1
       script:
