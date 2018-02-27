@@ -20,7 +20,7 @@ before_install:
 install:
   # - '[ "$LOCK_FILE" == "" ] || [ ! -f "$LOCK_FILE" ] || cp "$LOCK_FILE" ./composer.lock'
   - composer install --prefer-dist
-  - composer remove friendsofphp/php-cs-fixer
+  - composer remove friendsofphp/php-cs-fixer --dev
   - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable $COMPOSER_OPTIONS
 
 script:
@@ -40,7 +40,9 @@ jobs:
         - composer require --dev phpstan/phpstan symfony/expression-language --no-interaction --prefer-dist --prefer-stable
         - vendor/bin/phpstan analyse src --level 7 -c phpstan.neon
       env: PHPSTAN=true
-    - script: vendor/bin/php-cs-fixer fix --verbose --diff --dry-run
+    - script:
+        - composer require friendsofphp/php-cs-fixer ^2.5 --dev
+        - vendor/bin/php-cs-fixer fix --verbose --diff --dry-run
       env: CS-FIXER=true
     - stage: coverage
       php: 7.1
