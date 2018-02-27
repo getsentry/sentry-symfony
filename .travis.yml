@@ -16,10 +16,9 @@ before_install:
   - phpenv config-rm xdebug.ini
   - composer self-update
   - composer global require hirak/prestissimo
+  - '[ $LOCK_FILE != "" ] && cp $LOCK_FILE ./composer.lock'
 
-install:
-  - [ $LOCK_FILE != "" ] && cp $LOCK_FILE ./composer.lock
-  - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable $COMPOSER_OPTIONS
+install: travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable $COMPOSER_OPTIONS
 
 script:
   - vendor/bin/phpunit -v
