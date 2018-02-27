@@ -18,7 +18,7 @@ before_install:
   - composer global require hirak/prestissimo
 
 install:
-  - '[ "$LOCK_FILE" == "" ] || [ !-f "$LOCK_FILE" ] || cp "$LOCK_FILE" ./composer.lock && composer install --prefer-dist'
+  - '[ "$LOCK_FILE" == "" ] || [ ! -f "$LOCK_FILE" ] || cp "$LOCK_FILE" ./composer.lock || composer install --prefer-dist'
   - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable $COMPOSER_OPTIONS
 
 script:
