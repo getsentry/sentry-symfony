@@ -9,6 +9,19 @@ Symfony integration for [Sentry](https://getsentry.com/).
 [![Scrutinizer][Master scrutinizer image]][Master scrutinizer link]
 [![Coverage Status][Master coverage image]][Master scrutinizer link]
 
+## Benefits
+
+Use sentry-symfony for:
+
+ * A fast sentry setup
+ * Access to the `sentry.client` through the container
+ * Automatic wiring in your app. Each event has the following things added automatically to it:
+   - user
+   - Symfony environment
+   - app path
+   - hostname
+   - excluded paths (cache and vendor)
+
 
 ## Installation
 
