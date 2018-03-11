@@ -22,7 +22,7 @@ class SentrySymfonyClientTest extends TestCase
     {
         $client = new SentrySymfonyClient('https://a:b@app.getsentry.com/project', [
             'name' => 'test',
-            'tags' => ['some_custom' => 'test']
+            'tags' => ['some_custom' => 'test'],
         ]);
 
         $data = $client->get_default_data();
@@ -31,8 +31,8 @@ class SentrySymfonyClientTest extends TestCase
         // Perhaps, refactor is needed for this class?
         $this->assertEquals('test', $data['server_name']);
         $this->assertEquals(\Symfony\Component\HttpKernel\Kernel::VERSION, $data['tags']['symfony_version']);
-        $this->assertEquals("undefined", $data['tags']['symfony_app_env']);
-        $this->assertEquals("test", $data['tags']['some_custom']);
+        $this->assertEquals('undefined', $data['tags']['symfony_app_env']);
+        $this->assertEquals('test', $data['tags']['some_custom']);
         $this->assertEquals('https://app.getsentry.com/api/project/store/', $client->getServerEndpoint(null));
         $this->assertEquals('a', $client->public_key);
         $this->assertEquals('b', $client->secret_key);

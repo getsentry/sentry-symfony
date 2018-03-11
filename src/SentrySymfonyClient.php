@@ -16,13 +16,13 @@ class SentrySymfonyClient extends \Raven_Client
             'version' => SentryBundle::getVersion(),
         ];
         $default_tags = [
-          "symfony_version" => \Symfony\Component\HttpKernel\Kernel::VERSION,
-          "symfony_app_env" => $env
+          'symfony_version' => \Symfony\Component\HttpKernel\Kernel::VERSION,
+          'symfony_app_env' => $env,
         ];
-        if (isset($options["tags"])) {
-            $options["tags"] = array_merge($options["tags"], $default_tags);
+        if (isset($options['tags'])) {
+            $options['tags'] = array_merge($options['tags'], $default_tags);
         } else {
-            $options["tags"] = $default_tags;
+            $options['tags'] = $default_tags;
         }
 
         parent::__construct($dsn, $options);
