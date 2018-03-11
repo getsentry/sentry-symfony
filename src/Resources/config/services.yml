@@ -1,7 +1,7 @@
 services:
   sentry.client:
     class: '%sentry.client%'
-    arguments: ['%sentry.dsn%', '%sentry.options%']
+    arguments: ['%sentry.dsn%', '%sentry.options%', '%kernel.environment%']
     public: true
     calls:
       - [install, []]
