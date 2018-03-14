@@ -16,6 +16,7 @@ class SentrySymfonyClient extends \Raven_Client
             'version' => SentryBundle::getVersion(),
         ];
         $options['tags']['symfony_version'] = \Symfony\Component\HttpKernel\Kernel::VERSION;
+        $options['tags']['php_version'] = phpversion();
 
         parent::__construct($dsn, $options);
     }
