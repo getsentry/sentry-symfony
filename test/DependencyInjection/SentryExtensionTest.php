@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class SentryExtensionTest extends TestCase
 {
-    const SUPPORTED_SENTRY_OPTIONS_COUNT = 34;
+    const SUPPORTED_SENTRY_OPTIONS_COUNT = 35;
 
     public function test_that_configuration_uses_the_right_default_values()
     {
@@ -319,6 +319,10 @@ class SentryExtensionTest extends TestCase
             'exclude' => [
                 'test1',
                 'test2',
+            ],
+            'excluded_exceptions' => [
+                'test3',
+                'test4',
             ],
             'http_proxy' => 'http_proxy',
             'extra' => [
