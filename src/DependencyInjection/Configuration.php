@@ -127,6 +127,18 @@ class Configuration implements ConfigurationInterface
                 ->arrayNode('skip_capture')
                     ->prototype('scalar')->end()
                     ->defaultValue([HttpExceptionInterface::class])
+                    ->validate()
+                        ->ifTrue(function (array $classes) {
+                            foreach ($classes as $class) {
+                                if (! class_exists($class)) {
+                                    return true;
+                                }
+                            }
+
+                            return false;
+                        })
+                        ->thenInvalid('Unknown classes passed to skip_capture')
+                    ->end()
                 ->end()
                 ->arrayNode('listener_priorities')
                     ->addDefaultsIfNotSet()

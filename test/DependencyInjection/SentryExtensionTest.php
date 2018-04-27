@@ -201,19 +201,31 @@ class SentryExtensionTest extends TestCase
         );
     }
 
+    public function test_skip_capture_classes_exist()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+
+        $this->getContainer(
+            [
+                'skip_capture' => [
+                    'ThisClassDoesNotExist',
+                ],
+            ]
+        );
+    }
+
     public function test_that_it_uses_skipped_capture_value()
     {
         $container = $this->getContainer(
             [
                 'skip_capture' => [
-                    'classA',
-                    'classB',
+                    self::class,
                 ],
             ]
         );
 
         $this->assertSame(
-            ['classA', 'classB'],
+            [self::class],
             $container->getParameter('sentry.skip_capture')
         );
     }
