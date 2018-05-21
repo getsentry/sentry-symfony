@@ -10,6 +10,7 @@ use Sentry\SentryBundle\Test\Fixtures\CustomExceptionListener;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class SentryExtensionTest extends TestCase
@@ -373,6 +374,10 @@ class SentryExtensionTest extends TestCase
         $mockEventDispatcher = $this
             ->createMock(EventDispatcherInterface::class);
 
+        $mockRequestStack = $this
+            ->createMock(RequestStack::class);
+
+        $containerBuilder->set('request_stack', $mockRequestStack);
         $containerBuilder->set('event_dispatcher', $mockEventDispatcher);
 
         $extension = new SentryExtension();

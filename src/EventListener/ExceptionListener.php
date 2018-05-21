@@ -7,6 +7,8 @@ use Sentry\SentryBundle\SentrySymfonyEvents;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleExceptionEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -33,6 +35,9 @@ class ExceptionListener implements SentryExceptionListenerInterface
     /** @var EventDispatcherInterface */
     protected $eventDispatcher;
 
+    /** @var RequestStack */
+    private $requestStack;
+
     /** @var string[] */
     protected $skipCapture;
 
@@ -47,12 +52,14 @@ class ExceptionListener implements SentryExceptionListenerInterface
     public function __construct(
         \Raven_Client $client,
         EventDispatcherInterface $dispatcher,
+        RequestStack $requestStack,
         array $skipCapture,
         TokenStorageInterface $tokenStorage = null,
         AuthorizationCheckerInterface $authorizationChecker = null
     ) {
         $this->client = $client;
         $this->eventDispatcher = $dispatcher;
+        $this->requestStack = $requestStack;
         $this->skipCapture = $skipCapture;
         $this->tokenStorage = $tokenStorage;
         $this->authorizationChecker = $authorizationChecker;
@@ -158,20 +165,27 @@ class ExceptionListener implements SentryExceptionListenerInterface
      */
     private function setUserValue($user)
     {
+        $data = [];
+
+        $request = $this->requestStack->getCurrentRequest();
+        if ($request instanceof Request) {
+            $data['ip_address'] = $request->getClientIp();
+        }
+
         if ($user instanceof UserInterface) {
-            $this->client->set_user_data($user->getUsername());
+            $this->client->set_user_data($user->getUsername(), null, $data);
 
             return;
         }
 
         if (is_string($user)) {
-            $this->client->set_user_data($user);
+            $this->client->set_user_data($user, null, $data);
 
             return;
         }
 
         if (is_object($user) && method_exists($user, '__toString')) {
-            $this->client->set_user_data((string)$user);
+            $this->client->set_user_data((string)$user, null, $data);
         }
     }
 }
