@@ -11,6 +11,7 @@ services:
     arguments:
       - '@sentry.client'
       - '@event_dispatcher'
+      - '@request_stack'
       - '%sentry.skip_capture%'
       - '@?security.token_storage'
       - '@?security.authorization_checker'
