@@ -12,6 +12,7 @@ use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class SentryExtensionTest extends TestCase
@@ -376,6 +377,10 @@ class SentryExtensionTest extends TestCase
         $mockEventDispatcher = $this
             ->createMock(EventDispatcherInterface::class);
 
+        $mockRequestStack = $this
+            ->createMock(RequestStack::class);
+
+        $containerBuilder->set('request_stack', $mockRequestStack);
         $containerBuilder->set('event_dispatcher', $mockEventDispatcher);
         $containerBuilder->setAlias(self::LISTENER_TEST_PUBLIC_ALIAS, new Alias('sentry.exception_listener', true));
 
