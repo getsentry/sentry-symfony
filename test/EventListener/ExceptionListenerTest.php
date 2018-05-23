@@ -2,9 +2,11 @@
 
 namespace Sentry\SentryBundle\Test\EventListener;
 
-use Sentry\SentryBundle\SentrySymfonyEvents;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
+use Sentry\SentryBundle\SentrySymfonyEvents;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 
@@ -30,6 +32,11 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
      */
     private $mockAuthorizationChecker;
 
+    /** @var EventDispatcherInterface|\PHPUnit_Framework_MockObject_MockObject */
+    private $mockEventDispatcher;
+
+    private $mockRequestStack;
+
     public function setUp()
     {
         parent::setUp();
@@ -52,10 +59,15 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface')
         ;
 
+        $this->$mockRequestStack = $this
+            ->getMock('Symfony\Component\HttpFoundation\RequestStack')
+        ;
+
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->setParameter('kernel.root_dir', 'kernel/root');
         $containerBuilder->setParameter('kernel.environment', 'test');
 
+        $containerBuilder->set('request_stack', $this->mockRequestStack);
         $containerBuilder->set('security.token_storage', $this->mockTokenStorage);
         $containerBuilder->set('security.authorization_checker', $this->mockAuthorizationChecker);
         $containerBuilder->set('sentry.client', $this->mockSentryClient);
@@ -476,6 +488,54 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
                 $this->identicalTo(SentrySymfonyEvents::SET_USER_CONTEXT),
                 $this->isInstanceOf('Sentry\SentryBundle\Event\SentryUserContextEvent'))
         ;
+
+        $this->containerBuilder->compile();
+        $listener = $this->containerBuilder->get('sentry.exception_listener');
+        $listener->onKernelRequest($mockEvent);
+    }
+
+    public function test_that_ip_is_set_from_request_stack()
+    {
+        $mockToken = $this->createMock(TokenInterface::class);
+
+        $mockToken
+            ->method('getUser')
+            ->willReturn('some_user');
+
+        $mockToken
+            ->method('isAuthenticated')
+            ->willReturn(true);
+
+        $mockEvent = $this->createMock(GetResponseEvent::class);
+
+        $mockRequest = $this->createMock(Request::class);
+
+        $mockRequest
+            ->method('getClientIp')
+            ->willReturn('1.2.3.4');
+
+        $this->mockRequestStack
+            ->method('getCurrentRequest')
+            ->willReturn($mockRequest);
+
+        $mockEvent
+            ->expects($this->once())
+            ->method('getRequestType')
+            ->willReturn(HttpKernelInterface::MASTER_REQUEST);
+
+        $this->mockAuthorizationChecker
+            ->method('isGranted')
+            ->with($this->identicalTo(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED))
+            ->willReturn(true);
+
+        $this->mockTokenStorage
+            ->method('getToken')
+            ->willReturn($mockToken);
+
+        $this->mockSentryClient
+            ->expects($this->once())
+            ->method('set_user_data')
+            ->with($this->identicalTo('some_user'), null, ['ip_address' => '1.2.3.4']);
 
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');

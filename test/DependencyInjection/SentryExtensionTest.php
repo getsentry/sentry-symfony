@@ -4,6 +4,7 @@ namespace Sentry\SentryBundle\Test\DependencyInjection;
 
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class SentryExtensionTest extends \PHPUnit_Framework_TestCase
 {
@@ -639,6 +640,10 @@ class SentryExtensionTest extends \PHPUnit_Framework_TestCase
         $mockEventDispatcher = $this
             ->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
 
+        $mockRequestStack = $this
+            ->createMock('Symfony\Component\HttpFoundation\RequestStack');
+
+        $containerBuilder->set('request_stack', $mockRequestStack);
         $containerBuilder->set('event_dispatcher', $mockEventDispatcher);
 
         $extension = new SentryExtension();
