@@ -2,7 +2,6 @@
 
 namespace Sentry\SentryBundle;
 
-
 class SentrySymfonyInstaller
 {
     /**
@@ -25,7 +24,6 @@ class SentrySymfonyInstaller
      */
     public function __construct(\Raven_Client $client, $enabled = true)
     {
-
         $this->client = $client;
         $this->enabled = $enabled;
     }

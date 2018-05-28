@@ -20,7 +20,7 @@ class SentryExtensionTest extends TestCase
 {
     private const SUPPORTED_SENTRY_OPTIONS_COUNT = 34;
     private const LISTENER_TEST_PUBLIC_ALIAS = 'sentry.exception_listener.public_alias';
-    private const INSTALLLER_TEST_PUBLIC_ALIAS = "sentry.installer.public_alias";
+    private const INSTALLER_TEST_PUBLIC_ALIAS = 'sentry.installer.public_alias';
 
     public function test_that_configuration_uses_the_right_default_values()
     {
@@ -361,7 +361,7 @@ class SentryExtensionTest extends TestCase
             $this->assertNotEquals(
                 $defaultOptions[$name],
                 $value,
-                'Test precondition failed: using default value for '.$name
+                'Test precondition failed: using default value for ' . $name
             );
         }
 
@@ -376,7 +376,7 @@ class SentryExtensionTest extends TestCase
         $extension = new SentryExtension();
         $extension->load([], $containerBuilder);
 
-        $def = $containerBuilder->getDefinition("sentry.client");
+        $def = $containerBuilder->getDefinition('sentry.client');
         $this->assertEmpty($def->getMethodCalls());
     }
 
@@ -384,19 +384,18 @@ class SentryExtensionTest extends TestCase
     {
         $container = $this->getContainer();
         /** @var SentrySymfonyInstaller $installer */
-        $installer = $container->get(self::INSTALLLER_TEST_PUBLIC_ALIAS);
+        $installer = $container->get(self::INSTALLER_TEST_PUBLIC_ALIAS);
         $installer->install();
 
-        $this->assertTrue($installer->isInstalled(), "Raven_Client is not installed");
+        $this->assertTrue($installer->isInstalled(), 'Raven_Client is not installed');
     }
-
 
     public function test_raven_disabled()
     {
-        $container = $this->getContainer(["installation" => ["enabled" => false]]);
+        $container = $this->getContainer(['installation' => ['enabled' => false]]);
         /** @var SentrySymfonyInstaller $installer */
-        $installer = $container->get(self::INSTALLLER_TEST_PUBLIC_ALIAS);
-        $this->assertFalse($installer->isEnabled(), "Raven_Client is enabled");
+        $installer = $container->get(self::INSTALLER_TEST_PUBLIC_ALIAS);
+        $this->assertFalse($installer->isEnabled(), 'Raven_Client is enabled');
     }
 
     private function getContainer(array $configuration = []): Container
@@ -414,7 +413,7 @@ class SentryExtensionTest extends TestCase
         $containerBuilder->set('request_stack', $mockRequestStack);
         $containerBuilder->set('event_dispatcher', $mockEventDispatcher);
         $containerBuilder->setAlias(self::LISTENER_TEST_PUBLIC_ALIAS, new Alias('sentry.exception_listener', true));
-        $containerBuilder->setAlias(self::INSTALLLER_TEST_PUBLIC_ALIAS, new Alias('sentry.client_installer', true));
+        $containerBuilder->setAlias(self::INSTALLER_TEST_PUBLIC_ALIAS, new Alias('sentry.client_installer', true));
 
         $extension = new SentryExtension();
         $extension->load(['sentry' => $configuration], $containerBuilder);
