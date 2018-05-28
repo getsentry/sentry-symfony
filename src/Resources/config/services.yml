@@ -3,8 +3,6 @@ services:
     class: '%sentry.client%'
     arguments: ['%sentry.dsn%', '%sentry.options%']
     public: true
-    calls:
-      - [install, []]
 
   sentry.exception_listener:
     class: '%sentry.exception_listener%'
@@ -20,3 +18,11 @@ services:
       - { name: kernel.event_listener, event: kernel.exception,  method: onKernelException, priority: '%sentry.listener_priorities.kernel_exception%' }
       - { name: kernel.event_listener, event: console.command,   method: onConsoleCommand }
       - { name: kernel.event_listener, event: console.error,     method: onConsoleError, priority: '%sentry.listener_priorities.console_exception%' }
+
+  sentry.client_installer:
+    class: '%sentry.installation.class_name%'
+    arguments: ["@sentry.client", "%sentry.installation.enabled%"]
+    tags:
+      - { name: kernel.event_listener, event: kernel.request,    method: install, priority: '%sentry.installation.priorities.request%'}
+      - { name: kernel.event_listener, event: kernel.exception,  method: install, priority: '%sentry.installation.priorities.kernel_exception%' }
+      - { name: kernel.event_listener, event: console.command,   method: install }

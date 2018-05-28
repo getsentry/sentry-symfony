@@ -6,6 +6,7 @@ use Raven_Compat;
 use Sentry\SentryBundle\EventListener\ExceptionListener;
 use Sentry\SentryBundle\EventListener\SentryExceptionListenerInterface;
 use Sentry\SentryBundle\SentrySymfonyClient;
+use Sentry\SentryBundle\SentrySymfonyInstaller;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -136,6 +137,18 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('console_exception')->defaultValue(0)->end()
                     ->end()
                 ->end()
+                ->arrayNode("installation")
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode("class_name")->defaultValue(SentrySymfonyInstaller::class)->end()
+                        ->booleanNode("enabled")->defaultValue(true)->end()
+                        ->arrayNode("priorities")
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->scalarNode("request")->defaultValue(0)->end()
+                            ->scalarNode("kernel_exception")->defaultValue(0)->end()
+                        ->end()
+                    ->end()
             ->end()
         ;
 
