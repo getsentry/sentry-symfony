@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 2.0.3 - 2018-06-01
+### Added
+ - Add `symfony_version` as a default tag (#116, thanks @hjanuschka)
+### Fixed
+ - Retrieve use IP address from Symfony, to honor trusted proxies (#131, thanks @eliecharra)
+
 ## 2.0.2 - 2018-03-06
 ### Fixed
  - Fix `processorOptions` in yaml configuration (#107)
@@ -26,6 +32,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
  - Drop support for Symfony 2.x
  - Drop support for PHP 5 and 7.0
+
+## 1.0.3 - 2018-06-01
+### Added
+ - Add `symfony_version` as a default tag (#117, backport of #116, thanks @hjanuschka)
+### Fixed
+ - Retrieve use IP address from Symfony, to honor trusted proxies (#132, backport of #131, thanks @eliecharra)
 
 ## 1.0.2 - 2018-03-06
 ### Fixed
@@ -51,6 +63,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Dropped the third argument from the `SentrySymfonyClient` constructor; `error_types` are now fetched from the second argument, the options array
  - Remove support for PHP versions lower than 5.6, since they are now EOL
  - Remove support for HHVM
+
+## 0.8.8 - 2018-06-01
+### Added
+ - Add `symfony_version` as a default tag (backport of #116, thanks @hjanuschka)
+ - Add the new `excluded_exceptions` option from Sentry client 1.9 (see [getsentry/sentry-php#583](https://github.com/getsentry/sentry-php/pull/583); #124, backport of #123, thanks @mcfedr)
+### Changed
+ - Require at least version 1.9 of the `sentry/sentry` base client, due to #124
+### Fixed
+ - Retrieve use IP address from Symfony, to honor trusted proxies (backport of #131, thanks @eliecharra)
+
+## 0.8.7 - 2017-10-23
+### Fixed
+ - Fix a fatal error when the user token is not authenticated (#78)
 
 ## 0.8.6 - 2017-08-24
 ### Changed

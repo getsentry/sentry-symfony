@@ -77,6 +77,11 @@ sentry:
     dsn: "https://public:secret@sentry.example.com/1"
 ```
 
+## Maintained versions
+ * 2.x is actively maintained on the master branch, but it requires Symfony 3+ and PHP 7.1+;
+ * 1.x is still supported to allow Symfony 2 and PHP 5.6/7.0; it may receive backports of features from the master branch, but it's not guaranteed 
+ * 0.8.x is no longer maintained, with the 0.8.8 release containing the latest new features; it may only receive security fixes in the future.
+
 ## Configuration
 
 The following options can be configured via ``app/config/config.yml``.
