@@ -596,6 +596,10 @@ class SentryExtensionTest extends \PHPUnit_Framework_TestCase
                     'test1',
                     'test2',
                 ),
+                'excluded_exceptions' => array(
+                    'test3',
+                    'test4',
+                ),
                 'http_proxy' => 'http_proxy',
                 'extra' => array(
                     'extra1' => 'extra1',
