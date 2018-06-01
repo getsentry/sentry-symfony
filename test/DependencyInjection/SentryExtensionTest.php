@@ -640,8 +640,9 @@ class SentryExtensionTest extends \PHPUnit_Framework_TestCase
         $mockEventDispatcher = $this
             ->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
 
-        $mockRequestStack = $this
-            ->createMock('Symfony\Component\HttpFoundation\RequestStack');
+        $mockRequestStack = $this->getMockBuilder('Symfony\Component\HttpFoundation\RequestStack')
+            ->disableOriginalConstructor()
+            ->getMock();
 
         $containerBuilder->set('request_stack', $mockRequestStack);
         $containerBuilder->set('event_dispatcher', $mockEventDispatcher);

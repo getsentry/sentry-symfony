@@ -6,7 +6,7 @@ use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\SentrySymfonyEvents;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 
@@ -35,6 +35,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
     /** @var EventDispatcherInterface|\PHPUnit_Framework_MockObject_MockObject */
     private $mockEventDispatcher;
 
+    /** @var RequestStack|\PHPUnit_Framework_MockObject_MockObject */
     private $mockRequestStack;
 
     public function setUp()
@@ -59,7 +60,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface')
         ;
 
-        $this->$mockRequestStack = $this
+        $this->mockRequestStack = $this
             ->getMock('Symfony\Component\HttpFoundation\RequestStack')
         ;
 
@@ -496,7 +497,9 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
     public function test_that_ip_is_set_from_request_stack()
     {
-        $mockToken = $this->createMock(TokenInterface::class);
+        $mockToken = $this->getMockBuilder('Symfony\Component\Security\Core\Authentication\Token\TokenInterface')
+            ->disableOriginalConstructor()
+            ->getMock();
 
         $mockToken
             ->method('getUser')
@@ -506,9 +509,13 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
             ->method('isAuthenticated')
             ->willReturn(true);
 
-        $mockEvent = $this->createMock(GetResponseEvent::class);
+        $mockEvent = $this->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseEvent')
+            ->disableOriginalConstructor()
+            ->getMock();
 
-        $mockRequest = $this->createMock(Request::class);
+        $mockRequest = $this->getMockBuilder('Symfony\Component\HttpFoundation\Request')
+            ->disableOriginalConstructor()
+            ->getMock();
 
         $mockRequest
             ->method('getClientIp')
@@ -535,7 +542,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
         $this->mockSentryClient
             ->expects($this->once())
             ->method('set_user_data')
-            ->with($this->identicalTo('some_user'), null, ['ip_address' => '1.2.3.4']);
+            ->with($this->identicalTo('some_user'), null, array('ip_address' => '1.2.3.4'));
 
         $this->containerBuilder->compile();
         $listener = $this->containerBuilder->get('sentry.exception_listener');

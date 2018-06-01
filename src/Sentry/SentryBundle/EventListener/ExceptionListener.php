@@ -67,6 +67,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
         $this->authorizationChecker = $authorizationChecker;
         $this->eventDispatcher = $dispatcher;
         $this->client = $client;
+        $this->requestStack = $requestStack;
         $this->skipCapture = $skipCapture;
     }
 
