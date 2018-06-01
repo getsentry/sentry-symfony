@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## 0.8.8 - 2018-06-01
+### Added
+ - Add `symfony_version` as a default tag (backport of #116, thanks @hjanuschka)
+### Fixed
+ - Retrieve use IP address from Symfony, to honor trusted proxies (backport of #131, thanks @eliecharra)
 
 ## 0.8.7 - 2017-10-23
 ### Fixed
