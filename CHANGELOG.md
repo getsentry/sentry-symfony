@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 0.8.8 - 2018-06-01
 ### Added
  - Add `symfony_version` as a default tag (backport of #116, thanks @hjanuschka)
+ - Add the new `excluded_exceptions` option from Sentry client 1.9 (see [getsentry/sentry-php#583](https://github.com/getsentry/sentry-php/pull/583); #124, backport of #123, thanks @mcfedr)
+### Changed
+ - Require at least version 1.9 of the `sentry/sentry` base client, due to #124
 ### Fixed
  - Retrieve use IP address from Symfony, to honor trusted proxies (backport of #131, thanks @eliecharra)
 
