@@ -44,6 +44,9 @@ class Configuration implements ConfigurationInterface
                         ->then($this->getTrimClosure())
                     ->end()
                     ->defaultNull()
+                ->end()
+                ->booleanNode('lazy')
+                    ->defaultFalse()
                 ->end();
 
         // Sentry client options
