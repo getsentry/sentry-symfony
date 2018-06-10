@@ -2,6 +2,7 @@ services:
   sentry.client:
     class: '%sentry.client%'
     arguments: ['%sentry.dsn%', '%sentry.options%']
+    lazy: '%sentry.lazy%'
     public: true
     calls:
       - [install, []]
