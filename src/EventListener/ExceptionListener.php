@@ -9,6 +9,7 @@ use Symfony\Component\Console\Event\ConsoleExceptionEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -41,11 +42,18 @@ class ExceptionListener implements SentryExceptionListenerInterface
     /** @var string[] */
     protected $skipCapture;
 
+    /** @var bool */
+    protected $sendSessionData;
+
+    /** @var Session */
+    protected $session;
+
     /**
      * ExceptionListener constructor.
      * @param \Raven_Client $client
      * @param EventDispatcherInterface $dispatcher
      * @param array $skipCapture
+     * @param bool $sendSessionData
      * @param TokenStorageInterface|null $tokenStorage
      * @param AuthorizationCheckerInterface|null $authorizationChecker
      */
@@ -54,6 +62,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
         EventDispatcherInterface $dispatcher,
         RequestStack $requestStack,
         array $skipCapture,
+        $sendSessionData,
         TokenStorageInterface $tokenStorage = null,
         AuthorizationCheckerInterface $authorizationChecker = null
     ) {
@@ -61,6 +70,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
         $this->eventDispatcher = $dispatcher;
         $this->requestStack = $requestStack;
         $this->skipCapture = $skipCapture;
+        $this->sendSessionData = $sendSessionData;
         $this->tokenStorage = $tokenStorage;
         $this->authorizationChecker = $authorizationChecker;
     }
@@ -84,6 +94,10 @@ class ExceptionListener implements SentryExceptionListenerInterface
             return;
         }
 
+        if ($this->sendSessionData && $event->getRequest()->hasPreviousSession()) {
+            $this->setSession($event->getRequest()->getSession());
+        }
+
         if (null === $this->tokenStorage || null === $this->authorizationChecker) {
             return;
         }
@@ -104,6 +118,8 @@ class ExceptionListener implements SentryExceptionListenerInterface
     public function onKernelException(GetResponseForExceptionEvent $event)
     {
         $exception = $event->getException();
+
+        $this->setSessionData();
 
         if ($this->shouldExceptionCaptureBeSkipped($exception)) {
             return;
@@ -187,5 +203,17 @@ class ExceptionListener implements SentryExceptionListenerInterface
         if (is_object($user) && method_exists($user, '__toString')) {
             $this->client->set_user_data((string)$user, null, $data);
         }
+    }
+
+    private function setSessionData()
+    {
+        if ($this->session) {
+            $this->client->user_context($this->session->all());
+        }
+    }
+
+    private function setSession(Session $session)
+    {
+        $this->session = $session;
     }
 }

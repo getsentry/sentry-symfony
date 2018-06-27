@@ -13,6 +13,7 @@ services:
           - '@event_dispatcher'
           - '@request_stack'
           - '%sentry.skip_capture%'
+          - '%sentry.send_session_data%'
           - '@?security.token_storage'
           - '@?security.authorization_checker'
         tags:
