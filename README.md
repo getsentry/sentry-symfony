@@ -131,6 +131,15 @@ sentry:
     exception_listener: AppBundle\EventListener\MySentryExceptionListener
 ```
 
+#### Sending session data
+
+You can enable sending session data by adding
+
+```yaml
+sentry:
+    send_session_data: true
+```
+
 #### prefixes
 
 A list of prefixes to strip from filenames. Often these would be vendor/include paths.

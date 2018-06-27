@@ -131,6 +131,7 @@ class Configuration implements ConfigurationInterface
                     ->prototype('scalar')->end()
                     ->defaultValue([HttpExceptionInterface::class])
                 ->end()
+                ->booleanNode('send_session_data')->defaultFalse()->end()
                 ->arrayNode('listener_priorities')
                     ->addDefaultsIfNotSet()
                     ->children()
