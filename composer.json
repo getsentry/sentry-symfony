@@ -32,9 +32,9 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.8",
-        "phpstan/phpstan": "^0.9.1",
-        "phpstan/phpstan-phpunit": "^0.9.1",
-        "phpunit/phpunit": "^6.5",
+        "phpstan/phpstan": "^0.10",
+        "phpstan/phpstan-phpunit": "^0.10",
+        "phpunit/phpunit": "^7",
         "scrutinizer/ocular": "^1.4",
         "symfony/expression-language": "^3.0||^4.0"
     },
