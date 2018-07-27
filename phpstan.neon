@@ -2,7 +2,6 @@ parameters:
     ignoreErrors:
          - '/Symfony\\Component\\Console\\Event\\ConsoleExceptionEvent/'
          - '/Call to an undefined method Symfony\\Component\\Console\\Event\\ConsoleEvent::getExitCode\(\)\./'
-         - '/Cannot cast object to string\./'
     excludes_analyse:
          - '%currentWorkingDirectory%/src/DependencyInjection/Configuration.php'
 includes:
