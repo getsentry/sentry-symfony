@@ -208,8 +208,7 @@ You can always replace the default `ExceptionListener` with your own custom list
 
 ```yaml
 sentry:
-    options:
-        exception_listener: AppBundle\EventListener\MySentryExceptionListener
+    exception_listener: AppBundle\EventListener\MySentryExceptionListener
 ```
 
 ... and then define the custom `ExceptionListener` that implements the `SentryExceptionListenerInterface`, e.g.:
