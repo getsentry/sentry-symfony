@@ -91,7 +91,7 @@ The following options can be configured via ``app/config/config.yml``.
 ```yaml
 sentry:
     skip_capture:
-        - "Symfony\Component\HttpKernel\Exception\HttpExceptionInterface"
+        - 'Symfony\Component\HttpKernel\Exception\HttpExceptionInterface'
 ```
 
 ### Listeners' priority
