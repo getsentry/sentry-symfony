@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 ### Added
  - Add config for autowiring the client (#158, thanks @gander)
+ - Migrate YAML config to XML; drop dependency on `symfony/yaml` (#155, thanks @Pierstoval)
 
 ## 2.0.3 - 2018-06-01
 ### Added
