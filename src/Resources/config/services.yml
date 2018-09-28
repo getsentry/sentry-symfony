@@ -5,7 +5,9 @@ services:
     public: true
     calls:
       - [install, []]
-
+      
+  '%sentry.client%': '@sentry.client'
+  
   sentry.exception_listener:
     class: '%sentry.exception_listener%'
     arguments:
