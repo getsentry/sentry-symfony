@@ -9,8 +9,10 @@ use Sentry\SentryBundle\EventListener\ExceptionListener;
 use Sentry\SentryBundle\EventListener\SentryExceptionListenerInterface;
 use Sentry\SentryBundle\SentrySymfonyEvents;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\Console\Event\ConsoleExceptionEvent;
+use Symfony\Component\Console\Event\ConsoleTerminateEvent;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Alias;
@@ -18,6 +20,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -82,6 +85,10 @@ class ExceptionListenerTest extends TestCase
         $mockEvent = $this->createMock(GetResponseEvent::class);
 
         $mockEvent
+            ->method('getRequest')
+            ->willReturn(new Request());
+
+        $mockEvent
             ->expects($this->once())
             ->method('getRequestType')
             ->willReturn(HttpKernelInterface::SUB_REQUEST);
@@ -106,6 +113,10 @@ class ExceptionListenerTest extends TestCase
         $this->containerBuilder->set('security.token_storage', null);
 
         $mockEvent = $this->createMock(GetResponseEvent::class);
+
+        $mockEvent
+            ->method('getRequest')
+            ->willReturn(new Request());
 
         $mockEvent
             ->expects($this->once())
@@ -137,6 +148,10 @@ class ExceptionListenerTest extends TestCase
         $mockEvent = $this->createMock(GetResponseEvent::class);
 
         $mockEvent
+            ->method('getRequest')
+            ->willReturn(new Request());
+
+        $mockEvent
             ->expects($this->once())
             ->method('getRequestType')
             ->willReturn(HttpKernelInterface::MASTER_REQUEST);
@@ -166,6 +181,10 @@ class ExceptionListenerTest extends TestCase
             ->willReturn('username');
 
         $mockEvent = $this->createMock(GetResponseEvent::class);
+
+        $mockEvent
+            ->method('getRequest')
+            ->willReturn(new Request());
 
         $mockEvent
             ->expects($this->once())
@@ -208,6 +227,10 @@ class ExceptionListenerTest extends TestCase
             ->willReturn($user);
 
         $mockEvent = $this->createMock(GetResponseEvent::class);
+
+        $mockEvent
+            ->method('getRequest')
+            ->willReturn(new Request());
 
         $mockEvent->expects($this->once())
             ->method('getRequestType')
@@ -253,6 +276,10 @@ class ExceptionListenerTest extends TestCase
             ->willReturn(true);
 
         $mockEvent = $this->createMock(GetResponseEvent::class);
+
+        $mockEvent
+            ->method('getRequest')
+            ->willReturn(new Request());
 
         $mockEvent
             ->expects($this->once())
@@ -302,6 +329,10 @@ class ExceptionListenerTest extends TestCase
             ->willReturn(true);
 
         $mockEvent = $this->createMock(GetResponseEvent::class);
+
+        $mockEvent
+            ->method('getRequest')
+            ->willReturn(new Request());
 
         $mockEvent
             ->expects($this->once())
@@ -359,6 +390,10 @@ class ExceptionListenerTest extends TestCase
         $mockEvent = $this->createMock(GetResponseEvent::class);
 
         $mockEvent
+            ->method('getRequest')
+            ->willReturn(new Request());
+
+        $mockEvent
             ->expects($this->once())
             ->method('getRequestType')
             ->willReturn(HttpKernelInterface::MASTER_REQUEST);
@@ -404,6 +439,10 @@ class ExceptionListenerTest extends TestCase
 
         $mockEvent = $this->createMock(GetResponseEvent::class);
 
+        $mockEvent
+            ->method('getRequest')
+            ->willReturn(new Request());
+
         $mockRequest = $this->createMock(Request::class);
 
         $mockRequest
@@ -438,6 +477,59 @@ class ExceptionListenerTest extends TestCase
         $listener->onKernelRequest($mockEvent);
     }
 
+    public function test_that_it_sets_transaction_from_route()
+    {
+        $mockEvent = $this->createMock(GetResponseEvent::class);
+
+        $request = new Request();
+        $request->attributes->set('_route', 'my_route');
+        $mockEvent
+            ->expects($this->once())
+            ->method('getRequest')
+            ->willReturn($request);
+
+        $mockEvent
+            ->method('getRequestType')
+            ->willReturn(HttpKernelInterface::SUB_REQUEST);
+
+        $mockTransactionStack = $this->createMock(\Raven_TransactionStack::class);
+        $this->mockSentryClient->transaction = $mockTransactionStack;
+
+        $mockTransactionStack
+            ->expects($this->once())
+            ->method('push')
+            ->with('my_route');
+
+        $this->containerBuilder->compile();
+        $listener = $this->getListener();
+        $listener->onKernelRequest($mockEvent);
+    }
+
+    public function test_that_it_pops_transaction_from_route()
+    {
+        $mockEvent = $this->createMock(FinishRequestEvent::class);
+
+        $request = new Request();
+        $request->attributes->set('_route', 'my_route');
+        $mockEvent
+            ->expects($this->once())
+            ->method('getRequest')
+            ->willReturn($request);
+
+        $mockTransactionStack = $this->createMock(\Raven_TransactionStack::class);
+        $this->mockSentryClient->transaction = $mockTransactionStack;
+
+        $mockTransactionStack
+            ->expects($this->once())
+            ->method('pop')
+            ->with('my_route');
+
+        $this->containerBuilder->compile();
+        /** @var ExceptionListener $listener */
+        $listener = $this->getListener();
+        $listener->onFinishRequest($mockEvent);
+    }
+
     public function test_regression_with_unauthenticated_user_token_PR_78()
     {
         $mockToken = $this->createMock(TokenInterface::class);
@@ -446,6 +538,10 @@ class ExceptionListenerTest extends TestCase
             ->willReturn(false);
 
         $mockEvent = $this->createMock(GetResponseEvent::class);
+
+        $mockEvent
+            ->method('getRequest')
+            ->willReturn(new Request());
 
         $mockEvent
             ->expects($this->once())
@@ -464,6 +560,10 @@ class ExceptionListenerTest extends TestCase
     public function test_that_it_does_not_report_http_exception_if_included_in_capture_skip()
     {
         $mockEvent = $this->createMock(GetResponseForExceptionEvent::class);
+
+        $mockEvent
+            ->method('getRequest')
+            ->willReturn(new Request());
 
         $mockEvent
             ->expects($this->once())
@@ -508,6 +608,30 @@ class ExceptionListenerTest extends TestCase
         $this->containerBuilder->compile();
         $listener = $this->getListener();
         $listener->onKernelException($mockEvent);
+    }
+
+    public function test_that_it_sets_transaction_from_command()
+    {
+        $mockEvent = $this->createMock(ConsoleCommandEvent::class);
+
+        $command = new Command('my_command');
+        $mockEvent
+            ->expects($this->once())
+            ->method('getCommand')
+            ->willReturn($command);
+
+        $mockTransactionStack = $this->createMock(\Raven_TransactionStack::class);
+        $this->mockSentryClient->transaction = $mockTransactionStack;
+
+        $mockTransactionStack
+            ->expects($this->once())
+            ->method('push')
+            ->with('my_command');
+
+        $this->containerBuilder->compile();
+        /** @var ExceptionListener $listener */
+        $listener = $this->getListener();
+        $listener->onConsoleCommand($mockEvent);
     }
 
     /**
@@ -591,6 +715,30 @@ class ExceptionListenerTest extends TestCase
         /** @var SentryExceptionListenerInterface $listener */
         $listener = $this->getListener();
         $listener->onConsoleError($event);
+    }
+
+    public function test_that_it_pops_transaction_from_command()
+    {
+        $mockEvent = $this->createMock(ConsoleTerminateEvent::class);
+
+        $command = new Command('my_command');
+        $mockEvent
+            ->expects($this->once())
+            ->method('getCommand')
+            ->willReturn($command);
+
+        $mockTransactionStack = $this->createMock(\Raven_TransactionStack::class);
+        $this->mockSentryClient->transaction = $mockTransactionStack;
+
+        $mockTransactionStack
+            ->expects($this->once())
+            ->method('pop')
+            ->with('my_command');
+
+        $this->containerBuilder->compile();
+        /** @var ExceptionListener $listener */
+        $listener = $this->getListener();
+        $listener->onFinishCommand($mockEvent);
     }
 
     public function mockCommandProvider()

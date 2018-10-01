@@ -8,9 +8,11 @@ use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\Console\Event\ConsoleEvent;
 use Symfony\Component\Console\Event\ConsoleExceptionEvent;
+use Symfony\Component\Console\Event\ConsoleTerminateEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -82,6 +84,10 @@ class ExceptionListener implements SentryExceptionListenerInterface
      */
     public function onKernelRequest(GetResponseEvent $event): void
     {
+        if (($route = $event->getRequest()->attributes->get('_route'))) {
+            $this->client->transaction->push($route);
+        }
+
         if (HttpKernelInterface::MASTER_REQUEST !== $event->getRequestType()) {
             return;
         }
@@ -115,6 +121,13 @@ class ExceptionListener implements SentryExceptionListenerInterface
         $this->client->captureException($exception);
     }
 
+    public function onFinishRequest(FinishRequestEvent $event): void
+    {
+        if (($route = $event->getRequest()->attributes->get('_route'))) {
+            $this->client->transaction->pop($route);
+        }
+    }
+
     /**
      * This method only ensures that the client and error handlers are registered at the start of the command
      * execution cycle, and not only on exceptions
@@ -125,7 +138,9 @@ class ExceptionListener implements SentryExceptionListenerInterface
      */
     public function onConsoleCommand(ConsoleCommandEvent $event): void
     {
-        // only triggers loading of client, does not need to do anything.
+        if (($command = $event->getCommand())) {
+            $this->client->transaction->push($command->getName());
+        }
     }
 
     public function onConsoleError(ConsoleErrorEvent $event): void
@@ -136,6 +151,13 @@ class ExceptionListener implements SentryExceptionListenerInterface
     public function onConsoleException(ConsoleExceptionEvent $event): void
     {
         $this->handleConsoleError($event);
+    }
+
+    public function onFinishCommand(ConsoleTerminateEvent $event): void
+    {
+        if (($command = $event->getCommand())) {
+            $this->client->transaction->pop($command->getName());
+        }
     }
 
     /**

@@ -287,11 +287,21 @@ class SentryExtensionTest extends TestCase
                     'method' => 'onKernelException',
                     'priority' => '%sentry.listener_priorities.kernel_exception%',
                 ],
+                [
+                    'event' => 'kernel.finish_request',
+                    'method' => 'onFinishRequest',
+                    'priority' => '%sentry.listener_priorities.finish_request%',
+                ],
                 ['event' => 'console.command', 'method' => 'onConsoleCommand'],
                 [
                     'event' => 'console.error',
                     'method' => 'onConsoleError',
                     'priority' => '%sentry.listener_priorities.console_exception%',
+                ],
+                [
+                    'event' => 'console.terminate',
+                    'method' => 'onFinishCommand',
+                    'priority' => '%sentry.listener_priorities.console_terminate%',
                 ],
             ],
             $tags

@@ -23,8 +23,10 @@
 
             <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="%sentry.listener_priorities.request%" />
             <tag name="kernel.event_listener" event="kernel.exception" method="onKernelException" priority="%sentry.listener_priorities.kernel_exception%" />
+            <tag name="kernel.event_listener" event="kernel.finish_request" method="onFinishRequest" priority="%sentry.listener_priorities.finish_request%" />
             <tag name="kernel.event_listener" event="console.command" method="onConsoleCommand" />
             <tag name="kernel.event_listener" event="console.error" method="onConsoleError" priority="%sentry.listener_priorities.console_exception%" />
+            <tag name="kernel.event_listener" event="console.terminate" method="onFinishCommand" priority="%sentry.listener_priorities.console_terminate%" />
         </service>
     </services>
 </container>
