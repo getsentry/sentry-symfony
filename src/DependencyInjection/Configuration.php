@@ -25,9 +25,9 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder();
+        $treeBuilder = new TreeBuilder('sentry');
         /** @var ArrayNodeDefinition $rootNode */
-        $rootNode = $treeBuilder->root('sentry');
+        $rootNode = \method_exists(TreeBuilder::class, 'getRootNode') ? $treeBuilder->getRootNode() : $treeBuilder->root('sentry');
 
         // Basic Sentry configuration
         $rootNode
