@@ -48,7 +48,7 @@
         }
     },
     "scripts": {
-        "phpstan": "vendor/bin/phpstan analyse src test --level 7 -c phpstan.neon",
+        "phpstan": "vendor/bin/phpstan analyse",
         "cs-check": "vendor/bin/php-cs-fixer fix --verbose --diff --dry-run",
         "cs-fix": "vendor/bin/php-cs-fixer fix --verbose --diff"
     },
