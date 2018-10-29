@@ -1,4 +1,8 @@
 parameters:
+    level: 7
+    paths:
+        - src/
+        - test/
     ignoreErrors:
          - '/Symfony\\Component\\Console\\Event\\ConsoleExceptionEvent/'
          - '/Call to an undefined method Symfony\\Component\\Console\\Event\\ConsoleEvent::getExitCode\(\)\./'
