@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
+ - Add new `excluded_exceptions` option in config (#123, thanks @mcfedr)
  - Add config for autowiring the client (#158, thanks @gander)
 ### Changed
  - Migrate YAML config to XML; drop dependency on `symfony/yaml` (#155, thanks @Pierstoval)
