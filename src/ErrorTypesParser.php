@@ -55,6 +55,10 @@ class ErrorTypesParser
             return $errorConstant[0];
         }, $expression);
 
+        if (null === $output) {
+            throw new \InvalidArgumentException('Unable to parse error types string: ' . $expression);
+        }
+
         return $output;
     }
 

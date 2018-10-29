@@ -20,4 +20,12 @@ class ErrorTypesParserTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $ex->parse();
     }
+
+    public function test_error_types_parser_throws_exception_for_unparsable_values()
+    {
+        $ex = new ErrorTypesParser('something-wrong');
+
+        $this->expectException(\InvalidArgumentException::class);
+        $ex->parse();
+    }
 }
