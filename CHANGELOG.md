@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+ - Add new `excluded_exceptions` option in config (#123, thanks @mcfedr)
+ - Add config for autowiring the client (#158, thanks @gander)
+### Changed
+ - Migrate YAML config to XML; drop dependency on `symfony/yaml` (#155, thanks @Pierstoval)
+### Fixed
+ - Remove deprecation raised by Symfony 4.2 (#161, thanks @chalasr)
 
 ## 2.0.3 - 2018-06-01
 ### Added
