@@ -42,7 +42,10 @@ class ExceptionListenerTest extends TestCase
 
     private $mockEventDispatcher;
 
-    private $mockRequestStack;
+    /**
+     * @var RequestStack
+     */
+    private $requestStack;
 
     public function setUp()
     {
@@ -50,13 +53,13 @@ class ExceptionListenerTest extends TestCase
         $this->mockAuthorizationChecker = $this->createMock(AuthorizationCheckerInterface::class);
         $this->mockSentryClient = $this->createMock(\Raven_Client::class);
         $this->mockEventDispatcher = $this->createMock(EventDispatcherInterface::class);
-        $this->mockRequestStack = $this->createMock(RequestStack::class);
+        $this->requestStack = new RequestStack();
 
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->setParameter('kernel.root_dir', 'kernel/root');
         $containerBuilder->setParameter('kernel.environment', 'test');
 
-        $containerBuilder->set('request_stack', $this->mockRequestStack);
+        $containerBuilder->set('request_stack', $this->requestStack);
         $containerBuilder->set('security.token_storage', $this->mockTokenStorage);
         $containerBuilder->set('security.authorization_checker', $this->mockAuthorizationChecker);
         $containerBuilder->set('sentry.client', $this->mockSentryClient);
@@ -404,15 +407,9 @@ class ExceptionListenerTest extends TestCase
 
         $mockEvent = $this->createMock(GetResponseEvent::class);
 
-        $mockRequest = $this->createMock(Request::class);
-
-        $mockRequest
-            ->method('getClientIp')
-            ->willReturn('1.2.3.4');
-
-        $this->mockRequestStack
-            ->method('getCurrentRequest')
-            ->willReturn($mockRequest);
+        $this->requestStack->push(new Request([], [], [], [], [], [
+            'REMOTE_ADDR' => '1.2.3.4',
+        ]));
 
         $mockEvent
             ->expects($this->once())
@@ -504,6 +501,39 @@ class ExceptionListenerTest extends TestCase
             ->expects($this->once())
             ->method('captureException')
             ->with($this->identicalTo($reportableException));
+
+        $this->containerBuilder->compile();
+        $listener = $this->getListener();
+        $listener->onKernelException($mockEvent);
+    }
+
+    public function test_that_it_captures_exception_with_route()
+    {
+        $reportableException = new \Exception();
+
+        $mockEvent = $this->createMock(GetResponseForExceptionEvent::class);
+        $mockEvent
+            ->expects($this->once())
+            ->method('getException')
+            ->willReturn($reportableException);
+
+        $this->mockEventDispatcher
+            ->expects($this->once())
+            ->method('dispatch')
+            ->with($this->identicalTo(SentrySymfonyEvents::PRE_CAPTURE), $this->identicalTo($mockEvent));
+
+        $data = [
+            'tags' => [
+                'route' => 'homepage',
+            ],
+        ];
+
+        $this->requestStack->push(new Request([], [], ['_route' => 'homepage']));
+
+        $this->mockSentryClient
+            ->expects($this->once())
+            ->method('captureException')
+            ->with($this->identicalTo($reportableException), $data);
 
         $this->containerBuilder->compile();
         $listener = $this->getListener();
