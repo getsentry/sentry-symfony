@@ -111,8 +111,14 @@ class ExceptionListener implements SentryExceptionListenerInterface
             return;
         }
 
+        $data = ['tags' => []];
+        $request = $this->requestStack->getCurrentRequest();
+        if ($request instanceof Request) {
+            $data['tags']['route'] = $request->attributes->get('_route');
+        }
+
         $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
-        $this->client->captureException($exception);
+        $this->client->captureException($exception, $data);
     }
 
     /**
