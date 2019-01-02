@@ -26,10 +26,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
 class ExceptionListener implements SentryExceptionListenerInterface
 {
     /** @var TokenStorageInterface|null */
-    private $tokenStorage;
+    protected $tokenStorage;
 
     /** @var AuthorizationCheckerInterface|null */
-    private $authorizationChecker;
+    protected $authorizationChecker;
 
     /** @var \Raven_Client */
     protected $client;
@@ -38,7 +38,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
     protected $eventDispatcher;
 
     /** @var RequestStack */
-    private $requestStack;
+    protected $requestStack;
 
     /** @var string[] */
     protected $skipCapture;
