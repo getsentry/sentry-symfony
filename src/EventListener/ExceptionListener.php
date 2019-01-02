@@ -147,7 +147,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
     /**
      * @param ConsoleExceptionEvent|ConsoleErrorEvent $event
      */
-    private function handleConsoleError(ConsoleEvent $event): void
+    protected function handleConsoleError(ConsoleEvent $event): void
     {
         $command = $event->getCommand();
         switch (true) {
@@ -190,7 +190,7 @@ class ExceptionListener implements SentryExceptionListenerInterface
     /**
      * @param UserInterface | object | string $user
      */
-    private function setUserValue($user)
+    protected function setUserValue($user)
     {
         $data = [];
 
