@@ -21,7 +21,7 @@
     "require": {
         "php": "^7.1",
         "jean85/pretty-package-versions": "^1.0",
-        "sentry/sentry": "^1.9",
+        "sentry/sentry": "^2.0-beta",
         "symfony/config": "^3.0||^4.0",
         "symfony/console": "^3.3||^4.0",
         "symfony/dependency-injection": "^3.0||^4.0",
@@ -31,6 +31,7 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.8",
+        "php-http/mock-client": "^1.0",
         "phpstan/phpstan": "^0.10",
         "phpstan/phpstan-phpunit": "^0.10",
         "phpunit/phpunit": "^7",
