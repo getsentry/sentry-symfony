@@ -2,7 +2,6 @@
 
 namespace Sentry\SentryBundle\DependencyInjection;
 
-use Raven_Compat;
 use Sentry\SentryBundle\EventListener\ExceptionListener;
 use Sentry\SentryBundle\EventListener\SentryExceptionListenerInterface;
 use Sentry\SentryBundle\SentrySymfonyClient;
@@ -58,7 +57,7 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('public_key')->defaultNull()->end()
                         ->scalarNode('project')->defaultValue(1)->end()
                         ->booleanNode('auto_log_stacks')->defaultFalse()->end()
-                        ->scalarNode('name')->defaultValue(Raven_Compat::gethostname())->end()
+                        ->scalarNode('name')->defaultNull()->end()
                         ->scalarNode('site')->defaultNull()->end()
                         ->arrayNode('tags')
                             ->prototype('scalar')->end()

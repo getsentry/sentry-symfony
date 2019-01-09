@@ -45,7 +45,7 @@ class SentryExtensionTest extends TestCase
         $this->assertNull($options['public_key']);
         $this->assertSame(1, $options['project']);
         $this->assertFalse($options['auto_log_stacks']);
-        $this->assertSame(\Raven_Compat::gethostname(), $options['name']);
+        $this->assertNull($options['name']);
         $this->assertNull($options['site']);
         $this->assertSame([], $options['tags']);
         $this->assertNull($options['release']);
