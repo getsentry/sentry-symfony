@@ -111,14 +111,24 @@ class ExceptionListener implements SentryExceptionListenerInterface
             return;
         }
 
+        $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
+        $this->client->captureException($exception, $this->getExceptionData());
+    }
+
+    /**
+     * Additional attributes to pass with this event (see Sentry docs).
+     *
+     * @return array
+     */
+    protected function getExceptionData()
+    {
         $data = ['tags' => []];
         $request = $this->requestStack->getCurrentRequest();
         if ($request instanceof Request) {
             $data['tags']['route'] = $request->attributes->get('_route');
         }
 
-        $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
-        $this->client->captureException($exception, $data);
+        return $data;
     }
 
     /**
@@ -188,9 +198,11 @@ class ExceptionListener implements SentryExceptionListenerInterface
     }
 
     /**
-     * @param UserInterface | object | string $user
+     * Additional user data
+     *
+     * @return array
      */
-    protected function setUserValue($user)
+    protected function getUserData()
     {
         $data = [];
 
@@ -199,20 +211,28 @@ class ExceptionListener implements SentryExceptionListenerInterface
             $data['ip_address'] = $request->getClientIp();
         }
 
+        return $data;
+    }
+
+    /**
+     * @param UserInterface | object | string $user
+     */
+    protected function setUserValue($user)
+    {
         if ($user instanceof UserInterface) {
-            $this->client->set_user_data($user->getUsername(), null, $data);
+            $this->client->set_user_data($user->getUsername(), null, $this->getUserData());
 
             return;
         }
 
         if (is_string($user)) {
-            $this->client->set_user_data($user, null, $data);
+            $this->client->set_user_data($user, null, $this->getUserData());
 
             return;
         }
 
         if (is_object($user) && method_exists($user, '__toString')) {
-            $this->client->set_user_data((string)$user, null, $data);
+            $this->client->set_user_data((string)$user, null, $this->getUserData());
         }
     }
 }
