@@ -27,10 +27,6 @@ class SentryExtension extends Extension
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.xml');
 
-        foreach ($config as $key => $value) {
-            $container->setParameter('sentry.' . $key, $value);
-        }
-
         foreach ($config['listener_priorities'] as $key => $priority) {
             $container->setParameter('sentry.listener_priorities.' . $key, $priority);
         }

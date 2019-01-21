@@ -17,6 +17,10 @@
             <factory service="Sentry\ClientBuilderInterface" method="getClient" />
         </service>
 
+        <service id="Sentry\State\Hub" public="false">
+            <argument id="Sentry\ClientInterface" />
+        </service>
+
         <service id="sentry.exception_listener" class="%sentry.exception_listener%">
             <argument type="service" id="security.token_storage" on-invalid="ignore" />
             <argument type="service" id="security.authorization_checker" on-invalid="ignore" />

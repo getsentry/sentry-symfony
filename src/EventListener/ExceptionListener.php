@@ -2,17 +2,11 @@
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\SentryBundle\Event\SentryUserContextEvent;
-use Sentry\SentryBundle\SentrySymfonyEvents;
+use Sentry\State\Hub;
+use Sentry\State\HubInterface;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
-use Symfony\Component\Console\Event\ConsoleErrorEvent;
-use Symfony\Component\Console\Event\ConsoleEvent;
-use Symfony\Component\Console\Event\ConsoleExceptionEvent;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -23,56 +17,31 @@ use Symfony\Component\Security\Core\User\UserInterface;
  * Class ExceptionListener
  * @package Sentry\SentryBundle\EventListener
  */
-class ExceptionListener implements SentryExceptionListenerInterface
+final class ExceptionListener
 {
+    /** @var HubInterface */
+    private $hub;
+
     /** @var TokenStorageInterface|null */
-    protected $tokenStorage;
+    private $tokenStorage;
 
     /** @var AuthorizationCheckerInterface|null */
-    protected $authorizationChecker;
-
-    /** @var \Raven_Client */
-    protected $client;
-
-    /** @var EventDispatcherInterface */
-    protected $eventDispatcher;
-
-    /** @var RequestStack */
-    protected $requestStack;
-
-    /** @var string[] */
-    protected $skipCapture;
+    private $authorizationChecker;
 
     /**
      * ExceptionListener constructor.
-     * @param \Raven_Client $client
-     * @param EventDispatcherInterface $dispatcher
-     * @param array $skipCapture
+     * @param HubInterface $hub
      * @param TokenStorageInterface|null $tokenStorage
      * @param AuthorizationCheckerInterface|null $authorizationChecker
      */
     public function __construct(
-        \Raven_Client $client,
-        EventDispatcherInterface $dispatcher,
-        RequestStack $requestStack,
-        array $skipCapture,
-        TokenStorageInterface $tokenStorage = null,
-        AuthorizationCheckerInterface $authorizationChecker = null
+        HubInterface $hub,
+        ?TokenStorageInterface $tokenStorage,
+        ?AuthorizationCheckerInterface $authorizationChecker
     ) {
-        $this->client = $client;
-        $this->eventDispatcher = $dispatcher;
-        $this->requestStack = $requestStack;
-        $this->skipCapture = $skipCapture;
+        $this->hub = $hub; // not used, needed to trigger instantiation
         $this->tokenStorage = $tokenStorage;
         $this->authorizationChecker = $authorizationChecker;
-    }
-
-    /**
-     * @param \Raven_Client $client
-     */
-    public function setClient(\Raven_Client $client)
-    {
-        $this->client = $client;
     }
 
     /**
@@ -92,37 +61,36 @@ class ExceptionListener implements SentryExceptionListenerInterface
 
         $token = $this->tokenStorage->getToken();
 
-        if (null !== $token && $token->isAuthenticated() && $this->authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)) {
-            $this->setUserValue($token->getUser());
-
-            $contextEvent = new SentryUserContextEvent($token);
-            $this->eventDispatcher->dispatch(SentrySymfonyEvents::SET_USER_CONTEXT, $contextEvent);
+        if (
+            null !== $token 
+            && $token->isAuthenticated() 
+            && $this->authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)
+        ) {
+            $userData = $this->getUserData($token->getUser());
         }
+
+        $userData['ip_address'] = $event->getRequest()->getClientIp();
+
+        Hub::getCurrent()
+            ->getScope()
+            ->setUser($userData);
     }
 
-    /**
-     * @param GetResponseForExceptionEvent $event
-     */
-    public function onKernelException(GetResponseForExceptionEvent $event): void
+    public function onKernelController(FilterControllerEvent $event): void
     {
-        $exception = $event->getException();
-
-        if ($this->shouldExceptionCaptureBeSkipped($exception)) {
+        if (HttpKernelInterface::MASTER_REQUEST !== $event->getRequestType()) {
             return;
         }
 
-        $data = ['tags' => []];
-        $request = $this->requestStack->getCurrentRequest();
-        if ($request instanceof Request) {
-            $data['tags']['route'] = $request->attributes->get('_route');
-        }
+        $matchedRoute = $event->getRequest()->attributes->get('_route');
 
-        $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
-        $this->client->captureException($exception, $data);
+        Hub::getCurrent()
+            ->getScope()
+            ->setTag('route', $matchedRoute);
     }
 
     /**
-     * This method only ensures that the client and error handlers are registered at the start of the command
+     * This method ensures that the client and error handlers are registered at the start of the command
      * execution cycle, and not only on exceptions
      *
      * @param ConsoleCommandEvent $event
@@ -131,88 +99,36 @@ class ExceptionListener implements SentryExceptionListenerInterface
      */
     public function onConsoleCommand(ConsoleCommandEvent $event): void
     {
-        // only triggers loading of client, does not need to do anything.
-    }
-
-    public function onConsoleError(ConsoleErrorEvent $event): void
-    {
-        $this->handleConsoleError($event);
-    }
-
-    public function onConsoleException(ConsoleExceptionEvent $event): void
-    {
-        $this->handleConsoleError($event);
-    }
-
-    /**
-     * @param ConsoleExceptionEvent|ConsoleErrorEvent $event
-     */
-    protected function handleConsoleError(ConsoleEvent $event): void
-    {
         $command = $event->getCommand();
-        switch (true) {
-            case $event instanceof ConsoleErrorEvent:
-                $exception = $event->getError();
-                break;
-            case $event instanceof ConsoleExceptionEvent:
-                $exception = $event->getException();
-                break;
-            default:
-                throw new \InvalidArgumentException('Event not recognized: ' . \get_class($event));
-        }
 
-        if ($this->shouldExceptionCaptureBeSkipped($exception)) {
-            return;
-        }
-
-        $data = [
-            'tags' => [
-                'command' => $command ? $command->getName() : 'N/A',
-                'status_code' => $event->getExitCode(),
-            ],
-        ];
-
-        $this->eventDispatcher->dispatch(SentrySymfonyEvents::PRE_CAPTURE, $event);
-        $this->client->captureException($exception, $data);
-    }
-
-    protected function shouldExceptionCaptureBeSkipped(\Throwable $exception): bool
-    {
-        foreach ($this->skipCapture as $className) {
-            if ($exception instanceof $className) {
-                return true;
-            }
-        }
-
-        return false;
+        Hub::getCurrent()
+            ->getScope()
+            ->setTag('command', $command ? $command->getName() : 'N/A');
     }
 
     /**
      * @param UserInterface | object | string $user
      */
-    protected function setUserValue($user)
+    private function getUserData($user): array
     {
-        $data = [];
-
-        $request = $this->requestStack->getCurrentRequest();
-        if ($request instanceof Request) {
-            $data['ip_address'] = $request->getClientIp();
-        }
-
         if ($user instanceof UserInterface) {
-            $this->client->set_user_data($user->getUsername(), null, $data);
-
-            return;
+            return [
+                'username' => $user->getUsername(),
+            ];
         }
 
         if (is_string($user)) {
-            $this->client->set_user_data($user, null, $data);
-
-            return;
+            return [
+                'username' => $user,
+            ];
         }
 
         if (is_object($user) && method_exists($user, '__toString')) {
-            $this->client->set_user_data((string)$user, null, $data);
+            return [
+                'username' => $user->__toString(),
+            ];
         }
+
+        return [];
     }
 }
