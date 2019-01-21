@@ -5,7 +5,7 @@ namespace Sentry\SentryBundle\Test\EventListener;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\Event\SentryUserContextEvent;
-use Sentry\SentryBundle\EventListener\ExceptionListener;
+use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\SentryBundle\EventListener\SentryExceptionListenerInterface;
 use Sentry\SentryBundle\SentrySymfonyEvents;
 use Symfony\Component\Console\Command\Command;
@@ -77,7 +77,7 @@ class ExceptionListenerTest extends TestCase
         $this->containerBuilder->compile();
         $listener = $this->getListener();
 
-        $this->assertInstanceOf(ExceptionListener::class, $listener);
+        $this->assertInstanceOf(RequestListener::class, $listener);
     }
 
     public function test_that_user_data_is_not_set_on_subrequest()
@@ -666,9 +666,9 @@ class ExceptionListenerTest extends TestCase
             ->with($this->identicalTo($reportableException));
 
         $this->containerBuilder->compile();
-        /** @var ExceptionListener $listener */
+        /** @var RequestListener $listener */
         $listener = $this->getListener();
-        $this->assertInstanceOf(ExceptionListener::class, $listener);
+        $this->assertInstanceOf(RequestListener::class, $listener);
 
         $listener->setClient($replacementClient);
 

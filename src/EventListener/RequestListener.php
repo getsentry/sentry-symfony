@@ -4,7 +4,6 @@ namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\State\Hub;
 use Sentry\State\HubInterface;
-use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -14,10 +13,10 @@ use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
- * Class ExceptionListener
+ * Class RequestListener
  * @package Sentry\SentryBundle\EventListener
  */
-final class ExceptionListener
+final class RequestListener
 {
     /** @var HubInterface */
     private $hub;
@@ -29,7 +28,7 @@ final class ExceptionListener
     private $authorizationChecker;
 
     /**
-     * ExceptionListener constructor.
+     * RequestListener constructor.
      * @param HubInterface $hub
      * @param TokenStorageInterface|null $tokenStorage
      * @param AuthorizationCheckerInterface|null $authorizationChecker
@@ -87,23 +86,6 @@ final class ExceptionListener
         Hub::getCurrent()
             ->getScope()
             ->setTag('route', $matchedRoute);
-    }
-
-    /**
-     * This method ensures that the client and error handlers are registered at the start of the command
-     * execution cycle, and not only on exceptions
-     *
-     * @param ConsoleCommandEvent $event
-     *
-     * @return void
-     */
-    public function onConsoleCommand(ConsoleCommandEvent $event): void
-    {
-        $command = $event->getCommand();
-
-        Hub::getCurrent()
-            ->getScope()
-            ->setTag('command', $command ? $command->getName() : 'N/A');
     }
 
     /**

@@ -144,7 +144,7 @@ sentry:
 
 #### exception_listener
 
-This is used to replace the default exception listener that this bundle uses. The value must be a FQCN of a class implementing the SentryExceptionListenerInterface interface. See [Create a Custom ExceptionListener](#create-a-custom-exceptionlistener) for more details.
+This is used to replace the default exception listener that this bundle uses. The value must be a FQCN of a class implementing the SentryExceptionListenerInterface interface. See [Create a Custom RequestListener](#create-a-custom-exceptionlistener) for more details.
 
 ```yaml
 sentry:
@@ -200,18 +200,18 @@ sentry:
 
 ## Customization
 
-It is possible to customize the configuration of the user context, as well as modify the client immediately before an exception is captured by wiring up an event subscriber to the events that are emitted by the default configured `ExceptionListener` (alternatively, you can also just define your own custom exception listener).
+It is possible to customize the configuration of the user context, as well as modify the client immediately before an exception is captured by wiring up an event subscriber to the events that are emitted by the default configured `RequestListener` (alternatively, you can also just define your own custom exception listener).
 
-### Create a custom ExceptionListener
+### Create a custom RequestListener
 
-You can always replace the default `ExceptionListener` with your own custom listener. To do this, assign a different class to the `exception_listener` property in your Sentry configuration, e.g.:
+You can always replace the default `RequestListener` with your own custom listener. To do this, assign a different class to the `exception_listener` property in your Sentry configuration, e.g.:
 
 ```yaml
 sentry:
     exception_listener: AppBundle\EventListener\MySentryExceptionListener
 ```
 
-... and then define the custom `ExceptionListener` that implements the `SentryExceptionListenerInterface`, e.g.:
+... and then define the custom `RequestListener` that implements the `SentryExceptionListenerInterface`, e.g.:
 
 ```php
 // src/AppBundle/EventSubscriber/MySentryEventListener.php
@@ -253,7 +253,7 @@ class MySentryExceptionListener implements SentryExceptionListenerInterface
 
 As a side note, while the above demonstrates a custom exception listener that
 does not extend anything you could choose to extend the default
-`ExceptionListener` and only override the functionality that you want to.
+`RequestListener` and only override the functionality that you want to.
 
 ### Add an EventSubscriber for Sentry Events
 

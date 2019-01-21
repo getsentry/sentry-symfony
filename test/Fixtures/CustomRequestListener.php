@@ -2,11 +2,11 @@
 
 namespace Sentry\SentryBundle\Test\Fixtures;
 
-use Sentry\SentryBundle\EventListener\ExceptionListener;
+use Sentry\SentryBundle\EventListener\RequestListener;
 
 /**
  * @package Sentry\SentryBundle\Tests\Fixtures
  */
-class CustomExceptionListener extends ExceptionListener
+class CustomRequestListener extends RequestListener
 {
 }

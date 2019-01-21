@@ -4,9 +4,9 @@ namespace Sentry\SentryBundle\Test\DependencyInjection;
 
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
-use Sentry\SentryBundle\EventListener\ExceptionListener;
+use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\SentryBundle\SentrySymfonyClient;
-use Sentry\SentryBundle\Test\Fixtures\CustomExceptionListener;
+use Sentry\SentryBundle\Test\Fixtures\CustomRequestListener;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\Container;
@@ -27,7 +27,7 @@ class SentryExtensionTest extends TestCase
         $this->assertSame('kernel/root/..', $container->getParameter('sentry.app_path'));
         $this->assertSame(SentrySymfonyClient::class, $container->getParameter('sentry.client'));
         $this->assertNull($container->getParameter('sentry.dsn'));
-        $this->assertSame(ExceptionListener::class, $container->getParameter('sentry.exception_listener'));
+        $this->assertSame(RequestListener::class, $container->getParameter('sentry.exception_listener'));
         $this->assertSame([HttpExceptionInterface::class], $container->getParameter('sentry.skip_capture'));
 
         $priorities = $container->getParameter('sentry.listener_priorities');
@@ -189,7 +189,7 @@ class SentryExtensionTest extends TestCase
 
     public function test_that_it_uses_exception_listener_value()
     {
-        $class = CustomExceptionListener::class;
+        $class = CustomRequestListener::class;
         $container = $this->getContainer(
             [
                 'exception_listener' => $class,
@@ -263,7 +263,7 @@ class SentryExtensionTest extends TestCase
     public function test_that_it_has_sentry_exception_listener_and_it_defaults_to_default_exception_listener()
     {
         $listener = $this->getContainer()->get(self::LISTENER_TEST_PUBLIC_ALIAS);
-        $this->assertInstanceOf(ExceptionListener::class, $listener);
+        $this->assertInstanceOf(RequestListener::class, $listener);
     }
 
     public function test_that_it_has_proper_event_listener_tags_for_exception_listener()

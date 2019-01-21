@@ -9,24 +9,30 @@
             
         </service>
 
-        <service class="Sentry\ClientBuilderInterface" public="false">
+        <service id="Sentry\ClientBuilderInterface" class="Sentry\ClientBuilder" public="false">
             <argument type="service" id="Sentry\Options" />
         </service>
 
-        <service class="Sentry\ClientInterface" public="false">
+        <service id="Sentry\ClientInterface" class="Sentry\Client" public="false">
             <factory service="Sentry\ClientBuilderInterface" method="getClient" />
         </service>
 
-        <service id="Sentry\State\Hub" public="false">
+        <service id="Sentry\State\HubInterface" class="Sentry\State\Hub" public="false">
             <argument id="Sentry\ClientInterface" />
         </service>
 
-        <service id="sentry.exception_listener" class="%sentry.exception_listener%">
+        <service id="Sentry\SentryBundle\ConsoleListener" public="false">
+            <argument id="Sentry\State\HubInterface" />
             <argument type="service" id="security.token_storage" on-invalid="ignore" />
             <argument type="service" id="security.authorization_checker" on-invalid="ignore" />
 
             <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="%sentry.listener_priorities.request%" />
-            <tag name="kernel.event_listener" event="console.command" method="onConsoleCommand" />
+        </service>
+
+        <service id="Sentry\SentryBundle\RequestListener" public="false">
+            <argument id="Sentry\State\HubInterface" />
+
+            <tag name="kernel.event_listener" event="console.command" method="onConsoleCommand" priority="%sentry.listener_priorities.console%" />
         </service>
     </services>
 </container>
