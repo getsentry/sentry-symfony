@@ -5,26 +5,24 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
-        <service id="sentry.client" class="%sentry.client%" public="true">
-            <argument>%sentry.dsn%</argument>
-            <argument>%sentry.options%</argument>
-            <call method="install" />
+        <service class="Sentry\Options" public="false">
+            
         </service>
 
-        <service id="%sentry.client%" alias="sentry.client" />
+        <service class="Sentry\ClientBuilderInterface" public="false">
+            <argument type="service" id="Sentry\Options" />
+        </service>
+
+        <service class="Sentry\ClientInterface" public="false">
+            <factory service="Sentry\ClientBuilderInterface" method="getClient" />
+        </service>
 
         <service id="sentry.exception_listener" class="%sentry.exception_listener%">
-            <argument type="service" id="sentry.client" />
-            <argument type="service" id="event_dispatcher" />
-            <argument type="service" id="request_stack" />
-            <argument>%sentry.skip_capture%</argument>
             <argument type="service" id="security.token_storage" on-invalid="ignore" />
             <argument type="service" id="security.authorization_checker" on-invalid="ignore" />
 
             <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="%sentry.listener_priorities.request%" />
-            <tag name="kernel.event_listener" event="kernel.exception" method="onKernelException" priority="%sentry.listener_priorities.kernel_exception%" />
             <tag name="kernel.event_listener" event="console.command" method="onConsoleCommand" />
-            <tag name="kernel.event_listener" event="console.error" method="onConsoleError" priority="%sentry.listener_priorities.console_exception%" />
         </service>
     </services>
 </container>
