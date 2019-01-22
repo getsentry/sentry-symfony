@@ -30,8 +30,10 @@ class SentryExtension extends Extension
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.xml');
 
+        $arrayOptions = $config['options'];
+        $arrayOptions['dsn'] = $config['dsn'];
         $container->getDefinition(Options::class)
-            ->addArgument(['dsn' => $config['dsn']]);
+            ->addArgument($arrayOptions);
 
         $container->getDefinition(ClientBuilderInterface::class)
             ->addMethodCall('setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER])
