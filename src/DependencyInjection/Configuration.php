@@ -5,6 +5,7 @@ namespace Sentry\SentryBundle\DependencyInjection;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 /**
  * This is the class that validates and merges configuration from your app/config files
@@ -25,15 +26,51 @@ class Configuration implements ConfigurationInterface
         $rootNode = \method_exists(TreeBuilder::class, 'getRootNode') ? $treeBuilder->getRootNode() : $treeBuilder->root('sentry');
 
         // Basic Sentry configuration
-        $rootNode
-            ->children()
-                ->scalarNode('dsn')
-                    ->beforeNormalization()
-                        ->ifString()
-                        ->then($this->getTrimClosure())
-                    ->end()
-                    ->defaultNull()
-                ->end();
+        $rootNode->children()
+            ->scalarNode('dsn')
+                ->beforeNormalization()
+                    ->ifString()
+                    ->then($this->getTrimClosure())
+                ->end()
+                ->defaultNull()
+            ->end();
+
+        // Options array (to be passed to Sentry\Options constructor) -- please keep alphabetical order!
+        $optionsNode = $rootNode->children()->arrayNode('options');
+        $optionsNode->addDefaultsIfNotSet();
+
+        $optionsNode->children()
+            ->booleanNode('default_integrations')->end()
+            // TODO -- integrations
+            ->arrayNode('prefixes')
+                ->scalarPrototype()->end()
+            ->end()
+            ->scalarNode('project_root')
+                ->defaultValue('%kernel.project_root%')
+            ->end()
+            ->floatNode('sample_rate')
+                ->validate()
+                    ->min(0.0)
+                    ->max(1.0)
+                ->end()
+            ->end()
+            ->integerNode('send_attempts')
+                ->validate()
+                    ->min(1)
+                ->end()
+            ->end()
+            ->booleanNode('serialize_all_object')->end()
+
+        ;
+
+        // Bundle-specific configuration
+        $rootNode->children()
+            ->arrayNode('excluded_exceptions')
+                ->addDefaultsIfNotSet()
+                ->prototype('scalar')->end()
+                ->defaultValue([HttpExceptionInterface::class])
+                ->end()
+            ->end();
 
         $rootNode->children()
             ->arrayNode('listener_priorities')
