@@ -15,7 +15,7 @@ class SentrySymfonyClientTest extends TestCase
         $data = $client->get_default_data();
 
         $this->assertEquals('sentry-symfony', $data['sdk']['name']);
-        $this->assertEquals(SentryBundle::getVersion(), $data['sdk']['version']);
+        $this->assertEquals(SentryBundle::getSdkVersion(), $data['sdk']['version']);
     }
 
     public function test_that_it_forwards_options()

@@ -2,7 +2,9 @@
 
 namespace Sentry\SentryBundle\DependencyInjection;
 
+use Sentry\ClientBuilderInterface;
 use Sentry\Options;
+use Sentry\SentryBundle\SentryBundle;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -30,6 +32,10 @@ class SentryExtension extends Extension
 
         $container->getDefinition(Options::class)
             ->addArgument(['dsn' => $config['dsn']]);
+
+        $container->getDefinition(ClientBuilderInterface::class)
+            ->addMethodCall('setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER])
+            ->addMethodCall('setSdkVersion', [SentryBundle::getSdkVersion()]);
 
         foreach ($config['listener_priorities'] as $key => $priority) {
             $container->setParameter('sentry.listener_priorities.' . $key, $priority);
