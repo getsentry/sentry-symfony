@@ -35,6 +35,15 @@ class Configuration implements ConfigurationInterface
                     ->defaultNull()
                 ->end();
 
+        $rootNode->children()
+            ->arrayNode('listener_priorities')
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->scalarNode('request')->defaultValue(1)->end()
+                    ->scalarNode('console')->defaultValue(1)->end()
+                ->end()
+            ->end();
+
         return $treeBuilder;
     }
 

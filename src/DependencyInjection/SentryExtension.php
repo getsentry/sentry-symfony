@@ -2,6 +2,7 @@
 
 namespace Sentry\SentryBundle\DependencyInjection;
 
+use Sentry\Options;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -26,6 +27,9 @@ class SentryExtension extends Extension
         $config = $this->processConfiguration($configuration, $configs);
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.xml');
+
+        $container->getDefinition(Options::class)
+            ->addArgument(['dsn' => $config['dsn']]);
 
         foreach ($config['listener_priorities'] as $key => $priority) {
             $container->setParameter('sentry.listener_priorities.' . $key, $priority);
