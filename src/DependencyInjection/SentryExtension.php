@@ -26,21 +26,24 @@ class SentryExtension extends Extension
     public function load(array $configs, ContainerBuilder $container)
     {
         $configuration = new Configuration();
-        $config = $this->processConfiguration($configuration, $configs);
+        $processedConfiguration = $this->processConfiguration($configuration, $configs);
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.xml');
 
-        $arrayOptions = $config['options'];
-        $arrayOptions['dsn'] = $config['dsn'];
-        $container->getDefinition(Options::class)
-            ->addArgument($arrayOptions);
+        $this->passConfigurationToOptions($container, $processedConfiguration);
 
         $container->getDefinition(ClientBuilderInterface::class)
             ->addMethodCall('setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER])
             ->addMethodCall('setSdkVersion', [SentryBundle::getSdkVersion()]);
 
-        foreach ($config['listener_priorities'] as $key => $priority) {
+        foreach ($processedConfiguration['listener_priorities'] as $key => $priority) {
             $container->setParameter('sentry.listener_priorities.' . $key, $priority);
         }
+    }
+
+    private function passConfigurationToOptions(ContainerBuilder $container, array $processedConfiguration): void
+    {
+        $options = $container->getDefinition(Options::class);
+        $options->addArgument(['dsn' => $processedConfiguration['dsn']]);
     }
 }
