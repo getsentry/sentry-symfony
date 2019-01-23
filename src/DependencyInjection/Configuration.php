@@ -2,6 +2,7 @@
 
 namespace Sentry\SentryBundle\DependencyInjection;
 
+use Sentry\Options;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -36,14 +37,21 @@ class Configuration implements ConfigurationInterface
 
         // Options array (to be passed to Sentry\Options constructor) -- please keep alphabetical order!
         $optionsNode = $rootNode->children()
-            ->arrayNode('options');
-        $optionsNode->addDefaultsIfNotSet();
+            ->arrayNode('options')
+            ->addDefaultsIfNotSet();
+        
+        $defaultValues = new Options();
 
         $optionsNode
             ->children()
             ->booleanNode('default_integrations')->end()
+            ->arrayNode('excluded_exceptions')
+                ->defaultValue($defaultValues->getExcludedExceptions())
+                ->scalarPrototype()->end()
+            ->end()
             // TODO -- integrations
             ->arrayNode('prefixes')
+                ->defaultValue($defaultValues->getPrefixes())
                 ->scalarPrototype()->end()
             ->end()
             ->scalarNode('project_root')
@@ -61,11 +69,6 @@ class Configuration implements ConfigurationInterface
         ;
 
         // Bundle-specific configuration
-        $rootNode->children()
-            ->arrayNode('excluded_exceptions')
-                ->prototype('scalar')->end()
-            ->end();
-
         $rootNode->children()
             ->arrayNode('listener_priorities')
                 ->addDefaultsIfNotSet()

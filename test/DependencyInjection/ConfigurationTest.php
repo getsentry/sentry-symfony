@@ -3,21 +3,47 @@
 namespace Sentry\SentryBundle\Test\DependencyInjection;
 
 use PHPUnit\Framework\TestCase;
-use Sentry\SentryBundle\DependencyInjection\SentryExtension;
+use Sentry\Options;
+use Sentry\SentryBundle\DependencyInjection\Configuration;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
-use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\Config\Definition\Processor;
+use Symfony\Component\HttpKernel\Kernel;
 
 class ConfigurationTest extends TestCase
 {
+    public function testConfigurationDefaults(): void
+    {
+        $defaultSdkValues = new Options();
+        $processed = $this->processConfiguration([]);
+        $expectedDefaults = [
+            'dsn' => null,
+            'listener_priorities' => [
+                'request' => 1,
+                'console' => 1,
+            ],
+            'options' => [
+                'excluded_exceptions' => $defaultSdkValues->getExcludedExceptions(),
+                'prefixes' => $defaultSdkValues->getPrefixes(),
+                'project_root' => '%kernel.root_dir%/..',
+            ],
+        ];
+
+        if (method_exists(Kernel::class, 'getProjectDir')) {
+            $expectedDefaults['options']['project_root'] = '%kernel.project_dir%';
+        }
+
+        $this->assertEquals($expectedDefaults, $processed);
+    }
+
     /**
      * @dataProvider optionValuesProvider
      */
-    public function testOptionValues(string $option, $value): void
+    public function testOptionValuesProcessing(string $option, $value): void
     {
-        $this->getContainer(['options' => [$option => $value]]);
+        $input = ['options' => [$option => $value]];
+        $processed = $this->processConfiguration($input);
 
-        $this->addToAssertionCount(1);
+        $this->assertArraySubset($input, $processed);
     }
 
     public function optionValuesProvider(): array
@@ -41,9 +67,11 @@ class ConfigurationTest extends TestCase
      */
     public function testInvalidValues(string $option, $value): void
     {
+        $input = ['options' => [$option => $value]];
+
         $this->expectException(InvalidConfigurationException::class);
 
-        $this->getContainer(['options' => [$option => $value]]);
+        $this->processConfiguration($input);
     }
 
     public function invalidValuesProvider(): array
@@ -62,17 +90,10 @@ class ConfigurationTest extends TestCase
         ];
     }
 
-    private function getContainer(array $configuration = []): Container
+    private function processConfiguration(array $values): array
     {
-        $containerBuilder = new ContainerBuilder();
-        $containerBuilder->setParameter('kernel.project_dir', '/dir/project/root');
-        $containerBuilder->setParameter('kernel.environment', 'test');
+        $processor = new Processor();
 
-        $extension = new SentryExtension();
-        $extension->load(['sentry' => $configuration], $containerBuilder);
-
-        $containerBuilder->compile();
-
-        return $containerBuilder;
+        return $processor->processConfiguration(new Configuration(), ['sentry' => $values]);
     }
 }
