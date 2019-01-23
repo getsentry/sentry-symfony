@@ -39,7 +39,7 @@ class Configuration implements ConfigurationInterface
         $optionsNode = $rootNode->children()
             ->arrayNode('options')
             ->addDefaultsIfNotSet();
-        
+
         $defaultValues = new Options();
 
         $optionsNode

@@ -44,29 +44,29 @@ class SentryExtensionTest extends TestCase
     {
         $this->assertTrue(method_exists(Options::class, $getter), 'Bad data provider: wrong getter');
 
-        $defaultContainer = $this->getContainer();
         $container = $this->getContainer(
             [
                 'options' => [$name => $value],
             ]
         );
 
+        $this->assertSame(
+            $value,
+            $this->getOptionsFrom($container)->$getter()
+        );
+
+        $defaultContainer = $this->getContainer();
         $this->assertNotEquals(
             $this->getOptionsFrom($defaultContainer)->$getter(),
             $this->getOptionsFrom($container)->$getter(),
             'Bad data provider: value is same as default'
-        );
-
-        $this->assertSame(
-            $value,
-            $this->getOptionsFrom($container)->$getter()
         );
     }
 
     public function optionsValueProvider()
     {
         return [
-            ['default_integrations', true, 'hasDefaultIntegrations'],
+            ['default_integrations', false, 'hasDefaultIntegrations'],
         ];
     }
 

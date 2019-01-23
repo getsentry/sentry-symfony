@@ -45,5 +45,15 @@ class SentryExtension extends Extension
     {
         $options = $container->getDefinition(Options::class);
         $options->addArgument(['dsn' => $processedConfiguration['dsn']]);
+
+        $processedOptions = $processedConfiguration['options'];
+
+        if ($processedOptions['project_root'] ?? false) {
+            $options->addMethodCall('setProjectRoot', [$processedOptions['project_root']]);
+        }
+
+        if (\array_key_exists('default_integrations', $processedOptions)) {
+            $options->addMethodCall('setDefaultIntegrations', [$processedOptions['default_integrations']]);
+        }
     }
 }
