@@ -4,10 +4,10 @@ parameters:
         - src/
         - test/
     ignoreErrors:
-         - '/Symfony\\Component\\Console\\Event\\ConsoleExceptionEvent/'
-         - '/Call to an undefined method Symfony\\Component\\Console\\Event\\ConsoleEvent::getExitCode\(\)\./'
+         - "/Call to function method_exists.. with 'Symfony.+' and 'getProjectDir' will always evaluate to false./"
     excludes_analyse:
          - '%currentWorkingDirectory%/src/DependencyInjection/Configuration.php'
+         - '%currentWorkingDirectory%/test/EventListener/ExceptionListenerTest.php'
 includes:
 	- vendor/jangregor/phpstan-prophecy/src/extension.neon
 	- vendor/phpstan/phpstan-phpunit/extension.neon

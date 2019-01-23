@@ -7,7 +7,6 @@ use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\State\Hub;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
-use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
@@ -94,17 +93,14 @@ class RequestListenerTest extends TestCase
 
     public function testOnKernelControllerAddsRouteTag(): void
     {
+        $request = new Request();
+        $request->attributes->set('_route', 'sf-route');
         $event = $this->prophesize(FilterControllerEvent::class);
-        $request = $this->prophesize(Request::class);
-        $attributes = new ParameterBag();
-        $attributes->set('_route', 'sf-route');
 
         $event->isMasterRequest()
             ->willReturn(true);
         $event->getRequest()
-            ->willReturn($request->reveal());
-
-        $request->attributes = $attributes;
+            ->willReturn($request);
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
