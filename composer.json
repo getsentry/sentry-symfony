@@ -50,8 +50,8 @@
     },
     "scripts": {
         "phpstan": "vendor/bin/phpstan analyse",
-        "cs-check": "vendor/bin/php-cs-fixer fix --verbose --diff --dry-run",
-        "cs-fix": "vendor/bin/php-cs-fixer fix --verbose --diff"
+        "cs-check": "vendor/bin/php-cs-fixer fix --ansi --verbose --dry-run",
+        "cs-fix": "vendor/bin/php-cs-fixer fix --ansi --verbose"
     },
     "extra": {
         "branch-alias": {
