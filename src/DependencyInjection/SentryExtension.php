@@ -8,6 +8,7 @@ use Sentry\SentryBundle\SentryBundle;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
@@ -48,12 +49,14 @@ class SentryExtension extends Extension
 
         $processedOptions = $processedConfiguration['options'];
 
-        if ($processedOptions['project_root'] ?? false) {
-            $options->addMethodCall('setProjectRoot', [$processedOptions['project_root']]);
-        }
+        $this->mapValue($options, $processedOptions, 'project_root', 'setProjectRoot');
+        $this->mapValue($options, $processedOptions, 'default_integrations', 'setDefaultIntegrations');
+    }
 
-        if (\array_key_exists('default_integrations', $processedOptions)) {
-            $options->addMethodCall('setDefaultIntegrations', [$processedOptions['default_integrations']]);
+    private function mapValue(Definition $options, array $processedOptions, string $key, string $setterMethod): void
+    {
+        if (\array_key_exists($key, $processedOptions)) {
+            $options->addMethodCall($setterMethod, [$processedOptions[$key]]);
         }
     }
 }
