@@ -9,4 +9,5 @@ parameters:
     excludes_analyse:
          - '%currentWorkingDirectory%/src/DependencyInjection/Configuration.php'
 includes:
+	- vendor/jangregor/phpstan-prophecy/src/extension.neon
 	- vendor/phpstan/phpstan-phpunit/extension.neon
