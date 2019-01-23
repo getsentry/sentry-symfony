@@ -63,10 +63,11 @@ class SentryExtensionTest extends TestCase
         );
     }
 
-    public function optionsValueProvider()
+    public function optionsValueProvider(): array
     {
         return [
             ['default_integrations', false, 'hasDefaultIntegrations'],
+            ['excluded_exceptions', [\Throwable::class], 'getExcludedExceptions'],
         ];
     }
 
