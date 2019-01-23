@@ -18,15 +18,6 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
  */
 class SentryExtension extends Extension
 {
-    private const CONFIGURATION_TO_OPTIONS_MAP = [
-        'default_integrations' => 'setDefaultIntegrations',
-        'excluded_exceptions' => 'setExcludedExceptions',
-        'prefixes' => 'setPrefixes',
-        'project_root' => 'setProjectRoot',
-        'sample_rate' => 'setSampleRate',
-        'send_attempts' => 'setSendAttempts',
-    ];
-
     /**
      * {@inheritDoc}
      *
@@ -56,9 +47,18 @@ class SentryExtension extends Extension
         $options->addArgument(['dsn' => $processedConfiguration['dsn']]);
 
         $processedOptions = $processedConfiguration['options'];
+        $mappableOptions = [
+            'default_integrations',
+            'excluded_exceptions',
+            'prefixes',
+            'project_root',
+            'sample_rate',
+            'send_attempts',
+        ];
 
-        foreach (self::CONFIGURATION_TO_OPTIONS_MAP as $optionName => $setterMethod) {
+        foreach ($mappableOptions as $optionName) {
             if (\array_key_exists($optionName, $processedOptions)) {
+                $setterMethod = 'set' . str_replace('_', '', ucwords($optionName, '_'));
                 $options->addMethodCall($setterMethod, [$processedOptions[$optionName]]);
             }
         }

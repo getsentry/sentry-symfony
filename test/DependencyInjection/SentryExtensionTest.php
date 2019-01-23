@@ -40,9 +40,13 @@ class SentryExtensionTest extends TestCase
     /**
      * @dataProvider optionsValueProvider
      */
-    public function testValuesArePassedToOptions(string $name, $value, string $getter): void
+    public function testValuesArePassedToOptions(string $name, $value, string $getter = null): void
     {
-        $this->assertTrue(method_exists(Options::class, $getter), 'Bad data provider: wrong getter');
+        if (null === $getter) {
+            $getter = 'get' . str_replace('_', '', ucwords($name, '_'));
+        }
+
+        $this->assertTrue(method_exists(Options::class, $getter), 'Bad data provider, wrong getter: ' . $getter);
 
         $container = $this->getContainer(
             [
@@ -67,11 +71,11 @@ class SentryExtensionTest extends TestCase
     {
         return [
             ['default_integrations', false, 'hasDefaultIntegrations'],
-            ['excluded_exceptions', [\Throwable::class], 'getExcludedExceptions'],
-            ['prefixes', ['/some/path/prefix/'], 'getPrefixes'],
-            ['project_root', '/some/project/', 'getProjectRoot'],
-            ['sample_rate', 0.5, 'getSampleRate'],
-            ['send_attempts', 2, 'getSendAttempts'],
+            ['excluded_exceptions', [\Throwable::class]],
+            ['prefixes', ['/some/path/prefix/']],
+            ['project_root', '/some/project/'],
+            ['sample_rate', 0.5],
+            ['send_attempts', 2],
         ];
     }
 
