@@ -21,7 +21,10 @@ class SentryExtension extends Extension
     private const CONFIGURATION_TO_OPTIONS_MAP = [
         'default_integrations' => 'setDefaultIntegrations',
         'excluded_exceptions' => 'setExcludedExceptions',
+        'prefixes' => 'setPrefixes',
         'project_root' => 'setProjectRoot',
+        'sample_rate' => 'setSampleRate',
+        'send_attempts' => 'setSendAttempts',
     ];
 
     /**

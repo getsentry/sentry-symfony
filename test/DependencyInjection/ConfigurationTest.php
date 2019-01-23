@@ -57,8 +57,6 @@ class ConfigurationTest extends TestCase
             ['sample_rate', 1],
             ['send_attempts', 1],
             ['send_attempts', 999],
-            ['serialize_all_object', true],
-            ['serialize_all_object', false],
         ];
     }
 
@@ -86,7 +84,6 @@ class ConfigurationTest extends TestCase
             ['send_attempts', 1.5],
             ['send_attempts', 0],
             ['send_attempts', -1],
-            ['serialize_all_object', 'true'],
         ];
     }
 

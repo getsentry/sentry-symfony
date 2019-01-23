@@ -68,6 +68,10 @@ class SentryExtensionTest extends TestCase
         return [
             ['default_integrations', false, 'hasDefaultIntegrations'],
             ['excluded_exceptions', [\Throwable::class], 'getExcludedExceptions'],
+            ['prefixes', ['/some/path/prefix/'], 'getPrefixes'],
+            ['project_root', '/some/project/', 'getProjectRoot'],
+            ['sample_rate', 0.5, 'getSampleRate'],
+            ['send_attempts', 2, 'getSendAttempts'],
         ];
     }
 

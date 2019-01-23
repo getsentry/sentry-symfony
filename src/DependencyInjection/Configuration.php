@@ -64,8 +64,6 @@ class Configuration implements ConfigurationInterface
             ->integerNode('send_attempts')
                 ->min(1)
             ->end()
-            ->booleanNode('serialize_all_object')->end()
-
         ;
 
         // Bundle-specific configuration
