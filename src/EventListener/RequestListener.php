@@ -6,7 +6,6 @@ use Sentry\State\Hub;
 use Sentry\State\HubInterface;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
@@ -50,7 +49,7 @@ final class RequestListener
      */
     public function onKernelRequest(GetResponseEvent $event): void
     {
-        if (HttpKernelInterface::MASTER_REQUEST !== $event->getRequestType()) {
+        if (! $event->isMasterRequest()) {
             return;
         }
 
@@ -77,7 +76,7 @@ final class RequestListener
 
     public function onKernelController(FilterControllerEvent $event): void
     {
-        if (HttpKernelInterface::MASTER_REQUEST !== $event->getRequestType()) {
+        if (! $event->isMasterRequest()) {
             return;
         }
 
