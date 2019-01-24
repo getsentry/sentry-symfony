@@ -12,12 +12,12 @@ use Symfony\Component\HttpKernel\Kernel;
 
 class SentryBundleTest extends TestCase
 {
-    public function testContainerHasConsoleListenerConfiguredCorrectly(): void 
+    public function testContainerHasConsoleListenerConfiguredCorrectly(): void
     {
         $container = $this->getContainer();
-        
+
         $consoleListener = $container->getDefinition(ConsoleListener::class);
-        
+
         $expectedTag = [
             'kernel.event_listener' => [
                 [
@@ -31,12 +31,12 @@ class SentryBundleTest extends TestCase
         $this->assertSame($expectedTag, $consoleListener->getTags());
     }
 
-    public function testContainerHasRequestListenerConfiguredCorrectly(): void 
+    public function testContainerHasRequestListenerConfiguredCorrectly(): void
     {
         $container = $this->getContainer();
-        
+
         $consoleListener = $container->getDefinition(RequestListener::class);
-        
+
         $expectedTag = [
             'kernel.event_listener' => [
                 [
