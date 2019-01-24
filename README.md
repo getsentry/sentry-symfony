@@ -35,17 +35,22 @@ Use sentry-symfony for:
 ## Installation
 
 ### Step 1: Download the Bundle
+You can install this bundle using Composer. Since the Sentry SDK uses HTTPlug to remain transport-agnostic, you need to 
+manually require two additional packages that provides [`php-http/async-client-implementation`](https://packagist.org/providers/php-http/async-client-implementation)
+and [`http-message-implementation`](https://packagist.org/providers/psr/http-message-implementation).
 
-Open a command console, enter your project directory and execute the
-following command to download the latest stable version of this bundle:
+For example, if you want to install/upgrade using Curl as transport and the PSR-7 implementation by Guzzle, you can use:
 
 ```bash
-$ composer require sentry/sentry-symfony
+composer require sentry/sentry-symfony:^3.0 php-http/curl-client guzzlehttp/psr7
 ```
 
-This command requires you to have Composer installed globally, as explained
-in the [installation chapter](https://getcomposer.org/doc/00-intro.md)
-of the Composer documentation.
+Or, if you want to use only Guzzle 6, you can use:
+```bash
+composer require sentry/sentry-symfony:^3.0 php-http/guzzle6-adapter guzzlehttp/psr7
+```
+
+> TODO: Flex recipe
 
 ### Step 2: Enable the Bundle
 
@@ -61,20 +66,18 @@ class AppKernel extends Kernel
 {
     public function registerBundles()
     {
-        $bundles = array(
+        $bundles = [
             // ...
-        );
+            new Sentry\SentryBundle\SentryBundle(),
+        ];
 
-        if (in_array($this->getEnvironment(), ['staging', 'prod'], true)) {
-            $bundles[] = new Sentry\SentryBundle\SentryBundle();
-        }
         // ...
     }
 
     // ...
 }
 ```
-Note that, with this snippet of code, the bundle will be enabled only for the `staging` and `prod` environment; adjust it to your needs. It's discouraged to enable this bundle in the `test` environment, because the Sentry client will change the error handler, which is already used by other packages like Symfony's deprecation handler (see [#46](https://github.com/getsentry/sentry-symfony/issues/46) and [#95](https://github.com/getsentry/sentry-symfony/issues/95)).
+Note that, unlike before version 3 of this bundle, the bundle will be enabled in all environments.
 
 ### Step 3: Configure the SDK
 
