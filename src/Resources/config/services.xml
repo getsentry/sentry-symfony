@@ -36,6 +36,7 @@
             <argument type="service" id="security.authorization_checker" on-invalid="ignore" />
 
             <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="%sentry.listener_priorities.request%" />
+            <tag name="kernel.event_listener" event="kernel.controller" method="onKernelController" priority="%sentry.listener_priorities.request%" />
         </service>
     </services>
 </container>
