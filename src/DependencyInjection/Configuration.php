@@ -6,6 +6,7 @@ use Sentry\Options;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\HttpKernel\Kernel;
 
 /**
  * This is the class that validates and merges configuration from your app/config files
@@ -55,7 +56,7 @@ class Configuration implements ConfigurationInterface
                 ->scalarPrototype()->end()
             ->end()
             ->scalarNode('project_root')
-                ->defaultValue('%kernel.project_dir%')
+                ->defaultValue($this->getProjectRoot())
             ->end()
             ->floatNode('sample_rate')
                 ->min(0.0)
@@ -89,5 +90,14 @@ class Configuration implements ConfigurationInterface
 
             return $value;
         };
+    }
+
+    private function getProjectRoot(): string
+    {
+        if (method_exists(Kernel::class, 'getProjectDir')) {
+            return '%kernel.project_dir%';
+        }
+
+        return '%kernel.root_dir%/..';
     }
 }
