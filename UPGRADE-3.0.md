@@ -38,11 +38,11 @@ This is a brief description of the services registered by this bundle:
  * `Sentry\State\HubInterface`: this is the central root of the SDK; it's the `Hub` that the bundle will instantiate at
  startup, and the current one too if you do not change it
  * `Sentry\ClientInterface`: this is the proper client; compared to the 1.x SDK version it's a lot more slimmed down,
- since a lot of the stuff has been splitted in separated component, so you probably will not interact with it as much as
+ since a lot of the stuff has been splitted in separated components, so you probably will not interact with it as much as
  in the past. You also have to remind you that the client is bound to the `Hub`, and has to be changed there if you want 
  to use it automatically in error reporting
  * `Sentry\ClientBuilderInterface`: this is the factory that builds the client; you can call its methods to change all
- the settings and dependency that will be injected in the latter created client. You can use this service to obtain more
+ the settings and dependencies that will be injected in the latter created client. You can use this service to obtain more
  customized clients for your needs
  * `Sentry\Options`: this class holds all the configuration used in the client and other SDK components; it's populated
  starting from the bundle configuration
