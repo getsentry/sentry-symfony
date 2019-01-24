@@ -26,6 +26,8 @@ jobs:
   include:
     - stage: Test
       php: 7.1
+      env:
+        - DEPS=--prefer-lowest
       install:
         - travis_retry travis_wait composer install --no-interaction --prefer-dist
         - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable --prefer-lowest
