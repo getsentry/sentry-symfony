@@ -10,7 +10,6 @@ php:
 cache:
   directories:
     - $HOME/.composer/cache/files
-    - composer.lock
 
 before_install:
   - phpenv config-rm xdebug.ini
