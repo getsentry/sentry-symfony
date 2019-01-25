@@ -355,7 +355,7 @@ class SentryExtensionTest extends TestCase
                     'processorOption2' => 'asasdf',
                 ],
             ],
-            'ignore_server_port' => false,
+            'ignore_server_port' => true,
         ];
 
         $this->assertCount(self::SUPPORTED_SENTRY_OPTIONS_COUNT, $options);
