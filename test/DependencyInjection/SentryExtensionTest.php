@@ -17,7 +17,7 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class SentryExtensionTest extends TestCase
 {
-    private const SUPPORTED_SENTRY_OPTIONS_COUNT = 35;
+    private const SUPPORTED_SENTRY_OPTIONS_COUNT = 36;
     private const LISTENER_TEST_PUBLIC_ALIAS = 'sentry.exception_listener.public_alias';
 
     public function test_that_configuration_uses_the_right_default_values()
@@ -355,6 +355,7 @@ class SentryExtensionTest extends TestCase
                     'processorOption2' => 'asasdf',
                 ],
             ],
+            'ignore_server_port' => true,
         ];
 
         $this->assertCount(self::SUPPORTED_SENTRY_OPTIONS_COUNT, $options);

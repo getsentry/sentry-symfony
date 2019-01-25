@@ -88,6 +88,7 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('mb_detect_order')->defaultNull()->end()
                         ->scalarNode('error_types')->defaultNull()->end()
                         ->scalarNode('app_path')->defaultValue('%kernel.root_dir%/..')->end()
+                        ->booleanNode('ignore_server_port')->defaultFalse()->end()
                         ->arrayNode('excluded_app_paths')
                             ->defaultValue(
                                 [
