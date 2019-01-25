@@ -33,8 +33,8 @@
         "friendsofphp/php-cs-fixer": "^2.8",
         "jangregor/phpstan-prophecy": "^0.3.0",
         "php-http/mock-client": "^1.0",
-        "phpstan/phpstan": "^0.10",
-        "phpstan/phpstan-phpunit": "^0.10",
+        "phpstan/phpstan": "^0.11",
+        "phpstan/phpstan-phpunit": "^0.11",
         "phpunit/phpunit": "^7",
         "scrutinizer/ocular": "^1.4",
         "symfony/expression-language": "^3.0||^4.0"
