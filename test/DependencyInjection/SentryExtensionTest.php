@@ -87,7 +87,7 @@ class SentryExtensionTest extends TestCase
             ['default_integrations', false, 'hasDefaultIntegrations'],
             ['enable_compression', false, 'isCompressionEnabled'],
             ['environment', 'staging'],
-            ['error_types', E_ALL & ! E_NOTICE],
+            ['error_types', E_ALL & ~E_NOTICE],
             ['excluded_app_path', ['some/path'], 'getExcludedProjectPaths'],
             ['excluded_exceptions', [\Throwable::class]],
             ['logger', 'sentry-logger'],
