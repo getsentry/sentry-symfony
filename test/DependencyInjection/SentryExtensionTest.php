@@ -16,10 +16,21 @@ use Symfony\Component\HttpKernel\Kernel;
 
 class SentryExtensionTest extends TestCase
 {
-    private const SUPPORTED_SENTRY_OPTIONS_COUNT = 35;
     private const REQUEST_LISTENER_TEST_PUBLIC_ALIAS = 'sentry.request_listener.public_alias';
     private const CONSOLE_LISTENER_TEST_PUBLIC_ALIAS = 'sentry.console_listener.public_alias';
     private const OPTIONS_TEST_PUBLIC_ALIAS = 'sentry.options.public_alias';
+
+    public function testDataProviderIsMappingTheRightNumberOfOptions(): void
+    {
+        $providerData = $this->optionsValueProvider();
+        $supportedOptions = \array_unique(\array_column($providerData, 0));
+
+        $this->assertCount(
+            ConfigurationTest::SUPPORTED_SENTRY_OPTIONS_COUNT,
+            $supportedOptions,
+            'Provider for configuration options mismatch: ' . PHP_EOL . print_r($supportedOptions, true)
+        );
+    }
 
     public function testOptionsDefaultValues(): void
     {
@@ -32,6 +43,7 @@ class SentryExtensionTest extends TestCase
             $this->assertSame('kernel/root/..', $options->getProjectRoot());
         }
         $this->assertNull($options->getDsn());
+        $this->assertSame('test', $options->getEnvironment());
 
         $this->assertSame(1, $container->getParameter('sentry.listener_priorities.request'));
         $this->assertSame(1, $container->getParameter('sentry.listener_priorities.console'));
@@ -70,13 +82,39 @@ class SentryExtensionTest extends TestCase
     public function optionsValueProvider(): array
     {
         return [
+            ['attach_stacktrace', true, 'shouldAttachStacktrace'],
+            ['context_lines', 1],
             ['default_integrations', false, 'hasDefaultIntegrations'],
+            ['enable_compression', false, 'isCompressionEnabled'],
+            ['environment', 'staging'],
+            ['error_types', E_ALL & ! E_NOTICE],
+            ['excluded_app_path', ['some/path'], 'getExcludedProjectPaths'],
             ['excluded_exceptions', [\Throwable::class]],
+            ['logger', 'sentry-logger'],
+            ['max_breadcrumbs', 15],
             ['prefixes', ['/some/path/prefix/']],
             ['project_root', '/some/project/'],
+            ['release', 'abc0123'],
             ['sample_rate', 0.5],
             ['send_attempts', 2],
+            ['send_default_pii', true, 'shouldSendDefaultPii'],
+            ['server_name', 'server.example.com'],
+            ['tags', ['tag-name' => 'tag-value']],
         ];
+    }
+
+    public function testErrorTypesAreParsed(): void
+    {
+        $container = $this->getContainer(['options' => ['error_types' => 'E_ALL & ~E_NOTICE']]);
+
+        $this->assertSame(E_ALL & ~E_NOTICE, $this->getOptionsFrom($container)->getErrorTypes());
+
+        $defaultContainer = $this->getContainer();
+        $this->assertNotEquals(
+            $this->getOptionsFrom($defaultContainer)->getErrorTypes(),
+            $this->getOptionsFrom($container)->getErrorTypes(),
+            'Bad data: value is same as default'
+        );
     }
 
     /**

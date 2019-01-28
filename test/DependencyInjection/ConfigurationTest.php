@@ -11,6 +11,32 @@ use Symfony\Component\HttpKernel\Kernel;
 
 class ConfigurationTest extends TestCase
 {
+    public const SUPPORTED_SENTRY_OPTIONS_COUNT = 18;
+
+    public function testDataProviderIsMappingTheRightNumberOfOptions(): void
+    {
+        $providerData = $this->optionValuesProvider();
+        $supportedOptions = \array_unique(\array_column($providerData, 0));
+
+        $this->assertCount(
+            self::SUPPORTED_SENTRY_OPTIONS_COUNT,
+            $supportedOptions,
+            'Provider for configuration options mismatch: ' . PHP_EOL . print_r($supportedOptions, true)
+        );
+    }
+
+    public function testInvalidDataProviderIsMappingTheRightNumberOfOptions(): void
+    {
+        $providerData = $this->invalidValuesProvider();
+        $supportedOptions = \array_unique(\array_column($providerData, 0));
+
+        $this->assertCount(
+            self::SUPPORTED_SENTRY_OPTIONS_COUNT,
+            $supportedOptions,
+            'Provider for invalid configuration options mismatch: ' . PHP_EOL . print_r($supportedOptions, true)
+        );
+    }
+
     public function testConfigurationDefaults(): void
     {
         $defaultSdkValues = new Options();
@@ -22,9 +48,12 @@ class ConfigurationTest extends TestCase
                 'console' => 1,
             ],
             'options' => [
+                'environment' => '%kernel.environment%',
+                'excluded_app_path' => $defaultSdkValues->getExcludedProjectPaths(),
                 'excluded_exceptions' => $defaultSdkValues->getExcludedExceptions(),
                 'prefixes' => $defaultSdkValues->getPrefixes(),
                 'project_root' => '%kernel.root_dir%/..',
+                'tags' => [],
             ],
         ];
 
@@ -33,6 +62,7 @@ class ConfigurationTest extends TestCase
         }
 
         $this->assertEquals($expectedDefaults, $processed);
+        $this->assertArrayNotHasKey('server_name', $processed['options'], 'server_name has to be fetched at runtime, not before (see #181)');
     }
 
     /**
@@ -49,14 +79,28 @@ class ConfigurationTest extends TestCase
     public function optionValuesProvider(): array
     {
         return [
+            ['attach_stacktrace', true],
+            ['context_lines', 4],
+            ['context_lines', 99],
             ['default_integrations', true],
             ['default_integrations', false],
+            ['enable_compression', false],
+            ['environment', 'staging'],
+            ['error_types', E_ALL],
+            ['excluded_app_path', ['some/path']],
+            ['excluded_exceptions', [\Throwable::class]],
+            ['logger', 'some-logger'],
+            ['max_breadcrumbs', 15],
             ['prefixes', ['some-string']],
             ['project_root', '/some/dir'],
+            ['release', 'abc0123'],
             ['sample_rate', 0],
             ['sample_rate', 1],
             ['send_attempts', 1],
             ['send_attempts', 999],
+            ['send_default_pii', true],
+            ['server_name', 'server001.example.com'],
+            ['tags', ['tag-name' => 'value']],
         ];
     }
 
@@ -75,15 +119,31 @@ class ConfigurationTest extends TestCase
     public function invalidValuesProvider(): array
     {
         return [
+            ['attach_stacktrace', 'string'],
+            ['context_lines', -1],
+            ['context_lines', 99999],
+            ['context_lines', 'string'],
             ['default_integrations', 'true'],
             ['default_integrations', 1],
+            ['enable_compression', 'string'],
+            ['environment', ''],
+            ['error_types', []],
+            ['excluded_app_path', 'some/single/path'],
+            ['excluded_exceptions', 'some-string'],
+            ['logger', []],
+            ['max_breadcrumbs', -1],
+            ['max_breadcrumbs', 'string'],
             ['prefixes', 'string'],
             ['project_root', []],
+            ['release', []],
             ['sample_rate', 1.1],
             ['sample_rate', -1],
             ['send_attempts', 1.5],
             ['send_attempts', 0],
             ['send_attempts', -1],
+            ['send_default_pii', 'false'],
+            ['server_name', []],
+            ['tags', 'invalid-unmapped-tag'],
         ];
     }
 

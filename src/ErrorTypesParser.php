@@ -73,7 +73,7 @@ class ErrorTypesParser
     {
         // catch anything which could be a security issue
         if (0 !== preg_match("/[^\d.+*%^|&~<>\/()-]/", $this->expression)) {
-            throw new \InvalidArgumentException('Wrong value in error types config value');
+            throw new \InvalidArgumentException('Wrong value in error types config value:' . $this->expression);
         }
 
         return 0 + (int)eval('return ' . $expression . ';');

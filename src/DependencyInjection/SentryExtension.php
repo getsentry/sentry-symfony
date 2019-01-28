@@ -4,6 +4,7 @@ namespace Sentry\SentryBundle\DependencyInjection;
 
 use Sentry\ClientBuilderInterface;
 use Sentry\Options;
+use Sentry\SentryBundle\ErrorTypesParser;
 use Sentry\SentryBundle\SentryBundle;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
@@ -48,12 +49,22 @@ class SentryExtension extends Extension
 
         $processedOptions = $processedConfiguration['options'];
         $mappableOptions = [
+            'attach_stacktrace',
+            'context_lines',
             'default_integrations',
+            'enable_compression',
+            'environment',
             'excluded_exceptions',
+            'logger',
+            'max_breadcrumbs',
             'prefixes',
             'project_root',
+            'release',
             'sample_rate',
             'send_attempts',
+            'send_default_pii',
+            'server_name',
+            'tags',
         ];
 
         foreach ($mappableOptions as $optionName) {
@@ -61,6 +72,15 @@ class SentryExtension extends Extension
                 $setterMethod = 'set' . str_replace('_', '', ucwords($optionName, '_'));
                 $options->addMethodCall($setterMethod, [$processedOptions[$optionName]]);
             }
+        }
+
+        if (\array_key_exists('excluded_app_path', $processedOptions)) {
+            $options->addMethodCall('setExcludedProjectPaths', [$processedOptions['excluded_app_path']]);
+        }
+
+        if (\array_key_exists('error_types', $processedOptions)) {
+            $parsedValue = (new ErrorTypesParser($processedOptions['error_types']))->parse();
+            $options->addMethodCall('setErrorTypes', [$parsedValue]);
         }
     }
 }
