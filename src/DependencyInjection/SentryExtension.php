@@ -74,8 +74,8 @@ class SentryExtension extends Extension
             }
         }
 
-        if (\array_key_exists('excluded_app_path', $processedOptions)) {
-            $options->addMethodCall('setExcludedProjectPaths', [$processedOptions['excluded_app_path']]);
+        if (\array_key_exists('in_app_exclude', $processedOptions)) {
+            $options->addMethodCall('setInAppExcludedPaths', [$processedOptions['in_app_exclude']]);
         }
 
         if (\array_key_exists('error_types', $processedOptions)) {

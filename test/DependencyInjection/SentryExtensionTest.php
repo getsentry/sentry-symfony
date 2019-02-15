@@ -88,7 +88,7 @@ class SentryExtensionTest extends TestCase
             ['enable_compression', false, 'isCompressionEnabled'],
             ['environment', 'staging'],
             ['error_types', E_ALL & ~E_NOTICE],
-            ['excluded_app_path', ['some/path'], 'getExcludedProjectPaths'],
+            ['in_app_exclude', ['/some/path'], 'getInAppExcludedPaths'],
             ['excluded_exceptions', [\Throwable::class]],
             ['logger', 'sentry-logger'],
             ['max_breadcrumbs', 15],
@@ -180,7 +180,7 @@ class SentryExtensionTest extends TestCase
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->setParameter('kernel.root_dir', 'kernel/root');
         if (method_exists(Kernel::class, 'getProjectDir')) {
-            $containerBuilder->setParameter('kernel.project_dir', '/dir/project/root');
+            $containerBuilder->setParameter('kernel.project_dir', '/dir/project/root/');
         }
         $containerBuilder->setParameter('kernel.environment', 'test');
 
