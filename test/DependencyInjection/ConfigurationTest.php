@@ -49,7 +49,10 @@ class ConfigurationTest extends TestCase
             ],
             'options' => [
                 'environment' => '%kernel.environment%',
-                'in_app_exclude' => $defaultSdkValues->getInAppExcludedPaths(),
+                'in_app_exclude' => [
+                    '%kernel.cache_dir%',
+                    '%kernel.root_dir%/../vendor',
+                ],
                 'excluded_exceptions' => $defaultSdkValues->getExcludedExceptions(),
                 'prefixes' => $defaultSdkValues->getPrefixes(),
                 'project_root' => '%kernel.root_dir%/..',
@@ -59,6 +62,7 @@ class ConfigurationTest extends TestCase
 
         if (method_exists(Kernel::class, 'getProjectDir')) {
             $expectedDefaults['options']['project_root'] = '%kernel.project_dir%';
+            $expectedDefaults['options']['in_app_exclude'][1] = '%kernel.project_dir%/vendor';
         }
 
         $this->assertEquals($expectedDefaults, $processed);

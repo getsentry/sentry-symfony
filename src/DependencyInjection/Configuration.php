@@ -61,7 +61,10 @@ class Configuration implements ConfigurationInterface
             ->scalarNode('error_types')
             ->end()
             ->arrayNode('in_app_exclude')
-                ->defaultValue($defaultValues->getInAppExcludedPaths())
+                ->defaultValue([
+                    '%kernel.cache_dir%',
+                    $this->getProjectRoot() . '/vendor',
+                ])
                 ->scalarPrototype()->end()
             ->end()
             ->arrayNode('excluded_exceptions')

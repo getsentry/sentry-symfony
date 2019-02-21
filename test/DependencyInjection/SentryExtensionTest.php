@@ -38,12 +38,16 @@ class SentryExtensionTest extends TestCase
         $options = $this->getOptionsFrom($container);
 
         if (method_exists(Kernel::class, 'getProjectDir')) {
-            $this->assertSame('/dir/project/root/', $options->getProjectRoot());
+            $vendorDir = '/dir/project/root/vendor';
+            $this->assertSame('/dir/project/root', $options->getProjectRoot());
         } else {
+            $vendorDir = 'kernel/root/../vendor';
             $this->assertSame('kernel/root/..', $options->getProjectRoot());
         }
+
         $this->assertNull($options->getDsn());
         $this->assertSame('test', $options->getEnvironment());
+        $this->assertSame(['var/cache', $vendorDir], $options->getInAppExcludedPaths());
 
         $this->assertSame(1, $container->getParameter('sentry.listener_priorities.request'));
         $this->assertSame(1, $container->getParameter('sentry.listener_priorities.console'));
@@ -144,9 +148,10 @@ class SentryExtensionTest extends TestCase
     private function getContainer(array $configuration = []): Container
     {
         $containerBuilder = new ContainerBuilder();
+        $containerBuilder->setParameter('kernel.cache_dir', 'var/cache');
         $containerBuilder->setParameter('kernel.root_dir', 'kernel/root');
         if (method_exists(Kernel::class, 'getProjectDir')) {
-            $containerBuilder->setParameter('kernel.project_dir', '/dir/project/root/');
+            $containerBuilder->setParameter('kernel.project_dir', '/dir/project/root');
         }
         $containerBuilder->setParameter('kernel.environment', 'test');
 
