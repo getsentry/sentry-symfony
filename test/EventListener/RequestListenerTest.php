@@ -91,6 +91,180 @@ class RequestListenerTest extends TestCase
         yield [new ToStringUser('john-doe')];
     }
 
+    public function testOnKernelRequestUsernameIsNotSetIfTokenStorageIsAbsent(): void
+    {
+        $authorizationChecker = $this->prophesize(AuthorizationCheckerInterface::class);
+        $event = $this->prophesize(GetResponseEvent::class);
+        $request = $this->prophesize(Request::class);
+
+        $event->isMasterRequest()
+            ->willReturn(true);
+
+        $authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)
+            ->shouldNotBeCalled();
+
+        $event->getRequest()
+            ->willReturn($request->reveal());
+        $request->getClientIp()
+            ->willReturn('1.2.3.4');
+
+        $listener = new RequestListener(
+            $this->currentHub->reveal(),
+            null,
+            $authorizationChecker->reveal()
+        );
+
+        $listener->onKernelRequest($event->reveal());
+
+        $expectedUserData = [
+            'ip_address' => '1.2.3.4',
+        ];
+        $this->assertEquals($expectedUserData, $this->currentScope->getUser());
+    }
+
+    public function testOnKernelRequestUsernameIsNotSetIfAuthorizationCheckerIsAbsent(): void
+    {
+        $tokenStorage = $this->prophesize(TokenStorageInterface::class);
+        $event = $this->prophesize(GetResponseEvent::class);
+        $request = $this->prophesize(Request::class);
+
+        $event->isMasterRequest()
+            ->willReturn(true);
+
+        $tokenStorage->getToken()
+            ->willReturn($this->prophesize(TokenInterface::class)->reveal());
+
+        $event->getRequest()
+            ->willReturn($request->reveal());
+        $request->getClientIp()
+            ->willReturn('1.2.3.4');
+
+        $listener = new RequestListener(
+            $this->currentHub->reveal(),
+            $tokenStorage->reveal(),
+            null
+        );
+
+        $listener->onKernelRequest($event->reveal());
+
+        $expectedUserData = [
+            'ip_address' => '1.2.3.4',
+        ];
+        $this->assertEquals($expectedUserData, $this->currentScope->getUser());
+    }
+
+    public function testOnKernelRequestUsernameIsNotSetIfTokenIsAbsent(): void
+    {
+        $tokenStorage = $this->prophesize(TokenStorageInterface::class);
+        $authorizationChecker = $this->prophesize(AuthorizationCheckerInterface::class);
+        $event = $this->prophesize(GetResponseEvent::class);
+        $request = $this->prophesize(Request::class);
+
+        $event->isMasterRequest()
+            ->willReturn(true);
+
+        $tokenStorage->getToken()
+            ->willReturn(null);
+
+        $authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)
+            ->shouldNotBeCalled();
+
+        $event->getRequest()
+            ->willReturn($request->reveal());
+        $request->getClientIp()
+            ->willReturn('1.2.3.4');
+
+        $listener = new RequestListener(
+            $this->currentHub->reveal(),
+            $tokenStorage->reveal(),
+            $authorizationChecker->reveal()
+        );
+
+        $listener->onKernelRequest($event->reveal());
+
+        $expectedUserData = [
+            'ip_address' => '1.2.3.4',
+        ];
+        $this->assertEquals($expectedUserData, $this->currentScope->getUser());
+    }
+
+    /**
+     * @ticket #78
+     */
+    public function testOnKernelRequestUsernameIsNotSetIfTokenIsNotAuthenticated(): void
+    {
+        $tokenStorage = $this->prophesize(TokenStorageInterface::class);
+        $authorizationChecker = $this->prophesize(AuthorizationCheckerInterface::class);
+        $token = $this->prophesize(TokenInterface::class);
+        $event = $this->prophesize(GetResponseEvent::class);
+        $request = $this->prophesize(Request::class);
+
+        $event->isMasterRequest()
+            ->willReturn(true);
+
+        $tokenStorage->getToken()
+            ->willReturn($token->reveal());
+
+        $token->isAuthenticated()
+            ->willReturn(false);
+
+        $authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)
+            ->shouldNotBeCalled();
+
+        $event->getRequest()
+            ->willReturn($request->reveal());
+        $request->getClientIp()
+            ->willReturn('1.2.3.4');
+
+        $listener = new RequestListener(
+            $this->currentHub->reveal(),
+            $tokenStorage->reveal(),
+            $authorizationChecker->reveal()
+        );
+
+        $listener->onKernelRequest($event->reveal());
+
+        $expectedUserData = [
+            'ip_address' => '1.2.3.4',
+        ];
+        $this->assertEquals($expectedUserData, $this->currentScope->getUser());
+    }
+
+    public function testOnKernelRequestUsernameIsNotSetIfUserIsNotRemembered(): void
+    {
+        $tokenStorage = $this->prophesize(TokenStorageInterface::class);
+        $authorizationChecker = $this->prophesize(AuthorizationCheckerInterface::class);
+        $event = $this->prophesize(GetResponseEvent::class);
+        $request = $this->prophesize(Request::class);
+
+        $event->isMasterRequest()
+            ->willReturn(true);
+
+        $tokenStorage->getToken()
+            ->willReturn(null);
+
+        $authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)
+            ->willReturn(false);
+
+        $event->getRequest()
+            ->willReturn($request->reveal());
+        $request->getClientIp()
+            ->willReturn('1.2.3.4');
+
+        $listener = new RequestListener(
+            $this->currentHub->reveal(),
+            $tokenStorage->reveal(),
+            $authorizationChecker->reveal()
+        );
+
+        $listener->onKernelRequest($event->reveal());
+
+        $expectedUserData = [
+            'ip_address' => '1.2.3.4',
+        ];
+        $this->assertEquals($expectedUserData, $this->currentScope->getUser());
+    }
+
     public function testOnKernelControllerAddsRouteTag(): void
     {
         $request = new Request();
@@ -111,6 +285,36 @@ class RequestListenerTest extends TestCase
         $listener->onKernelController($event->reveal());
 
         $this->assertSame(['route' => 'sf-route'], $this->currentScope->getTags());
+    }
+
+    public function testOnKernelRequestUserDataAndTagsAreNotSetInSubRequest(): void
+    {
+        $this->currentHub->getScope()
+            ->shouldNotBeCalled();
+
+        $tokenStorage = $this->prophesize(TokenStorageInterface::class);
+        $authorizationChecker = $this->prophesize(AuthorizationCheckerInterface::class);
+        $event = $this->prophesize(GetResponseEvent::class);
+
+        $event->isMasterRequest()
+            ->willReturn(false);
+
+        $tokenStorage->getToken()
+            ->shouldNotBeCalled();
+
+        $authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)
+            ->shouldNotBeCalled();
+
+        $listener = new RequestListener(
+            $this->currentHub->reveal(),
+            $tokenStorage->reveal(),
+            $authorizationChecker->reveal()
+        );
+
+        $listener->onKernelRequest($event->reveal());
+
+        $this->assertEmpty($this->currentScope->getUser());
+        $this->assertEmpty($this->currentScope->getTags());
     }
 }
 

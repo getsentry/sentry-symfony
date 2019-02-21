@@ -53,14 +53,15 @@ final class RequestListener
             return;
         }
 
-        if (null === $this->tokenStorage || null === $this->authorizationChecker) {
-            return;
-        }
+        $token = null;
 
-        $token = $this->tokenStorage->getToken();
+        if ($this->tokenStorage instanceof TokenStorageInterface) {
+            $token = $this->tokenStorage->getToken();
+        }
 
         if (
             null !== $token
+            && null !== $this->authorizationChecker
             && $token->isAuthenticated()
             && $this->authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)
         ) {
