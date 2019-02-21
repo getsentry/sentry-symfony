@@ -120,19 +120,18 @@ class SentryExtensionTest extends TestCase
     /**
      * @dataProvider emptyDsnValueProvider
      */
-    public function test_that_it_ignores_empty_dsn_value($emptyDsn)
+    public function test_that_it_ignores_empty_dsn_value($emptyDsn): void
     {
-        $this->markTestIncomplete();
         $container = $this->getContainer(
             [
                 'dsn' => $emptyDsn,
             ]
         );
 
-        $this->assertNull($container->getParameter('sentry.dsn'));
+        $this->assertNull($this->getOptionsFrom($container)->getDsn());
     }
 
-    public function emptyDsnValueProvider()
+    public function emptyDsnValueProvider(): array
     {
         return [
             [null],
@@ -140,39 +139,6 @@ class SentryExtensionTest extends TestCase
             [' '],
             ['    '],
         ];
-    }
-
-    public function test_that_it_has_proper_event_listener_tags_for_exception_listener()
-    {
-        $this->markTestIncomplete();
-        $containerBuilder = new ContainerBuilder();
-        $extension = new SentryExtension();
-        $extension->load([], $containerBuilder);
-
-        $definition = $containerBuilder->getDefinition('sentry.exception_listener');
-        $tags = $definition->getTag('kernel.event_listener');
-
-        $this->assertSame(
-            [
-                [
-                    'event' => 'kernel.request',
-                    'method' => 'onKernelRequest',
-                    'priority' => '%sentry.listener_priorities.request%',
-                ],
-                [
-                    'event' => 'kernel.exception',
-                    'method' => 'onKernelException',
-                    'priority' => '%sentry.listener_priorities.kernel_exception%',
-                ],
-                ['event' => 'console.command', 'method' => 'onConsoleCommand'],
-                [
-                    'event' => 'console.error',
-                    'method' => 'onConsoleError',
-                    'priority' => '%sentry.listener_priorities.console_exception%',
-                ],
-            ],
-            $tags
-        );
     }
 
     private function getContainer(array $configuration = []): Container
