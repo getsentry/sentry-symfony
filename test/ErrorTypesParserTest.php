@@ -7,13 +7,26 @@ use Sentry\SentryBundle\ErrorTypesParser;
 
 class ErrorTypesParserTest extends TestCase
 {
-    public function test_error_types_parser()
+    /**
+     * @dataProvider parsableValueProvider
+     */
+    public function testParse(string $value, int $expected): void
     {
-        $ex = new ErrorTypesParser('E_ALL & ~E_DEPRECATED & ~E_NOTICE');
-        $this->assertEquals($ex->parse(), E_ALL & ~E_DEPRECATED & ~E_NOTICE);
+        $ex = new ErrorTypesParser($value);
+        $this->assertEquals($expected, $ex->parse());
     }
 
-    public function test_error_types_parser_throws_exception_for_unwanted_values()
+    public function parsableValueProvider(): array
+    {
+        return [
+            ['E_ALL', E_ALL],
+            ['E_ALL & ~E_DEPRECATED & ~E_NOTICE', E_ALL & ~E_DEPRECATED & ~E_NOTICE],
+            ['-1', -1],
+            [-1, -1],
+        ];
+    }
+
+    public function testParseStopsAtDangerousValues(): void
     {
         $ex = new ErrorTypesParser('exec(something-dangerous)');
 
@@ -21,7 +34,7 @@ class ErrorTypesParserTest extends TestCase
         $ex->parse();
     }
 
-    public function test_error_types_parser_throws_exception_for_unparsable_values()
+    public function testErrorTypesParserThrowsExceptionForUnparsableValues(): void
     {
         $ex = new ErrorTypesParser('something-wrong');
 
