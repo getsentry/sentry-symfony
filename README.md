@@ -77,7 +77,7 @@ class AppKernel extends Kernel
     // ...
 }
 ```
-Note that, unlike before version 3 of this bundle, the bundle will be enabled in all environments.
+Note that, unlike before version 3, the bundle will be enabled in all environments.
 
 ### Step 3: Configure the SDK
 
