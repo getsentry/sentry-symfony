@@ -2,7 +2,6 @@
 
 namespace Sentry\SentryBundle\Test\EventListener;
 
-use PHPUnit\Framework\Assert;
 use Prophecy\Argument;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\State\Hub;

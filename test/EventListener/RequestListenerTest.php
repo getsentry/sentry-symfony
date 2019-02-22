@@ -2,7 +2,6 @@
 
 namespace Sentry\SentryBundle\Test\EventListener;
 
-use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Sentry\SentryBundle\EventListener\RequestListener;
