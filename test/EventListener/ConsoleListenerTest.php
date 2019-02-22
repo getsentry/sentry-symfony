@@ -26,7 +26,6 @@ class ConsoleListenerTest extends \PHPUnit\Framework\TestCase
             ->shouldBeCalled()
             ->will(function ($arguments) use ($scope): void {
                 $callable = $arguments[0];
-                Assert::assertIsCallable($callable);
 
                 $callable($scope);
             });
