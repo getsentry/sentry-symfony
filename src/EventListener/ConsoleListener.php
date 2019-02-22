@@ -4,6 +4,7 @@ namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\State\Hub;
 use Sentry\State\HubInterface;
+use Sentry\State\Scope;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 
 final class ConsoleListener
@@ -33,7 +34,8 @@ final class ConsoleListener
         $command = $event->getCommand();
 
         Hub::getCurrent()
-            ->getScope()
-            ->setTag('command', $command ? $command->getName() : 'N/A');
+            ->configureScope(function (Scope $scope) use ($command): void {
+                $scope->setTag('command', $command ? $command->getName() : 'N/A');
+            });
     }
 }

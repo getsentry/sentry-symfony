@@ -2,7 +2,9 @@
 
 namespace Sentry\SentryBundle\Test\EventListener;
 
+use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\TestCase;
+use Prophecy\Argument;
 use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\State\Hub;
 use Sentry\State\HubInterface;
@@ -25,11 +27,16 @@ class RequestListenerTest extends TestCase
     {
         parent::setUp();
 
-        $this->currentScope = new Scope();
+        $this->currentScope = $scope = new Scope();
         $this->currentHub = $this->prophesize(HubInterface::class);
-        $this->currentHub->getScope()
+        $this->currentHub->configureScope(Argument::type('callable'))
             ->shouldBeCalled()
-            ->willReturn($this->currentScope);
+            ->will(function ($arguments) use ($scope): void {
+                $callable = $arguments[0];
+                Assert::assertIsCallable($callable);
+
+                $callable($scope);
+            });
 
         Hub::setCurrent($this->currentHub->reveal());
     }
@@ -289,7 +296,7 @@ class RequestListenerTest extends TestCase
 
     public function testOnKernelRequestUserDataAndTagsAreNotSetInSubRequest(): void
     {
-        $this->currentHub->getScope()
+        $this->currentHub->configureScope(Argument::type('callable'))
             ->shouldNotBeCalled();
 
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);

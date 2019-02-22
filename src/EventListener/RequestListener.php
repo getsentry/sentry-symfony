@@ -4,6 +4,7 @@ namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\State\Hub;
 use Sentry\State\HubInterface;
+use Sentry\State\Scope;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -71,8 +72,9 @@ final class RequestListener
         $userData['ip_address'] = $event->getRequest()->getClientIp();
 
         Hub::getCurrent()
-            ->getScope()
-            ->setUser($userData);
+            ->configureScope(function (Scope $scope) use ($userData): void {
+                $scope->setUser($userData);
+            });
     }
 
     public function onKernelController(FilterControllerEvent $event): void
@@ -84,8 +86,9 @@ final class RequestListener
         $matchedRoute = $event->getRequest()->attributes->get('_route');
 
         Hub::getCurrent()
-            ->getScope()
-            ->setTag('route', $matchedRoute);
+            ->configureScope(function (Scope $scope) use ($matchedRoute): void {
+                $scope->setTag('route', $matchedRoute);
+            });
     }
 
     /**

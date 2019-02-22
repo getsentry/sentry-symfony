@@ -2,6 +2,8 @@
 
 namespace Sentry\SentryBundle\Test\EventListener;
 
+use PHPUnit\Framework\Assert;
+use Prophecy\Argument;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\State\Hub;
 use Sentry\State\HubInterface;
@@ -18,11 +20,16 @@ class ConsoleListenerTest extends \PHPUnit\Framework\TestCase
     {
         parent::setUp();
 
-        $this->currentScope = new Scope();
+        $this->currentScope = $scope = new Scope();
         $this->currentHub = $this->prophesize(HubInterface::class);
-        $this->currentHub->getScope()
+        $this->currentHub->configureScope(Argument::type('callable'))
             ->shouldBeCalled()
-            ->willReturn($this->currentScope);
+            ->will(function ($arguments) use ($scope): void {
+                $callable = $arguments[0];
+                Assert::assertIsCallable($callable);
+
+                $callable($scope);
+            });
 
         Hub::setCurrent($this->currentHub->reveal());
     }
