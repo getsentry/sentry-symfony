@@ -55,6 +55,7 @@ class SentryExtension extends Extension
             'enable_compression',
             'environment',
             'excluded_exceptions',
+            'http_proxy',
             'logger',
             'max_breadcrumbs',
             'prefixes',
