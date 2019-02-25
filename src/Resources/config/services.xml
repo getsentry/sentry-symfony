@@ -5,26 +5,38 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
-        <service id="sentry.client" class="%sentry.client%" public="true">
-            <argument>%sentry.dsn%</argument>
-            <argument>%sentry.options%</argument>
-            <call method="install" />
+        <service id="Sentry\Options" class="Sentry\Options" public="false" />
+
+        <service id="Sentry\ClientBuilderInterface" class="Sentry\ClientBuilder" public="false">
+            <argument type="service" id="Sentry\Options" />
         </service>
 
-        <service id="%sentry.client%" alias="sentry.client" />
+        <service id="Sentry\ClientInterface" class="Sentry\Client" public="false">
+            <factory service="Sentry\ClientBuilderInterface" method="getClient" />
+        </service>
 
-        <service id="sentry.exception_listener" class="%sentry.exception_listener%">
-            <argument type="service" id="sentry.client" />
-            <argument type="service" id="event_dispatcher" />
-            <argument type="service" id="request_stack" />
-            <argument>%sentry.skip_capture%</argument>
+        <service id="Sentry\State\HubInterface" class="Sentry\State\Hub" public="false">
+            <argument type="service" id="Sentry\ClientInterface" />
+            <call method="setCurrent">
+                <argument type="service" id="Sentry\State\HubInterface" />
+            </call>
+        </service>
+
+        <service id="Sentry\SentryBundle\EventListener\ConsoleListener" public="false">
+            <argument type="service" id="Sentry\State\HubInterface" />
+            <argument type="service" id="security.token_storage" on-invalid="ignore" />
+            <argument type="service" id="security.authorization_checker" on-invalid="ignore" />
+
+            <tag name="kernel.event_listener" event="console.command" method="onConsoleCommand" priority="%sentry.listener_priorities.console%" />
+        </service>
+
+        <service id="Sentry\SentryBundle\EventListener\RequestListener" public="false">
+            <argument type="service" id="Sentry\State\HubInterface" />
             <argument type="service" id="security.token_storage" on-invalid="ignore" />
             <argument type="service" id="security.authorization_checker" on-invalid="ignore" />
 
             <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="%sentry.listener_priorities.request%" />
-            <tag name="kernel.event_listener" event="kernel.exception" method="onKernelException" priority="%sentry.listener_priorities.kernel_exception%" />
-            <tag name="kernel.event_listener" event="console.command" method="onConsoleCommand" />
-            <tag name="kernel.event_listener" event="console.error" method="onConsoleError" priority="%sentry.listener_priorities.console_exception%" />
+            <tag name="kernel.event_listener" event="kernel.controller" method="onKernelController" priority="%sentry.listener_priorities.request%" />
         </service>
     </services>
 </container>

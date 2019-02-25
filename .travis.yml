@@ -5,6 +5,7 @@ dist: trusty
 php:
   - 7.1
   - 7.2
+  - 7.3
 
 cache:
   directories:
@@ -16,7 +17,7 @@ before_install:
   - composer global require hirak/prestissimo
 
 install: 
-  - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable $COMPOSER_OPTIONS
+  - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable
 
 script:
   - vendor/bin/phpunit -v
@@ -25,7 +26,11 @@ jobs:
   include:
     - stage: Test
       php: 7.1
-      env: COMPOSER_OPTIONS="--prefer-lowest"
+      env:
+        - DEPS=--prefer-lowest
+      install:
+        - travis_retry travis_wait composer install --no-interaction --prefer-dist
+        - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable --prefer-lowest
     - stage: Code style and static analysis
       script:
         - composer phpstan

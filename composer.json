@@ -21,7 +21,7 @@
     "require": {
         "php": "^7.1",
         "jean85/pretty-package-versions": "^1.0",
-        "sentry/sentry": "^1.9",
+        "sentry/sentry": "^2.0-beta2",
         "symfony/config": "^3.0||^4.0",
         "symfony/console": "^3.3||^4.0",
         "symfony/dependency-injection": "^3.0||^4.0",
@@ -31,8 +31,10 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.8",
-        "phpstan/phpstan": "^0.10",
-        "phpstan/phpstan-phpunit": "^0.10",
+        "jangregor/phpstan-prophecy": "^0.3.0",
+        "php-http/mock-client": "^1.0",
+        "phpstan/phpstan": "^0.11",
+        "phpstan/phpstan-phpunit": "^0.11",
         "phpunit/phpunit": "^7",
         "scrutinizer/ocular": "^1.4",
         "symfony/expression-language": "^3.0||^4.0"
@@ -49,13 +51,14 @@
     },
     "scripts": {
         "phpstan": "vendor/bin/phpstan analyse",
-        "cs-check": "vendor/bin/php-cs-fixer fix --verbose --diff --dry-run",
-        "cs-fix": "vendor/bin/php-cs-fixer fix --verbose --diff"
+        "cs-check": "vendor/bin/php-cs-fixer fix --ansi --verbose --dry-run",
+        "cs-fix": "vendor/bin/php-cs-fixer fix --ansi --verbose"
     },
     "extra": {
         "branch-alias": {
-            "master": "2.1.x-dev",
-            "releases/1.x": "1.1.x-dev"
+            "master": "3.x-dev",
+            "releases/2.x": "2.x-dev",
+            "releases/1.x": "1.x-dev"
         }
     }
 }
