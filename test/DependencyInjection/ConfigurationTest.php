@@ -127,6 +127,9 @@ class ConfigurationTest extends TestCase
         return [
             ['attach_stacktrace', 'string'],
             ['before_send', 'this is not a callable'],
+            ['before_send', [$this, 'is not a callable']],
+            ['before_send', false],
+            ['before_send', -1],
             ['context_lines', -1],
             ['context_lines', 99999],
             ['context_lines', 'string'],
