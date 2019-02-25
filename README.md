@@ -15,8 +15,7 @@ Symfony integration for [Sentry](https://getsentry.com/).
 >
 > A beta version will be tagged as soon as possible, in the meantime you can continue to use the previous versions.
 > 
-> To know more about the progress of this version see [the relative 
-milestone](https://github.com/getsentry/sentry-symfony/milestone/3)
+> To know more about the progress of this version see [the relative milestone](https://github.com/getsentry/sentry-symfony/milestone/3)
 
 ## Benefits
 
@@ -35,20 +34,31 @@ Use sentry-symfony for:
 ## Installation
 
 ### Step 1: Download the Bundle
-You can install this bundle using Composer. Since the Sentry SDK uses HTTPlug to remain transport-agnostic, you need to 
-manually require two additional packages that provides [`php-http/async-client-implementation`](https://packagist.org/providers/php-http/async-client-implementation)
+You can install this bundle using Composer: 
+
+```bash
+composer require sentry/sentry-symfony:^3.0
+```
+
+#### Optional: use custom HTTP factory/transport
+*Note: this step is optional*
+
+Since SDK 2.0 uses HTTPlug to remain transport-agnostic, you need to have installed two packages that provides 
+[`php-http/async-client-implementation`](https://packagist.org/providers/php-http/async-client-implementation)
 and [`http-message-implementation`](https://packagist.org/providers/psr/http-message-implementation).
 
-For example, if you want to install/upgrade using Curl as transport and the PSR-7 implementation by Guzzle, you can use:
+This bundle depends on `sentry/sdk`, which is a metapackage that already solves this need, requiring our suggested HTTP
+packages: the Curl client and Guzzle's message factories.
+
+If instead you want to use a different HTTP client or message factory, you'll need to require manually those additional
+packages:
 
 ```bash
-composer require sentry/sentry-symfony:^3.0 php-http/curl-client guzzlehttp/psr7
+composer require sentry/sentry-symfony:^3.0 sentry/sentry:^2.0 php-http/guzzle6-adapter guzzlehttp/psr7
 ```
 
-Or, if you want to use only Guzzle 6, you can use:
-```bash
-composer require sentry/sentry-symfony:^3.0 php-http/guzzle6-adapter guzzlehttp/psr7
-```
+The `sentry/sentry` package is required directly to override `sentry/sdk`, and the other two packages are up to your choice;
+in the current example, we're using both Guzzle's components (client and message factory).
 
 > TODO: Flex recipe
 
@@ -77,7 +87,7 @@ class AppKernel extends Kernel
     // ...
 }
 ```
-Note that, unlike before version 3, the bundle will be enabled in all environments.
+Note that, unlike before in version 3, the bundle will be enabled in all environments.
 
 ### Step 3: Configure the SDK
 

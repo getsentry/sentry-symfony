@@ -3,20 +3,27 @@ The 3.0 major release of this bundle has some major changes. This document will 
 during the upgrade path.
 
 ## Sentry SDK 2.0
-The major change is in the fact that we now require the underlying `sentry/sentry` package to have version 2.
+The major change is in the fact that we now require the `sentry/sdk` metapackage; this, in turn, requires the original
+`sentry/sentry` package, but at major version 2.
 This new version has been completely rewritten: if you use this bundle and you interact directly with the underlying SDK
 and client, you should read through the [relative upgrade document](https://github.com/getsentry/sentry-php/blob/master/UPGRADE-2.0.md).
 
 ## HTTPlug
-Since SDK 2.0 uses HTTPlug to remain transport-agnostic, you need to manually require two packages that provides 
+Since SDK 2.0 uses HTTPlug to remain transport-agnostic, you need to have installed two packages that provides 
 [`php-http/async-client-implementation`](https://packagist.org/providers/php-http/async-client-implementation)
 and [`http-message-implementation`](https://packagist.org/providers/psr/http-message-implementation).
 
-For example, if you want to install/upgrade using Curl as transport and the PSR-7 implementation by Guzzle, you can use:
+The metapackage already solves this need, requiring the Curl client and Guzzle's message factories.
+
+If instead you want to use a different HTTP client or message factory, you'll need to require manually those additional
+packages:
 
 ```bash
-composer require sentry/sentry:2.0.0-beta1 php-http/curl-client guzzlehttp/psr7
+composer require sentry/sentry:^2.0 php-http/guzzle6-adapter guzzlehttp/psr7
 ```
+
+The `sentry/sentry` package is required directly to override `sentry/sdk`, and the other two packages are up to your choice;
+in the current example, we're using both Guzzle's components (client and message factory).
 
 ## Changes in the services
 Due to the SDK changes, and to follow newer Symfony best practices, the services exposed by the bundle are completely
