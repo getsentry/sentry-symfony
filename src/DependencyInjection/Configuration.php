@@ -71,6 +71,8 @@ class Configuration implements ConfigurationInterface
                 ->defaultValue($defaultValues->getExcludedExceptions())
                 ->scalarPrototype()->end()
             ->end()
+            ->scalarNode('http_proxy')
+            ->end()
             // TODO -- integrations
             ->scalarNode('logger')
             ->end()

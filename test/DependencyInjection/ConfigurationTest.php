@@ -11,7 +11,7 @@ use Symfony\Component\HttpKernel\Kernel;
 
 class ConfigurationTest extends TestCase
 {
-    public const SUPPORTED_SENTRY_OPTIONS_COUNT = 18;
+    public const SUPPORTED_SENTRY_OPTIONS_COUNT = 19;
 
     public function testDataProviderIsMappingTheRightNumberOfOptions(): void
     {
@@ -91,6 +91,7 @@ class ConfigurationTest extends TestCase
             ['enable_compression', false],
             ['environment', 'staging'],
             ['error_types', E_ALL],
+            ['http_proxy', '1.2.3.4:5678'],
             ['in_app_exclude', ['some/path']],
             ['excluded_exceptions', [\Throwable::class]],
             ['logger', 'some-logger'],
@@ -132,6 +133,7 @@ class ConfigurationTest extends TestCase
             ['enable_compression', 'string'],
             ['environment', ''],
             ['error_types', []],
+            ['http_proxy', []],
             ['in_app_exclude', 'some/single/path'],
             ['excluded_exceptions', 'some-string'],
             ['logger', []],
