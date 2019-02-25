@@ -5,6 +5,7 @@ parameters:
         - test/
     ignoreErrors:
          - "/Call to function method_exists.. with 'Symfony.+' and 'getProjectDir' will always evaluate to false./"
+         - "/Parameter #2 .service of method Symfony.Component.DependencyInjection.Container::set.. expects object, Closure.Sentry.Event.: mixed given./"
     excludes_analyse:
          - '%currentWorkingDirectory%/src/DependencyInjection/Configuration.php'
 
