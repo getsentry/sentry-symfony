@@ -11,7 +11,7 @@ use Symfony\Component\HttpKernel\Kernel;
 
 class ConfigurationTest extends TestCase
 {
-    public const SUPPORTED_SENTRY_OPTIONS_COUNT = 19;
+    public const SUPPORTED_SENTRY_OPTIONS_COUNT = 20;
 
     public function testDataProviderIsMappingTheRightNumberOfOptions(): void
     {
@@ -84,6 +84,7 @@ class ConfigurationTest extends TestCase
     {
         return [
             ['attach_stacktrace', true],
+            ['before_send', 'count'],
             ['context_lines', 4],
             ['context_lines', 99],
             ['default_integrations', true],
@@ -125,6 +126,7 @@ class ConfigurationTest extends TestCase
     {
         return [
             ['attach_stacktrace', 'string'],
+            ['before_send', 'this is not a callable'],
             ['context_lines', -1],
             ['context_lines', 99999],
             ['context_lines', 'string'],
