@@ -26,9 +26,9 @@ jobs:
   include:
     - stage: Test
       php: 7.1
-      env:
-        - DEPS=--prefer-lowest
+      name: prefer-lowest
       install:
+        - composer remove --dev friendsofphp/php-cs-fixer phpstan/phpstan --no-update
         - travis_retry travis_wait composer install --no-interaction --prefer-dist
         - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable --prefer-lowest
     - stage: Code style and static analysis
