@@ -38,5 +38,10 @@
             <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="%sentry.listener_priorities.request%" />
             <tag name="kernel.event_listener" event="kernel.controller" method="onKernelController" priority="%sentry.listener_priorities.request%" />
         </service>
+
+        <service id="Sentry\SentryBundle\EventListener\SubRequestListener" class="Sentry\SentryBundle\EventListener\SubRequestListener" public="false">
+            <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="%sentry.listener_priorities.sub_request%" />
+            <tag name="kernel.event_listener" event="kernel.finish_request" method="onKernelFinishRequest" priority="%sentry.listener_priorities.sub_request%" />
+        </service>
     </services>
 </container>

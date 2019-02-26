@@ -120,6 +120,7 @@ class Configuration implements ConfigurationInterface
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->scalarNode('request')->defaultValue(1)->end()
+                    ->scalarNode('sub_request')->defaultValue(1)->end()
                     ->scalarNode('console')->defaultValue(1)->end()
                 ->end()
             ->end();
