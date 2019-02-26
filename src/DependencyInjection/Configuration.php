@@ -65,11 +65,11 @@ class Configuration implements ConfigurationInterface
                     '%kernel.cache_dir%',
                     $this->getProjectRoot() . '/vendor',
                 ])
-                ->scalarPrototype()->end()
+                ->prototype('scalar')->end()
             ->end()
             ->arrayNode('excluded_exceptions')
                 ->defaultValue($defaultValues->getExcludedExceptions())
-                ->scalarPrototype()->end()
+                ->prototype('scalar')->end()
             ->end()
             ->scalarNode('http_proxy')
             ->end()
@@ -81,7 +81,7 @@ class Configuration implements ConfigurationInterface
             ->end()
             ->arrayNode('prefixes')
                 ->defaultValue($defaultValues->getPrefixes())
-                ->scalarPrototype()->end()
+                ->prototype('scalar')->end()
             ->end()
             ->scalarNode('project_root')
                 ->defaultValue($this->getProjectRoot())
@@ -100,7 +100,7 @@ class Configuration implements ConfigurationInterface
             ->end()
             ->arrayNode('tags')
                 ->normalizeKeys(false)
-                ->scalarPrototype()
+                ->prototype('scalar')
             ->end()
         ;
 

@@ -22,7 +22,7 @@
             </call>
         </service>
 
-        <service id="Sentry\SentryBundle\EventListener\ConsoleListener" public="false">
+        <service id="Sentry\SentryBundle\EventListener\ConsoleListener" class="Sentry\SentryBundle\EventListener\ConsoleListener" public="false">
             <argument type="service" id="Sentry\State\HubInterface" />
             <argument type="service" id="security.token_storage" on-invalid="ignore" />
             <argument type="service" id="security.authorization_checker" on-invalid="ignore" />
@@ -30,7 +30,7 @@
             <tag name="kernel.event_listener" event="console.command" method="onConsoleCommand" priority="%sentry.listener_priorities.console%" />
         </service>
 
-        <service id="Sentry\SentryBundle\EventListener\RequestListener" public="false">
+        <service id="Sentry\SentryBundle\EventListener\RequestListener" class="Sentry\SentryBundle\EventListener\RequestListener" public="false">
             <argument type="service" id="Sentry\State\HubInterface" />
             <argument type="service" id="security.token_storage" on-invalid="ignore" />
             <argument type="service" id="security.authorization_checker" on-invalid="ignore" />
