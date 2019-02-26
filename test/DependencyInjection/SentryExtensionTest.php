@@ -5,6 +5,7 @@ namespace Sentry\SentryBundle\Test\DependencyInjection;
 use PHPUnit\Framework\TestCase;
 use Sentry\Breadcrumb;
 use Sentry\Event;
+use Sentry\Integration\IntegrationInterface;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
@@ -28,8 +29,9 @@ class SentryExtensionTest extends TestCase
         $providerData = $this->optionsValueProvider();
         $supportedOptions = \array_unique(\array_column($providerData, 0));
 
+        // subtracted one is `integration`, which cannot be tested with the provider
         $this->assertCount(
-            ConfigurationTest::SUPPORTED_SENTRY_OPTIONS_COUNT,
+            ConfigurationTest::SUPPORTED_SENTRY_OPTIONS_COUNT - 1,
             $supportedOptions,
             'Provider for configuration options mismatch: ' . PHP_EOL . print_r($supportedOptions, true)
         );
@@ -280,6 +282,19 @@ class SentryExtensionTest extends TestCase
         $this->getOptionsFrom($container)->getBeforeBreadcrumbCallback();
     }
 
+    public function testIntegrations(): void
+    {
+        $container = $this->getContainer([
+            'options' => [
+                'integrations' => ['@integration_mock'],
+            ],
+        ]);
+
+        $integrations = $this->getOptionsFrom($container)->getIntegrations();
+        $this->assertContainsOnlyInstancesOf(IntegrationMock::class, $integrations);
+        $this->assertCount(1, $integrations);
+    }
+
     private function getContainer(array $configuration = []): Container
     {
         $containerBuilder = new ContainerBuilder();
@@ -290,11 +305,9 @@ class SentryExtensionTest extends TestCase
         }
         $containerBuilder->setParameter('kernel.environment', 'test');
 
-        $mockEventDispatcher = $this
-            ->createMock(EventDispatcherInterface::class);
+        $mockEventDispatcher = $this->createMock(EventDispatcherInterface::class);
 
-        $mockRequestStack = $this
-            ->createMock(RequestStack::class);
+        $mockRequestStack = $this->createMock(RequestStack::class);
 
         $containerBuilder->set('request_stack', $mockRequestStack);
         $containerBuilder->set('event_dispatcher', $mockEventDispatcher);
@@ -305,6 +318,9 @@ class SentryExtensionTest extends TestCase
         $beforeSend = new Definition('callable');
         $beforeSend->setFactory([CallbackMock::class, 'createCallback']);
         $containerBuilder->setDefinition('callable_mock', $beforeSend);
+
+        $integration = new Definition(IntegrationMock::class);
+        $containerBuilder->setDefinition('integration_mock', $integration);
 
         $extension = new SentryExtension();
         $extension->load(['sentry' => $configuration], $containerBuilder);
@@ -345,5 +361,12 @@ class CallbackMock
     public static function createCallback(): callable
     {
         return [new self(), 'callback'];
+    }
+}
+
+class IntegrationMock implements IntegrationInterface
+{
+    public function setupOnce(): void
+    {
     }
 }

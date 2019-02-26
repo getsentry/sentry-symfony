@@ -93,6 +93,15 @@ class SentryExtension extends Extension
         if (\array_key_exists('before_breadcrumb', $processedOptions)) {
             $this->mapCallableValue($options, 'setBeforeBreadcrumbCallback', $processedOptions['before_breadcrumb']);
         }
+
+        if (\array_key_exists('integrations', $processedOptions)) {
+            $integrations = [];
+            foreach ($processedOptions['integrations'] as $integrationName) {
+                $integrations[] = new Reference(substr($integrationName, 1));
+            }
+
+            $options->addMethodCall('setIntegrations', [$integrations]);
+        }
     }
 
     /**
