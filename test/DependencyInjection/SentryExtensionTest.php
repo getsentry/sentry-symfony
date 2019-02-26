@@ -3,6 +3,7 @@
 namespace Sentry\SentryBundle\Test\DependencyInjection;
 
 use PHPUnit\Framework\TestCase;
+use Sentry\Event;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
@@ -10,6 +11,7 @@ use Sentry\SentryBundle\EventListener\RequestListener;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Kernel;
@@ -87,6 +89,7 @@ class SentryExtensionTest extends TestCase
     {
         return [
             ['attach_stacktrace', true, 'shouldAttachStacktrace'],
+            ['before_send', __NAMESPACE__ . '\mockBeforeSend', 'getBeforeSendCallback'],
             ['context_lines', 1],
             ['default_integrations', false, 'hasDefaultIntegrations'],
             ['enable_compression', false, 'isCompressionEnabled'],
@@ -146,6 +149,75 @@ class SentryExtensionTest extends TestCase
         ];
     }
 
+    public function testBeforeSendUsingServiceDefinition(): void
+    {
+        $container = $this->getContainer([
+            'options' => [
+                    'before_send' => '@before_send',
+                ],
+        ]);
+
+        $beforeSendCallback = $this->getOptionsFrom($container)->getBeforeSendCallback();
+        $this->assertIsCallable($beforeSendCallback);
+        $defaultOptions = $this->getOptionsFrom($this->getContainer());
+        $this->assertNotEquals(
+            $defaultOptions->getBeforeSendCallback(),
+            $beforeSendCallback,
+            'before_send closure has not been replaced, is the default one'
+        );
+        $this->assertEquals(
+            CallbackMock::createBeforeSendCallback(),
+            $beforeSendCallback
+        );
+    }
+
+    /**
+     * @dataProvider beforeSendDataProvider
+     */
+    public function testBeforeSendUsingScalarCallable($scalarCallable): void
+    {
+        $container = $this->getContainer([
+            'options' => [
+                    'before_send' => $scalarCallable,
+                ],
+        ]);
+
+        $beforeSendCallback = $this->getOptionsFrom($container)->getBeforeSendCallback();
+        $this->assertIsCallable($beforeSendCallback);
+        $defaultOptions = $this->getOptionsFrom($this->getContainer());
+        $this->assertNotEquals(
+            $defaultOptions->getBeforeSendCallback(),
+            $beforeSendCallback,
+            'before_send closure has not been replaced, is the default one'
+        );
+        $this->assertEquals(
+            $scalarCallable,
+            $beforeSendCallback
+        );
+    }
+
+    public function beforeSendDataProvider(): array
+    {
+        return [
+            [[CallbackMock::class, 'beforeSend']],
+            [CallbackMock::class . '::beforeSend'],
+            [__NAMESPACE__ . '\mockBeforeSend'],
+        ];
+    }
+
+    public function testBeforeSendWithInvalidServiceReference(): void
+    {
+        $container = $this->getContainer([
+            'options' => [
+                    'before_send' => '@event_dispatcher',
+                ],
+        ]);
+
+        $this->expectException(\TypeError::class);
+
+        $this->getOptionsFrom($container)->getBeforeSendCallback();
+    }
+
     private function getContainer(array $configuration = []): Container
     {
         $containerBuilder = new ContainerBuilder();
@@ -168,6 +240,10 @@ class SentryExtensionTest extends TestCase
         $containerBuilder->setAlias(self::REQUEST_LISTENER_TEST_PUBLIC_ALIAS, new Alias(RequestListener::class, true));
         $containerBuilder->setAlias(self::CONSOLE_LISTENER_TEST_PUBLIC_ALIAS, new Alias(ConsoleListener::class, true));
 
+        $beforeSend = new Definition('callable');
+        $beforeSend->setFactory([CallbackMock::class, 'createBeforeSendCallback']);
+        $containerBuilder->setDefinition('before_send', $beforeSend);
+
         $extension = new SentryExtension();
         $extension->load(['sentry' => $configuration], $containerBuilder);
 
@@ -184,5 +260,23 @@ class SentryExtensionTest extends TestCase
         $this->assertInstanceOf(Options::class, $options);
 
         return $options;
+    }
+}
+
+function mockBeforeSend(Event $event): ?Event
+{
+    return null;
+}
+
+class CallbackMock
+{
+    public static function beforeSend(Event $event): ?Event
+    {
+        return null;
+    }
+
+    public static function createBeforeSendCallback(): callable
+    {
+        return [new self(), 'beforeSend'];
     }
 }

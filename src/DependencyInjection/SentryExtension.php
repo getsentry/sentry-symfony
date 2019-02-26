@@ -10,6 +10,7 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
 /**
@@ -82,6 +83,17 @@ class SentryExtension extends Extension
         if (\array_key_exists('error_types', $processedOptions)) {
             $parsedValue = (new ErrorTypesParser($processedOptions['error_types']))->parse();
             $options->addMethodCall('setErrorTypes', [$parsedValue]);
+        }
+
+        if (\array_key_exists('before_send', $processedOptions)) {
+            $optionValue = $processedOptions['before_send'];
+            if (is_string($optionValue) && 0 === strpos($optionValue, '@')) {
+                $beforeSend = new Reference(substr($optionValue, 1));
+            } else {
+                $beforeSend = $optionValue;
+            }
+
+            $options->addMethodCall('setBeforeSendCallback', [$beforeSend]);
         }
     }
 }

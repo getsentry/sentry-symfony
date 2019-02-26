@@ -47,7 +47,12 @@ class Configuration implements ConfigurationInterface
             ->children()
             ->booleanNode('attach_stacktrace')->end()
             // TODO -- before_breadcrumb
-            // TODO -- before_send
+            ->variableNode('before_send')
+                ->validate()
+                    ->ifTrue($this->isNotAValidCallback())
+                    ->thenInvalid('Expecting callable or service reference, got %s')
+                ->end()
+            ->end()
             ->booleanNode('default_integrations')->end()
             ->integerNode('context_lines')
                 ->min(0)
@@ -136,5 +141,20 @@ class Configuration implements ConfigurationInterface
         }
 
         return '%kernel.root_dir%/..';
+    }
+
+    private function isNotAValidCallback(): \Closure
+    {
+        return function ($value): bool {
+            if (is_callable($value)) {
+                return false;
+            }
+
+            if (is_string($value) && 0 === strpos($value, '@')) {
+                return false;
+            }
+
+            return true;
+        };
     }
 }
