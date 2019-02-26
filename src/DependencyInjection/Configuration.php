@@ -83,7 +83,20 @@ class Configuration implements ConfigurationInterface
             ->end()
             ->scalarNode('http_proxy')
             ->end()
-            // TODO -- integrations
+            ->arrayNode('integrations')
+                ->prototype('scalar')
+                    ->validate()
+                        ->ifTrue(function ($value): bool {
+                            if (! is_string($value)) {
+                                return true;
+                            }
+
+                            return '@' !== substr($value, 0, 1);
+                        })
+                    ->thenInvalid('Expecting service reference, got %s')
+                    ->end()
+                ->end()
+            ->end()
             ->scalarNode('logger')
             ->end()
             ->integerNode('max_breadcrumbs')
