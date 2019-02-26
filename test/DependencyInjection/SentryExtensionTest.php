@@ -3,6 +3,7 @@
 namespace Sentry\SentryBundle\Test\DependencyInjection;
 
 use PHPUnit\Framework\TestCase;
+use Sentry\Breadcrumb;
 use Sentry\Event;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
@@ -89,6 +90,7 @@ class SentryExtensionTest extends TestCase
     {
         return [
             ['attach_stacktrace', true, 'shouldAttachStacktrace'],
+            ['before_breadcrumb', __NAMESPACE__ . '\mockBeforeBreadcrumb', 'getBeforeBreadcrumbCallback'],
             ['before_send', __NAMESPACE__ . '\mockBeforeSend', 'getBeforeSendCallback'],
             ['context_lines', 1],
             ['default_integrations', false, 'hasDefaultIntegrations'],
@@ -268,6 +270,11 @@ function mockBeforeSend(Event $event): ?Event
     return null;
 }
 
+function mockBeforeBreadcrumb(Breadcrumb $breadcrumb): ?Breadcrumb
+{
+    return null;
+}
+
 class CallbackMock
 {
     public static function beforeSend(Event $event): ?Event
@@ -278,5 +285,15 @@ class CallbackMock
     public static function createBeforeSendCallback(): callable
     {
         return [new self(), 'beforeSend'];
+    }
+
+    public static function beforeBreadcrumb(Breadcrumb $breadcrumb): ?Breadcrumb
+    {
+        return null;
+    }
+
+    public static function createBeforeBreadcrumbCallback(): callable
+    {
+        return [new self(), 'beforeBreadcrumb'];
     }
 }

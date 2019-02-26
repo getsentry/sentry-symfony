@@ -95,5 +95,16 @@ class SentryExtension extends Extension
 
             $options->addMethodCall('setBeforeSendCallback', [$beforeSend]);
         }
+
+        if (\array_key_exists('before_breadcrumb', $processedOptions)) {
+            $optionValue = $processedOptions['before_breadcrumb'];
+            if (is_string($optionValue) && 0 === strpos($optionValue, '@')) {
+                $beforeSend = new Reference(substr($optionValue, 1));
+            } else {
+                $beforeSend = $optionValue;
+            }
+
+            $options->addMethodCall('setBeforeBreadcrumbCallback', [$beforeSend]);
+        }
     }
 }
