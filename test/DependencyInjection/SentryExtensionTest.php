@@ -211,6 +211,19 @@ class SentryExtensionTest extends TestCase
         ];
     }
 
+    public function testBeforeSendWithInvalidServiceReference(): void
+    {
+        $container = $this->getContainer([
+            'options' => [
+                    'before_send' => '@event_dispatcher',
+                ],
+        ]);
+
+        $this->expectException(\TypeError::class);
+
+        $this->getOptionsFrom($container)->getBeforeSendCallback();
+    }
+
     private function getContainer(array $configuration = []): Container
     {
         $containerBuilder = new ContainerBuilder();
