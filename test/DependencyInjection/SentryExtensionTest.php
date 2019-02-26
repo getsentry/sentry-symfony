@@ -49,7 +49,23 @@ class SentryExtensionTest extends TestCase
         $this->assertSame(['var/cache', $vendorDir], $options->getInAppExcludedPaths());
 
         $this->assertSame(1, $container->getParameter('sentry.listener_priorities.request'));
+        $this->assertSame(1, $container->getParameter('sentry.listener_priorities.sub_request'));
         $this->assertSame(1, $container->getParameter('sentry.listener_priorities.console'));
+    }
+
+    public function testListenerPriorities(): void
+    {
+        $container = $this->getContainer([
+            'listener_priorities' => [
+                'request' => 123,
+                'sub_request' => 456,
+                'console' => 789,
+            ],
+        ]);
+
+        $this->assertSame(123, $container->getParameter('sentry.listener_priorities.request'));
+        $this->assertSame(456, $container->getParameter('sentry.listener_priorities.sub_request'));
+        $this->assertSame(789, $container->getParameter('sentry.listener_priorities.console'));
     }
 
     /**
