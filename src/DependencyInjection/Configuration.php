@@ -46,7 +46,12 @@ class Configuration implements ConfigurationInterface
         $optionsNode
             ->children()
             ->booleanNode('attach_stacktrace')->end()
-            // TODO -- before_breadcrumb
+            ->variableNode('before_breadcrumb')
+                ->validate()
+                    ->ifTrue($this->isNotAValidCallback())
+                    ->thenInvalid('Expecting callable or service reference, got %s')
+                ->end()
+            ->end()
             ->variableNode('before_send')
                 ->validate()
                     ->ifTrue($this->isNotAValidCallback())
