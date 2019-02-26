@@ -9,6 +9,7 @@ use Sentry\SentryBundle\SentryBundle;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
@@ -86,25 +87,27 @@ class SentryExtension extends Extension
         }
 
         if (\array_key_exists('before_send', $processedOptions)) {
-            $optionValue = $processedOptions['before_send'];
-            if (is_string($optionValue) && 0 === strpos($optionValue, '@')) {
-                $beforeSend = new Reference(substr($optionValue, 1));
-            } else {
-                $beforeSend = $optionValue;
-            }
-
-            $options->addMethodCall('setBeforeSendCallback', [$beforeSend]);
+            $this->mapCallableValue($options, 'setBeforeSendCallback', $processedOptions['before_send']);
         }
 
         if (\array_key_exists('before_breadcrumb', $processedOptions)) {
-            $optionValue = $processedOptions['before_breadcrumb'];
-            if (is_string($optionValue) && 0 === strpos($optionValue, '@')) {
-                $beforeSend = new Reference(substr($optionValue, 1));
-            } else {
-                $beforeSend = $optionValue;
-            }
-
-            $options->addMethodCall('setBeforeBreadcrumbCallback', [$beforeSend]);
+            $this->mapCallableValue($options, 'setBeforeBreadcrumbCallback', $processedOptions['before_breadcrumb']);
         }
+    }
+
+    /**
+     * @param Definition $options
+     * @param string $method
+     * @param callable|string $optionValue
+     */
+    private function mapCallableValue(Definition $options, string $method, $optionValue): void
+    {
+        if (is_string($optionValue) && 0 === strpos($optionValue, '@')) {
+            $beforeSend = new Reference(substr($optionValue, 1));
+        } else {
+            $beforeSend = $optionValue;
+        }
+
+        $options->addMethodCall($method, [$beforeSend]);
     }
 }
