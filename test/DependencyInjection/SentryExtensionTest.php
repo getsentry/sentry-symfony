@@ -157,9 +157,6 @@ class SentryExtensionTest extends TestCase
                 ],
         ]);
 
-        $container->set('before_send', function (Event $event) {
-        });
-
         $beforeSendCallback = $this->getOptionsFrom($container)->getBeforeSendCallback();
         $this->assertIsCallable($beforeSendCallback);
         $defaultOptions = $this->getOptionsFrom($this->getContainer());
@@ -184,9 +181,6 @@ class SentryExtensionTest extends TestCase
                     'before_send' => $scalarCallable,
                 ],
         ]);
-
-        $container->set('before_send', function (Event $event) {
-        });
 
         $beforeSendCallback = $this->getOptionsFrom($container)->getBeforeSendCallback();
         $this->assertIsCallable($beforeSendCallback);
