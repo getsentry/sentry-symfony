@@ -155,7 +155,7 @@ class SentryExtensionTest extends TestCase
     {
         $container = $this->getContainer([
             'options' => [
-                    'before_send' => '@before_send',
+                    'before_send' => '@callable_mock',
                 ],
         ]);
 
@@ -168,13 +168,13 @@ class SentryExtensionTest extends TestCase
             'before_send closure has not been replaced, is the default one'
         );
         $this->assertEquals(
-            CallbackMock::createBeforeSendCallback(),
+            CallbackMock::createCallback(),
             $beforeSendCallback
         );
     }
 
     /**
-     * @dataProvider beforeSendDataProvider
+     * @dataProvider scalarCallableDataProvider
      */
     public function testBeforeSendUsingScalarCallable($scalarCallable): void
     {
@@ -198,15 +198,6 @@ class SentryExtensionTest extends TestCase
         );
     }
 
-    public function beforeSendDataProvider(): array
-    {
-        return [
-            [[CallbackMock::class, 'beforeSend']],
-            [CallbackMock::class . '::beforeSend'],
-            [__NAMESPACE__ . '\mockBeforeSend'],
-        ];
-    }
-
     public function testBeforeSendWithInvalidServiceReference(): void
     {
         $container = $this->getContainer([
@@ -224,12 +215,9 @@ class SentryExtensionTest extends TestCase
     {
         $container = $this->getContainer([
             'options' => [
-                    'before_breadcrumb' => '@before_breadcrumb',
+                    'before_breadcrumb' => '@callable_mock',
                 ],
         ]);
-
-        $container->set('before_breadcrumb', function (Event $event) {
-        });
 
         $beforeBreadcrumbCallback = $this->getOptionsFrom($container)->getBeforeBreadcrumbCallback();
         $this->assertIsCallable($beforeBreadcrumbCallback);
@@ -240,13 +228,13 @@ class SentryExtensionTest extends TestCase
             'before_breadcrumb closure has not been replaced, is the default one'
         );
         $this->assertEquals(
-            CallbackMock::createBeforeBreadcrumbCallback(),
+            CallbackMock::createCallback(),
             $beforeBreadcrumbCallback
         );
     }
 
     /**
-     * @dataProvider beforeBreadcrumbDataProvider
+     * @dataProvider scalarCallableDataProvider
      */
     public function testBeforeBreadcrumbUsingScalarCallable($scalarCallable): void
     {
@@ -255,9 +243,6 @@ class SentryExtensionTest extends TestCase
                     'before_breadcrumb' => $scalarCallable,
                 ],
         ]);
-
-        $container->set('before_breadcrumb', function (Event $event) {
-        });
 
         $beforeBreadcrumbCallback = $this->getOptionsFrom($container)->getBeforeBreadcrumbCallback();
         $this->assertIsCallable($beforeBreadcrumbCallback);
@@ -273,12 +258,12 @@ class SentryExtensionTest extends TestCase
         );
     }
 
-    public function beforeBreadcrumbDataProvider(): array
+    public function scalarCallableDataProvider(): array
     {
         return [
-            [[CallbackMock::class, 'beforeBreadcrumb']],
-            [CallbackMock::class . '::beforeBreadcrumb'],
-            [__NAMESPACE__ . '\mockBeforeBreadcrumb'],
+            [[CallbackMock::class, 'callback']],
+            [CallbackMock::class . '::callback'],
+            [__NAMESPACE__ . '\mockBeforeSend'],
         ];
     }
 
@@ -318,12 +303,8 @@ class SentryExtensionTest extends TestCase
         $containerBuilder->setAlias(self::CONSOLE_LISTENER_TEST_PUBLIC_ALIAS, new Alias(ConsoleListener::class, true));
 
         $beforeSend = new Definition('callable');
-        $beforeSend->setFactory([CallbackMock::class, 'createBeforeSendCallback']);
-        $containerBuilder->setDefinition('before_send', $beforeSend);
-
-        $beforeBreadcrumb = new Definition('callable');
-        $beforeBreadcrumb->setFactory([CallbackMock::class, 'createBeforeBreadcrumbCallback']);
-        $containerBuilder->setDefinition('before_breadcrumb', $beforeBreadcrumb);
+        $beforeSend->setFactory([CallbackMock::class, 'createCallback']);
+        $containerBuilder->setDefinition('callable_mock', $beforeSend);
 
         $extension = new SentryExtension();
         $extension->load(['sentry' => $configuration], $containerBuilder);
@@ -356,23 +337,13 @@ function mockBeforeBreadcrumb(Breadcrumb $breadcrumb): ?Breadcrumb
 
 class CallbackMock
 {
-    public static function beforeSend(Event $event): ?Event
+    public static function callback()
     {
         return null;
     }
 
-    public static function createBeforeSendCallback(): callable
+    public static function createCallback(): callable
     {
-        return [new self(), 'beforeSend'];
-    }
-
-    public static function beforeBreadcrumb(Breadcrumb $breadcrumb): ?Breadcrumb
-    {
-        return null;
-    }
-
-    public static function createBeforeBreadcrumbCallback(): callable
-    {
-        return [new self(), 'beforeBreadcrumb'];
+        return [new self(), 'callback'];
     }
 }
