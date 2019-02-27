@@ -18,7 +18,7 @@ final class ConsoleListener
      */
     public function __construct(HubInterface $hub)
     {
-        $this->hub = $hub; // not used, needed to trigger instantiation
+        $this->hub = $hub;
     }
 
     /**
@@ -33,7 +33,7 @@ final class ConsoleListener
     {
         $command = $event->getCommand();
 
-        Hub::getCurrent()
+        $this->hub
             ->configureScope(function (Scope $scope) use ($command): void {
                 $scope->setTag('command', $command ? $command->getName() : 'N/A');
             });

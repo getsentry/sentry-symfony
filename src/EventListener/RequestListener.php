@@ -71,7 +71,7 @@ final class RequestListener
 
         $userData['ip_address'] = $event->getRequest()->getClientIp();
 
-        Hub::getCurrent()
+        $this->hub
             ->configureScope(function (Scope $scope) use ($userData): void {
                 $scope->setUser($userData);
             });
@@ -85,7 +85,7 @@ final class RequestListener
 
         $matchedRoute = $event->getRequest()->attributes->get('_route');
 
-        Hub::getCurrent()
+        $this->hub
             ->configureScope(function (Scope $scope) use ($matchedRoute): void {
                 $scope->setTag('route', $matchedRoute);
             });
