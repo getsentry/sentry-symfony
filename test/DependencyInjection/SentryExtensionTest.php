@@ -104,6 +104,7 @@ class SentryExtensionTest extends TestCase
             ['http_proxy', '1.2.3.4'],
             ['logger', 'sentry-logger'],
             ['max_breadcrumbs', 15],
+            ['max_value_length', 1000],
             ['prefixes', ['/some/path/prefix/']],
             ['project_root', '/some/project/'],
             ['release', 'abc0123'],

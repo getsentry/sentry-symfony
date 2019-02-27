@@ -60,6 +60,7 @@ class SentryExtension extends Extension
             'http_proxy',
             'logger',
             'max_breadcrumbs',
+            'max_value_length',
             'prefixes',
             'project_root',
             'release',
