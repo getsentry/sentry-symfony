@@ -53,6 +53,9 @@ class Configuration implements ConfigurationInterface
             ->validate()
             ->ifTrue($this->isNotAValidCallback())
             ->thenInvalid('Expecting callable or service reference, got %s');
+        if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
+            $optionsChildNodes->booleanNode('capture_silenced_errors');
+        }
         $optionsChildNodes->integerNode('context_lines')
             ->min(0)
             ->max(99);

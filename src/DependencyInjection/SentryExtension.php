@@ -52,6 +52,7 @@ class SentryExtension extends Extension
         $processedOptions = $processedConfiguration['options'];
         $mappableOptions = [
             'attach_stacktrace',
+            'capture_silenced_errors',
             'context_lines',
             'default_integrations',
             'enable_compression',
