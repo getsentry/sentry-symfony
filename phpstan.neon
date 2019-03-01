@@ -5,8 +5,7 @@ parameters:
         - test/
     ignoreErrors:
          - "/Call to function method_exists.. with 'Symfony.+' and 'getProjectDir' will always evaluate to false./"
-    excludes_analyse:
-         - '%currentWorkingDirectory%/src/DependencyInjection/Configuration.php'
+         - "/Call to function method_exists.. with 'Symfony.+' and 'getRootNode' will always evaluate to false./"
 
 includes:
 	- vendor/jangregor/phpstan-prophecy/src/extension.neon
