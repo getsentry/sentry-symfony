@@ -54,6 +54,11 @@ final class RequestListener
             return;
         }
 
+        $currentClient = Hub::getCurrent()->getClient();
+        if (null === $currentClient || ! $currentClient->getOptions()->shouldSendDefaultPii()) {
+            return;
+        }
+
         $token = null;
 
         if ($this->tokenStorage instanceof TokenStorageInterface) {
