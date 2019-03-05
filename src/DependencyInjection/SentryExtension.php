@@ -52,6 +52,7 @@ class SentryExtension extends Extension
         $processedOptions = $processedConfiguration['options'];
         $mappableOptions = [
             'attach_stacktrace',
+            'capture_silenced_errors',
             'context_lines',
             'default_integrations',
             'enable_compression',
@@ -60,6 +61,7 @@ class SentryExtension extends Extension
             'http_proxy',
             'logger',
             'max_breadcrumbs',
+            'max_value_length',
             'prefixes',
             'project_root',
             'release',
@@ -92,6 +94,15 @@ class SentryExtension extends Extension
 
         if (\array_key_exists('before_breadcrumb', $processedOptions)) {
             $this->mapCallableValue($options, 'setBeforeBreadcrumbCallback', $processedOptions['before_breadcrumb']);
+        }
+
+        if (\array_key_exists('integrations', $processedOptions)) {
+            $integrations = [];
+            foreach ($processedOptions['integrations'] as $integrationName) {
+                $integrations[] = new Reference(substr($integrationName, 1));
+            }
+
+            $options->addMethodCall('setIntegrations', [$integrations]);
         }
     }
 

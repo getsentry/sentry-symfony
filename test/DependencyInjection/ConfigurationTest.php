@@ -2,6 +2,7 @@
 
 namespace Sentry\SentryBundle\Test\DependencyInjection;
 
+use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
@@ -11,15 +12,21 @@ use Symfony\Component\HttpKernel\Kernel;
 
 class ConfigurationTest extends TestCase
 {
-    public const SUPPORTED_SENTRY_OPTIONS_COUNT = 21;
+    public const SUPPORTED_SENTRY_OPTIONS_COUNT = 23;
 
     public function testDataProviderIsMappingTheRightNumberOfOptions(): void
     {
         $providerData = $this->optionValuesProvider();
         $supportedOptions = \array_unique(\array_column($providerData, 0));
 
+        $expectedCount = self::SUPPORTED_SENTRY_OPTIONS_COUNT;
+
+        if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
+            ++$expectedCount;
+        }
+
         $this->assertCount(
-            self::SUPPORTED_SENTRY_OPTIONS_COUNT,
+            $expectedCount,
             $supportedOptions,
             'Provider for configuration options mismatch: ' . PHP_EOL . print_r($supportedOptions, true)
         );
@@ -54,6 +61,7 @@ class ConfigurationTest extends TestCase
                     '%kernel.cache_dir%',
                     '%kernel.root_dir%/../vendor',
                 ],
+                'integrations' => $defaultSdkValues->getIntegrations(),
                 'excluded_exceptions' => $defaultSdkValues->getExcludedExceptions(),
                 'prefixes' => $defaultSdkValues->getPrefixes(),
                 'project_root' => '%kernel.root_dir%/..',
@@ -83,7 +91,7 @@ class ConfigurationTest extends TestCase
 
     public function optionValuesProvider(): array
     {
-        return [
+        $options = [
             ['attach_stacktrace', true],
             ['before_breadcrumb', 'count'],
             ['before_send', 'count'],
@@ -96,9 +104,11 @@ class ConfigurationTest extends TestCase
             ['error_types', E_ALL],
             ['http_proxy', '1.2.3.4:5678'],
             ['in_app_exclude', ['some/path']],
+            ['integrations', []],
             ['excluded_exceptions', [\Throwable::class]],
             ['logger', 'some-logger'],
             ['max_breadcrumbs', 15],
+            ['max_value_length', 1000],
             ['prefixes', ['some-string']],
             ['project_root', '/some/dir'],
             ['release', 'abc0123'],
@@ -110,6 +120,12 @@ class ConfigurationTest extends TestCase
             ['server_name', 'server001.example.com'],
             ['tags', ['tag-name' => 'value']],
         ];
+
+        if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
+            $options[] = ['capture_silenced_errors', true];
+        }
+
+        return $options;
     }
 
     /**
@@ -144,12 +160,16 @@ class ConfigurationTest extends TestCase
             ['enable_compression', 'string'],
             ['environment', ''],
             ['error_types', []],
+            ['excluded_exceptions', 'some-string'],
             ['http_proxy', []],
             ['in_app_exclude', 'some/single/path'],
-            ['excluded_exceptions', 'some-string'],
+            ['integrations', [1]],
+            ['integrations', 'a string'],
             ['logger', []],
             ['max_breadcrumbs', -1],
             ['max_breadcrumbs', 'string'],
+            ['max_value_length', -1],
+            ['max_value_length', []],
             ['prefixes', 'string'],
             ['project_root', []],
             ['release', []],
