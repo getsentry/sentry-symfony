@@ -4,6 +4,8 @@ namespace Sentry\SentryBundle\Test\EventListener;
 
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use Sentry\ClientInterface;
+use Sentry\Options;
 use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\State\Hub;
 use Sentry\State\HubInterface;
@@ -21,6 +23,7 @@ class RequestListenerTest extends TestCase
 {
     private $currentScope;
     private $currentHub;
+    private $options;
 
     protected function setUp()
     {
@@ -28,6 +31,16 @@ class RequestListenerTest extends TestCase
 
         $this->currentScope = $scope = new Scope();
         $this->currentHub = $this->prophesize(HubInterface::class);
+
+        $client = $this->prophesize(ClientInterface::class);
+        $this->options = new Options();
+
+        $this->currentHub->getClient()
+            ->willReturn($client->reveal());
+        $client->getOptions()
+            ->willReturn($this->options);
+        $this->options->setSendDefaultPii(true);
+
         $this->currentHub->configureScope(Argument::type('callable'))
             ->shouldBeCalled()
             ->will(function ($arguments) use ($scope): void {
@@ -94,6 +107,56 @@ class RequestListenerTest extends TestCase
 
         yield [$userInterface->reveal()];
         yield [new ToStringUser('john-doe')];
+    }
+
+    public function testOnKernelRequestUserDataIsNotSetIfSendPiiIsDisabled(): void
+    {
+        $tokenStorage = $this->prophesize(TokenStorageInterface::class);
+        $authorizationChecker = $this->prophesize(AuthorizationCheckerInterface::class);
+        $event = $this->prophesize(GetResponseEvent::class);
+
+        $event->isMasterRequest()
+            ->willReturn(true);
+
+        $this->options->setSendDefaultPii(false);
+
+        $this->currentHub->configureScope(Argument::type('callable'))
+            ->shouldNotBeCalled();
+
+        $listener = new RequestListener(
+            $this->currentHub->reveal(),
+            $tokenStorage->reveal(),
+            $authorizationChecker->reveal()
+        );
+
+        $listener->onKernelRequest($event->reveal());
+
+        $this->assertEquals([], $this->currentScope->getUser());
+    }
+
+    public function testOnKernelRequestUserDataIsNotSetIfNoClientIsPresent(): void
+    {
+        $tokenStorage = $this->prophesize(TokenStorageInterface::class);
+        $authorizationChecker = $this->prophesize(AuthorizationCheckerInterface::class);
+        $event = $this->prophesize(GetResponseEvent::class);
+
+        $event->isMasterRequest()
+            ->willReturn(true);
+
+        $this->currentHub->getClient()
+            ->willReturn(null);
+        $this->currentHub->configureScope(Argument::type('callable'))
+            ->shouldNotBeCalled();
+
+        $listener = new RequestListener(
+            $this->currentHub->reveal(),
+            $tokenStorage->reveal(),
+            $authorizationChecker->reveal()
+        );
+
+        $listener->onKernelRequest($event->reveal());
+
+        $this->assertEquals([], $this->currentScope->getUser());
     }
 
     public function testOnKernelRequestUsernameIsNotSetIfTokenStorageIsAbsent(): void
