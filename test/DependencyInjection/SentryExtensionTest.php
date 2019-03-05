@@ -2,6 +2,7 @@
 
 namespace Sentry\SentryBundle\Test\DependencyInjection;
 
+use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Sentry\Breadcrumb;
 use Sentry\Event;
@@ -30,8 +31,14 @@ class SentryExtensionTest extends TestCase
         $supportedOptions = \array_unique(\array_column($providerData, 0));
 
         // subtracted one is `integration`, which cannot be tested with the provider
+        $expectedCount = ConfigurationTest::SUPPORTED_SENTRY_OPTIONS_COUNT - 1;
+
+        if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
+            ++$expectedCount;
+        }
+
         $this->assertCount(
-            ConfigurationTest::SUPPORTED_SENTRY_OPTIONS_COUNT - 1,
+            $expectedCount,
             $supportedOptions,
             'Provider for configuration options mismatch: ' . PHP_EOL . print_r($supportedOptions, true)
         );
@@ -90,7 +97,7 @@ class SentryExtensionTest extends TestCase
 
     public function optionsValueProvider(): array
     {
-        return [
+        $options = [
             ['attach_stacktrace', true, 'shouldAttachStacktrace'],
             ['before_breadcrumb', __NAMESPACE__ . '\mockBeforeBreadcrumb', 'getBeforeBreadcrumbCallback'],
             ['before_send', __NAMESPACE__ . '\mockBeforeSend', 'getBeforeSendCallback'],
@@ -114,6 +121,12 @@ class SentryExtensionTest extends TestCase
             ['server_name', 'server.example.com'],
             ['tags', ['tag-name' => 'tag-value']],
         ];
+
+        if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
+            $options[] = ['capture_silenced_errors', true, 'shouldCaptureSilencedErrors'];
+        }
+
+        return $options;
     }
 
     public function testErrorTypesAreParsed(): void

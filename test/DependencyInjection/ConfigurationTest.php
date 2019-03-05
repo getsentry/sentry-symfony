@@ -2,6 +2,7 @@
 
 namespace Sentry\SentryBundle\Test\DependencyInjection;
 
+use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
@@ -18,8 +19,14 @@ class ConfigurationTest extends TestCase
         $providerData = $this->optionValuesProvider();
         $supportedOptions = \array_unique(\array_column($providerData, 0));
 
+        $expectedCount = self::SUPPORTED_SENTRY_OPTIONS_COUNT;
+
+        if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
+            ++$expectedCount;
+        }
+
         $this->assertCount(
-            self::SUPPORTED_SENTRY_OPTIONS_COUNT,
+            $expectedCount,
             $supportedOptions,
             'Provider for configuration options mismatch: ' . PHP_EOL . print_r($supportedOptions, true)
         );
@@ -83,7 +90,7 @@ class ConfigurationTest extends TestCase
 
     public function optionValuesProvider(): array
     {
-        return [
+        $options = [
             ['attach_stacktrace', true],
             ['before_breadcrumb', 'count'],
             ['before_send', 'count'],
@@ -112,6 +119,12 @@ class ConfigurationTest extends TestCase
             ['server_name', 'server001.example.com'],
             ['tags', ['tag-name' => 'value']],
         ];
+
+        if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
+            $options[] = ['capture_silenced_errors', true];
+        }
+
+        return $options;
     }
 
     /**
