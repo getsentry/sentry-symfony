@@ -52,6 +52,7 @@ class ConfigurationTest extends TestCase
             'dsn' => null,
             'listener_priorities' => [
                 'request' => 1,
+                'sub_request' => 1,
                 'console' => 1,
             ],
             'options' => [

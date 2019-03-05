@@ -116,6 +116,8 @@ class Configuration implements ConfigurationInterface
             ->children();
         $listenerPriorities->scalarNode('request')
             ->defaultValue(1);
+        $listenerPriorities->scalarNode('sub_request')
+            ->defaultValue(1);
         $listenerPriorities->scalarNode('console')
             ->defaultValue(1);
 

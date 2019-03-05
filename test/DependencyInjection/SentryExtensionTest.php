@@ -9,8 +9,6 @@ use Sentry\Event;
 use Sentry\Integration\IntegrationInterface;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
-use Sentry\SentryBundle\EventListener\ConsoleListener;
-use Sentry\SentryBundle\EventListener\RequestListener;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -21,8 +19,6 @@ use Symfony\Component\HttpKernel\Kernel;
 
 class SentryExtensionTest extends TestCase
 {
-    private const REQUEST_LISTENER_TEST_PUBLIC_ALIAS = 'sentry.request_listener.public_alias';
-    private const CONSOLE_LISTENER_TEST_PUBLIC_ALIAS = 'sentry.console_listener.public_alias';
     private const OPTIONS_TEST_PUBLIC_ALIAS = 'sentry.options.public_alias';
 
     public function testDataProviderIsMappingTheRightNumberOfOptions(): void
@@ -62,7 +58,23 @@ class SentryExtensionTest extends TestCase
         $this->assertSame(['var/cache', $vendorDir], $options->getInAppExcludedPaths());
 
         $this->assertSame(1, $container->getParameter('sentry.listener_priorities.request'));
+        $this->assertSame(1, $container->getParameter('sentry.listener_priorities.sub_request'));
         $this->assertSame(1, $container->getParameter('sentry.listener_priorities.console'));
+    }
+
+    public function testListenerPriorities(): void
+    {
+        $container = $this->getContainer([
+            'listener_priorities' => [
+                'request' => 123,
+                'sub_request' => 456,
+                'console' => 789,
+            ],
+        ]);
+
+        $this->assertSame(123, $container->getParameter('sentry.listener_priorities.request'));
+        $this->assertSame(456, $container->getParameter('sentry.listener_priorities.sub_request'));
+        $this->assertSame(789, $container->getParameter('sentry.listener_priorities.console'));
     }
 
     /**
@@ -326,8 +338,6 @@ class SentryExtensionTest extends TestCase
         $containerBuilder->set('request_stack', $mockRequestStack);
         $containerBuilder->set('event_dispatcher', $mockEventDispatcher);
         $containerBuilder->setAlias(self::OPTIONS_TEST_PUBLIC_ALIAS, new Alias(Options::class, true));
-        $containerBuilder->setAlias(self::REQUEST_LISTENER_TEST_PUBLIC_ALIAS, new Alias(RequestListener::class, true));
-        $containerBuilder->setAlias(self::CONSOLE_LISTENER_TEST_PUBLIC_ALIAS, new Alias(ConsoleListener::class, true));
 
         $beforeSend = new Definition('callable');
         $beforeSend->setFactory([CallbackMock::class, 'createCallback']);

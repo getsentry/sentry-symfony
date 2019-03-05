@@ -6,9 +6,12 @@ use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\RequestListener;
+use Sentry\SentryBundle\EventListener\SubRequestListener;
+use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\HttpKernel\KernelEvents;
 
 class SentryBundleTest extends TestCase
 {
@@ -21,7 +24,7 @@ class SentryBundleTest extends TestCase
         $expectedTag = [
             'kernel.event_listener' => [
                 [
-                    'event' => 'console.command',
+                    'event' => ConsoleEvents::COMMAND,
                     'method' => 'onConsoleCommand',
                     'priority' => '%sentry.listener_priorities.console%',
                 ],
@@ -40,14 +43,38 @@ class SentryBundleTest extends TestCase
         $expectedTag = [
             'kernel.event_listener' => [
                 [
-                    'event' => 'kernel.request',
+                    'event' => KernelEvents::REQUEST,
                     'method' => 'onKernelRequest',
                     'priority' => '%sentry.listener_priorities.request%',
                 ],
                 [
-                    'event' => 'kernel.controller',
+                    'event' => KernelEvents::CONTROLLER,
                     'method' => 'onKernelController',
                     'priority' => '%sentry.listener_priorities.request%',
+                ],
+            ],
+        ];
+
+        $this->assertSame($expectedTag, $consoleListener->getTags());
+    }
+
+    public function testContainerHasSubRequestListenerConfiguredCorrectly(): void
+    {
+        $container = $this->getContainer();
+
+        $consoleListener = $container->getDefinition(SubRequestListener::class);
+
+        $expectedTag = [
+            'kernel.event_listener' => [
+                [
+                    'event' => KernelEvents::REQUEST,
+                    'method' => 'onKernelRequest',
+                    'priority' => '%sentry.listener_priorities.sub_request%',
+                ],
+                [
+                    'event' => KernelEvents::FINISH_REQUEST,
+                    'method' => 'onKernelFinishRequest',
+                    'priority' => '%sentry.listener_priorities.sub_request%',
                 ],
             ],
         ];
