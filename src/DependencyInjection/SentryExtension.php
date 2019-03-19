@@ -6,7 +6,6 @@ use Sentry\ClientBuilderInterface;
 use Sentry\Options;
 use Sentry\SentryBundle\ErrorTypesParser;
 use Sentry\SentryBundle\EventListener\ErrorListener;
-use Sentry\SentryBundle\SentryBundle;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\ConsoleEvents;
@@ -38,8 +37,7 @@ class SentryExtension extends Extension
         $this->passConfigurationToOptions($container, $processedConfiguration);
 
         $container->getDefinition(ClientBuilderInterface::class)
-            ->addMethodCall('setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER])
-            ->addMethodCall('setSdkVersion', [SentryBundle::getSdkVersion()]);
+            ->setConfigurator([ClientBuilderConfigurator::class, 'configure']);
 
         foreach ($processedConfiguration['listener_priorities'] as $key => $priority) {
             $container->setParameter('sentry.listener_priorities.' . $key, $priority);
