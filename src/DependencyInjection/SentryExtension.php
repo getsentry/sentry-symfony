@@ -5,9 +5,11 @@ namespace Sentry\SentryBundle\DependencyInjection;
 use Sentry\ClientBuilderInterface;
 use Sentry\Options;
 use Sentry\SentryBundle\ErrorTypesParser;
+use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\SentryBundle;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader;
@@ -42,6 +44,8 @@ class SentryExtension extends Extension
         foreach ($processedConfiguration['listener_priorities'] as $key => $priority) {
             $container->setParameter('sentry.listener_priorities.' . $key, $priority);
         }
+
+        $this->tagConsoleErrorListener($container);
     }
 
     private function passConfigurationToOptions(ContainerBuilder $container, array $processedConfiguration): void
@@ -120,5 +124,25 @@ class SentryExtension extends Extension
         }
 
         $options->addMethodCall($method, [$beforeSend]);
+    }
+
+    /**
+     * BC layer for Symfony < 3.3; see https://symfony.com/blog/new-in-symfony-3-3-better-handling-of-command-exceptions
+     */
+    private function tagConsoleErrorListener(ContainerBuilder $container): void
+    {
+        $listener = $container->getDefinition(ErrorListener::class);
+        $tagAttributes = [
+            'event' => ConsoleEvents::ERROR,
+            'method' => 'onConsoleError',
+            'priority' => $container->getParameter('sentry.listener_priorities.console_error'),
+        ];
+
+        if (! class_exists('Symfony\Component\Console\Event\ConsoleErrorEvent')) {
+            $tagAttributes['event'] = ConsoleEvents::EXCEPTION;
+            $tagAttributes['method'] = 'onConsoleException';
+        }
+
+        $listener->addTag('kernel.event_listener', $tagAttributes);
     }
 }
