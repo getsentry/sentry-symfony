@@ -5,6 +5,7 @@ namespace Sentry\SentryBundle\Test;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
+use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
 use Symfony\Component\Console\ConsoleEvents;
@@ -78,6 +79,39 @@ class SentryBundleTest extends TestCase
                 ],
             ],
         ];
+
+        $this->assertSame($expectedTag, $consoleListener->getTags());
+    }
+
+    public function testContainerHasErrorListenerConfiguredCorrectly(): void
+    {
+        $container = $this->getContainer();
+
+        $consoleListener = $container->getDefinition(ErrorListener::class);
+
+        $expectedTag = [
+            'kernel.event_listener' => [
+                [
+                    'event' => KernelEvents::EXCEPTION,
+                    'method' => 'onKernelException',
+                    'priority' => '%sentry.listener_priorities.request_error%',
+                ],
+            ],
+        ];
+
+        if (class_exists('Symfony\Component\Console\Event\ConsoleErrorEvent')) {
+            $expectedTag['kernel.event_listener'][] = [
+                'event' => ConsoleEvents::ERROR,
+                'method' => 'onConsoleError',
+                'priority' => '%sentry.listener_priorities.console_error%',
+            ];
+        } else {
+            $expectedTag['kernel.event_listener'][] = [
+                'event' => ConsoleEvents::EXCEPTION,
+                'method' => 'onConsoleException',
+                'priority' => '%sentry.listener_priorities.console_error%',
+            ];
+        }
 
         $this->assertSame($expectedTag, $consoleListener->getTags());
     }

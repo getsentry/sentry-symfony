@@ -130,15 +130,19 @@ class SentryExtension extends Extension
     private function tagConsoleErrorListener(ContainerBuilder $container): void
     {
         $listener = $container->getDefinition(ErrorListener::class);
-        $tagAttributes = [
-            'event' => ConsoleEvents::ERROR,
-            'method' => 'onConsoleError',
-            'priority' => $container->getParameter('sentry.listener_priorities.console_error'),
-        ];
 
-        if (! class_exists('Symfony\Component\Console\Event\ConsoleErrorEvent')) {
-            $tagAttributes['event'] = ConsoleEvents::EXCEPTION;
-            $tagAttributes['method'] = 'onConsoleException';
+        if (class_exists('Symfony\Component\Console\Event\ConsoleErrorEvent')) {
+            $tagAttributes = [
+                'event' => ConsoleEvents::ERROR,
+                'method' => 'onConsoleError',
+                'priority' => '%sentry.listener_priorities.console_error%',
+            ];
+        } else {
+            $tagAttributes = [
+                'event' => ConsoleEvents::EXCEPTION,
+                'method' => 'onConsoleException',
+                'priority' => '%sentry.listener_priorities.console_error%',
+            ];
         }
 
         $listener->addTag('kernel.event_listener', $tagAttributes);

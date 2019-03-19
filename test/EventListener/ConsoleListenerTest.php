@@ -2,6 +2,7 @@
 
 namespace Sentry\SentryBundle\Test\EventListener;
 
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\State\Hub;
@@ -10,7 +11,7 @@ use Sentry\State\Scope;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 
-class ConsoleListenerTest extends \PHPUnit\Framework\TestCase
+class ConsoleListenerTest extends TestCase
 {
     private $currentHub;
     private $currentScope;
