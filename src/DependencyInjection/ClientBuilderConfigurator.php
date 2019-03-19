@@ -21,7 +21,7 @@ class ClientBuilderConfigurator
         }
 
         $integrations = $options->getIntegrations();
-        $options->setIntegrations(array_filter($integrations, function (IntegrationInterface $integration) {
+        $options->setIntegrations(array_filter($integrations, static function (IntegrationInterface $integration): bool {
             if ($integration instanceof ErrorListenerIntegration) {
                 return false;
             }
