@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+ - Disable Sentry's ErrorHandler, and report all errors using Symfony's events (#204)
 
 ## 3.0.0-beta1 - 2019-03-06
 The 3.0 major release has multiple breaking changes. The most notable one is the upgrade to the 2.0 base SDK client.
