@@ -54,6 +54,8 @@ class ConfigurationTest extends TestCase
                 'request' => 1,
                 'sub_request' => 1,
                 'console' => 1,
+                'request_error' => 128,
+                'console_error' => 128,
             ],
             'options' => [
                 'environment' => '%kernel.environment%',

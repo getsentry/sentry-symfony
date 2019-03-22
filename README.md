@@ -11,9 +11,7 @@ Symfony integration for [Sentry](https://getsentry.com/).
 
 ## Notice 3.0
 > The current master branch contains the 3.0 version of this bundle, which is currently under development. This version
-> will support the newest 2.0 version of the underlying Sentry SDK version.
->
-> A beta version will be tagged as soon as possible, in the meantime you can continue to use the previous versions.
+> will support the newest 2.0 version of the underlying Sentry SDK version. A beta version is already available.
 > 
 > To know more about the progress of this version see [the relative milestone](https://github.com/getsentry/sentry-symfony/milestone/3)
 
@@ -22,14 +20,12 @@ Symfony integration for [Sentry](https://getsentry.com/).
 Use sentry-symfony for:
 
  * A fast sentry setup
- * Access to the `sentry.client` through the container
+ * Easy configuration in your Symfony app
  * Automatic wiring in your app. Each event has the following things added automatically to it:
    - user
    - Symfony environment
    - app path
-   - hostname
    - excluded paths (cache and vendor)
-
 
 ## Installation
 
@@ -37,7 +33,7 @@ Use sentry-symfony for:
 You can install this bundle using Composer: 
 
 ```bash
-composer require sentry/sentry-symfony:^3.0
+composer require sentry/sentry-symfony:^3.0-beta2
 ```
 
 #### Optional: use custom HTTP factory/transport
@@ -87,12 +83,13 @@ class AppKernel extends Kernel
     // ...
 }
 ```
-Note that, unlike before in version 3, the bundle will be enabled in all environments.
+Note that, unlike before in version 3, the bundle will be enabled in all environments; event reporting, instead, is enabled
+only when providing a DSN (see the next step).
 
 ### Step 3: Configure the SDK
 
-Add your [Sentry DSN](https://docs.sentry.io/quickstart/#configure-the-dsn) value of your project to ``app/config/config.yml``.
-Leaving this value empty will effectively disable Sentry reporting.
+Add your [Sentry DSN](https://docs.sentry.io/quickstart/#configure-the-dsn) value of your project to ``app/config/config_prod.yml``.
+Leaving this value empty (or undeclared) in other environments will effectively disable Sentry reporting.
 
 ```yaml
 sentry:
@@ -112,9 +109,11 @@ TODO
 ## Customization
 
 The Sentry 2.0 SDK uses the Unified API, hence it uses the concept of `Scope`s to hold information about the current 
-state of the app, and attach it to any event that is reported. This bundle has two listeners (`RequestListener` and 
-`ConsoleListener`) that adds some easy default information. Those listeners normally are executed with a priority of `1`
-to allow easier customization with custom listener, that by default run with a lower priority of `0`.
+state of the app, and attach it to any event that is reported. This bundle has three listeners (`RequestListener`, 
+`SubRequestListener` and `ConsoleListener`) that adds some easy default information. 
+
+Those listeners normally are executed with a priority of `1` to allow easier customization with custom listener, that by 
+default run with a lower priority of `0`.
 
 Those listeners are `final` so not extendable, but you can look at those to know how to add more information to the 
 current `Scope` and enrich you Sentry events.

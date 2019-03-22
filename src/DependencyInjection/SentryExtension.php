@@ -5,9 +5,10 @@ namespace Sentry\SentryBundle\DependencyInjection;
 use Sentry\ClientBuilderInterface;
 use Sentry\Options;
 use Sentry\SentryBundle\ErrorTypesParser;
-use Sentry\SentryBundle\SentryBundle;
+use Sentry\SentryBundle\EventListener\ErrorListener;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader;
@@ -36,12 +37,13 @@ class SentryExtension extends Extension
         $this->passConfigurationToOptions($container, $processedConfiguration);
 
         $container->getDefinition(ClientBuilderInterface::class)
-            ->addMethodCall('setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER])
-            ->addMethodCall('setSdkVersion', [SentryBundle::getSdkVersion()]);
+            ->setConfigurator([ClientBuilderConfigurator::class, 'configure']);
 
         foreach ($processedConfiguration['listener_priorities'] as $key => $priority) {
             $container->setParameter('sentry.listener_priorities.' . $key, $priority);
         }
+
+        $this->tagConsoleErrorListener($container);
     }
 
     private function passConfigurationToOptions(ContainerBuilder $container, array $processedConfiguration): void
@@ -120,5 +122,29 @@ class SentryExtension extends Extension
         }
 
         $options->addMethodCall($method, [$beforeSend]);
+    }
+
+    /**
+     * BC layer for Symfony < 3.3; see https://symfony.com/blog/new-in-symfony-3-3-better-handling-of-command-exceptions
+     */
+    private function tagConsoleErrorListener(ContainerBuilder $container): void
+    {
+        $listener = $container->getDefinition(ErrorListener::class);
+
+        if (class_exists('Symfony\Component\Console\Event\ConsoleErrorEvent')) {
+            $tagAttributes = [
+                'event' => ConsoleEvents::ERROR,
+                'method' => 'onConsoleError',
+                'priority' => '%sentry.listener_priorities.console_error%',
+            ];
+        } else {
+            $tagAttributes = [
+                'event' => ConsoleEvents::EXCEPTION,
+                'method' => 'onConsoleException',
+                'priority' => '%sentry.listener_priorities.console_error%',
+            ];
+        }
+
+        $listener->addTag('kernel.event_listener', $tagAttributes);
     }
 }

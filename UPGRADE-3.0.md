@@ -31,13 +31,13 @@ changed:
 
  * All services are now private; declare public aliases to access them if needed; you can still use the Sentry SDK global
    functions if you want just to capture messages manually without injecting Sentry services in your code
- * All services uses the full qualified name of the interfaces to name them
- * The `ExceptionListener` has been splitted in two: `RequestListener` and `ConsoleListener`
+ * All services uses the full qualified name of their interfaces to name them
+ * The `ExceptionListener` has been splitted and renamed: we now have a simpler `ErrorListener`, and three other listeners
+ dedicated to enriching events of data (`RequestListener`, `SubRequestListener` and `ConsoleListener`)
  * The listeners are now `final`; append your own listeners to override their behavior
  * The listeners are registered with a priority of `1`; they will run just before the default priority of `0`, to ease
    the registration of custom listener that will change `Scope` data
  * Configuration options of the bundle are now aligned with the new ones of the 2.0 SDK
- * Listeners are no longer used to capture exceptions, it's all demanded to the error handler
 
 ## New services
 This is a brief description of the services registered by this bundle:
@@ -47,7 +47,7 @@ This is a brief description of the services registered by this bundle:
  * `Sentry\ClientInterface`: this is the proper client; compared to the 1.x SDK version it's a lot more slimmed down,
  since a lot of the stuff has been splitted in separated components, so you probably will not interact with it as much as
  in the past. You also have to remind you that the client is bound to the `Hub`, and has to be changed there if you want 
- to use it automatically in error reporting
+ to use a different one automatically in error reporting
  * `Sentry\ClientBuilderInterface`: this is the factory that builds the client; you can call its methods to change all
  the settings and dependencies that will be injected in the latter created client. You can use this service to obtain more
  customized clients for your needs
