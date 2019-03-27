@@ -49,5 +49,9 @@
             <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="%sentry.listener_priorities.sub_request%" />
             <tag name="kernel.event_listener" event="kernel.finish_request" method="onKernelFinishRequest" priority="%sentry.listener_priorities.sub_request%" />
         </service>
+
+        <service id="Sentry\SentryBundle\Command\SentryTestCommand" class="Sentry\SentryBundle\Command\SentryTestCommand" public="false">
+            <tag name="console.command" />
+        </service>
     </services>
 </container>
