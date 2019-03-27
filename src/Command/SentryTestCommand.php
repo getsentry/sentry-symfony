@@ -18,7 +18,7 @@ class SentryTestCommand extends Command
     {
         $currentHub = Hub::getCurrent();
         $client = $currentHub->getClient();
-        
+
         if (! $client) {
             $output->writeln('<error>No client found</error>');
             $output->writeln('<info>Your DSN is probably missing, check your configuration</info>');
@@ -27,13 +27,13 @@ class SentryTestCommand extends Command
         }
 
         $dsn = $client->getOptions()->getDsn();
-        
+
         if ($dsn) {
             $output->writeln('<info>DSN correctly configured in the current client</info>');
         } else {
             $output->writeln('<error>No DSN configured in the current client, please check your configuration</error>');
             $output->writeln('<info>To debug further, try bin/console debug:config sentry</info>');
-            
+
             return 1;
         }
 
@@ -46,7 +46,7 @@ class SentryTestCommand extends Command
         } else {
             $output->writeln('<error>Message not sent!</error>');
             $output->writeln('<warning>Check your DSN or your before_send callback if used</warning>');
-            
+
             return 1;
         }
 
