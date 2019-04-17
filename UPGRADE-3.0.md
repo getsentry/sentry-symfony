@@ -8,8 +8,10 @@ The major change is in the fact that we now require the `sentry/sdk` metapackage
 This new version has been completely rewritten: if you use this bundle and you interact directly with the underlying SDK
 and client, you should read through the [relative upgrade document](https://github.com/getsentry/sentry-php/blob/master/UPGRADE-2.0.md).
 
-The only breaking change reflected in the bundle due to this update is the `skip_capture` option: it has been **removed** because
-the same feature has been implemented in the new SDK, with the native `excluded_exceptions` option.
+## Changes in the configuration
+There are only two BC impacting the configuration:
+ * the `skip_capture` option has been **removed**: the same feature has been implemented in the new SDK, with the native `excluded_exceptions` option; you just have to move your values from `sentry.skip_capture` to `sentry.options.excluded_exceptions`
+ * The `sentry.options` values reflect the options of the native SDK; many of those have been removed, and there are some new ones. You can read the [appropriate section of the upgrade document](https://github.com/getsentry/sentry-php/blob/master/UPGRADE-2.0.md#client-options), with the exception of the `server` to `dsn` migration, which is still handled in the same way by the bundle, under `sentry.dsn`
 
 ## HTTPlug
 Since SDK 2.0 uses HTTPlug to remain transport-agnostic, you need to have installed two packages that provides 
