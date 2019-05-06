@@ -7,6 +7,7 @@ use Sentry\Integration\ErrorListenerIntegration;
 use Sentry\Integration\ExceptionListenerIntegration;
 use Sentry\Integration\IntegrationInterface;
 use Sentry\Integration\RequestIntegration;
+use Sentry\SentryBundle\Command\SentryTestCommand;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
@@ -119,6 +120,15 @@ class SentryBundleTest extends TestCase
         }
 
         $this->assertSame($expectedTag, $consoleListener->getTags());
+    }
+
+    public function testContainerHasTestCommandRegisteredCorrectly(): void
+    {
+        $container = $this->getContainer();
+
+        $consoleListener = $container->getDefinition(SentryTestCommand::class);
+
+        $this->assertArrayHasKey('console.command', $consoleListener->getTags());
     }
 
     public function testIntegrationsListenersAreDisabledByDefault(): void
