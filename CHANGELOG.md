@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 ...
 
-## 3.0.0 - TBA
+## 3.0.0 - 2019-05-10
  - Add the `sentry:test` command, to test if the Sentry SDK is functioning properly.
 
 ## 3.0.0-beta2 - 2019-03-22
