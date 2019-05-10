@@ -9,12 +9,6 @@ Symfony integration for [Sentry](https://getsentry.com/).
 [![Scrutinizer][Master scrutinizer image]][Master scrutinizer link]
 [![Coverage Status][Master coverage image]][Master scrutinizer link]
 
-## Notice 3.0
-> The current master branch contains the 3.0 version of this bundle, which is currently under development. This version
-> will support the newest 2.0 version of the underlying Sentry SDK version. A beta version is already available.
-> 
-> To know more about the progress of this version see [the relative milestone](https://github.com/getsentry/sentry-symfony/milestone/3)
-
 ## Benefits
 
 Use sentry-symfony for:
@@ -102,9 +96,8 @@ sentry:
  * 1.x is no longer maintained; you can use it for Symfony < 2.8 and PHP 5.6/7.0; 
  * 0.8.x is no longer maintained.
 
-## Configuration
-
-TODO
+### Upgrading to 3.0
+The 3.0 version of the bundle uses the newest version (2.x) of the underlying Sentry SDK. If you need to migratefrom previoud versions, please check the `UPGRADE-3.0.md` document.
 
 ## Customization
 
