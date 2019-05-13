@@ -27,7 +27,7 @@ Use sentry-symfony for:
 You can install this bundle using Composer: 
 
 ```bash
-composer require sentry/sentry-symfony:^3.0-beta2
+composer require sentry/sentry-symfony:^3.0
 ```
 
 #### Optional: use custom HTTP factory/transport
