@@ -355,6 +355,28 @@ class RequestListenerTest extends TestCase
         $this->assertSame(['route' => 'sf-route'], $this->currentScope->getTags());
     }
 
+    public function testOnKernelControllerRouteTagIsNotSetIfRequestDoesNotHaveARoute(): void
+    {
+        $this->currentHub->configureScope(Argument::type('callable'))
+            ->shouldNotBeCalled();
+
+        $request = new Request();
+        $event = $this->prophesize(FilterControllerEvent::class);
+
+        $event->isMasterRequest()
+            ->willReturn(true);
+        $event->getRequest()
+            ->willReturn($request);
+
+        $listener = new RequestListener(
+            $this->currentHub->reveal(),
+            $this->prophesize(TokenStorageInterface::class)->reveal(),
+            $this->prophesize(AuthorizationCheckerInterface::class)->reveal()
+        );
+
+        $listener->onKernelController($event->reveal());
+    }
+
     public function testOnKernelRequestUserDataAndTagsAreNotSetInSubRequest(): void
     {
         $this->currentHub->configureScope(Argument::type('callable'))
