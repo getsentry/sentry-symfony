@@ -88,7 +88,11 @@ final class RequestListener
             return;
         }
 
-        $matchedRoute = $event->getRequest()->attributes->get('_route');
+        if (! $event->getRequest()->attributes->has('_route')) {
+            return;
+        }
+
+        $matchedRoute = (string) $event->getRequest()->attributes->get('_route');
 
         Hub::getCurrent()
             ->configureScope(function (Scope $scope) use ($matchedRoute): void {
