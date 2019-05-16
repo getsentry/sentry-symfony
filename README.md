@@ -97,7 +97,7 @@ sentry:
  * 0.8.x is no longer maintained.
 
 ### Upgrading to 3.0
-The 3.0 version of the bundle uses the newest version (2.x) of the underlying Sentry SDK. If you need to migratefrom previoud versions, please check the `UPGRADE-3.0.md` document.
+The 3.0 version of the bundle uses the newest version (2.x) of the underlying Sentry SDK. If you need to migrate from previous versions, please check the `UPGRADE-3.0.md` document.
 
 ## Customization
 
