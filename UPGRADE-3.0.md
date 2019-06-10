@@ -40,6 +40,7 @@ changed:
  * The `ExceptionListener` has been splitted and renamed: we now have a simpler `ErrorListener`, and three other listeners
  dedicated to enriching events of data (`RequestListener`, `SubRequestListener` and `ConsoleListener`)
  * The listeners are now `final`; append your own listeners to override their behavior
+ * The `SentrySymfonyEvents::PRE_CAPTURE` and `SentrySymfonyEvents::SET_USER_CONTEXT` events are dropped; if you want to inject data into your events, write your own listener in a similar fashion to `RequestListener`, using the `Hub` and the `Scope` to handle how and when the new information is attached to events
  * The listeners are registered with a priority of `1`; they will run just before the default priority of `0`, to ease
    the registration of custom listener that will change `Scope` data
  * Configuration options of the bundle are now aligned with the new ones of the 2.0 SDK
