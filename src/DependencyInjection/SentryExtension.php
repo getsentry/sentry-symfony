@@ -4,8 +4,12 @@ namespace Sentry\SentryBundle\DependencyInjection;
 
 use Sentry\ClientBuilderInterface;
 use Sentry\Options;
+use Sentry\SentryBundle\Command\SentryTestCommand;
 use Sentry\SentryBundle\ErrorTypesParser;
+use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
+use Sentry\SentryBundle\EventListener\RequestListener;
+use Sentry\SentryBundle\EventListener\SubRequestListener;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\ConsoleEvents;
@@ -14,6 +18,7 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
+use Symfony\Component\HttpKernel\Kernel;
 
 /**
  * This is the class that loads and manages your bundle configuration
@@ -44,6 +49,7 @@ class SentryExtension extends Extension
         }
 
         $this->tagConsoleErrorListener($container);
+        $this->setLegacyVisibilities($container);
     }
 
     private function passConfigurationToOptions(ContainerBuilder $container, array $processedConfiguration): void
@@ -146,5 +152,19 @@ class SentryExtension extends Extension
         }
 
         $listener->addTag('kernel.event_listener', $tagAttributes);
+    }
+
+    /**
+     * BC layer for symfony < 3.3, listeners and commands must be public
+     */
+    private function setLegacyVisibilities(ContainerBuilder $container): void
+    {
+        if (Kernel::VERSION_ID < 30300) {
+            $container->getDefinition(SentryTestCommand::class)->setPublic(true);
+            $container->getDefinition(ConsoleListener::class)->setPublic(true);
+            $container->getDefinition(ErrorListener::class)->setPublic(true);
+            $container->getDefinition(RequestListener::class)->setPublic(true);
+            $container->getDefinition(SubRequestListener::class)->setPublic(true);
+        }
     }
 }
