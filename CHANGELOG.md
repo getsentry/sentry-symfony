@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 ...
 
+## 3.1.0 - 2019-07-02
+ - Add support for Symfony 2.8 (#233, thanks to @nocive)
+ - Fix handling of ESI requests (#213, thanks to @franmomu)
+
 ## 3.0.0 - 2019-05-10
  - Add the `sentry:test` command, to test if the Sentry SDK is functioning properly.
 
