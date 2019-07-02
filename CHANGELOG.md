@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 ...
 
-## 3.0.0 - 2019-07-02
+## 3.1.0 - 2019-07-02
  - Add support for Symfony 2.8.
 
 ## 3.0.0 - 2019-05-10
