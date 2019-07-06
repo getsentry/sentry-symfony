@@ -90,6 +90,30 @@ sentry:
     dsn: "https://public:secret@sentry.example.com/1"
 ```
 
+#### Optional: use monolog handler provided by `sentry/sentry`
+*Note: this step is optional*
+
+If You're using `monolog` for logging e.g. in-app errors, You
+can use this handler in order for them to show up in Sentry. 
+
+First, define `Sentry\Monolog\Handler` as a service in `app/config/services.yml`
+
+```yaml
+services:
+    sentry.monolog.handler:
+        class: Sentry\Monolog\Handler
+```
+
+Then enable it in `monolog` config:
+
+```yaml
+monolog:
+    sentry:
+      type: service
+      id: sentry.monolog.handler
+      level: error 
+```
+
 ## Maintained versions
  * 3.x is actively maintained and developed on the master branch, and uses Sentry SDK 2.0;
  * 2.x is supported only for fixes; from this version onwards it requires Symfony 3+ and PHP 7.1+;
