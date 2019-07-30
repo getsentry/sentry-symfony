@@ -88,7 +88,17 @@ Leaving this value empty (or undeclared) in other environments will effectively 
 ```yaml
 sentry:
     dsn: "https://public:secret@sentry.example.com/1"
+    options:
+        environment: '%kernel.environment%'
+        release: '%env(VERSION)%' #your app version
+        excluded_exceptions: #exclude validation errors
+            - App\Exception\UserNotFoundException
+            - Symfony\Component\Security\Core\Exception\AccessDeniedException
 ```
+
+The parameter `options` allows to fine-tune exceptions. To discover more options, please refer to
+[the Unified APIs](https://docs.sentry.io/development/sdk-dev/unified-api/#options) options and
+the [PHP specific](https://docs.sentry.io/platforms/php/#php-specific-options) ones.
 
 #### Optional: use monolog handler provided by `sentry/sentry`
 *Note: this step is optional*
