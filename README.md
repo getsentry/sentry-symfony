@@ -118,6 +118,8 @@ Then enable it in `monolog` config:
 
 ```yaml
 monolog:
+  handlers:
+    # ...
     sentry:
       type: service
       id: sentry.monolog.handler
