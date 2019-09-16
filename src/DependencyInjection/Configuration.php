@@ -21,7 +21,7 @@ class Configuration implements ConfigurationInterface
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
      */
-    public function getConfigTreeBuilder()
+    public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('sentry');
         /** @var ArrayNodeDefinition $rootNode */
