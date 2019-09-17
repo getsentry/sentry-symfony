@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-...
+ - Add forward compatibility with Symfony 5 (#235, thanks to @garak)
 
 ## 3.1.0 - 2019-07-02
  - Add support for Symfony 2.8 (#233, thanks to @nocive)
