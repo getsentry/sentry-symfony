@@ -106,7 +106,7 @@ the [PHP specific](https://docs.sentry.io/platforms/php/#php-specific-options) o
 If You're using `monolog` for logging e.g. in-app errors, You
 can use this handler in order for them to show up in Sentry. 
 
-First, define `Sentry\Monolog\Handler` as a service in `app/config/services.yml`
+First, define `Sentry\Monolog\Handler` as a service in `config/services.yaml`
 
 ```yaml
 services:
@@ -118,10 +118,11 @@ Then enable it in `monolog` config:
 
 ```yaml
 monolog:
-    sentry:
-      type: service
-      id: sentry.monolog.handler
-      level: error 
+    handlers:
+        sentry:
+            type: service
+            id: sentry.monolog.handler
+            level: error 
 ```
 
 ## Maintained versions
