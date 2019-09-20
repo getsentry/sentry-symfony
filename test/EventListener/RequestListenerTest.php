@@ -405,7 +405,7 @@ class RequestListenerTest extends TestCase
         $listener->onKernelRequest($event->reveal());
 
         $this->assertEmpty($this->getUserContext($this->currentScope));
-        $this->assertEmpty($this->currentScope->getTags());
+        $this->assertEmpty($this->getTagsContext($this->currentScope));
     }
 
     private function getUserContext(Scope $scope): array
@@ -414,6 +414,14 @@ class RequestListenerTest extends TestCase
         $scope->applyToEvent($event, []);
 
         return $event->getUserContext()->toArray();
+    }
+
+    private function getTagsContext(Scope $scope): array
+    {
+        $event = new Event();
+        $scope->applyToEvent($event, []);
+
+        return $event->getTagsContext()->toArray();
     }
 }
 
