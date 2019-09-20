@@ -80,13 +80,13 @@ class Configuration implements ConfigurationInterface
             ->prototype('scalar')
             ->validate()
             ->ifTrue(function ($value): bool {
-                if (! is_string($value)) {
+                if (! is_string($value) && '' != $value) {
                     return true;
                 }
 
-                return '@' !== substr($value, 0, 1);
+                return '@' !== $value[0];
             })
-            ->thenInvalid('Expecting service reference, got %s');
+            ->thenInvalid('Expecting service reference, got "%s"');
         $optionsChildNodes->scalarNode('logger');
         $optionsChildNodes->integerNode('max_breadcrumbs')
             ->min(1);
