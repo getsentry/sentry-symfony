@@ -5,6 +5,7 @@ namespace Sentry\SentryBundle\Test\EventListener;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Sentry\ClientInterface;
+use Sentry\Event;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\State\Hub;
@@ -94,7 +95,7 @@ class RequestListenerTest extends TestCase
             'ip_address' => '1.2.3.4',
             'username' => 'john-doe',
         ];
-        $this->assertEquals($expectedUserData, $this->currentScope->getUser());
+        $this->assertEquals($expectedUserData, $this->getUserContext($this->currentScope));
     }
 
     public function userDataProvider(): \Generator
@@ -131,7 +132,7 @@ class RequestListenerTest extends TestCase
 
         $listener->onKernelRequest($event->reveal());
 
-        $this->assertEquals([], $this->currentScope->getUser());
+        $this->assertEquals([], $this->getUserContext($this->currentScope));
     }
 
     public function testOnKernelRequestUserDataIsNotSetIfNoClientIsPresent(): void
@@ -156,7 +157,7 @@ class RequestListenerTest extends TestCase
 
         $listener->onKernelRequest($event->reveal());
 
-        $this->assertEquals([], $this->currentScope->getUser());
+        $this->assertEquals([], $this->getUserContext($this->currentScope));
     }
 
     public function testOnKernelRequestUsernameIsNotSetIfTokenStorageIsAbsent(): void
@@ -187,7 +188,7 @@ class RequestListenerTest extends TestCase
         $expectedUserData = [
             'ip_address' => '1.2.3.4',
         ];
-        $this->assertEquals($expectedUserData, $this->currentScope->getUser());
+        $this->assertEquals($expectedUserData, $this->getUserContext($this->currentScope));
     }
 
     public function testOnKernelRequestUsernameIsNotSetIfAuthorizationCheckerIsAbsent(): void
@@ -218,7 +219,7 @@ class RequestListenerTest extends TestCase
         $expectedUserData = [
             'ip_address' => '1.2.3.4',
         ];
-        $this->assertEquals($expectedUserData, $this->currentScope->getUser());
+        $this->assertEquals($expectedUserData, $this->getUserContext($this->currentScope));
     }
 
     public function testOnKernelRequestUsernameIsNotSetIfTokenIsAbsent(): void
@@ -253,7 +254,7 @@ class RequestListenerTest extends TestCase
         $expectedUserData = [
             'ip_address' => '1.2.3.4',
         ];
-        $this->assertEquals($expectedUserData, $this->currentScope->getUser());
+        $this->assertEquals($expectedUserData, $this->getUserContext($this->currentScope));
     }
 
     /**
@@ -295,7 +296,7 @@ class RequestListenerTest extends TestCase
         $expectedUserData = [
             'ip_address' => '1.2.3.4',
         ];
-        $this->assertEquals($expectedUserData, $this->currentScope->getUser());
+        $this->assertEquals($expectedUserData, $this->getUserContext($this->currentScope));
     }
 
     public function testOnKernelRequestUsernameIsNotSetIfUserIsNotRemembered(): void
@@ -330,7 +331,7 @@ class RequestListenerTest extends TestCase
         $expectedUserData = [
             'ip_address' => '1.2.3.4',
         ];
-        $this->assertEquals($expectedUserData, $this->currentScope->getUser());
+        $this->assertEquals($expectedUserData, $this->getUserContext($this->currentScope));
     }
 
     public function testOnKernelControllerAddsRouteTag(): void
@@ -403,8 +404,16 @@ class RequestListenerTest extends TestCase
 
         $listener->onKernelRequest($event->reveal());
 
-        $this->assertEmpty($this->currentScope->getUser());
+        $this->assertEmpty($this->getUserContext($this->currentScope));
         $this->assertEmpty($this->currentScope->getTags());
+    }
+
+    private function getUserContext(Scope $scope): array
+    {
+        $event = new Event();
+        $scope->applyToEvent($event, []);
+
+        return $event->getUserContext()->toArray();
     }
 }
 

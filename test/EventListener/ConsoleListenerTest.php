@@ -4,6 +4,7 @@ namespace Sentry\SentryBundle\Test\EventListener;
 
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use Sentry\Event;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\State\Hub;
 use Sentry\State\HubInterface;
@@ -47,7 +48,7 @@ class ConsoleListenerTest extends TestCase
 
         $listener->onConsoleCommand($event->reveal());
 
-        $this->assertSame(['command' => 'sf:command:name'], $this->currentScope->getTags());
+        $this->assertSame(['command' => 'sf:command:name'], $this->getTagsContext($this->currentScope));
     }
 
     public function testOnConsoleCommandAddsPlaceholderCommandName(): void
@@ -60,6 +61,14 @@ class ConsoleListenerTest extends TestCase
 
         $listener->onConsoleCommand($event->reveal());
 
-        $this->assertSame(['command' => 'N/A'], $this->currentScope->getTags());
+        $this->assertSame(['command' => 'N/A'], $this->getTagsContext($this->currentScope));
+    }
+
+    private function getTagsContext(Scope $scope): array
+    {
+        $event = new Event();
+        $scope->applyToEvent($event, []);
+
+        return $event->getTagsContext()->toArray();
     }
 }
