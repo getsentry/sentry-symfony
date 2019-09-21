@@ -19,7 +19,7 @@ class ConfigurationTest extends TestCase
         $providerData = $this->optionValuesProvider();
         $supportedOptions = \array_unique(\array_column($providerData, 0));
 
-        $expectedCount = self::SUPPORTED_SENTRY_OPTIONS_COUNT;
+        $expectedCount = $this->getSupportedOptionsCount();
 
         if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
             ++$expectedCount;
@@ -38,7 +38,7 @@ class ConfigurationTest extends TestCase
         $supportedOptions = \array_unique(\array_column($providerData, 0));
 
         $this->assertCount(
-            self::SUPPORTED_SENTRY_OPTIONS_COUNT,
+            $this->getSupportedOptionsCount(),
             $supportedOptions,
             'Provider for invalid configuration options mismatch: ' . PHP_EOL . print_r($supportedOptions, true)
         );
@@ -74,6 +74,10 @@ class ConfigurationTest extends TestCase
         if (method_exists(Kernel::class, 'getProjectDir')) {
             $expectedDefaults['options']['project_root'] = '%kernel.project_dir%';
             $expectedDefaults['options']['in_app_exclude'][1] = '%kernel.project_dir%/vendor';
+        }
+
+        if ($this->classSerializersAreSupported()) {
+            $expectedDefaults['options']['class_serializers'] = [];
         }
 
         $this->assertEquals($expectedDefaults, $processed);
@@ -127,6 +131,10 @@ class ConfigurationTest extends TestCase
             $options[] = ['capture_silenced_errors', true];
         }
 
+        if ($this->classSerializersAreSupported()) {
+            $options[] = ['class_serializers', ['count']];
+        }
+
         return $options;
     }
 
@@ -154,6 +162,10 @@ class ConfigurationTest extends TestCase
             ['before_send', [$this, 'is not a callable']],
             ['before_send', false],
             ['before_send', -1],
+            ['class_serializers', 'this is not a callable'],
+            ['class_serializers', [$this, 'is not a callable']],
+            ['class_serializers', false],
+            ['class_serializers', -1],
             ['context_lines', -1],
             ['context_lines', 99999],
             ['context_lines', 'string'],
@@ -191,5 +203,25 @@ class ConfigurationTest extends TestCase
         $processor = new Processor();
 
         return $processor->processConfiguration(new Configuration(), ['sentry' => $values]);
+    }
+
+    private function classSerializersAreSupported(): bool
+    {
+        try {
+            new Options(['class_serializers' => []]);
+
+            return  true;
+        } catch (\Throwable $throwable) {
+            return  false;
+        }
+    }
+
+    private function getSupportedOptionsCount(): int
+    {
+        if ($this->classSerializersAreSupported()) {
+            return self::SUPPORTED_SENTRY_OPTIONS_COUNT + 1;
+        }
+
+        return self::SUPPORTED_SENTRY_OPTIONS_COUNT;
     }
 }

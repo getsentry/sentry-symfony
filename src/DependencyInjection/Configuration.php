@@ -57,6 +57,11 @@ class Configuration implements ConfigurationInterface
         if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
             $optionsChildNodes->booleanNode('capture_silenced_errors');
         }
+        if ($this->classSerializersAreSupported()) {
+            $optionsChildNodes->arrayNode('class_serializers')
+                ->defaultValue([])
+                ->prototype('scalar');
+        }
         $optionsChildNodes->integerNode('context_lines')
             ->min(0)
             ->max(99);
@@ -162,5 +167,16 @@ class Configuration implements ConfigurationInterface
 
             return true;
         };
+    }
+
+    private function classSerializersAreSupported(): bool
+    {
+        try {
+            new Options(['class_serializers' => []]);
+
+            return  true;
+        } catch (\Throwable $throwable) {
+            return  false;
+        }
     }
 }
