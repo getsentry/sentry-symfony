@@ -353,7 +353,7 @@ class RequestListenerTest extends TestCase
 
         $listener->onKernelController($event->reveal());
 
-        $this->assertSame(['route' => 'sf-route'], $this->currentScope->getTags());
+        $this->assertSame(['route' => 'sf-route'], $this->getTagsContext($this->currentScope));
     }
 
     public function testOnKernelControllerRouteTagIsNotSetIfRequestDoesNotHaveARoute(): void
