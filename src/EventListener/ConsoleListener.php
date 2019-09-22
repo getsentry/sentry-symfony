@@ -3,7 +3,6 @@
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\SentryBundle\SentryBundle;
-use Sentry\State\Hub;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;

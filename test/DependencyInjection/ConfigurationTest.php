@@ -12,8 +12,6 @@ use Symfony\Component\HttpKernel\Kernel;
 
 class ConfigurationTest extends BaseTestCase
 {
-    public const SUPPORTED_SENTRY_OPTIONS_COUNT = 23;
-
     public function testDataProviderIsMappingTheRightNumberOfOptions(): void
     {
         $providerData = $this->optionValuesProvider();
@@ -150,52 +148,52 @@ class ConfigurationTest extends BaseTestCase
         $this->processConfiguration($input);
     }
 
-    public function invalidValuesProvider(): array
+    public function invalidValuesProvider(): \Generator
     {
-        return [
-            ['attach_stacktrace', 'string'],
-            ['before_breadcrumb', 'this is not a callable'],
-            ['before_breadcrumb', [$this, 'is not a callable']],
-            ['before_breadcrumb', false],
-            ['before_breadcrumb', -1],
-            ['before_send', 'this is not a callable'],
-            ['before_send', [$this, 'is not a callable']],
-            ['before_send', false],
-            ['before_send', -1],
-            ['class_serializers', 'this is not a callable'],
-            ['class_serializers', [$this, 'is not a callable']],
-            ['class_serializers', false],
-            ['class_serializers', -1],
-            ['context_lines', -1],
-            ['context_lines', 99999],
-            ['context_lines', 'string'],
-            ['default_integrations', 'true'],
-            ['default_integrations', 1],
-            ['enable_compression', 'string'],
-            ['environment', ''],
-            ['error_types', []],
-            ['excluded_exceptions', 'some-string'],
-            ['http_proxy', []],
-            ['in_app_exclude', 'some/single/path'],
-            ['integrations', [1]],
-            ['integrations', 'a string'],
-            ['logger', []],
-            ['max_breadcrumbs', -1],
-            ['max_breadcrumbs', 'string'],
-            ['max_value_length', -1],
-            ['max_value_length', []],
-            ['prefixes', 'string'],
-            ['project_root', []],
-            ['release', []],
-            ['sample_rate', 1.1],
-            ['sample_rate', -1],
-            ['send_attempts', 1.5],
-            ['send_attempts', 0],
-            ['send_attempts', -1],
-            ['send_default_pii', 'false'],
-            ['server_name', []],
-            ['tags', 'invalid-unmapped-tag'],
-        ];
+        yield ['attach_stacktrace', 'string'];
+        yield ['before_breadcrumb', 'this is not a callable'];
+        yield ['before_breadcrumb', [$this, 'is not a callable']];
+        yield ['before_breadcrumb', false];
+        yield ['before_breadcrumb', -1];
+        yield ['before_send', 'this is not a callable'];
+        yield ['before_send', [$this, 'is not a callable']];
+        yield ['before_send', false];
+        yield ['before_send', -1];
+        if ($this->classSerializersAreSupported()) {
+            yield ['class_serializers', 'this is not a callable'];
+            yield ['class_serializers', [$this, 'is not a callable']];
+            yield ['class_serializers', false];
+            yield ['class_serializers', -1];
+        }
+        yield ['context_lines', -1];
+        yield ['context_lines', 99999];
+        yield ['context_lines', 'string'];
+        yield ['default_integrations', 'true'];
+        yield ['default_integrations', 1];
+        yield ['enable_compression', 'string'];
+        yield ['environment', ''];
+        yield ['error_types', []];
+        yield ['excluded_exceptions', 'some-string'];
+        yield ['http_proxy', []];
+        yield ['in_app_exclude', 'some/single/path'];
+        yield ['integrations', [1]];
+        yield ['integrations', 'a string'];
+        yield ['logger', []];
+        yield ['max_breadcrumbs', -1];
+        yield ['max_breadcrumbs', 'string'];
+        yield ['max_value_length', -1];
+        yield ['max_value_length', []];
+        yield ['prefixes', 'string'];
+        yield ['project_root', []];
+        yield ['release', []];
+        yield ['sample_rate', 1.1];
+        yield ['sample_rate', -1];
+        yield ['send_attempts', 1.5];
+        yield ['send_attempts', 0];
+        yield ['send_attempts', -1];
+        yield ['send_default_pii', 'false'];
+        yield ['server_name', []];
+        yield ['tags', 'invalid-unmapped-tag'];
     }
 
     private function processConfiguration(array $values): array

@@ -27,14 +27,14 @@ class SentryExtensionTest extends BaseTestCase
         $supportedOptions = \array_unique(\array_column($providerData, 0));
 
         // subtracted one is `integration`, which cannot be tested with the provider
-        $expectedCount = ConfigurationTest::SUPPORTED_SENTRY_OPTIONS_COUNT - 1;
+        $expectedCount = $this->getSupportedOptionsCount();
 
-        if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
-            ++$expectedCount;
+        if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() === '2.0.0') {
+            --$expectedCount;
         }
 
         $this->assertCount(
-            $this->getSupportedOptionsCount(),
+            $expectedCount,
             $supportedOptions,
             'Provider for configuration options mismatch: ' . PHP_EOL . print_r($supportedOptions, true)
         );

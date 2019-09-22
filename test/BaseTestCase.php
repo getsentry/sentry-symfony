@@ -8,6 +8,8 @@ use Sentry\SentryBundle\Test\DependencyInjection\ConfigurationTest;
 
 abstract class BaseTestCase extends TestCase
 {
+    public const SUPPORTED_SENTRY_OPTIONS_COUNT = 23;
+
     protected function classSerializersAreSupported(): bool
     {
         try {
