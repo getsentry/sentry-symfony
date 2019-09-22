@@ -3,14 +3,14 @@
 namespace Sentry\SentryBundle\Test\DependencyInjection;
 
 use Jean85\PrettyVersions;
-use PHPUnit\Framework\TestCase;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
+use Sentry\SentryBundle\Test\BaseTestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\HttpKernel\Kernel;
 
-class ConfigurationTest extends TestCase
+class ConfigurationTest extends BaseTestCase
 {
     public const SUPPORTED_SENTRY_OPTIONS_COUNT = 23;
 
@@ -203,25 +203,5 @@ class ConfigurationTest extends TestCase
         $processor = new Processor();
 
         return $processor->processConfiguration(new Configuration(), ['sentry' => $values]);
-    }
-
-    private function classSerializersAreSupported(): bool
-    {
-        try {
-            new Options(['class_serializers' => []]);
-
-            return  true;
-        } catch (\Throwable $throwable) {
-            return  false;
-        }
-    }
-
-    private function getSupportedOptionsCount(): int
-    {
-        if ($this->classSerializersAreSupported()) {
-            return self::SUPPORTED_SENTRY_OPTIONS_COUNT + 1;
-        }
-
-        return self::SUPPORTED_SENTRY_OPTIONS_COUNT;
     }
 }

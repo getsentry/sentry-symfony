@@ -14,7 +14,6 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
@@ -97,11 +96,22 @@ class SentryExtension extends Extension
         }
 
         if (\array_key_exists('before_send', $processedOptions)) {
-            $this->mapCallableValue($options, 'setBeforeSendCallback', $processedOptions['before_send']);
+            $beforeSendCallable = $this->valueToCallable($processedOptions['before_send']);
+            $options->addMethodCall('setBeforeSendCallback', [$beforeSendCallable]);
         }
 
         if (\array_key_exists('before_breadcrumb', $processedOptions)) {
-            $this->mapCallableValue($options, 'setBeforeBreadcrumbCallback', $processedOptions['before_breadcrumb']);
+            $beforeBreadcrumbCallable = $this->valueToCallable($processedOptions['before_breadcrumb']);
+            $options->addMethodCall('setBeforeBreadcrumbCallback', [$beforeBreadcrumbCallable]);
+        }
+
+        if (\array_key_exists('class_serializers', $processedOptions)) {
+            $classSerializers = [];
+            foreach ($processedOptions['class_serializers'] as $class => $serializer) {
+                $classSerializers[$class] = $this->valueToCallable($serializer);
+            }
+
+            $options->addMethodCall('setClassSerializers', [$classSerializers]);
         }
 
         if (\array_key_exists('integrations', $processedOptions)) {
@@ -114,20 +124,13 @@ class SentryExtension extends Extension
         }
     }
 
-    /**
-     * @param Definition $options
-     * @param string $method
-     * @param callable|string $optionValue
-     */
-    private function mapCallableValue(Definition $options, string $method, $optionValue): void
+    private function valueToCallable($value)
     {
-        if (is_string($optionValue) && 0 === strpos($optionValue, '@')) {
-            $beforeSend = new Reference(substr($optionValue, 1));
-        } else {
-            $beforeSend = $optionValue;
+        if (is_string($value) && 0 === strpos($value, '@')) {
+            return new Reference(substr($value, 1));
         }
 
-        $options->addMethodCall($method, [$beforeSend]);
+        return $value;
     }
 
     /**

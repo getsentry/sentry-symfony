@@ -3,12 +3,12 @@
 namespace Sentry\SentryBundle\Test\DependencyInjection;
 
 use Jean85\PrettyVersions;
-use PHPUnit\Framework\TestCase;
 use Sentry\Breadcrumb;
 use Sentry\Event;
 use Sentry\Integration\IntegrationInterface;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
+use Sentry\SentryBundle\Test\BaseTestCase;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -17,7 +17,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Kernel;
 
-class SentryExtensionTest extends TestCase
+class SentryExtensionTest extends BaseTestCase
 {
     private const OPTIONS_TEST_PUBLIC_ALIAS = 'sentry.options.public_alias';
 
@@ -34,7 +34,7 @@ class SentryExtensionTest extends TestCase
         }
 
         $this->assertCount(
-            $expectedCount,
+            $this->getSupportedOptionsCount(),
             $supportedOptions,
             'Provider for configuration options mismatch: ' . PHP_EOL . print_r($supportedOptions, true)
         );
@@ -136,6 +136,16 @@ class SentryExtensionTest extends TestCase
 
         if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
             $options[] = ['capture_silenced_errors', true, 'shouldCaptureSilencedErrors'];
+        }
+
+        if ($this->classSerializersAreSupported()) {
+            $options['class_serializer'] = [
+                'class_serializers',
+                [
+                    self::class => __NAMESPACE__ . '\mockClassSerializer',
+                ],
+                'getClassSerializers',
+            ];
         }
 
         return $options;
@@ -373,6 +383,11 @@ function mockBeforeSend(Event $event): ?Event
 function mockBeforeBreadcrumb(Breadcrumb $breadcrumb): ?Breadcrumb
 {
     return null;
+}
+
+function mockClassSerializer($object)
+{
+    return ['value' => 'serialized_class'];
 }
 
 class CallbackMock
