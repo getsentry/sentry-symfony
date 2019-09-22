@@ -112,6 +112,8 @@ First, define `Sentry\Monolog\Handler` as a service in `config/services.yaml`
 services:
     sentry.monolog.handler:
         class: Sentry\Monolog\Handler
+        arguments:
+            $level: 'error'
 ```
 
 Then enable it in `monolog` config:

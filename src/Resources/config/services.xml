@@ -17,9 +17,6 @@
 
         <service id="Sentry\State\HubInterface" class="Sentry\State\Hub" public="false">
             <argument type="service" id="Sentry\ClientInterface" />
-            <call method="setCurrent">
-                <argument type="service" id="Sentry\State\HubInterface" />
-            </call>
         </service>
 
         <service id="Sentry\SentryBundle\EventListener\ConsoleListener" class="Sentry\SentryBundle\EventListener\ConsoleListener" public="false">

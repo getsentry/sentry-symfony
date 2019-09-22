@@ -2,7 +2,7 @@
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\State\Hub;
+use Sentry\SentryBundle\SentryBundle;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 
@@ -19,7 +19,7 @@ final class SubRequestListener
             return;
         }
 
-        Hub::getCurrent()->pushScope();
+        SentryBundle::getCurrentHub()->pushScope();
     }
 
     /**
@@ -33,6 +33,6 @@ final class SubRequestListener
             return;
         }
 
-        Hub::getCurrent()->popScope();
+        SentryBundle::getCurrentHub()->popScope();
     }
 }

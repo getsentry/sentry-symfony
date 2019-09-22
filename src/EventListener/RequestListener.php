@@ -2,6 +2,7 @@
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\SentryBundle\SentryBundle;
 use Sentry\State\Hub;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
@@ -54,7 +55,7 @@ final class RequestListener
             return;
         }
 
-        $currentClient = Hub::getCurrent()->getClient();
+        $currentClient = SentryBundle::getCurrentHub()->getClient();
         if (null === $currentClient || ! $currentClient->getOptions()->shouldSendDefaultPii()) {
             return;
         }
@@ -76,7 +77,7 @@ final class RequestListener
 
         $userData['ip_address'] = $event->getRequest()->getClientIp();
 
-        Hub::getCurrent()
+        SentryBundle::getCurrentHub()
             ->configureScope(function (Scope $scope) use ($userData): void {
                 $scope->setUser($userData);
             });
@@ -94,7 +95,7 @@ final class RequestListener
 
         $matchedRoute = (string) $event->getRequest()->attributes->get('_route');
 
-        Hub::getCurrent()
+        SentryBundle::getCurrentHub()
             ->configureScope(function (Scope $scope) use ($matchedRoute): void {
                 $scope->setTag('route', $matchedRoute);
             });
