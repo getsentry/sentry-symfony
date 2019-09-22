@@ -174,9 +174,9 @@ class Configuration implements ConfigurationInterface
         try {
             new Options(['class_serializers' => []]);
 
-            return  true;
+            return true;
         } catch (\Throwable $throwable) {
-            return  false;
+            return false;
         }
     }
 }
