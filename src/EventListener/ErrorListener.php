@@ -2,12 +2,25 @@
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\State\HubInterface;
 use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\Console\Event\ConsoleExceptionEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 
 final class ErrorListener
 {
+    /** @var HubInterface */
+    private $hub;
+
+    /**
+     * ErrorListener constructor.
+     * @param HubInterface $hub
+     */
+    public function __construct(HubInterface $hub)
+    {
+        $this->hub = $hub; // not used, needed to trigger instantiation
+    }
+
     public function onKernelException(GetResponseForExceptionEvent $event): void
     {
         \Sentry\captureException($event->getException());
