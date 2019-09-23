@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
  - Add forward compatibility with Symfony 5 (#235, thanks to @garak)
+ - Fix Hub initialization for `ErrorListener` (#243, thanks to @teohhanhui)
  - Fix compatibility with sentry/sentry 2.2+ (#244)
  - Add support for `class_serializers` option (#245)
 
