@@ -3,23 +3,21 @@
 namespace Sentry\SentryBundle\Test\DependencyInjection;
 
 use Jean85\PrettyVersions;
-use PHPUnit\Framework\TestCase;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
+use Sentry\SentryBundle\Test\BaseTestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\HttpKernel\Kernel;
 
-class ConfigurationTest extends TestCase
+class ConfigurationTest extends BaseTestCase
 {
-    public const SUPPORTED_SENTRY_OPTIONS_COUNT = 23;
-
     public function testDataProviderIsMappingTheRightNumberOfOptions(): void
     {
         $providerData = $this->optionValuesProvider();
         $supportedOptions = \array_unique(\array_column($providerData, 0));
 
-        $expectedCount = self::SUPPORTED_SENTRY_OPTIONS_COUNT;
+        $expectedCount = $this->getSupportedOptionsCount();
 
         if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
             ++$expectedCount;
@@ -38,7 +36,7 @@ class ConfigurationTest extends TestCase
         $supportedOptions = \array_unique(\array_column($providerData, 0));
 
         $this->assertCount(
-            self::SUPPORTED_SENTRY_OPTIONS_COUNT,
+            $this->getSupportedOptionsCount(),
             $supportedOptions,
             'Provider for invalid configuration options mismatch: ' . PHP_EOL . print_r($supportedOptions, true)
         );
@@ -74,6 +72,10 @@ class ConfigurationTest extends TestCase
         if (method_exists(Kernel::class, 'getProjectDir')) {
             $expectedDefaults['options']['project_root'] = '%kernel.project_dir%';
             $expectedDefaults['options']['in_app_exclude'][1] = '%kernel.project_dir%/vendor';
+        }
+
+        if ($this->classSerializersAreSupported()) {
+            $expectedDefaults['options']['class_serializers'] = [];
         }
 
         $this->assertEquals($expectedDefaults, $processed);
@@ -127,6 +129,10 @@ class ConfigurationTest extends TestCase
             $options[] = ['capture_silenced_errors', true];
         }
 
+        if ($this->classSerializersAreSupported()) {
+            $options[] = ['class_serializers', ['count']];
+        }
+
         return $options;
     }
 
@@ -144,7 +150,7 @@ class ConfigurationTest extends TestCase
 
     public function invalidValuesProvider(): array
     {
-        return [
+        $values = [
             ['attach_stacktrace', 'string'],
             ['before_breadcrumb', 'this is not a callable'],
             ['before_breadcrumb', [$this, 'is not a callable']],
@@ -184,6 +190,15 @@ class ConfigurationTest extends TestCase
             ['server_name', []],
             ['tags', 'invalid-unmapped-tag'],
         ];
+
+        if ($this->classSerializersAreSupported()) {
+            $values[] = ['class_serializers', 'this is not a callable'];
+            $values[] = ['class_serializers', [$this, 'is not a callable']];
+            $values[] = ['class_serializers', false];
+            $values[] = ['class_serializers', -1];
+        }
+
+        return $values;
     }
 
     private function processConfiguration(array $values): array
