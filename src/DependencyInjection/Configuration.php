@@ -37,6 +37,10 @@ class Configuration implements ConfigurationInterface
             ->ifString()
             ->then($this->getTrimClosure());
 
+        $rootNode->children()
+            ->booleanNode('register_error_listener')
+            ->defaultTrue();
+
         // Options array (to be passed to Sentry\Options constructor) -- please keep alphabetical order!
         $optionsNode = $rootNode->children()
             ->arrayNode('options')

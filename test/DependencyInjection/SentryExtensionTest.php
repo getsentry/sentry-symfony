@@ -8,6 +8,7 @@ use Sentry\Event;
 use Sentry\Integration\IntegrationInterface;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
+use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\Test\BaseTestCase;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\Container;
@@ -20,6 +21,7 @@ use Symfony\Component\HttpKernel\Kernel;
 class SentryExtensionTest extends BaseTestCase
 {
     private const OPTIONS_TEST_PUBLIC_ALIAS = 'sentry.options.public_alias';
+    private const ERROR_LISTENER_TEST_PUBLIC_ALIAS = 'sentry.error_listener.public_alias';
 
     public function testDataProviderIsMappingTheRightNumberOfOptions(): void
     {
@@ -335,6 +337,26 @@ class SentryExtensionTest extends BaseTestCase
         $this->assertCount(1, $integrations);
     }
 
+    /**
+     * @dataProvider errorListenerConfigurationProvider
+     */
+    public function testErrorListenerIsRegistered(bool $registerErrorListener): void
+    {
+        $container = $this->getContainer([
+            'register_error_listener' => $registerErrorListener,
+        ]);
+
+        $this->assertEquals($registerErrorListener, $container->has(self::ERROR_LISTENER_TEST_PUBLIC_ALIAS));
+    }
+
+    public function errorListenerConfigurationProvider(): array
+    {
+        return [
+            [true],
+            [false],
+        ];
+    }
+
     private function getContainer(array $configuration = []): Container
     {
         $containerBuilder = new ContainerBuilder();
@@ -362,6 +384,10 @@ class SentryExtensionTest extends BaseTestCase
 
         $extension = new SentryExtension();
         $extension->load(['sentry' => $configuration], $containerBuilder);
+
+        if ($containerBuilder->hasDefinition(ErrorListener::class)) {
+            $containerBuilder->setAlias(self::ERROR_LISTENER_TEST_PUBLIC_ALIAS, new Alias(ErrorListener::class, true));
+        }
 
         $containerBuilder->compile();
 

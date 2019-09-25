@@ -47,7 +47,7 @@ class SentryExtension extends Extension
             $container->setParameter('sentry.listener_priorities.' . $key, $priority);
         }
 
-        $this->tagConsoleErrorListener($container);
+        $this->configureErrorListener($container, $processedConfiguration);
         $this->setLegacyVisibilities($container);
     }
 
@@ -134,6 +134,17 @@ class SentryExtension extends Extension
         return $value;
     }
 
+    private function configureErrorListener(ContainerBuilder $container, array $processedConfiguration): void
+    {
+        if (! $processedConfiguration['register_error_listener']) {
+            $container->removeDefinition(ErrorListener::class);
+
+            return;
+        }
+
+        $this->tagConsoleErrorListener($container);
+    }
+
     /**
      * BC layer for Symfony < 3.3; see https://symfony.com/blog/new-in-symfony-3-3-better-handling-of-command-exceptions
      */
@@ -166,9 +177,12 @@ class SentryExtension extends Extension
         if (Kernel::VERSION_ID < 30300) {
             $container->getDefinition(SentryTestCommand::class)->setPublic(true);
             $container->getDefinition(ConsoleListener::class)->setPublic(true);
-            $container->getDefinition(ErrorListener::class)->setPublic(true);
             $container->getDefinition(RequestListener::class)->setPublic(true);
             $container->getDefinition(SubRequestListener::class)->setPublic(true);
+
+            if ($container->hasDefinition(ErrorListener::class)) {
+                $container->getDefinition(ErrorListener::class)->setPublic(true);
+            }
         }
     }
 }

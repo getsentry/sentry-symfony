@@ -48,6 +48,7 @@ class ConfigurationTest extends BaseTestCase
         $processed = $this->processConfiguration([]);
         $expectedDefaults = [
             'dsn' => null,
+            'register_error_listener' => true,
             'listener_priorities' => [
                 'request' => 1,
                 'sub_request' => 1,
