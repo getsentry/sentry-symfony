@@ -68,6 +68,13 @@ class ConfigurationTest extends BaseTestCase
                 'project_root' => '%kernel.root_dir%/..',
                 'tags' => [],
             ],
+            'monolog' => [
+                'error_handler' => [
+                    'enabled' => false,
+                    'level' => 'DEBUG',
+                    'bubble' => true,
+                ],
+            ],
         ];
 
         if (method_exists(Kernel::class, 'getProjectDir')) {

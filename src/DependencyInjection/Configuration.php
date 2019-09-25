@@ -143,6 +143,24 @@ class Configuration implements ConfigurationInterface
         $listenerPriorities->scalarNode('console_error')
             ->defaultValue(128);
 
+        // Monolog handler configuration
+        $monologConfiguration = $rootNode->children()
+            ->arrayNode('monolog')
+            ->addDefaultsIfNotSet()
+            ->children();
+
+        $errorHandler = $monologConfiguration
+            ->arrayNode('error_handler')
+            ->addDefaultsIfNotSet()
+            ->children();
+        $errorHandler->booleanNode('enabled')
+            ->defaultFalse();
+        $errorHandler->scalarNode('level')
+            ->defaultValue('DEBUG')
+            ->cannotBeEmpty();
+        $errorHandler->booleanNode('bubble')
+            ->defaultTrue();
+
         return $treeBuilder;
     }
 

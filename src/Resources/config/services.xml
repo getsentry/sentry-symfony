@@ -51,5 +51,11 @@
         <service id="Sentry\SentryBundle\Command\SentryTestCommand" class="Sentry\SentryBundle\Command\SentryTestCommand" public="false">
             <tag name="console.command" />
         </service>
+
+        <service id="Sentry\Monolog\Handler" class="Sentry\Monolog\Handler" public="false">
+            <argument type="service" id="Sentry\State\HubInterface" />
+            <argument key="$level" />
+            <argument key="$bubble" />
+        </service>
     </services>
 </container>

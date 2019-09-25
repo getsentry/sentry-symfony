@@ -32,6 +32,7 @@
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.8",
         "jangregor/phpstan-prophecy": "^0.3.0",
+        "monolog/monolog": "^1.11||^2.0",
         "php-http/mock-client": "^1.0",
         "phpstan/phpstan": "^0.11",
         "phpstan/phpstan-phpunit": "^0.11",
@@ -39,13 +40,16 @@
         "scrutinizer/ocular": "^1.4",
         "symfony/expression-language": "^2.8||^3.0||^4.0"
     },
+    "suggest": {
+        "monolog/monolog": "Required to use the Monolog handler"
+    },
     "autoload": {
-        "psr-4" : {
+        "psr-4": {
             "Sentry\\SentryBundle\\": "src/"
         }
     },
     "autoload-dev": {
-        "psr-4" : {
+        "psr-4": {
             "Sentry\\SentryBundle\\Test\\": "test"
         }
     },

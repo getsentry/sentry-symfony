@@ -3,17 +3,23 @@
 namespace Sentry\SentryBundle\Test\DependencyInjection;
 
 use Jean85\PrettyVersions;
+use Monolog\Logger as MonologLogger;
 use Sentry\Breadcrumb;
+use Sentry\ClientInterface;
 use Sentry\Event;
 use Sentry\Integration\IntegrationInterface;
+use Sentry\Monolog\Handler;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\Test\BaseTestCase;
+use Sentry\Severity;
+use Sentry\State\Scope;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Kernel;
@@ -22,6 +28,7 @@ class SentryExtensionTest extends BaseTestCase
 {
     private const OPTIONS_TEST_PUBLIC_ALIAS = 'sentry.options.public_alias';
     private const ERROR_LISTENER_TEST_PUBLIC_ALIAS = 'sentry.error_listener.public_alias';
+    private const MONOLOG_HANDLER_TEST_PUBLIC_ALIAS = 'sentry.monolog_handler.public_alias';
 
     public function testDataProviderIsMappingTheRightNumberOfOptions(): void
     {
@@ -346,7 +353,7 @@ class SentryExtensionTest extends BaseTestCase
             'register_error_listener' => $registerErrorListener,
         ]);
 
-        $this->assertEquals($registerErrorListener, $container->has(self::ERROR_LISTENER_TEST_PUBLIC_ALIAS));
+        $this->assertSame($registerErrorListener, $container->has(self::ERROR_LISTENER_TEST_PUBLIC_ALIAS));
     }
 
     public function errorListenerConfigurationProvider(): array
@@ -355,6 +362,56 @@ class SentryExtensionTest extends BaseTestCase
             [true],
             [false],
         ];
+    }
+
+    /**
+     * @dataProvider monologHandlerConfigurationProvider
+     */
+    public function testMonologHandlerIsConfiguredProperly($level, bool $bubble, int $monologLevel): void
+    {
+        $this->expectExceptionIfMonologHandlerDoesNotExist();
+
+        $container = $this->getContainer([
+            'monolog' => [
+                'error_handler' => [
+                    'enabled' => true,
+                    'level' => $level,
+                    'bubble' => $bubble,
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->has(self::MONOLOG_HANDLER_TEST_PUBLIC_ALIAS));
+
+        /** @var Handler $handler */
+        $handler = $container->get(self::MONOLOG_HANDLER_TEST_PUBLIC_ALIAS);
+        $this->assertEquals($monologLevel, $handler->getLevel());
+        $this->assertEquals($bubble, $handler->getBubble());
+    }
+
+    public function monologHandlerConfigurationProvider(): array
+    {
+        return [
+            ['DEBUG', true, MonologLogger::DEBUG],
+            ['debug', false, MonologLogger::DEBUG],
+            ['ERROR', true, MonologLogger::ERROR],
+            ['error', false, MonologLogger::ERROR],
+            [MonologLogger::ALERT, true, MonologLogger::ALERT],
+            [MonologLogger::EMERGENCY, false, MonologLogger::EMERGENCY],
+        ];
+    }
+
+    public function testMonologHandlerIsNotRegistered(): void
+    {
+        $container = $this->getContainer([
+            'monolog' => [
+                'error_handler' => [
+                    'enabled' => false,
+                ],
+            ],
+        ]);
+
+        $this->assertFalse($container->has(self::MONOLOG_HANDLER_TEST_PUBLIC_ALIAS));
     }
 
     private function getContainer(array $configuration = []): Container
@@ -385,8 +442,15 @@ class SentryExtensionTest extends BaseTestCase
         $extension = new SentryExtension();
         $extension->load(['sentry' => $configuration], $containerBuilder);
 
+        $client = new Definition(ClientMock::class);
+        $containerBuilder->setDefinition(ClientInterface::class, $client);
+
         if ($containerBuilder->hasDefinition(ErrorListener::class)) {
             $containerBuilder->setAlias(self::ERROR_LISTENER_TEST_PUBLIC_ALIAS, new Alias(ErrorListener::class, true));
+        }
+
+        if ($containerBuilder->hasDefinition(Handler::class)) {
+            $containerBuilder->setAlias(self::MONOLOG_HANDLER_TEST_PUBLIC_ALIAS, new Alias(Handler::class, true));
         }
 
         $containerBuilder->compile();
@@ -402,6 +466,16 @@ class SentryExtensionTest extends BaseTestCase
         $this->assertInstanceOf(Options::class, $options);
 
         return $options;
+    }
+
+    private function expectExceptionIfMonologHandlerDoesNotExist(): void
+    {
+        if (! class_exists(Handler::class)) {
+            $this->expectException(LogicException::class);
+            $this->expectExceptionMessage(
+                sprintf('Missing class "%s", try updating "sentry/sentry" to a newer version.', Handler::class)
+            );
+        }
     }
 }
 
@@ -437,5 +511,38 @@ class IntegrationMock implements IntegrationInterface
 {
     public function setupOnce(): void
     {
+    }
+}
+
+class ClientMock implements ClientInterface
+{
+    public function getOptions(): Options
+    {
+        return new Options();
+    }
+
+    public function captureMessage(string $message, ?Severity $level = null, ?Scope $scope = null): ?string
+    {
+        return null;
+    }
+
+    public function captureException(\Throwable $exception, ?Scope $scope = null): ?string
+    {
+        return null;
+    }
+
+    public function captureLastError(?Scope $scope = null): ?string
+    {
+        return null;
+    }
+
+    public function captureEvent(array $payload, ?Scope $scope = null): ?string
+    {
+        return null;
+    }
+
+    public function getIntegration(string $className): ?IntegrationInterface
+    {
+        return null;
     }
 }
