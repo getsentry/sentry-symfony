@@ -4,29 +4,31 @@ namespace Sentry\SentryBundle\Test;
 
 use PHPUnit\Framework\TestCase;
 use Sentry\Options;
-use Sentry\SentryBundle\Test\DependencyInjection\ConfigurationTest;
 
 abstract class BaseTestCase extends TestCase
 {
-    public const SUPPORTED_SENTRY_OPTIONS_COUNT = 23;
-
     protected function classSerializersAreSupported(): bool
     {
-        try {
-            new Options(['class_serializers' => []]);
+        return method_exists(Options::class, 'getClassSerializers');
+    }
 
-            return true;
-        } catch (\Throwable $throwable) {
-            return false;
-        }
+    protected function maxRequestBodySizeIsSupported(): bool
+    {
+        return method_exists(Options::class, 'getMaxRequestBodySize');
     }
 
     protected function getSupportedOptionsCount(): int
     {
+        $count = 23;
+
         if ($this->classSerializersAreSupported()) {
-            return ConfigurationTest::SUPPORTED_SENTRY_OPTIONS_COUNT + 1;
+            ++$count;
         }
 
-        return ConfigurationTest::SUPPORTED_SENTRY_OPTIONS_COUNT;
+        if ($this->maxRequestBodySizeIsSupported()) {
+            ++$count;
+        }
+
+        return $count;
     }
 }

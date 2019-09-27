@@ -130,6 +130,13 @@ class ConfigurationTest extends BaseTestCase
         }
 
         if ($this->classSerializersAreSupported()) {
+            $options[] = ['max_request_body_size', 'none'];
+            $options[] = ['max_request_body_size', 'small'];
+            $options[] = ['max_request_body_size', 'medium'];
+            $options[] = ['max_request_body_size', 'always'];
+        }
+
+        if ($this->maxRequestBodySizeIsSupported()) {
             $options[] = ['class_serializers', ['count']];
         }
 
@@ -196,6 +203,11 @@ class ConfigurationTest extends BaseTestCase
             $values[] = ['class_serializers', [$this, 'is not a callable']];
             $values[] = ['class_serializers', false];
             $values[] = ['class_serializers', -1];
+        }
+
+        if ($this->maxRequestBodySizeIsSupported()) {
+            $values[] = ['max_request_body_size', null];
+            $values[] = ['max_request_body_size', 'invalid'];
         }
 
         return $values;

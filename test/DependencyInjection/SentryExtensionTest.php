@@ -148,6 +148,10 @@ class SentryExtensionTest extends BaseTestCase
             ];
         }
 
+        if ($this->maxRequestBodySizeIsSupported()) {
+            $options[] = ['max_request_body_size', 'always'];
+        }
+
         return $options;
     }
 

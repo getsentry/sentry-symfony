@@ -67,6 +67,7 @@ class SentryExtension extends Extension
             'excluded_exceptions',
             'http_proxy',
             'logger',
+            'max_request_body_size',
             'max_breadcrumbs',
             'max_value_length',
             'prefixes',
