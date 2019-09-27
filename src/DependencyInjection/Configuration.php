@@ -180,22 +180,11 @@ class Configuration implements ConfigurationInterface
 
     private function classSerializersAreSupported(): bool
     {
-        return $this->optionIsSupported('class_serializers', []);
+        return method_exists(Options::class, 'getClassSerializers');
     }
 
     private function maxRequestBodySizeIsSupported(): bool
     {
-        return $this->optionIsSupported('max_request_body_size', 'none');
-    }
-
-    private function optionIsSupported(string $name, $defaultValue): bool
-    {
-        try {
-            new Options([$name => $defaultValue]);
-
-            return true;
-        } catch (\Throwable $throwable) {
-            return false;
-        }
+        return method_exists(Options::class, 'getMaxRequestBodySize');
     }
 }

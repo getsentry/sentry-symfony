@@ -9,12 +9,12 @@ abstract class BaseTestCase extends TestCase
 {
     protected function classSerializersAreSupported(): bool
     {
-        return $this->optionIsSupported('class_serializers', []);
+        return method_exists(Options::class, 'getClassSerializers');
     }
 
     protected function maxRequestBodySizeIsSupported(): bool
     {
-        return $this->optionIsSupported('max_request_body_size', 'none');
+        return method_exists(Options::class, 'getMaxRequestBodySize');
     }
 
     protected function getSupportedOptionsCount(): int
@@ -30,16 +30,5 @@ abstract class BaseTestCase extends TestCase
         }
 
         return $count;
-    }
-
-    private function optionIsSupported(string $name, $defaultValue): bool
-    {
-        try {
-            new Options([$name => $defaultValue]);
-
-            return true;
-        } catch (\Throwable $throwable) {
-            return false;
-        }
     }
 }

@@ -6,6 +6,8 @@ parameters:
     ignoreErrors:
          - "/Call to function method_exists.. with 'Symfony.+' and 'getProjectDir' will always evaluate to false./"
          - "/Call to function method_exists.. with 'Symfony.+' and 'getRootNode' will always evaluate to false./"
+         - "/Call to function method_exists.. with 'Sentry..Options' and 'getClassSerializers' will always evaluate to false./"
+         - "/Call to function method_exists.. with 'Sentry..Options' and 'getMaxRequestBodySi...' will always evaluate to false./"
          - '/Parameter \$.+ of method Sentry\\SentryBundle\\EventListener\\ErrorListener::onConsoleException\(\) has invalid typehint type Symfony\\Component\\Console\\Event\\ConsoleExceptionEvent./'
          - '/Call to method getException\(\) on an unknown class Symfony\\Component\\Console\\Event\\ConsoleExceptionEvent./'
          - '/Access to undefined constant Symfony\\Component\\Console\\ConsoleEvents::EXCEPTION./'
