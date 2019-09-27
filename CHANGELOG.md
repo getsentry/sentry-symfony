@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Fix Hub initialization for `ErrorListener` (#243, thanks to @teohhanhui)
  - Fix compatibility with sentry/sentry 2.2+ (#244)
  - Add support for `class_serializers` option (#245)
+ - Add support for `max_request_body_size` option (#249)
 
 ## 3.1.0 - 2019-07-02
  - Add support for Symfony 2.8 (#233, thanks to @nocive)
