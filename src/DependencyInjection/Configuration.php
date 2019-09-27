@@ -93,6 +93,15 @@ class Configuration implements ConfigurationInterface
             })
             ->thenInvalid('Expecting service reference, got "%s"');
         $optionsChildNodes->scalarNode('logger');
+        if ($this->maxRequestBodySizeIsSupported()) {
+            $optionsChildNodes->enumNode('max_request_body_size')
+                ->values([
+                    'none',
+                    'small',
+                    'medium',
+                    'always',
+                ]);
+        }
         $optionsChildNodes->integerNode('max_breadcrumbs')
             ->min(1);
         $optionsChildNodes->integerNode('max_value_length')
@@ -171,8 +180,18 @@ class Configuration implements ConfigurationInterface
 
     private function classSerializersAreSupported(): bool
     {
+        return $this->optionIsSupported('class_serializers', []);
+    }
+
+    private function maxRequestBodySizeIsSupported(): bool
+    {
+        return $this->optionIsSupported('max_request_body_size', 'none');
+    }
+
+    private function optionIsSupported(string $name, $defaultValue): bool
+    {
         try {
-            new Options(['class_serializers' => []]);
+            new Options([$name => $defaultValue]);
 
             return true;
         } catch (\Throwable $throwable) {
