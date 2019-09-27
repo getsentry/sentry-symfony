@@ -181,8 +181,6 @@ class ConfigurationTest extends BaseTestCase
             ['integrations', [1]],
             ['integrations', 'a string'],
             ['logger', []],
-            ['max_request_body_size', null],
-            ['max_request_body_size', 'invalid'],
             ['max_breadcrumbs', -1],
             ['max_breadcrumbs', 'string'],
             ['max_value_length', -1],
@@ -205,6 +203,11 @@ class ConfigurationTest extends BaseTestCase
             $values[] = ['class_serializers', [$this, 'is not a callable']];
             $values[] = ['class_serializers', false];
             $values[] = ['class_serializers', -1];
+        }
+
+        if ($this->maxRequestBodySizeIsSupported()) {
+            $values[] = ['max_request_body_size', null];
+            $values[] = ['max_request_body_size', 'invalid'];
         }
 
         return $values;

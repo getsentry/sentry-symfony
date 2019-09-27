@@ -122,7 +122,6 @@ class SentryExtensionTest extends BaseTestCase
             ['excluded_exceptions', [\Throwable::class]],
             ['http_proxy', '1.2.3.4'],
             ['logger', 'sentry-logger'],
-            ['max_request_body_size', 'always'],
             ['max_breadcrumbs', 15],
             ['max_value_length', 1000],
             ['prefixes', ['/some/path/prefix/']],
@@ -147,6 +146,10 @@ class SentryExtensionTest extends BaseTestCase
                 ],
                 'getClassSerializers',
             ];
+        }
+
+        if ($this->maxRequestBodySizeIsSupported()) {
+            $options[] = ['max_request_body_size', 'always'];
         }
 
         return $options;
