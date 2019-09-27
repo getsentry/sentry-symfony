@@ -112,10 +112,6 @@ class ConfigurationTest extends BaseTestCase
             ['excluded_exceptions', [\Throwable::class]],
             ['logger', 'some-logger'],
             ['max_breadcrumbs', 15],
-            ['max_request_body_size', 'none'],
-            ['max_request_body_size', 'small'],
-            ['max_request_body_size', 'medium'],
-            ['max_request_body_size', 'always'],
             ['max_value_length', 1000],
             ['prefixes', ['some-string']],
             ['project_root', '/some/dir'],
@@ -134,6 +130,13 @@ class ConfigurationTest extends BaseTestCase
         }
 
         if ($this->classSerializersAreSupported()) {
+            $options[] = ['max_request_body_size', 'none'];
+            $options[] = ['max_request_body_size', 'small'];
+            $options[] = ['max_request_body_size', 'medium'];
+            $options[] = ['max_request_body_size', 'always'];
+        }
+
+        if ($this->maxRequestBodySizeIsSupported()) {
             $options[] = ['class_serializers', ['count']];
         }
 
