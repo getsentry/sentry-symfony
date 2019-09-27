@@ -11,7 +11,6 @@ parameters:
          - '/Parameter \$.+ of method Sentry\\SentryBundle\\EventListener\\ErrorListener::onConsoleException\(\) has invalid typehint type Symfony\\Component\\Console\\Event\\ConsoleExceptionEvent./'
          - '/Call to method getException\(\) on an unknown class Symfony\\Component\\Console\\Event\\ConsoleExceptionEvent./'
          - '/Access to undefined constant Symfony\\Component\\Console\\ConsoleEvents::EXCEPTION./'
-         - '/Sentry\\SentrySdk/'
 
 includes:
 	- vendor/jangregor/phpstan-prophecy/src/extension.neon
