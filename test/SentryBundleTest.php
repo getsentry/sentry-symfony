@@ -13,6 +13,8 @@ use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
+use Sentry\SentryBundle\SentryBundle;
+use Sentry\State\Hub;
 use Sentry\State\HubInterface;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -157,6 +159,8 @@ class SentryBundleTest extends TestCase
 
         $extension = new SentryExtension();
         $extension->load(['sentry' => $configuration], $containerBuilder);
+
+        SentryBundle::setCurrentHub(new Hub());
 
         return $containerBuilder;
     }

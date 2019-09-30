@@ -16,7 +16,10 @@
         </service>
 
         <service id="Sentry\State\HubInterface" class="Sentry\State\Hub" public="false">
-            <argument type="service" id="Sentry\ClientInterface" />
+            <factory class="Sentry\SentryBundle\SentryBundle" method="getCurrentHub" />
+            <call method="bindClient">
+                <argument type="service" id="Sentry\ClientInterface" />
+            </call>
         </service>
 
         <service id="Sentry\SentryBundle\EventListener\ConsoleListener" class="Sentry\SentryBundle\EventListener\ConsoleListener" public="false">

@@ -4,6 +4,7 @@ namespace Sentry\SentryBundle\Test\DependencyInjection;
 
 use Jean85\PrettyVersions;
 use Monolog\Logger as MonologLogger;
+use Prophecy\Argument;
 use Sentry\Breadcrumb;
 use Sentry\ClientInterface;
 use Sentry\Event;
@@ -12,8 +13,10 @@ use Sentry\Monolog\Handler;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ErrorListener;
+use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Test\BaseTestCase;
 use Sentry\Severity;
+use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\Container;
@@ -452,6 +455,10 @@ class SentryExtensionTest extends BaseTestCase
         if ($containerBuilder->hasDefinition(Handler::class)) {
             $containerBuilder->setAlias(self::MONOLOG_HANDLER_TEST_PUBLIC_ALIAS, new Alias(Handler::class, true));
         }
+
+        $hub = $this->prophesize(HubInterface::class);
+        $hub->bindClient(Argument::type(ClientMock::class));
+        SentryBundle::setCurrentHub($hub->reveal());
 
         $containerBuilder->compile();
 
