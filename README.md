@@ -103,17 +103,20 @@ the [PHP specific](https://docs.sentry.io/platforms/php/#php-specific-options) o
 #### Optional: use monolog handler provided by `sentry/sentry`
 *Note: this step is optional*
 
-If You're using `monolog` for logging e.g. in-app errors, You
+If you're using `monolog` for logging e.g. in-app errors, you
 can use this handler in order for them to show up in Sentry. 
 
-First, define `Sentry\Monolog\Handler` as a service in `config/services.yaml`
+First, enable & configure the `Sentry\Monolog\Handler`; you'll also need
+to disable the `Sentry\SentryBundle\EventListener\ErrorListener` to
+avoid having duplicate events in Sentry:
 
 ```yaml
-services:
-    sentry.monolog.handler:
-        class: Sentry\Monolog\Handler
-        arguments:
-            $level: 'error'
+sentry:
+    register_error_listener: false # Disables the ErrorListener
+    monolog:
+        error_handler:
+            enabled: true
+            level: error
 ```
 
 Then enable it in `monolog` config:
@@ -123,8 +126,7 @@ monolog:
     handlers:
         sentry:
             type: service
-            id: sentry.monolog.handler
-            level: error 
+            id: Sentry\Monolog\Handler
 ```
 
 ## Maintained versions

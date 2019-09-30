@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Fix compatibility with sentry/sentry 2.2+ (#244)
  - Add support for `class_serializers` option (#245)
  - Add support for `max_request_body_size` option (#249)
+ - Add option to disable the error listener completely (#247, thanks to @HypeMC)
+ - Add options to register the Monolog Handler (#247, thanks to @HypeMC)
 
 ## 3.1.0 - 2019-07-02
  - Add support for Symfony 2.8 (#233, thanks to @nocive)

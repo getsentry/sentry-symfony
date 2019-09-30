@@ -48,6 +48,7 @@ class ConfigurationTest extends BaseTestCase
         $processed = $this->processConfiguration([]);
         $expectedDefaults = [
             'dsn' => null,
+            'register_error_listener' => true,
             'listener_priorities' => [
                 'request' => 1,
                 'sub_request' => 1,
@@ -66,6 +67,13 @@ class ConfigurationTest extends BaseTestCase
                 'prefixes' => $defaultSdkValues->getPrefixes(),
                 'project_root' => '%kernel.root_dir%/..',
                 'tags' => [],
+            ],
+            'monolog' => [
+                'error_handler' => [
+                    'enabled' => false,
+                    'level' => 'DEBUG',
+                    'bubble' => true,
+                ],
             ],
         ];
 

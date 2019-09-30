@@ -2,7 +2,9 @@
 
 namespace Sentry\SentryBundle\DependencyInjection;
 
+use Monolog\Logger as MonologLogger;
 use Sentry\ClientBuilderInterface;
+use Sentry\Monolog\Handler;
 use Sentry\Options;
 use Sentry\SentryBundle\Command\SentryTestCommand;
 use Sentry\SentryBundle\ErrorTypesParser;
@@ -14,6 +16,7 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
@@ -47,8 +50,9 @@ class SentryExtension extends Extension
             $container->setParameter('sentry.listener_priorities.' . $key, $priority);
         }
 
-        $this->tagConsoleErrorListener($container);
+        $this->configureErrorListener($container, $processedConfiguration);
         $this->setLegacyVisibilities($container);
+        $this->configureMonologHandler($container, $processedConfiguration['monolog']);
     }
 
     private function passConfigurationToOptions(ContainerBuilder $container, array $processedConfiguration): void
@@ -134,6 +138,17 @@ class SentryExtension extends Extension
         return $value;
     }
 
+    private function configureErrorListener(ContainerBuilder $container, array $processedConfiguration): void
+    {
+        if (! $processedConfiguration['register_error_listener']) {
+            $container->removeDefinition(ErrorListener::class);
+
+            return;
+        }
+
+        $this->tagConsoleErrorListener($container);
+    }
+
     /**
      * BC layer for Symfony < 3.3; see https://symfony.com/blog/new-in-symfony-3-3-better-handling-of-command-exceptions
      */
@@ -166,9 +181,40 @@ class SentryExtension extends Extension
         if (Kernel::VERSION_ID < 30300) {
             $container->getDefinition(SentryTestCommand::class)->setPublic(true);
             $container->getDefinition(ConsoleListener::class)->setPublic(true);
-            $container->getDefinition(ErrorListener::class)->setPublic(true);
             $container->getDefinition(RequestListener::class)->setPublic(true);
             $container->getDefinition(SubRequestListener::class)->setPublic(true);
+
+            if ($container->hasDefinition(ErrorListener::class)) {
+                $container->getDefinition(ErrorListener::class)->setPublic(true);
+            }
         }
+    }
+
+    private function configureMonologHandler(ContainerBuilder $container, array $monologConfiguration): void
+    {
+        $errorHandler = $monologConfiguration['error_handler'];
+
+        if (! $errorHandler['enabled']) {
+            $container->removeDefinition(Handler::class);
+
+            return;
+        }
+
+        if (! class_exists(Handler::class)) {
+            throw new LogicException(
+                sprintf('Missing class "%s", try updating "sentry/sentry" to a newer version.', Handler::class)
+            );
+        }
+
+        if (! class_exists(MonologLogger::class)) {
+            throw new LogicException(
+                sprintf('You cannot use "%s" if Monolog is not available.', Handler::class)
+            );
+        }
+
+        $container
+            ->getDefinition(Handler::class)
+            ->replaceArgument('$level', MonologLogger::toMonologLevel($errorHandler['level']))
+            ->replaceArgument('$bubble', $errorHandler['bubble']);
     }
 }

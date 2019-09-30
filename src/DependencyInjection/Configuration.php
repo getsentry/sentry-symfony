@@ -37,6 +37,10 @@ class Configuration implements ConfigurationInterface
             ->ifString()
             ->then($this->getTrimClosure());
 
+        $rootNode->children()
+            ->booleanNode('register_error_listener')
+            ->defaultTrue();
+
         // Options array (to be passed to Sentry\Options constructor) -- please keep alphabetical order!
         $optionsNode = $rootNode->children()
             ->arrayNode('options')
@@ -138,6 +142,24 @@ class Configuration implements ConfigurationInterface
             ->defaultValue(128);
         $listenerPriorities->scalarNode('console_error')
             ->defaultValue(128);
+
+        // Monolog handler configuration
+        $monologConfiguration = $rootNode->children()
+            ->arrayNode('monolog')
+            ->addDefaultsIfNotSet()
+            ->children();
+
+        $errorHandler = $monologConfiguration
+            ->arrayNode('error_handler')
+            ->addDefaultsIfNotSet()
+            ->children();
+        $errorHandler->booleanNode('enabled')
+            ->defaultFalse();
+        $errorHandler->scalarNode('level')
+            ->defaultValue('DEBUG')
+            ->cannotBeEmpty();
+        $errorHandler->booleanNode('bubble')
+            ->defaultTrue();
 
         return $treeBuilder;
     }
