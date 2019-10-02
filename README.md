@@ -150,6 +150,25 @@ default run with a lower priority of `0`.
 Those listeners are `final` so not extendable, but you can look at those to know how to add more information to the 
 current `Scope` and enrich you Sentry events.
 
+
+#### Services configuration
+
+Services registered by the bundle (for example `ClientBuilder`) can be configured in several ways, one of them is by compiler pass:
+
+```php
+final class SentryCustomizationCompilerPass implements CompilerPassInterface
+{
+    public function process(ContainerBuilder $containerBuilder): void
+    {
+        // Example - setting own serializer to Sentry\ClientBuilder
+        $containerBuilder->getDefinition(ClientBuilderInterface::class)
+            ->addMethodCall('setSerializer', [
+                new Reference(MyCustomSerializer::class),
+            ]);
+    }
+}
+```
+
 [Last stable image]: https://poser.pugx.org/sentry/sentry-symfony/version.svg
 [Last unstable image]: https://poser.pugx.org/sentry/sentry-symfony/v/unstable.svg
 [Master build image]: https://travis-ci.org/getsentry/sentry-symfony.svg?branch=master
