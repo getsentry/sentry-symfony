@@ -153,7 +153,7 @@ current `Scope` and enrich you Sentry events.
 
 #### Services configuration
 
-Services registered by the bundle (for example `ClientBuilder`) can be configured in several ways, one of them is by compiler pass:
+Services registered by the bundle (the `ClientBuilder` in the example below) can be configured in several ways, one of them is by using a [compiler pass](https://symfony.com/doc/current/service_container/compiler_passes.html):
 
 ```php
 final class SentryCustomizationCompilerPass implements CompilerPassInterface
