@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## 3.2.0 - 2019-10-04
  - Add forward compatibility with Symfony 5 (#235, thanks to @garak)
  - Fix Hub initialization for `ErrorListener` (#243, thanks to @teohhanhui)
  - Fix compatibility with sentry/sentry 2.2+ (#244)
