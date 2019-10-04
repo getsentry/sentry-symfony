@@ -45,3 +45,16 @@ jobs:
         - phpdbg -qrr vendor/bin/phpunit --coverage-clover clover.xml
       after_success:
         - vendor/bin/ocular code-coverage:upload --format=php-clover clover.xml --revision=$TRAVIS_COMMIT
+
+notifications:
+  webhooks:
+    urls:
+      - https://zeus.ci/hooks/cd75fa32-e67c-11e9-8af5-9a14aa75c5d9/public/provider/travis/webhook
+    on_success: always
+    on_failure: always
+    on_start: always
+    on_cancel: always
+    on_error: always
+after_script:
+  - npm install -g @zeus-ci/cli
+  - zeus upload -t "mime/type" path/to/artifact
