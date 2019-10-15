@@ -100,7 +100,7 @@ The parameter `options` allows to fine-tune exceptions. To discover more options
 [the Unified APIs](https://docs.sentry.io/development/sdk-dev/unified-api/#options) options and
 the [PHP specific](https://docs.sentry.io/platforms/php/#php-specific-options) ones.
 
-#### Optional: use monolog handler provided by `sentry/sentry`
+#### Optional: use monolog handler provided by `sentry/sentry` (available since 3.2.0)
 *Note: this step is optional*
 
 If you're using `monolog` for logging e.g. in-app errors, you
