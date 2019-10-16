@@ -33,9 +33,14 @@ final class ConsoleListener
     {
         $command = $event->getCommand();
 
+        $commandName = null;
+        if ($command) {
+            $commandName = $command->getName();
+        }
+
         SentryBundle::getCurrentHub()
-            ->configureScope(function (Scope $scope) use ($command): void {
-                $scope->setTag('command', $command ? $command->getName() : 'N/A');
+            ->configureScope(static function (Scope $scope) use ($commandName): void {
+                $scope->setTag('command', $commandName ?? 'N/A');
             });
     }
 }
