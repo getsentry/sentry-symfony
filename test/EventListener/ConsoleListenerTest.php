@@ -51,11 +51,28 @@ class ConsoleListenerTest extends TestCase
         $this->assertSame(['command' => 'sf:command:name'], $this->getTagsContext($this->currentScope));
     }
 
-    public function testOnConsoleCommandAddsPlaceholderCommandName(): void
+    public function testOnConsoleCommandWithNoCommandAddsPlaceholder(): void
     {
         $event = $this->prophesize(ConsoleCommandEvent::class);
         $event->getCommand()
             ->willReturn(null);
+
+        $listener = new ConsoleListener($this->currentHub->reveal());
+
+        $listener->onConsoleCommand($event->reveal());
+
+        $this->assertSame(['command' => 'N/A'], $this->getTagsContext($this->currentScope));
+    }
+
+    public function testOnConsoleCommandWithNoCommandNameAddsPlaceholder(): void
+    {
+        $command = $this->prophesize(Command::class);
+        $command->getName()
+            ->willReturn(null);
+
+        $event = $this->prophesize(ConsoleCommandEvent::class);
+        $event->getCommand()
+            ->willReturn($command->reveal());
 
         $listener = new ConsoleListener($this->currentHub->reveal());
 
