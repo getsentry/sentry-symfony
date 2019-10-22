@@ -80,8 +80,7 @@ class RequestListenerTest extends TestCase
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
-            $tokenStorage->reveal(),
-            $authorizationChecker->reveal()
+            $tokenStorage->reveal()
         );
 
         $listener->onKernelRequest($event->reveal());
