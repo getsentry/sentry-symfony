@@ -65,7 +65,7 @@ final class RequestListener
         }
 
         $userData = [];
-        
+
         if (
             null !== $token
             && null !== $this->authorizationChecker
