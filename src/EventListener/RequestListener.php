@@ -65,11 +65,13 @@ final class RequestListener
             $token = $this->tokenStorage->getToken();
         }
 
+        $userData = [];
+        
         if (
             null !== $token
             && null !== $this->authorizationChecker
             && $token->isAuthenticated()
-            && $this->authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)
+            && $token->getUser()
         ) {
             $userData = $this->getUserData($token->getUser());
         }
