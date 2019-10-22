@@ -8,7 +8,6 @@ use Sentry\State\Scope;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
@@ -23,23 +22,17 @@ final class RequestListener
     /** @var TokenStorageInterface|null */
     private $tokenStorage;
 
-    /** @var AuthorizationCheckerInterface|null */
-    private $authorizationChecker;
-
     /**
      * RequestListener constructor.
      * @param HubInterface $hub
      * @param TokenStorageInterface|null $tokenStorage
-     * @param AuthorizationCheckerInterface|null $authorizationChecker
      */
     public function __construct(
         HubInterface $hub,
-        ?TokenStorageInterface $tokenStorage,
-        ?AuthorizationCheckerInterface $authorizationChecker
+        ?TokenStorageInterface $tokenStorage
     ) {
         $this->hub = $hub; // not used, needed to trigger instantiation
         $this->tokenStorage = $tokenStorage;
-        $this->authorizationChecker = $authorizationChecker;
     }
 
     /**
@@ -68,7 +61,6 @@ final class RequestListener
 
         if (
             null !== $token
-            && null !== $this->authorizationChecker
             && $token->isAuthenticated()
             && $token->getUser()
         ) {
