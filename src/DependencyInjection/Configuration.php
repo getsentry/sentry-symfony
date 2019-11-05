@@ -7,7 +7,10 @@ use Sentry\Options;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 /**
  * This is the class that validates and merges configuration from your app/config files
@@ -48,6 +51,10 @@ class Configuration implements ConfigurationInterface
 
         $defaultValues = new Options();
         $optionsChildNodes = $optionsNode->children();
+
+        if (empty($defaultValues->getExcludedExceptions())) {
+            $defaultValues->setExcludedExceptions($this->frameworkDefaultExceptions());
+        }
 
         $optionsChildNodes->booleanNode('attach_stacktrace');
         $optionsChildNodes->variableNode('before_breadcrumb')
@@ -208,5 +215,14 @@ class Configuration implements ConfigurationInterface
     private function maxRequestBodySizeIsSupported(): bool
     {
         return method_exists(Options::class, 'getMaxRequestBodySize');
+    }
+
+    private function frameworkDefaultExceptions() : array
+    {
+        return [
+            HttpExceptionInterface::class,
+            AuthenticationException::class,
+            AccessDeniedException::class
+        ];
     }
 }

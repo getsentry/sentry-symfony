@@ -8,7 +8,10 @@ use Sentry\SentryBundle\DependencyInjection\Configuration;
 use Sentry\SentryBundle\Test\BaseTestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 class ConfigurationTest extends BaseTestCase
 {
@@ -63,7 +66,11 @@ class ConfigurationTest extends BaseTestCase
                     '%kernel.root_dir%/../vendor',
                 ],
                 'integrations' => $defaultSdkValues->getIntegrations(),
-                'excluded_exceptions' => $defaultSdkValues->getExcludedExceptions(),
+                'excluded_exceptions' => [
+                    HttpExceptionInterface::class,
+                    AuthenticationException::class,
+                    AccessDeniedException::class
+                ],
                 'prefixes' => $defaultSdkValues->getPrefixes(),
                 'project_root' => '%kernel.root_dir%/..',
                 'tags' => [],
