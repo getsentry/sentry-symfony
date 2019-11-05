@@ -217,12 +217,12 @@ class Configuration implements ConfigurationInterface
         return method_exists(Options::class, 'getMaxRequestBodySize');
     }
 
-    private function frameworkDefaultExceptions() : array
+    private function frameworkDefaultExceptions(): array
     {
         return [
             HttpExceptionInterface::class,
             AuthenticationException::class,
-            AccessDeniedException::class
+            AccessDeniedException::class,
         ];
     }
 }

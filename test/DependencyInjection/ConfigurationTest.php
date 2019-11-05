@@ -69,7 +69,7 @@ class ConfigurationTest extends BaseTestCase
                 'excluded_exceptions' => [
                     HttpExceptionInterface::class,
                     AuthenticationException::class,
-                    AccessDeniedException::class
+                    AccessDeniedException::class,
                 ],
                 'prefixes' => $defaultSdkValues->getPrefixes(),
                 'project_root' => '%kernel.root_dir%/..',
