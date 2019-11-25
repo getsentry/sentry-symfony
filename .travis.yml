@@ -28,6 +28,7 @@ jobs:
       php: 7.1
       name: prefer-lowest
       install:
+        - travis_retry travis_wait composer install --no-interaction --prefer-dist
         - composer remove --dev friendsofphp/php-cs-fixer phpstan/phpstan
         - composer require --dev phpunit/phpunit:^6.5.14 --no-update
         - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable --prefer-lowest
