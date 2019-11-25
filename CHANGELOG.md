@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Fix handling of command with no name on `ConsoleListener` (#261)
  - Remove check by AuthorizationChecker in  `RequestListener` (#264)
  - Fixed undefined variable in `RequestListener` (#263)
+ - Add support for PHP 7.4 (#278)
 
 ## 3.2.0 (2019-10-04)
 
