@@ -29,8 +29,7 @@ jobs:
       name: prefer-lowest
       install:
         - travis_retry travis_wait composer install --no-interaction --prefer-dist
-        - composer remove --dev friendsofphp/php-cs-fixer phpstan/phpstan phpstan/phpstan-phpunit jangregor/phpstan-prophecy
-        - composer require --dev phpunit/phpunit:^6.5.14 --no-update
+        - composer remove --dev friendsofphp/php-cs-fixer phpstan/phpstan phpstan/phpstan-phpunit jangregor/phpstan-prophecy --no-update
         - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable --prefer-lowest
     - name: sentry/sentry dev-develop
       install: composer require sentry/sentry:dev-develop

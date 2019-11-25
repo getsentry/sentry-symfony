@@ -2,10 +2,13 @@
 
 namespace Sentry\SentryBundle\Test\End2End;
 
+use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\Test\End2End\App\Kernel;
 use Sentry\State\HubInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
+
+class_alias(TestCase::class, \PHPUnit_Framework_TestCase::class);
 
 class End2EndTest extends WebTestCase
 {
