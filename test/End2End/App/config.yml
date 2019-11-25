@@ -6,3 +6,10 @@ services:
   test.hub: 
     alias: Sentry\State\HubInterface
     public: true
+
+monolog:
+  handlers:
+    main:
+      type:  stream
+      path:  "%kernel.logs_dir%/%kernel.environment%.log"
+      level: debug

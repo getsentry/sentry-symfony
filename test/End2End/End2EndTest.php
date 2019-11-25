@@ -12,7 +12,7 @@ class End2EndTest extends WebTestCase
     protected function setUp(): void
     {
         static::$class = Kernel::class;
-        
+
         parent::setUp();
     }
 
@@ -21,7 +21,7 @@ class End2EndTest extends WebTestCase
         return Kernel::class;
     }
 
-    public function testGet404(): void 
+    public function testGet404(): void
     {
         $client = static::createClient();
 
@@ -31,7 +31,7 @@ class End2EndTest extends WebTestCase
 
         $this->assertInstanceOf(Response::class, $response);
         $this->assertSame(404, $response->getStatusCode(), $response->getContent());
-        
+
         $hub = $client->getContainer()->get('test.hub');
 
         $this->assertInstanceOf(HubInterface::class, $hub);

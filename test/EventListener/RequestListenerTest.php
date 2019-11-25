@@ -95,12 +95,7 @@ class RequestListenerTest extends TestCase
     public function userDataProvider(): \Generator
     {
         yield ['john-doe'];
-
-        $userInterface = $this->prophesize(UserInterface::class);
-        $userInterface->getUsername()
-            ->willReturn('john-doe');
-
-        yield [$userInterface->reveal()];
+        yield [new UserWithInterface('john-doe')];
         yield [new ToStringUser('john-doe')];
     }
 
@@ -354,6 +349,39 @@ class RequestListenerTest extends TestCase
         $scope->applyToEvent($event, []);
 
         return $event->getTagsContext()->toArray();
+    }
+}
+class UserWithInterface implements UserInterface
+{
+    private $username;
+
+    public function __construct(string $username)
+    {
+        $this->username = $username;
+    }
+
+    public function getRoles()
+    {
+        return [];
+    }
+
+    public function getPassword()
+    {
+        return null;
+    }
+
+    public function getSalt()
+    {
+        return null;
+    }
+
+    public function getUsername()
+    {
+        return $this->username;
+    }
+
+    public function eraseCredentials()
+    {
     }
 }
 
