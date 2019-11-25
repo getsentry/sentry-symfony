@@ -29,8 +29,8 @@ jobs:
       name: prefer-lowest
       install:
         - composer remove --dev friendsofphp/php-cs-fixer phpstan/phpstan --no-update
-        - composer require --dev phpunit/phpunit:^6.5.14 --no-update
         - travis_retry travis_wait composer install --no-interaction --prefer-dist
+        - composer require --dev phpunit/phpunit:^6.5.14 --no-update
         - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable --prefer-lowest
     - name: sentry/sentry dev-develop
       install: composer require sentry/sentry:dev-develop
