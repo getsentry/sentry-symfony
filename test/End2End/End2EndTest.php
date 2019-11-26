@@ -5,6 +5,7 @@ namespace Sentry\SentryBundle\Test\End2End;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\Test\End2End\App\Kernel;
 use Sentry\State\HubInterface;
+use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -35,7 +36,7 @@ class End2EndTest extends WebTestCase
             $response = $client->getResponse();
 
             $this->assertInstanceOf(Response::class, $response);
-            $this->assertSame(404, $response->getStatusCode(), $response->getContent());
+            $this->assertSame(404, $response->getStatusCode());
         } catch (\Throwable $exception) {
             if (! $exception instanceof NotFoundHttpException) {
                 throw $exception;
@@ -44,10 +45,7 @@ class End2EndTest extends WebTestCase
             $this->assertSame('No route found for "GET /missing-page"', $exception->getMessage());
         }
 
-        $hub = $client->getContainer()->get('test.hub');
-
-        $this->assertInstanceOf(HubInterface::class, $hub);
-        $this->assertNotNull($hub->getLastEventId(), 'Last error not captured');
+        $this->assertLastEventIdIsNotNull($client);
     }
 
     public function testGet500(): void
@@ -60,7 +58,7 @@ class End2EndTest extends WebTestCase
             $response = $client->getResponse();
 
             $this->assertInstanceOf(Response::class, $response);
-            $this->assertSame(500, $response->getStatusCode(), $response->getContent());
+            $this->assertSame(500, $response->getStatusCode());
             $this->assertContains('intentional error', $response->getContent());
         } catch (\Throwable $exception) {
             if (! $exception instanceof \RuntimeException) {
@@ -70,9 +68,17 @@ class End2EndTest extends WebTestCase
             $this->assertSame('This is an intentional error', $exception->getMessage());
         }
 
-        $hub = $client->getContainer()->get('test.hub');
+        $this->assertLastEventIdIsNotNull($client);
+    }
 
+    private function assertLastEventIdIsNotNull(Client $client): void
+    {
+        $container = $client->getContainer();
+        $this->assertNotNull($container);
+
+        $hub = $container->get('test.hub');
         $this->assertInstanceOf(HubInterface::class, $hub);
+
         $this->assertNotNull($hub->getLastEventId(), 'Last error not captured');
     }
 }
