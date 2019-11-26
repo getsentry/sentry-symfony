@@ -8,6 +8,6 @@ class MainController
 {
     public function exception(): Response
     {
-        throw new \Exception('This is an intentional error');
+        throw new \RuntimeException('This is an intentional error');
     }
 }

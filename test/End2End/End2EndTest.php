@@ -7,6 +7,7 @@ use Sentry\SentryBundle\Test\End2End\App\Kernel;
 use Sentry\State\HubInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class_alias(TestCase::class, \PHPUnit_Framework_TestCase::class);
 
@@ -26,14 +27,22 @@ class End2EndTest extends WebTestCase
 
     public function testGet404(): void
     {
-        $client = static::createClient();
+        $client = static::createClient(['debug' => false]);
 
-        $client->request('GET', '/missing-page');
+        try {
+            $client->request('GET', '/missing-page');
 
-        $response = $client->getResponse();
+            $response = $client->getResponse();
 
-        $this->assertInstanceOf(Response::class, $response);
-        $this->assertSame(404, $response->getStatusCode(), $response->getContent());
+            $this->assertInstanceOf(Response::class, $response);
+            $this->assertSame(404, $response->getStatusCode(), $response->getContent());
+        } catch (\Throwable $exception) {
+            if (! $exception instanceof NotFoundHttpException) {
+                throw $exception;
+            }
+
+            $this->assertSame('No route found for "GET /missing-page"', $exception->getMessage());
+        }
 
         $hub = $client->getContainer()->get('test.hub');
 
@@ -45,13 +54,21 @@ class End2EndTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $client->request('GET', '/exception');
+        try {
+            $client->request('GET', '/exception');
 
-        $response = $client->getResponse();
+            $response = $client->getResponse();
 
-        $this->assertInstanceOf(Response::class, $response);
-        $this->assertSame(500, $response->getStatusCode(), $response->getContent());
-        $this->assertContains('intentional error', $response->getContent());
+            $this->assertInstanceOf(Response::class, $response);
+            $this->assertSame(500, $response->getStatusCode(), $response->getContent());
+            $this->assertContains('intentional error', $response->getContent());
+        } catch (\Throwable $exception) {
+            if (! $exception instanceof \RuntimeException) {
+                throw $exception;
+            }
+
+            $this->assertSame('This is an intentional error', $exception->getMessage());
+        }
 
         $hub = $client->getContainer()->get('test.hub');
 
