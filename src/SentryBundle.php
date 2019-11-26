@@ -37,6 +37,8 @@ class SentryBundle extends Bundle
     {
         if (class_exists(SentrySdk::class)) {
             SentrySdk::setCurrentHub($hub);
+
+            return;
         }
 
         Hub::setCurrent($hub);

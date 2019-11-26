@@ -8,7 +8,7 @@ use Sentry\ClientInterface;
 use Sentry\Event;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\RequestListener;
-use Sentry\State\Hub;
+use Sentry\SentrySdk;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\HttpFoundation\Request;
@@ -48,7 +48,7 @@ class RequestListenerTest extends TestCase
                 $callable($scope);
             });
 
-        Hub::setCurrent($this->currentHub->reveal());
+        SentrySdk::setCurrentHub($this->currentHub->reveal());
     }
 
     /**
