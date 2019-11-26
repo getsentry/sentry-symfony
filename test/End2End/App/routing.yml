@@ -1,0 +1,3 @@
+exception:
+  path:  /exception
+  defaults: { _controller: '\Sentry\SentryBundle\Test\End2End\App\Controller\MainController::exception' }

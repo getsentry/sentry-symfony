@@ -40,4 +40,22 @@ class End2EndTest extends WebTestCase
         $this->assertInstanceOf(HubInterface::class, $hub);
         $this->assertNotNull($hub->getLastEventId(), 'Last error not captured');
     }
+
+    public function testGet500(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/exception');
+
+        $response = $client->getResponse();
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(500, $response->getStatusCode(), $response->getContent());
+        $this->assertContains('intentional error', $response->getContent());
+
+        $hub = $client->getContainer()->get('test.hub');
+
+        $this->assertInstanceOf(HubInterface::class, $hub);
+        $this->assertNotNull($hub->getLastEventId(), 'Last error not captured');
+    }
 }
