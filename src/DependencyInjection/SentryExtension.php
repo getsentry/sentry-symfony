@@ -166,7 +166,7 @@ class SentryExtension extends Extension
         $tagAttributes = [
             'event' => KernelEvents::EXCEPTION,
             'method' => $method,
-            'priority' => '%sentry.listener_priorities.console_error%',
+            'priority' => '%sentry.listener_priorities.request_error%',
         ];
 
         $listener->addTag('kernel.event_listener', $tagAttributes);
