@@ -2,13 +2,12 @@
 
 namespace Sentry\SentryBundle\Test\EventListener;
 
-use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Sentry\ClientInterface;
 use Sentry\Event;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\RequestListener;
-use Sentry\SentrySdk;
+use Sentry\SentryBundle\Test\BaseTestCase;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +17,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-class RequestListenerTest extends TestCase
+class RequestListenerTest extends BaseTestCase
 {
     private $currentScope;
     private $currentHub;
@@ -48,7 +47,7 @@ class RequestListenerTest extends TestCase
                 $callable($scope);
             });
 
-        SentrySdk::setCurrentHub($this->currentHub->reveal());
+        $this->setCurrentHub($this->currentHub->reveal());
     }
 
     /**
