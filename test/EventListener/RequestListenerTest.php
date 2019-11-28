@@ -12,8 +12,10 @@ use Sentry\State\Hub;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -57,7 +59,7 @@ class RequestListenerTest extends TestCase
     public function testOnKernelRequestUserDataIsSetToScope($user): void
     {
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $event = $this->prophesize(GetResponseEvent::class);
+        $event = $this->prophesize(\class_exists(ResponseEvent::class) ? ResponseEvent::class : GetResponseEvent::class);
         $request = $this->prophesize(Request::class);
         $token = $this->prophesize(TokenInterface::class);
 
@@ -107,7 +109,7 @@ class RequestListenerTest extends TestCase
     public function testOnKernelRequestUserDataIsNotSetIfSendPiiIsDisabled(): void
     {
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $event = $this->prophesize(GetResponseEvent::class);
+        $event = $this->prophesize(\class_exists(ResponseEvent::class) ? ResponseEvent::class : GetResponseEvent::class);
 
         $event->isMasterRequest()
             ->willReturn(true);
@@ -130,7 +132,7 @@ class RequestListenerTest extends TestCase
     public function testOnKernelRequestUserDataIsNotSetIfNoClientIsPresent(): void
     {
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $event = $this->prophesize(GetResponseEvent::class);
+        $event = $this->prophesize(\class_exists(ResponseEvent::class) ? ResponseEvent::class : GetResponseEvent::class);
 
         $event->isMasterRequest()
             ->willReturn(true);
@@ -152,7 +154,7 @@ class RequestListenerTest extends TestCase
 
     public function testOnKernelRequestUsernameIsNotSetIfTokenStorageIsAbsent(): void
     {
-        $event = $this->prophesize(GetResponseEvent::class);
+        $event = $this->prophesize(\class_exists(ResponseEvent::class) ? ResponseEvent::class : GetResponseEvent::class);
         $request = $this->prophesize(Request::class);
 
         $event->isMasterRequest()
@@ -179,7 +181,7 @@ class RequestListenerTest extends TestCase
     public function testOnKernelRequestUsernameIsNotSetIfTokenIsAbsent(): void
     {
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $event = $this->prophesize(GetResponseEvent::class);
+        $event = $this->prophesize(\class_exists(ResponseEvent::class) ? ResponseEvent::class : GetResponseEvent::class);
         $request = $this->prophesize(Request::class);
 
         $event->isMasterRequest()
@@ -213,7 +215,7 @@ class RequestListenerTest extends TestCase
     {
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
         $token = $this->prophesize(TokenInterface::class);
-        $event = $this->prophesize(GetResponseEvent::class);
+        $event = $this->prophesize(\class_exists(ResponseEvent::class) ? ResponseEvent::class : GetResponseEvent::class);
         $request = $this->prophesize(Request::class);
 
         $event->isMasterRequest()
@@ -246,7 +248,7 @@ class RequestListenerTest extends TestCase
     public function testOnKernelRequestUsernameIsNotSetIfUserIsNotRemembered(): void
     {
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $event = $this->prophesize(GetResponseEvent::class);
+        $event = $this->prophesize(\class_exists(ResponseEvent::class) ? ResponseEvent::class : GetResponseEvent::class);
         $request = $this->prophesize(Request::class);
 
         $event->isMasterRequest()
@@ -277,7 +279,7 @@ class RequestListenerTest extends TestCase
     {
         $request = new Request();
         $request->attributes->set('_route', 'sf-route');
-        $event = $this->prophesize(FilterControllerEvent::class);
+        $event = $this->prophesize(\class_exists(ControllerEvent::class) ? ControllerEvent::class : FilterControllerEvent::class);
 
         $event->isMasterRequest()
             ->willReturn(true);
@@ -300,7 +302,7 @@ class RequestListenerTest extends TestCase
             ->shouldNotBeCalled();
 
         $request = new Request();
-        $event = $this->prophesize(FilterControllerEvent::class);
+        $event = $this->prophesize(\class_exists(ControllerEvent::class) ? ControllerEvent::class : FilterControllerEvent::class);
 
         $event->isMasterRequest()
             ->willReturn(true);
@@ -321,7 +323,7 @@ class RequestListenerTest extends TestCase
             ->shouldNotBeCalled();
 
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $event = $this->prophesize(GetResponseEvent::class);
+        $event = $this->prophesize(\class_exists(ResponseEvent::class) ? ResponseEvent::class : GetResponseEvent::class);
 
         $event->isMasterRequest()
             ->willReturn(false);

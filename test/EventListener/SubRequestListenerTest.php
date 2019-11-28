@@ -9,6 +9,7 @@ use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
 class SubRequestListenerTest extends TestCase
 {
@@ -27,7 +28,7 @@ class SubRequestListenerTest extends TestCase
     {
         $listener = new SubRequestListener();
 
-        $subRequestEvent = $this->prophesize(GetResponseEvent::class);
+        $subRequestEvent = $this->prophesize(\class_exists(ResponseEvent::class) ? ResponseEvent::class : GetResponseEvent::class);
         $subRequestEvent->isMasterRequest()
             ->willReturn(true);
 
@@ -41,7 +42,7 @@ class SubRequestListenerTest extends TestCase
     {
         $listener = new SubRequestListener();
 
-        $subRequestEvent = $this->prophesize(GetResponseEvent::class);
+        $subRequestEvent = $this->prophesize(\class_exists(ResponseEvent::class) ? ResponseEvent::class : GetResponseEvent::class);
         $subRequestEvent->isMasterRequest()
             ->willReturn(false);
 
