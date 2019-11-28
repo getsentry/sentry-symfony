@@ -23,7 +23,14 @@ final class ErrorListener
 
     public function onKernelException(GetResponseForExceptionEvent $event): void
     {
-        \Sentry\captureException($event->getException());
+        if (method_exists($event, 'getThrowable')) {
+            $throwable = $event->getThrowable();
+        } else {
+            // Support for Symfony 4.3 and before
+            $throwable = $event->getException();
+        }
+
+        \Sentry\captureException($throwable);
     }
 
     public function onConsoleError(ConsoleErrorEvent $event): void
