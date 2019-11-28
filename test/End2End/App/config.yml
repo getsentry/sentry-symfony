@@ -8,6 +8,11 @@ services:
     alias: Sentry\State\HubInterface
     public: true
 
+  Sentry\SentryBundle\Test\End2End\App\Controller\MainController:
+    autowire: true
+    tags:
+      - controller.service_arguments
+
 monolog:
   handlers:
     main:

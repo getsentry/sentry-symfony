@@ -26,6 +26,48 @@ class End2EndTest extends WebTestCase
         return Kernel::class;
     }
 
+    public function testGet200(): void
+    {
+        $client = static::createClient(['debug' => false]);
+
+        $client->request('GET', '/200');
+
+        $response = $client->getResponse();
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
+
+        $this->assertLastEventIdIsNotNull($client);
+    }
+
+    public function testGet200BehindFirewall(): void
+    {
+        $client = static::createClient(['debug' => false]);
+
+        $client->request('GET', '/secured/200');
+
+        $response = $client->getResponse();
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
+
+        $this->assertLastEventIdIsNotNull($client);
+    }
+
+    public function testGet200WithSubrequest(): void
+    {
+        $client = static::createClient(['debug' => false]);
+
+        $client->request('GET', '/subrequest');
+
+        $response = $client->getResponse();
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
+
+        $this->assertLastEventIdIsNotNull($client);
+    }
+
     public function testGet404(): void
     {
         $client = static::createClient(['debug' => false]);
