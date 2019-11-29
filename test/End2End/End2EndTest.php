@@ -14,13 +14,6 @@ class_alias(TestCase::class, \PHPUnit_Framework_TestCase::class);
 
 class End2EndTest extends WebTestCase
 {
-    protected function setUp(): void
-    {
-        static::$class = Kernel::class;
-
-        parent::setUp();
-    }
-
     protected static function getKernelClass(): string
     {
         return Kernel::class;

@@ -4,7 +4,7 @@ framework:
   test: ~
 
 services:
-  test.hub: 
+  test.hub:
     alias: Sentry\State\HubInterface
     public: true
 
