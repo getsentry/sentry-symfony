@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+ - ...
+
+## 3.2.1 (TBA)
  - Fix handling of command with no name on `ConsoleListener` (#261)
  - Remove check by AuthorizationChecker in  `RequestListener` (#264)
  - Fixed undefined variable in `RequestListener` (#263)
