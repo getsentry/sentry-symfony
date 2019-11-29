@@ -5,6 +5,7 @@ namespace Sentry\SentryBundle\EventListener;
 use Sentry\State\HubInterface;
 use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\Console\Event\ConsoleExceptionEvent;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 
 final class ErrorListener
@@ -21,6 +22,14 @@ final class ErrorListener
         $this->hub = $hub; // not used, needed to trigger instantiation
     }
 
+    public function onException(ExceptionEvent $event): void
+    {
+        \Sentry\captureException($event->getThrowable());
+    }
+
+    /**
+     * BC layer for Symfony < 4.3
+     */
     public function onKernelException(GetResponseForExceptionEvent $event): void
     {
         \Sentry\captureException($event->getException());

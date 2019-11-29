@@ -2,13 +2,12 @@
 
 namespace Sentry\SentryBundle\Test\EventListener;
 
-use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Sentry\ClientInterface;
 use Sentry\Event;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\RequestListener;
-use Sentry\State\Hub;
+use Sentry\SentryBundle\Test\BaseTestCase;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +17,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-class RequestListenerTest extends TestCase
+class RequestListenerTest extends BaseTestCase
 {
     private $currentScope;
     private $currentHub;
@@ -48,7 +47,7 @@ class RequestListenerTest extends TestCase
                 $callable($scope);
             });
 
-        Hub::setCurrent($this->currentHub->reveal());
+        $this->setCurrentHub($this->currentHub->reveal());
     }
 
     /**
@@ -95,12 +94,7 @@ class RequestListenerTest extends TestCase
     public function userDataProvider(): \Generator
     {
         yield ['john-doe'];
-
-        $userInterface = $this->prophesize(UserInterface::class);
-        $userInterface->getUsername()
-            ->willReturn('john-doe');
-
-        yield [$userInterface->reveal()];
+        yield [new UserWithInterface('john-doe')];
         yield [new ToStringUser('john-doe')];
     }
 
@@ -354,6 +348,39 @@ class RequestListenerTest extends TestCase
         $scope->applyToEvent($event, []);
 
         return $event->getTagsContext()->toArray();
+    }
+}
+class UserWithInterface implements UserInterface
+{
+    private $username;
+
+    public function __construct(string $username)
+    {
+        $this->username = $username;
+    }
+
+    public function getRoles()
+    {
+        return [];
+    }
+
+    public function getPassword()
+    {
+        return null;
+    }
+
+    public function getSalt()
+    {
+        return null;
+    }
+
+    public function getUsername()
+    {
+        return $this->username;
+    }
+
+    public function eraseCredentials()
+    {
     }
 }
 

@@ -15,12 +15,15 @@ use Sentry\SentryBundle\EventListener\SubRequestListener;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\ConsoleEvents;
+use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
  * This is the class that loads and manages your bundle configuration
@@ -146,7 +149,27 @@ class SentryExtension extends Extension
             return;
         }
 
+        $this->tagExceptionListener($container);
         $this->tagConsoleErrorListener($container);
+    }
+
+    /**
+     * BC layer for Symfony < 4.3
+     */
+    private function tagExceptionListener(ContainerBuilder $container): void
+    {
+        $listener = $container->getDefinition(ErrorListener::class);
+        $method = class_exists(ExceptionEvent::class)
+            ? 'onException'
+            : 'onKernelException';
+
+        $tagAttributes = [
+            'event' => KernelEvents::EXCEPTION,
+            'method' => $method,
+            'priority' => '%sentry.listener_priorities.request_error%',
+        ];
+
+        $listener->addTag('kernel.event_listener', $tagAttributes);
     }
 
     /**
@@ -156,7 +179,7 @@ class SentryExtension extends Extension
     {
         $listener = $container->getDefinition(ErrorListener::class);
 
-        if (class_exists('Symfony\Component\Console\Event\ConsoleErrorEvent')) {
+        if (class_exists(ConsoleErrorEvent::class)) {
             $tagAttributes = [
                 'event' => ConsoleEvents::ERROR,
                 'method' => 'onConsoleError',
