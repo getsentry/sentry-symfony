@@ -2,17 +2,16 @@
 
 namespace Sentry\SentryBundle\Test\Command;
 
-use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Sentry\ClientInterface;
 use Sentry\Options;
 use Sentry\SentryBundle\Command\SentryTestCommand;
-use Sentry\State\Hub;
+use Sentry\SentryBundle\Test\BaseTestCase;
 use Sentry\State\HubInterface;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
-class SentryTestCommandTest extends TestCase
+class SentryTestCommandTest extends BaseTestCase
 {
     public function testExecuteSuccessfully(): void
     {
@@ -29,7 +28,7 @@ class SentryTestCommandTest extends TestCase
             ->shouldBeCalled()
             ->willReturn($lastEventId);
 
-        Hub::setCurrent($hub->reveal());
+        $this->setCurrentHub($hub->reveal());
 
         $commandTester = $this->executeCommand();
 
@@ -51,7 +50,7 @@ class SentryTestCommandTest extends TestCase
         $hub->getClient()
             ->willReturn($client->reveal());
 
-        Hub::setCurrent($hub->reveal());
+        $this->setCurrentHub($hub->reveal());
 
         $commandTester = $this->executeCommand();
 
@@ -75,7 +74,7 @@ class SentryTestCommandTest extends TestCase
             ->shouldBeCalled()
             ->willReturn(null);
 
-        Hub::setCurrent($hub->reveal());
+        $this->setCurrentHub($hub->reveal());
 
         $commandTester = $this->executeCommand();
 
@@ -92,7 +91,7 @@ class SentryTestCommandTest extends TestCase
         $hub->getClient()
             ->willReturn(null);
 
-        Hub::setCurrent($hub->reveal());
+        $this->setCurrentHub($hub->reveal());
 
         $commandTester = $this->executeCommand();
 

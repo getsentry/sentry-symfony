@@ -67,7 +67,7 @@ class SentryExtensionTest extends BaseTestCase
 
         $this->assertNull($options->getDsn());
         $this->assertSame('test', $options->getEnvironment());
-        $this->assertSame(['var/cache', $vendorDir], $options->getInAppExcludedPaths());
+        $this->assertSame([realpath('./var/cache'), $vendorDir], $options->getInAppExcludedPaths());
 
         $this->assertSame(1, $container->getParameter('sentry.listener_priorities.request'));
         $this->assertSame(1, $container->getParameter('sentry.listener_priorities.sub_request'));

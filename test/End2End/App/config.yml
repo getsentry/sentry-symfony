@@ -1,0 +1,21 @@
+framework:
+  router: { resource: "%kernel.root_dir%/routing.yml" }
+  secret: secret
+  test: ~
+
+services:
+  test.hub:
+    alias: Sentry\State\HubInterface
+    public: true
+
+  Sentry\SentryBundle\Test\End2End\App\Controller\MainController:
+    autowire: true
+    tags:
+      - controller.service_arguments
+
+monolog:
+  handlers:
+    main:
+      type:  stream
+      path:  "%kernel.logs_dir%/%kernel.environment%.log"
+      level: debug

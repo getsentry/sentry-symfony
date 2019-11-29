@@ -2,13 +2,12 @@
 
 namespace Sentry\SentryBundle\Test\EventListener;
 
-use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Sentry\ClientInterface;
 use Sentry\Event;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\RequestListener;
-use Sentry\State\Hub;
+use Sentry\SentryBundle\Test\BaseTestCase;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,11 +15,9 @@ use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
-use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-class RequestListenerTest extends TestCase
+class RequestListenerTest extends BaseTestCase
 {
     private $currentScope;
     private $currentHub;
@@ -50,7 +47,7 @@ class RequestListenerTest extends TestCase
                 $callable($scope);
             });
 
-        Hub::setCurrent($this->currentHub->reveal());
+        $this->setCurrentHub($this->currentHub->reveal());
     }
 
     /**
@@ -59,7 +56,6 @@ class RequestListenerTest extends TestCase
     public function testOnKernelRequestUserDataIsSetToScope($user): void
     {
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $authorizationChecker = $this->prophesize(AuthorizationCheckerInterface::class);
         $event = $this->prophesize(GetResponseEvent::class);
         $request = $this->prophesize(Request::class);
         $token = $this->prophesize(TokenInterface::class);
@@ -72,8 +68,6 @@ class RequestListenerTest extends TestCase
 
         $token->isAuthenticated()
             ->willReturn(true);
-        $authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)
-            ->willReturn(true);
 
         $token->getUser()
             ->willReturn($user);
@@ -85,8 +79,7 @@ class RequestListenerTest extends TestCase
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
-            $tokenStorage->reveal(),
-            $authorizationChecker->reveal()
+            $tokenStorage->reveal()
         );
 
         $listener->onKernelRequest($event->reveal());
@@ -101,19 +94,13 @@ class RequestListenerTest extends TestCase
     public function userDataProvider(): \Generator
     {
         yield ['john-doe'];
-
-        $userInterface = $this->prophesize(UserInterface::class);
-        $userInterface->getUsername()
-            ->willReturn('john-doe');
-
-        yield [$userInterface->reveal()];
+        yield [new UserWithInterface('john-doe')];
         yield [new ToStringUser('john-doe')];
     }
 
     public function testOnKernelRequestUserDataIsNotSetIfSendPiiIsDisabled(): void
     {
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $authorizationChecker = $this->prophesize(AuthorizationCheckerInterface::class);
         $event = $this->prophesize(GetResponseEvent::class);
 
         $event->isMasterRequest()
@@ -126,8 +113,7 @@ class RequestListenerTest extends TestCase
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
-            $tokenStorage->reveal(),
-            $authorizationChecker->reveal()
+            $tokenStorage->reveal()
         );
 
         $listener->onKernelRequest($event->reveal());
@@ -138,7 +124,6 @@ class RequestListenerTest extends TestCase
     public function testOnKernelRequestUserDataIsNotSetIfNoClientIsPresent(): void
     {
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $authorizationChecker = $this->prophesize(AuthorizationCheckerInterface::class);
         $event = $this->prophesize(GetResponseEvent::class);
 
         $event->isMasterRequest()
@@ -151,8 +136,7 @@ class RequestListenerTest extends TestCase
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
-            $tokenStorage->reveal(),
-            $authorizationChecker->reveal()
+            $tokenStorage->reveal()
         );
 
         $listener->onKernelRequest($event->reveal());
@@ -162,15 +146,11 @@ class RequestListenerTest extends TestCase
 
     public function testOnKernelRequestUsernameIsNotSetIfTokenStorageIsAbsent(): void
     {
-        $authorizationChecker = $this->prophesize(AuthorizationCheckerInterface::class);
         $event = $this->prophesize(GetResponseEvent::class);
         $request = $this->prophesize(Request::class);
 
         $event->isMasterRequest()
             ->willReturn(true);
-
-        $authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)
-            ->shouldNotBeCalled();
 
         $event->getRequest()
             ->willReturn($request->reveal());
@@ -179,38 +159,6 @@ class RequestListenerTest extends TestCase
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
-            null,
-            $authorizationChecker->reveal()
-        );
-
-        $listener->onKernelRequest($event->reveal());
-
-        $expectedUserData = [
-            'ip_address' => '1.2.3.4',
-        ];
-        $this->assertEquals($expectedUserData, $this->getUserContext($this->currentScope));
-    }
-
-    public function testOnKernelRequestUsernameIsNotSetIfAuthorizationCheckerIsAbsent(): void
-    {
-        $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $event = $this->prophesize(GetResponseEvent::class);
-        $request = $this->prophesize(Request::class);
-
-        $event->isMasterRequest()
-            ->willReturn(true);
-
-        $tokenStorage->getToken()
-            ->willReturn($this->prophesize(TokenInterface::class)->reveal());
-
-        $event->getRequest()
-            ->willReturn($request->reveal());
-        $request->getClientIp()
-            ->willReturn('1.2.3.4');
-
-        $listener = new RequestListener(
-            $this->currentHub->reveal(),
-            $tokenStorage->reveal(),
             null
         );
 
@@ -225,7 +173,6 @@ class RequestListenerTest extends TestCase
     public function testOnKernelRequestUsernameIsNotSetIfTokenIsAbsent(): void
     {
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $authorizationChecker = $this->prophesize(AuthorizationCheckerInterface::class);
         $event = $this->prophesize(GetResponseEvent::class);
         $request = $this->prophesize(Request::class);
 
@@ -235,9 +182,6 @@ class RequestListenerTest extends TestCase
         $tokenStorage->getToken()
             ->willReturn(null);
 
-        $authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)
-            ->shouldNotBeCalled();
-
         $event->getRequest()
             ->willReturn($request->reveal());
         $request->getClientIp()
@@ -245,8 +189,7 @@ class RequestListenerTest extends TestCase
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
-            $tokenStorage->reveal(),
-            $authorizationChecker->reveal()
+            $tokenStorage->reveal()
         );
 
         $listener->onKernelRequest($event->reveal());
@@ -263,7 +206,6 @@ class RequestListenerTest extends TestCase
     public function testOnKernelRequestUsernameIsNotSetIfTokenIsNotAuthenticated(): void
     {
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $authorizationChecker = $this->prophesize(AuthorizationCheckerInterface::class);
         $token = $this->prophesize(TokenInterface::class);
         $event = $this->prophesize(GetResponseEvent::class);
         $request = $this->prophesize(Request::class);
@@ -277,9 +219,6 @@ class RequestListenerTest extends TestCase
         $token->isAuthenticated()
             ->willReturn(false);
 
-        $authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)
-            ->shouldNotBeCalled();
-
         $event->getRequest()
             ->willReturn($request->reveal());
         $request->getClientIp()
@@ -287,8 +226,7 @@ class RequestListenerTest extends TestCase
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
-            $tokenStorage->reveal(),
-            $authorizationChecker->reveal()
+            $tokenStorage->reveal()
         );
 
         $listener->onKernelRequest($event->reveal());
@@ -302,7 +240,6 @@ class RequestListenerTest extends TestCase
     public function testOnKernelRequestUsernameIsNotSetIfUserIsNotRemembered(): void
     {
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $authorizationChecker = $this->prophesize(AuthorizationCheckerInterface::class);
         $event = $this->prophesize(GetResponseEvent::class);
         $request = $this->prophesize(Request::class);
 
@@ -312,9 +249,6 @@ class RequestListenerTest extends TestCase
         $tokenStorage->getToken()
             ->willReturn(null);
 
-        $authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)
-            ->willReturn(false);
-
         $event->getRequest()
             ->willReturn($request->reveal());
         $request->getClientIp()
@@ -322,8 +256,7 @@ class RequestListenerTest extends TestCase
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
-            $tokenStorage->reveal(),
-            $authorizationChecker->reveal()
+            $tokenStorage->reveal()
         );
 
         $listener->onKernelRequest($event->reveal());
@@ -347,8 +280,7 @@ class RequestListenerTest extends TestCase
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
-            $this->prophesize(TokenStorageInterface::class)->reveal(),
-            $this->prophesize(AuthorizationCheckerInterface::class)->reveal()
+            $this->prophesize(TokenStorageInterface::class)->reveal()
         );
 
         $listener->onKernelController($event->reveal());
@@ -371,8 +303,7 @@ class RequestListenerTest extends TestCase
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
-            $this->prophesize(TokenStorageInterface::class)->reveal(),
-            $this->prophesize(AuthorizationCheckerInterface::class)->reveal()
+            $this->prophesize(TokenStorageInterface::class)->reveal()
         );
 
         $listener->onKernelController($event->reveal());
@@ -384,7 +315,6 @@ class RequestListenerTest extends TestCase
             ->shouldNotBeCalled();
 
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $authorizationChecker = $this->prophesize(AuthorizationCheckerInterface::class);
         $event = $this->prophesize(GetResponseEvent::class);
 
         $event->isMasterRequest()
@@ -393,13 +323,9 @@ class RequestListenerTest extends TestCase
         $tokenStorage->getToken()
             ->shouldNotBeCalled();
 
-        $authorizationChecker->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED)
-            ->shouldNotBeCalled();
-
         $listener = new RequestListener(
             $this->currentHub->reveal(),
-            $tokenStorage->reveal(),
-            $authorizationChecker->reveal()
+            $tokenStorage->reveal()
         );
 
         $listener->onKernelRequest($event->reveal());
@@ -422,6 +348,39 @@ class RequestListenerTest extends TestCase
         $scope->applyToEvent($event, []);
 
         return $event->getTagsContext()->toArray();
+    }
+}
+class UserWithInterface implements UserInterface
+{
+    private $username;
+
+    public function __construct(string $username)
+    {
+        $this->username = $username;
+    }
+
+    public function getRoles()
+    {
+        return [];
+    }
+
+    public function getPassword()
+    {
+        return null;
+    }
+
+    public function getSalt()
+    {
+        return null;
+    }
+
+    public function getUsername()
+    {
+        return $this->username;
+    }
+
+    public function eraseCredentials()
+    {
     }
 }
 

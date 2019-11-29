@@ -4,6 +4,9 @@ namespace Sentry\SentryBundle\Test;
 
 use PHPUnit\Framework\TestCase;
 use Sentry\Options;
+use Sentry\SentrySdk;
+use Sentry\State\Hub;
+use Sentry\State\HubInterface;
 
 abstract class BaseTestCase extends TestCase
 {
@@ -30,5 +33,14 @@ abstract class BaseTestCase extends TestCase
         }
 
         return $count;
+    }
+
+    protected function setCurrentHub(HubInterface $hub): void
+    {
+        if (class_exists(SentrySdk::class)) {
+            SentrySdk::setCurrentHub($hub);
+        } else {
+            Hub::setCurrent($hub);
+        }
     }
 }

@@ -17,8 +17,10 @@ use Sentry\SentryBundle\SentryBundle;
 use Sentry\State\Hub;
 use Sentry\State\HubInterface;
 use Symfony\Component\Console\ConsoleEvents;
+use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\KernelEvents;
 
@@ -97,17 +99,20 @@ class SentryBundleTest extends TestCase
 
         $consoleListener = $container->getDefinition(ErrorListener::class);
 
+        $method = class_exists(ExceptionEvent::class)
+            ? 'onException'
+            : 'onKernelException';
         $expectedTag = [
             'kernel.event_listener' => [
                 [
                     'event' => KernelEvents::EXCEPTION,
-                    'method' => 'onKernelException',
+                    'method' => $method,
                     'priority' => '%sentry.listener_priorities.request_error%',
                 ],
             ],
         ];
 
-        if (class_exists('Symfony\Component\Console\Event\ConsoleErrorEvent')) {
+        if (class_exists(ConsoleErrorEvent::class)) {
             $expectedTag['kernel.event_listener'][] = [
                 'event' => ConsoleEvents::ERROR,
                 'method' => 'onConsoleError',
