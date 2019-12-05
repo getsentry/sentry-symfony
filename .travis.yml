@@ -32,11 +32,11 @@ jobs:
     - stage: Test
       php: 7.1
       env: SYMFONY_VERSION=3.4.*
-      php: 7.3
+    - php: 7.3
       env: SYMFONY_VERSION=4.4.*
-      php: 7.4
+    - php: 7.4
       env: SYMFONY_VERSION=5.0.*
-      name: prefer-lowest
+    - name: prefer-lowest
       install:
         - travis_retry travis_wait composer install --no-interaction --prefer-dist
         - composer remove --dev friendsofphp/php-cs-fixer phpstan/phpstan phpstan/phpstan-phpunit jangregor/phpstan-prophecy --no-update
