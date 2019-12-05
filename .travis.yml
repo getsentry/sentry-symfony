@@ -6,13 +6,28 @@ php:
   - 7.1
   - 7.2
   - 7.3
+  - 7.4
 
 cache:
   directories:
     - $HOME/.composer/cache/files
 
+matrix:
+  fast_finish: true
+  include:
+    - php: 7.1
+      env: SYMFONY_VERSION=3.4.*
+    - php: 7.3
+      env: SYMFONY_VERSION=4.4.*
+    - php: 7.4
+      env: SYMFONY_VERSION=5.0.*
+
 before_install:
-  - phpenv config-rm xdebug.ini
+  - phpenv config-rm xdebug.ini || echo "Can't disable xDebug"
+  - |
+    if [ "$SYMFONY_VERSION" != "" ]; then
+      sed -ri 's/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'$SYMFONY_VERSION'"/' composer.json;
+    fi;
   - composer self-update
   - composer global require hirak/prestissimo
 
