@@ -6,13 +6,18 @@ php:
   - 7.1
   - 7.2
   - 7.3
+  - 7.4
 
 cache:
   directories:
     - $HOME/.composer/cache/files
 
 before_install:
-  - phpenv config-rm xdebug.ini
+  - phpenv config-rm xdebug.ini || echo "Can't disable xDebug"
+  - |
+    if [ "$SYMFONY_VERSION" != "" ]; then
+      sed -ri '/symfony\/monolog-bundle/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'$SYMFONY_VERSION'"/' composer.json;
+    fi;
   - composer self-update
   - composer global require hirak/prestissimo
 
@@ -26,13 +31,16 @@ jobs:
   include:
     - stage: Test
       php: 7.1
-      name: prefer-lowest
+      env: SYMFONY_VERSION=3.4.*
+    - php: 7.3
+      env: SYMFONY_VERSION=4.4.*
+    - php: 7.4
+      env: SYMFONY_VERSION=5.0.*
+    - name: prefer-lowest
       install:
-        - composer remove --dev friendsofphp/php-cs-fixer phpstan/phpstan --no-update
         - travis_retry travis_wait composer install --no-interaction --prefer-dist
+        - composer remove --dev friendsofphp/php-cs-fixer phpstan/phpstan phpstan/phpstan-phpunit jangregor/phpstan-prophecy --no-update
         - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable --prefer-lowest
-    - name: sentry/sentry dev-develop
-      install: composer require sentry/sentry:dev-develop
     - stage: Code style and static analysis
       script:
         - composer phpstan
@@ -44,7 +52,12 @@ jobs:
       script: 
         - phpdbg -qrr vendor/bin/phpunit --coverage-clover clover.xml
       after_success:
-        - vendor/bin/ocular code-coverage:upload --format=php-clover clover.xml --revision=$TRAVIS_COMMIT
+        - wget https://scrutinizer-ci.com/ocular.phar
+        - php ocular.phar code-coverage:upload --format=php-clover clover.xml --revision=$TRAVIS_COMMIT
+  allow_failures:
+    - name: sentry/sentry dev-develop
+      stage: Test
+      install: composer require sentry/sentry:dev-develop
 
 notifications:
   webhooks:

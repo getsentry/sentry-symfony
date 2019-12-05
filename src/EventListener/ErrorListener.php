@@ -22,6 +22,14 @@ final class ErrorListener
         $this->hub = $hub; // not used, needed to trigger instantiation
     }
 
+    public function onException(ErrorListenerExceptionEvent $event): void
+    {
+        \Sentry\captureException($event->getThrowable());
+    }
+
+    /**
+     * BC layer for Symfony < 4.3
+     */
     public function onKernelException(ErrorListenerExceptionEvent $event): void
     {
         \Sentry\captureException($event->getException());

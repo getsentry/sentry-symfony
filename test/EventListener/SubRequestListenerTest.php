@@ -2,16 +2,15 @@
 
 namespace Sentry\SentryBundle\Test\EventListener;
 
-use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
-use Sentry\State\Hub;
+use Sentry\SentryBundle\Test\BaseTestCase;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
-class SubRequestListenerTest extends TestCase
+class SubRequestListenerTest extends BaseTestCase
 {
     private $currentHub;
 
@@ -21,7 +20,7 @@ class SubRequestListenerTest extends TestCase
 
         $this->currentHub = $this->prophesize(HubInterface::class);
 
-        Hub::setCurrent($this->currentHub->reveal());
+        $this->setCurrentHub($this->currentHub->reveal());
     }
 
     public function testOnKernelRequestWithMasterRequest(): void
