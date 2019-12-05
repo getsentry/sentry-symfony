@@ -16,7 +16,7 @@ before_install:
   - phpenv config-rm xdebug.ini || echo "Can't disable xDebug"
   - |
     if [ "$SYMFONY_VERSION" != "" ]; then
-      sed -ri 's/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'$SYMFONY_VERSION'"/' composer.json;
+      sed -ri '/symfony\/monolog-bundle/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'$SYMFONY_VERSION'"/' composer.json;
     fi;
   - composer self-update
   - composer global require hirak/prestissimo
