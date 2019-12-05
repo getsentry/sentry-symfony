@@ -52,7 +52,8 @@ jobs:
       script: 
         - phpdbg -qrr vendor/bin/phpunit --coverage-clover clover.xml
       after_success:
-        - vendor/bin/ocular code-coverage:upload --format=php-clover clover.xml --revision=$TRAVIS_COMMIT
+        - wget https://scrutinizer-ci.com/ocular.phar
+        - php ocular.phar code-coverage:upload --format=php-clover clover.xml --revision=$TRAVIS_COMMIT
   allow_failures:
     - name: sentry/sentry dev-develop
       stage: Test
