@@ -58,7 +58,7 @@ class RequestListenerTest extends BaseTestCase
     {
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
         $request = $this->prophesize(Request::class);
-        $event = $this->createResponseEvent($request->reveal());
+        $event = $this->createRequestEvent($request->reveal());
         $token = $this->prophesize(TokenInterface::class);
 
         $tokenStorage->getToken()
@@ -97,7 +97,7 @@ class RequestListenerTest extends BaseTestCase
     public function testOnKernelRequestUserDataIsNotSetIfSendPiiIsDisabled(): void
     {
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $event = $this->createResponseEvent();
+        $event = $this->createRequestEvent();
 
         $this->options->setSendDefaultPii(false);
 
@@ -117,7 +117,7 @@ class RequestListenerTest extends BaseTestCase
     public function testOnKernelRequestUserDataIsNotSetIfNoClientIsPresent(): void
     {
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $event = $this->createResponseEvent();
+        $event = $this->createRequestEvent();
 
         $this->currentHub->getClient()
             ->willReturn(null);
@@ -140,7 +140,7 @@ class RequestListenerTest extends BaseTestCase
         $request->getClientIp()
             ->willReturn('1.2.3.4');
 
-        $event = $this->createResponseEvent($request->reveal());
+        $event = $this->createRequestEvent($request->reveal());
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
@@ -165,7 +165,7 @@ class RequestListenerTest extends BaseTestCase
         $tokenStorage->getToken()
             ->willReturn(null);
 
-        $event = $this->createResponseEvent($request->reveal());
+        $event = $this->createRequestEvent($request->reveal());
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
@@ -197,7 +197,7 @@ class RequestListenerTest extends BaseTestCase
         $token->isAuthenticated()
             ->willReturn(false);
 
-        $event = $this->createResponseEvent($request->reveal());
+        $event = $this->createRequestEvent($request->reveal());
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
@@ -222,7 +222,7 @@ class RequestListenerTest extends BaseTestCase
         $tokenStorage->getToken()
             ->willReturn(null);
 
-        $event = $this->createResponseEvent($request->reveal());
+        $event = $this->createRequestEvent($request->reveal());
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
@@ -274,7 +274,7 @@ class RequestListenerTest extends BaseTestCase
             ->shouldNotBeCalled();
 
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $event = $this->createResponseEvent(null, KernelInterface::SUB_REQUEST);
+        $event = $this->createRequestEvent(null, KernelInterface::SUB_REQUEST);
 
         $tokenStorage->getToken()
             ->shouldNotBeCalled();

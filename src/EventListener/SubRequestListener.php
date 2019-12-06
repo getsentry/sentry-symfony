@@ -4,11 +4,11 @@ namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\SentryBundle\SentryBundle;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use Symfony\Component\HttpKernel\Event\GetRequestEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 
-if (! class_exists(ResponseEvent::class)) {
-    class_alias(ResponseEvent::class, GetResponseEvent::class);
+if (! class_exists(RequestEvent::class)) {
+    class_alias(RequestEvent::class, GetRequestEvent::class);
 }
 
 final class SubRequestListener
@@ -16,9 +16,9 @@ final class SubRequestListener
     /**
      * Pushes a new {@see Scope} for each SubRequest
      *
-     * @param ResponseEvent $event
+     * @param RequestEvent $event
      */
-    public function onKernelRequest(ResponseEvent $event): void
+    public function onKernelRequest(RequestEvent $event): void
     {
         if ($event->isMasterRequest()) {
             return;

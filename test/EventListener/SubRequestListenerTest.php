@@ -27,7 +27,7 @@ class SubRequestListenerTest extends BaseTestCase
     {
         $listener = new SubRequestListener();
 
-        $masterRequestEvent = $this->createResponseEvent();
+        $masterRequestEvent = $this->createRequestEvent();
 
         $this->currentHub->pushScope()
             ->shouldNotBeCalled();
@@ -39,7 +39,7 @@ class SubRequestListenerTest extends BaseTestCase
     {
         $listener = new SubRequestListener();
 
-        $subRequestEvent = $this->createResponseEvent(null, KernelInterface::SUB_REQUEST);
+        $subRequestEvent = $this->createRequestEvent(null, KernelInterface::SUB_REQUEST);
 
         $this->currentHub->pushScope()
             ->shouldBeCalledTimes(1)
