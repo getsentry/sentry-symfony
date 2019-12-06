@@ -60,12 +60,12 @@ class ConfigurationTest extends BaseTestCase
                 'environment' => '%kernel.environment%',
                 'in_app_exclude' => [
                     '%kernel.cache_dir%',
-                    '%kernel.root_dir%/../vendor',
+                    '%kernel.project_dir%/vendor',
                 ],
                 'integrations' => $defaultSdkValues->getIntegrations(),
                 'excluded_exceptions' => $defaultSdkValues->getExcludedExceptions(),
                 'prefixes' => $defaultSdkValues->getPrefixes(),
-                'project_root' => '%kernel.root_dir%/..',
+                'project_root' => '%kernel.project_dir%',
                 'tags' => [],
             ],
             'monolog' => [
@@ -76,11 +76,6 @@ class ConfigurationTest extends BaseTestCase
                 ],
             ],
         ];
-
-        if (method_exists(Kernel::class, 'getProjectDir')) {
-            $expectedDefaults['options']['project_root'] = '%kernel.project_dir%';
-            $expectedDefaults['options']['in_app_exclude'][1] = '%kernel.project_dir%/vendor';
-        }
 
         if ($this->classSerializersAreSupported()) {
             $expectedDefaults['options']['class_serializers'] = [];

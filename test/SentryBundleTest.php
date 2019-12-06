@@ -144,7 +144,6 @@ class SentryBundleTest extends TestCase
     private function getContainer(array $configuration = []): ContainerBuilder
     {
         $containerBuilder = new ContainerBuilder();
-        $containerBuilder->setParameter('kernel.root_dir', 'kernel/root');
         $containerBuilder->setParameter('kernel.cache_dir', 'var/cache');
         if (method_exists(Kernel::class, 'getProjectDir')) {
             $containerBuilder->setParameter('kernel.project_dir', '/dir/project/root');

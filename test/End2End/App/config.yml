@@ -1,5 +1,5 @@
 framework:
-  router: { resource: "%kernel.root_dir%/routing.yml" }
+  router: { resource: "%kernel.project_dir%/routing.yml" }
   secret: secret
   test: ~
 

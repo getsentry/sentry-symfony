@@ -421,7 +421,6 @@ class SentryExtensionTest extends BaseTestCase
     {
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->setParameter('kernel.cache_dir', 'var/cache');
-        $containerBuilder->setParameter('kernel.root_dir', 'kernel/root');
         if (method_exists(Kernel::class, 'getProjectDir')) {
             $containerBuilder->setParameter('kernel.project_dir', '/dir/project/root');
         }
