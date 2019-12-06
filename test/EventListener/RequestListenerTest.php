@@ -11,11 +11,8 @@ use Sentry\SentryBundle\Test\BaseTestCase;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -61,7 +58,7 @@ class RequestListenerTest extends BaseTestCase
     {
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
         $request = $this->prophesize(Request::class);
-        $event = $this->createResponsetEvent($request->reveal());
+        $event = $this->createResponseEvent($request->reveal());
         $token = $this->prophesize(TokenInterface::class);
 
         $tokenStorage->getToken()
@@ -100,7 +97,7 @@ class RequestListenerTest extends BaseTestCase
     public function testOnKernelRequestUserDataIsNotSetIfSendPiiIsDisabled(): void
     {
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $event = $this->createResponsetEvent();
+        $event = $this->createResponseEvent();
 
         $this->options->setSendDefaultPii(false);
 
@@ -120,7 +117,7 @@ class RequestListenerTest extends BaseTestCase
     public function testOnKernelRequestUserDataIsNotSetIfNoClientIsPresent(): void
     {
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $event = $this->createResponsetEvent();
+        $event = $this->createResponseEvent();
 
         $this->currentHub->getClient()
             ->willReturn(null);
@@ -143,7 +140,7 @@ class RequestListenerTest extends BaseTestCase
         $request->getClientIp()
             ->willReturn('1.2.3.4');
 
-        $event = $this->createResponsetEvent($request->reveal());
+        $event = $this->createResponseEvent($request->reveal());
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
@@ -168,7 +165,7 @@ class RequestListenerTest extends BaseTestCase
         $tokenStorage->getToken()
             ->willReturn(null);
 
-        $event = $this->createResponsetEvent($request->reveal());
+        $event = $this->createResponseEvent($request->reveal());
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
@@ -200,7 +197,7 @@ class RequestListenerTest extends BaseTestCase
         $token->isAuthenticated()
             ->willReturn(false);
 
-        $event = $this->createResponsetEvent($request->reveal());
+        $event = $this->createResponseEvent($request->reveal());
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
@@ -225,7 +222,7 @@ class RequestListenerTest extends BaseTestCase
         $tokenStorage->getToken()
             ->willReturn(null);
 
-        $event = $this->createResponsetEvent($request->reveal());
+        $event = $this->createResponseEvent($request->reveal());
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
@@ -277,7 +274,7 @@ class RequestListenerTest extends BaseTestCase
             ->shouldNotBeCalled();
 
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $event = $this->createResponsetEvent(null, KernelInterface::SUB_REQUEST);
+        $event = $this->createResponseEvent(null, KernelInterface::SUB_REQUEST);
 
         $tokenStorage->getToken()
             ->shouldNotBeCalled();
@@ -307,34 +304,6 @@ class RequestListenerTest extends BaseTestCase
         $scope->applyToEvent($event, []);
 
         return $event->getTagsContext()->toArray();
-    }
-
-    /**
-     * @return GetResponseEvent|ResponseEvent
-     */
-    private function createResponsetEvent(Request $request = null, int $type = KernelInterface::MASTER_REQUEST)
-    {
-        if ($request === null) {
-            $request = $this->prophesize(Request::class)->reveal();
-        }
-
-        if (class_exists(ResponseEvent::class)) {
-            $event = new ResponseEvent(
-                $this->prophesize(KernelInterface::class)->reveal(),
-                $request,
-                $type,
-                $this->prophesize(Response::class)->reveal()
-            );
-        } else {
-            $event = new GetResponseEvent(
-                $this->prophesize(KernelInterface::class)->reveal(),
-                $request,
-                $type,
-                $this->prophesize(Response::class)->reveal()
-            );
-        }
-
-        return $event;
     }
 
     /**
