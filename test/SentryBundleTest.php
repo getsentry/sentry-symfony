@@ -17,7 +17,6 @@ use Sentry\SentryBundle\SentryBundle;
 use Sentry\State\Hub;
 use Sentry\State\HubInterface;
 use Symfony\Component\Console\ConsoleEvents;
-use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;

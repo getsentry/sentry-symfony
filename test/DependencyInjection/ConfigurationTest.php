@@ -8,7 +8,6 @@ use Sentry\SentryBundle\DependencyInjection\Configuration;
 use Sentry\SentryBundle\Test\BaseTestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
-use Symfony\Component\HttpKernel\Kernel;
 
 class ConfigurationTest extends BaseTestCase
 {

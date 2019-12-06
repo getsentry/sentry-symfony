@@ -7,8 +7,13 @@ use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+
+if (! class_exists(ResponseEvent::class)) {
+    class_alias(ResponseEvent::class, GetResponseEvent::class);
+}
 
 /**
  * Class RequestListener
@@ -38,9 +43,9 @@ final class RequestListener
     /**
      * Set the username from the security context by listening on core.request
      *
-     * @param GetResponseEvent $event
+     * @param ResponseEvent $event
      */
-    public function onKernelRequest(GetResponseEvent $event): void
+    public function onKernelRequest(ResponseEvent $event): void
     {
         if (! $event->isMasterRequest()) {
             return;
