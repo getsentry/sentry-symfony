@@ -7,7 +7,6 @@ use Sentry\Options;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
-use Symfony\Component\HttpKernel\Kernel;
 
 /**
  * This is the class that validates and merges configuration from your app/config files
@@ -78,7 +77,7 @@ class Configuration implements ConfigurationInterface
         $optionsChildNodes->arrayNode('in_app_exclude')
             ->defaultValue([
                 '%kernel.cache_dir%',
-                $this->getProjectRoot() . '/vendor',
+                '%kernel.project_dir%/vendor',
             ])
             ->prototype('scalar');
         $optionsChildNodes->arrayNode('excluded_exceptions')
@@ -88,7 +87,7 @@ class Configuration implements ConfigurationInterface
         $optionsChildNodes->arrayNode('integrations')
             ->prototype('scalar')
             ->validate()
-            ->ifTrue(function ($value): bool {
+            ->ifTrue(static function ($value): bool {
                 if (! is_string($value) && '' != $value) {
                     return true;
                 }
@@ -114,7 +113,7 @@ class Configuration implements ConfigurationInterface
             ->defaultValue($defaultValues->getPrefixes())
             ->prototype('scalar');
         $optionsChildNodes->scalarNode('project_root')
-            ->defaultValue($this->getProjectRoot());
+            ->defaultValue('%kernel.project_dir%');
         $optionsChildNodes->scalarNode('release');
         $optionsChildNodes->floatNode('sample_rate')
             ->min(0.0)
@@ -166,7 +165,7 @@ class Configuration implements ConfigurationInterface
 
     private function getTrimClosure(): \Closure
     {
-        return function ($str): ?string {
+        return static function ($str): ?string {
             $value = trim($str);
             if ($value === '') {
                 return null;
@@ -176,18 +175,9 @@ class Configuration implements ConfigurationInterface
         };
     }
 
-    private function getProjectRoot(): string
-    {
-        if (method_exists(Kernel::class, 'getProjectDir')) {
-            return '%kernel.project_dir%';
-        }
-
-        return '%kernel.root_dir%/..';
-    }
-
     private function isNotAValidCallback(): \Closure
     {
-        return function ($value): bool {
+        return static function ($value): bool {
             if (is_callable($value)) {
                 return false;
             }

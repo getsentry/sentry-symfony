@@ -105,26 +105,17 @@ class SentryBundleTest extends TestCase
         $expectedTag = [
             'kernel.event_listener' => [
                 [
+                    'event' => ConsoleEvents::ERROR,
+                    'method' => 'onConsoleError',
+                    'priority' => '%sentry.listener_priorities.console_error%',
+                ],
+                [
                     'event' => KernelEvents::EXCEPTION,
                     'method' => $method,
                     'priority' => '%sentry.listener_priorities.request_error%',
                 ],
             ],
         ];
-
-        if (class_exists(ConsoleErrorEvent::class)) {
-            $expectedTag['kernel.event_listener'][] = [
-                'event' => ConsoleEvents::ERROR,
-                'method' => 'onConsoleError',
-                'priority' => '%sentry.listener_priorities.console_error%',
-            ];
-        } else {
-            $expectedTag['kernel.event_listener'][] = [
-                'event' => ConsoleEvents::EXCEPTION,
-                'method' => 'onConsoleException',
-                'priority' => '%sentry.listener_priorities.console_error%',
-            ];
-        }
 
         $this->assertSame($expectedTag, $consoleListener->getTags());
     }
