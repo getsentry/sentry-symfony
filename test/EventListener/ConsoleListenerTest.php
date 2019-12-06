@@ -10,6 +10,8 @@ use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class ConsoleListenerTest extends BaseTestCase
 {
@@ -39,26 +41,22 @@ class ConsoleListenerTest extends BaseTestCase
         $command->getName()
             ->willReturn('sf:command:name');
 
-        $event = $this->prophesize(ConsoleCommandEvent::class);
-        $event->getCommand()
-            ->willReturn($command->reveal());
+        $event = $this->createConsoleCommandEvent($command->reveal());
 
         $listener = new ConsoleListener($this->currentHub->reveal());
 
-        $listener->onConsoleCommand($event->reveal());
+        $listener->onConsoleCommand($event);
 
         $this->assertSame(['command' => 'sf:command:name'], $this->getTagsContext($this->currentScope));
     }
 
     public function testOnConsoleCommandWithNoCommandAddsPlaceholder(): void
     {
-        $event = $this->prophesize(ConsoleCommandEvent::class);
-        $event->getCommand()
-            ->willReturn(null);
+        $event = $this->createConsoleCommandEvent(null);
 
         $listener = new ConsoleListener($this->currentHub->reveal());
 
-        $listener->onConsoleCommand($event->reveal());
+        $listener->onConsoleCommand($event);
 
         $this->assertSame(['command' => 'N/A'], $this->getTagsContext($this->currentScope));
     }
@@ -69,13 +67,11 @@ class ConsoleListenerTest extends BaseTestCase
         $command->getName()
             ->willReturn(null);
 
-        $event = $this->prophesize(ConsoleCommandEvent::class);
-        $event->getCommand()
-            ->willReturn($command->reveal());
+        $event = $this->createConsoleCommandEvent($command->reveal());
 
         $listener = new ConsoleListener($this->currentHub->reveal());
 
-        $listener->onConsoleCommand($event->reveal());
+        $listener->onConsoleCommand($event);
 
         $this->assertSame(['command' => 'N/A'], $this->getTagsContext($this->currentScope));
     }
@@ -86,5 +82,18 @@ class ConsoleListenerTest extends BaseTestCase
         $scope->applyToEvent($event, []);
 
         return $event->getTagsContext()->toArray();
+    }
+
+    /**
+     * @param $command
+     * @return ConsoleCommandEvent
+     */
+    private function createConsoleCommandEvent(?Command $command): ConsoleCommandEvent
+    {
+        return new ConsoleCommandEvent(
+            $command,
+            $this->prophesize(InputInterface::class)->reveal(),
+            $this->prophesize(OutputInterface::class)->reveal()
+        );
     }
 }
