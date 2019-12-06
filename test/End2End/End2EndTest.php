@@ -6,11 +6,15 @@ use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\Test\End2End\App\Kernel;
 use Sentry\State\HubInterface;
 use Symfony\Bundle\FrameworkBundle\Client;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class_alias(TestCase::class, \PHPUnit_Framework_TestCase::class);
+if (! class_exists(KernelBrowser::class)) {
+    class_alias(KernelBrowser::class, Client::class);
+}
 
 class End2EndTest extends WebTestCase
 {
@@ -106,7 +110,7 @@ class End2EndTest extends WebTestCase
         $this->assertLastEventIdIsNotNull($client);
     }
 
-    private function assertLastEventIdIsNotNull(Client $client): void
+    private function assertLastEventIdIsNotNull(KernelBrowser $client): void
     {
         $container = $client->getContainer();
         $this->assertNotNull($container);
