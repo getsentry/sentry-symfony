@@ -12,6 +12,7 @@ use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
@@ -243,19 +244,14 @@ class RequestListenerTest extends BaseTestCase
     {
         $request = new Request();
         $request->attributes->set('_route', 'sf-route');
-        $event = $this->prophesize(FilterControllerEvent::class);
-
-        $event->isMasterRequest()
-            ->willReturn(true);
-        $event->getRequest()
-            ->willReturn($request);
+        $event = $this->createControllerEvent($request);
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
             $this->prophesize(TokenStorageInterface::class)->reveal()
         );
 
-        $listener->onKernelController($event->reveal());
+        $listener->onKernelController($event);
 
         $this->assertSame(['route' => 'sf-route'], $this->getTagsContext($this->currentScope));
     }
@@ -265,20 +261,14 @@ class RequestListenerTest extends BaseTestCase
         $this->currentHub->configureScope(Argument::type('callable'))
             ->shouldNotBeCalled();
 
-        $request = new Request();
-        $event = $this->prophesize(FilterControllerEvent::class);
-
-        $event->isMasterRequest()
-            ->willReturn(true);
-        $event->getRequest()
-            ->willReturn($request);
+        $event = $this->createControllerEvent(new Request());
 
         $listener = new RequestListener(
             $this->currentHub->reveal(),
             $this->prophesize(TokenStorageInterface::class)->reveal()
         );
 
-        $listener->onKernelController($event->reveal());
+        $listener->onKernelController($event);
     }
 
     public function testOnKernelRequestUserDataAndTagsAreNotSetInSubRequest(): void
@@ -287,10 +277,7 @@ class RequestListenerTest extends BaseTestCase
             ->shouldNotBeCalled();
 
         $tokenStorage = $this->prophesize(TokenStorageInterface::class);
-        $event = $this->prophesize(GetResponseEvent::class);
-
-        $event->isMasterRequest()
-            ->willReturn(false);
+        $event = $this->createResponsetEvent(null, KernelInterface::SUB_REQUEST);
 
         $tokenStorage->getToken()
             ->shouldNotBeCalled();
@@ -300,7 +287,7 @@ class RequestListenerTest extends BaseTestCase
             $tokenStorage->reveal()
         );
 
-        $listener->onKernelRequest($event->reveal());
+        $listener->onKernelRequest($event);
 
         $this->assertEmpty($this->getUserContext($this->currentScope));
         $this->assertEmpty($this->getTagsContext($this->currentScope));
@@ -344,6 +331,30 @@ class RequestListenerTest extends BaseTestCase
                 $request,
                 $type,
                 $this->prophesize(Response::class)->reveal()
+            );
+        }
+
+        return $event;
+    }
+
+    /**
+     * @return FilterControllerEvent|ControllerEvent
+     */
+    private function createControllerEvent(Request $request)
+    {
+        if (class_exists(ControllerEvent::class)) {
+            $event = new ControllerEvent(
+                $this->prophesize(KernelInterface::class)->reveal(),
+                'var_dump',
+                $request,
+                KernelInterface::MASTER_REQUEST
+            );
+        } else {
+            $event = new FilterControllerEvent(
+                $this->prophesize(KernelInterface::class)->reveal(),
+                'var_dump',
+                $request,
+                KernelInterface::MASTER_REQUEST
             );
         }
 

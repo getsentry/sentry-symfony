@@ -5,6 +5,7 @@ namespace Sentry\SentryBundle\EventListener;
 use Sentry\SentryBundle\SentryBundle;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
+use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
@@ -13,6 +14,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 if (! class_exists(ResponseEvent::class)) {
     class_alias(ResponseEvent::class, GetResponseEvent::class);
+}
+
+if (! class_exists(ControllerEvent::class)) {
+    class_alias(ControllerEvent::class, FilterControllerEvent::class);
 }
 
 /**
@@ -80,7 +85,7 @@ final class RequestListener
             });
     }
 
-    public function onKernelController(FilterControllerEvent $event): void
+    public function onKernelController(ControllerEvent $event): void
     {
         if (! $event->isMasterRequest()) {
             return;
