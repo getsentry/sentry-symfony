@@ -13,7 +13,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class_alias(TestCase::class, \PHPUnit_Framework_TestCase::class);
 if (! class_exists(KernelBrowser::class)) {
-    class_alias(KernelBrowser::class, Client::class);
+    class_alias(Client::class, KernelBrowser::class);
 }
 
 class End2EndTest extends WebTestCase
