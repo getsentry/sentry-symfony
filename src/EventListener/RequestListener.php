@@ -13,11 +13,11 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\User\UserInterface;
 
 if (! class_exists(RequestEvent::class)) {
-    class_alias( GetRequestEvent::class, RequestEvent::class);
+    class_alias(RequestEvent::class, GetRequestEvent::class);
 }
 
 if (! class_exists(ControllerEvent::class)) {
-    class_alias(FilterControllerEvent::class, ControllerEvent::class);
+    class_alias(ControllerEvent::class, FilterControllerEvent::class);
 }
 
 /**
