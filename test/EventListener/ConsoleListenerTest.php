@@ -8,7 +8,6 @@ use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\Test\BaseTestCase;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
-use Symfony\Bridge\PhpUnit\SetUpTearDownTrait;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,13 +15,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class ConsoleListenerTest extends BaseTestCase
 {
-    use SetUpTearDownTrait;
-
     private $currentHub;
     private $currentScope;
 
-    protected function doSetUp(): void
+    protected function setUp(): void
     {
+        parent::setUp();
+
         $this->currentScope = $scope = new Scope();
         $this->currentHub = $this->prophesize(HubInterface::class);
         $this->currentHub->configureScope(Argument::type('callable'))
