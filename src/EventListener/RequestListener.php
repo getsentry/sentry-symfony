@@ -7,17 +7,17 @@ use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
-use Symfony\Component\HttpKernel\Event\GetRequestEvent;
+use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 if (! class_exists(RequestEvent::class)) {
-    class_alias(RequestEvent::class, GetRequestEvent::class);
+    class_alias(GetResponseEvent::class, RequestEvent::class);
 }
 
 if (! class_exists(ControllerEvent::class)) {
-    class_alias(ControllerEvent::class, FilterControllerEvent::class);
+    class_alias(FilterControllerEvent::class, ControllerEvent::class);
 }
 
 /**

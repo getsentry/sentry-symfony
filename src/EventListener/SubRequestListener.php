@@ -4,11 +4,11 @@ namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\SentryBundle\SentryBundle;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
-use Symfony\Component\HttpKernel\Event\GetRequestEvent;
+use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 
 if (! class_exists(RequestEvent::class)) {
-    class_alias(RequestEvent::class, GetRequestEvent::class);
+    class_alias(GetResponseEvent::class, RequestEvent::class);
 }
 
 final class SubRequestListener

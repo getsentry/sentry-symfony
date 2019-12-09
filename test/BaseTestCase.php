@@ -9,7 +9,7 @@ use Sentry\State\Hub;
 use Sentry\State\HubInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\GetRequestEvent;
+use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelInterface;
 
@@ -50,7 +50,7 @@ abstract class BaseTestCase extends TestCase
     }
 
     /**
-     * @return GetRequestEvent|RequestEvent
+     * @return GetResponseEvent|RequestEvent
      */
     protected function createRequestEvent(Request $request = null, int $type = KernelInterface::MASTER_REQUEST)
     {
@@ -66,7 +66,7 @@ abstract class BaseTestCase extends TestCase
                 $this->prophesize(Response::class)->reveal()
             );
         } else {
-            $event = new GetRequestEvent(
+            $event = new GetResponseEvent(
                 $this->prophesize(KernelInterface::class)->reveal(),
                 $request,
                 $type,
