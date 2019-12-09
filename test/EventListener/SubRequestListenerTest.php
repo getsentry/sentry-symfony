@@ -6,18 +6,19 @@ use Sentry\SentryBundle\EventListener\SubRequestListener;
 use Sentry\SentryBundle\Test\BaseTestCase;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
+use Symfony\Bridge\PhpUnit\SetUpTearDownTrait;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 class SubRequestListenerTest extends BaseTestCase
 {
+    use SetUpTearDownTrait;
+
     private $currentHub;
 
-    protected function setUp()
+    protected function doSetUp(): void
     {
-        parent::setUp();
-
         $this->currentHub = $this->prophesize(HubInterface::class);
 
         $this->setCurrentHub($this->currentHub->reveal());

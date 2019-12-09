@@ -10,6 +10,7 @@ use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\SentryBundle\Test\BaseTestCase;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
+use Symfony\Bridge\PhpUnit\SetUpTearDownTrait;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
@@ -20,14 +21,14 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 class RequestListenerTest extends BaseTestCase
 {
+    use SetUpTearDownTrait;
+
     private $currentScope;
     private $currentHub;
     private $options;
 
-    protected function setUp()
+    protected function doSetUp(): void
     {
-        parent::setUp();
-
         $this->currentScope = $scope = new Scope();
         $this->currentHub = $this->prophesize(HubInterface::class);
 
