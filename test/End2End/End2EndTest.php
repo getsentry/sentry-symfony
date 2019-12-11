@@ -98,7 +98,7 @@ class End2EndTest extends WebTestCase
 
             $this->assertInstanceOf(Response::class, $response);
             $this->assertSame(500, $response->getStatusCode());
-            $this->assertContains('intentional error', $response->getContent());
+            $this->assertStringContainsString('intentional error', $response->getContent());
         } catch (\Throwable $exception) {
             if (! $exception instanceof \RuntimeException) {
                 throw $exception;

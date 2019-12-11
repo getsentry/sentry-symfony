@@ -92,7 +92,7 @@ class ConfigurationTest extends BaseTestCase
         $input = ['options' => [$option => $value]];
         $processed = $this->processConfiguration($input);
 
-        $this->assertArraySubset($input, $processed);
+        $this->assertContains($input, $processed);
     }
 
     public function optionValuesProvider(): array
