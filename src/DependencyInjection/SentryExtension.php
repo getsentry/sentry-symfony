@@ -6,23 +6,16 @@ use Monolog\Logger as MonologLogger;
 use Sentry\ClientBuilderInterface;
 use Sentry\Monolog\Handler;
 use Sentry\Options;
-use Sentry\SentryBundle\Command\SentryTestCommand;
 use Sentry\SentryBundle\ErrorTypesParser;
-use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
-use Sentry\SentryBundle\EventListener\RequestListener;
-use Sentry\SentryBundle\EventListener\SubRequestListener;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\Console\ConsoleEvents;
-use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
-use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -54,7 +47,6 @@ class SentryExtension extends Extension
         }
 
         $this->configureErrorListener($container, $processedConfiguration);
-        $this->setLegacyVisibilities($container);
         $this->configureMonologHandler($container, $processedConfiguration['monolog']);
     }
 
@@ -150,7 +142,6 @@ class SentryExtension extends Extension
         }
 
         $this->tagExceptionListener($container);
-        $this->tagConsoleErrorListener($container);
     }
 
     /**
@@ -170,47 +161,6 @@ class SentryExtension extends Extension
         ];
 
         $listener->addTag('kernel.event_listener', $tagAttributes);
-    }
-
-    /**
-     * BC layer for Symfony < 3.3; see https://symfony.com/blog/new-in-symfony-3-3-better-handling-of-command-exceptions
-     */
-    private function tagConsoleErrorListener(ContainerBuilder $container): void
-    {
-        $listener = $container->getDefinition(ErrorListener::class);
-
-        if (class_exists(ConsoleErrorEvent::class)) {
-            $tagAttributes = [
-                'event' => ConsoleEvents::ERROR,
-                'method' => 'onConsoleError',
-                'priority' => '%sentry.listener_priorities.console_error%',
-            ];
-        } else {
-            $tagAttributes = [
-                'event' => ConsoleEvents::EXCEPTION,
-                'method' => 'onConsoleException',
-                'priority' => '%sentry.listener_priorities.console_error%',
-            ];
-        }
-
-        $listener->addTag('kernel.event_listener', $tagAttributes);
-    }
-
-    /**
-     * BC layer for symfony < 3.3, listeners and commands must be public
-     */
-    private function setLegacyVisibilities(ContainerBuilder $container): void
-    {
-        if (Kernel::VERSION_ID < 30300) {
-            $container->getDefinition(SentryTestCommand::class)->setPublic(true);
-            $container->getDefinition(ConsoleListener::class)->setPublic(true);
-            $container->getDefinition(RequestListener::class)->setPublic(true);
-            $container->getDefinition(SubRequestListener::class)->setPublic(true);
-
-            if ($container->hasDefinition(ErrorListener::class)) {
-                $container->getDefinition(ErrorListener::class)->setPublic(true);
-            }
-        }
     }
 
     private function configureMonologHandler(ContainerBuilder $container, array $monologConfiguration): void

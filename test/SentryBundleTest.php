@@ -17,7 +17,6 @@ use Sentry\SentryBundle\SentryBundle;
 use Sentry\State\Hub;
 use Sentry\State\HubInterface;
 use Symfony\Component\Console\ConsoleEvents;
-use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -105,26 +104,17 @@ class SentryBundleTest extends TestCase
         $expectedTag = [
             'kernel.event_listener' => [
                 [
+                    'event' => ConsoleEvents::ERROR,
+                    'method' => 'onConsoleError',
+                    'priority' => '%sentry.listener_priorities.console_error%',
+                ],
+                [
                     'event' => KernelEvents::EXCEPTION,
                     'method' => $method,
                     'priority' => '%sentry.listener_priorities.request_error%',
                 ],
             ],
         ];
-
-        if (class_exists(ConsoleErrorEvent::class)) {
-            $expectedTag['kernel.event_listener'][] = [
-                'event' => ConsoleEvents::ERROR,
-                'method' => 'onConsoleError',
-                'priority' => '%sentry.listener_priorities.console_error%',
-            ];
-        } else {
-            $expectedTag['kernel.event_listener'][] = [
-                'event' => ConsoleEvents::EXCEPTION,
-                'method' => 'onConsoleException',
-                'priority' => '%sentry.listener_priorities.console_error%',
-            ];
-        }
 
         $this->assertSame($expectedTag, $consoleListener->getTags());
     }
@@ -153,7 +143,6 @@ class SentryBundleTest extends TestCase
     private function getContainer(array $configuration = []): ContainerBuilder
     {
         $containerBuilder = new ContainerBuilder();
-        $containerBuilder->setParameter('kernel.root_dir', 'kernel/root');
         $containerBuilder->setParameter('kernel.cache_dir', 'var/cache');
         if (method_exists(Kernel::class, 'getProjectDir')) {
             $containerBuilder->setParameter('kernel.project_dir', '/dir/project/root');
