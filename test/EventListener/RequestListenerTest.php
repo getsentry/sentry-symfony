@@ -306,9 +306,6 @@ class RequestListenerTest extends BaseTestCase
         return $event->getTagsContext()->toArray();
     }
 
-    /**
-     * @return FilterControllerEvent|ControllerEvent
-     */
     private function createControllerEvent(Request $request)
     {
         if (class_exists(ControllerEvent::class)) {

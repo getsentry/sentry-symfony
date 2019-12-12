@@ -84,10 +84,6 @@ class ConsoleListenerTest extends BaseTestCase
         return $event->getTagsContext()->toArray();
     }
 
-    /**
-     * @param $command
-     * @return ConsoleCommandEvent
-     */
     private function createConsoleCommandEvent(?Command $command): ConsoleCommandEvent
     {
         return new ConsoleCommandEvent(

@@ -20,7 +20,6 @@ use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
-use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 class SentryBundleTest extends TestCase
@@ -144,9 +143,7 @@ class SentryBundleTest extends TestCase
     {
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->setParameter('kernel.cache_dir', 'var/cache');
-        if (method_exists(Kernel::class, 'getProjectDir')) {
-            $containerBuilder->setParameter('kernel.project_dir', '/dir/project/root');
-        }
+        $containerBuilder->setParameter('kernel.project_dir', '/dir/project/root');
 
         $containerBuilder->setParameter('kernel.environment', 'test');
         $containerBuilder->set('event_dispatcher', $this->prophesize(EventDispatcherInterface::class)->reveal());
