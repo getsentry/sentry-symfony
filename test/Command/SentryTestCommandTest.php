@@ -33,10 +33,10 @@ class SentryTestCommandTest extends BaseTestCase
         $commandTester = $this->executeCommand();
 
         $output = $commandTester->getDisplay();
-        $this->assertContains('DSN correctly configured', $output);
-        $this->assertContains('Sending test message', $output);
-        $this->assertContains('Message sent', $output);
-        $this->assertContains($lastEventId, $output);
+        $this->assertStringContainsString('DSN correctly configured', $output);
+        $this->assertStringContainsString('Sending test message', $output);
+        $this->assertStringContainsString('Message sent', $output);
+        $this->assertStringContainsString($lastEventId, $output);
         $this->assertSame(0, $commandTester->getStatusCode());
     }
 
@@ -56,8 +56,8 @@ class SentryTestCommandTest extends BaseTestCase
 
         $this->assertNotSame(0, $commandTester->getStatusCode());
         $output = $commandTester->getDisplay();
-        $this->assertContains('No DSN configured', $output);
-        $this->assertContains('try bin/console debug:config sentry', $output);
+        $this->assertStringContainsString('No DSN configured', $output);
+        $this->assertStringContainsString('try bin/console debug:config sentry', $output);
     }
 
     public function testExecuteFailsDueToMessageNotSent(): void
@@ -80,9 +80,9 @@ class SentryTestCommandTest extends BaseTestCase
 
         $this->assertNotSame(0, $commandTester->getStatusCode());
         $output = $commandTester->getDisplay();
-        $this->assertContains('DSN correctly configured', $output);
-        $this->assertContains('Sending test message', $output);
-        $this->assertContains('Message not sent', $output);
+        $this->assertStringContainsString('DSN correctly configured', $output);
+        $this->assertStringContainsString('Sending test message', $output);
+        $this->assertStringContainsString('Message not sent', $output);
     }
 
     public function testExecuteFailsDueToMissingClient(): void
@@ -97,8 +97,8 @@ class SentryTestCommandTest extends BaseTestCase
 
         $this->assertNotSame(0, $commandTester->getStatusCode());
         $output = $commandTester->getDisplay();
-        $this->assertContains('No client found', $output);
-        $this->assertContains('DSN is probably missing', $output);
+        $this->assertStringContainsString('No client found', $output);
+        $this->assertStringContainsString('DSN is probably missing', $output);
     }
 
     private function executeCommand(): CommandTester

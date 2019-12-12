@@ -9,7 +9,6 @@ class ErrorTypesParserTest extends TestCase
 {
     /**
      * @dataProvider parsableValueProvider
-     * @param int|string $value
      */
     public function testParse($value, int $expected): void
     {

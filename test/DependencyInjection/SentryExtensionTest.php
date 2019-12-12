@@ -25,7 +25,6 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpKernel\Kernel;
 
 class SentryExtensionTest extends BaseTestCase
 {
@@ -57,13 +56,8 @@ class SentryExtensionTest extends BaseTestCase
         $container = $this->getContainer();
         $options = $this->getOptionsFrom($container);
 
-        if (method_exists(Kernel::class, 'getProjectDir')) {
-            $vendorDir = '/dir/project/root/vendor';
-            $this->assertSame('/dir/project/root', $options->getProjectRoot());
-        } else {
-            $vendorDir = 'kernel/root/../vendor';
-            $this->assertSame('kernel/root/..', $options->getProjectRoot());
-        }
+        $vendorDir = '/dir/project/root/vendor';
+        $this->assertSame('/dir/project/root', $options->getProjectRoot());
 
         $this->assertNull($options->getDsn());
         $this->assertSame('test', $options->getEnvironment());
@@ -421,9 +415,7 @@ class SentryExtensionTest extends BaseTestCase
     {
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->setParameter('kernel.cache_dir', 'var/cache');
-        if (method_exists(Kernel::class, 'getProjectDir')) {
-            $containerBuilder->setParameter('kernel.project_dir', '/dir/project/root');
-        }
+        $containerBuilder->setParameter('kernel.project_dir', '/dir/project/root');
         $containerBuilder->setParameter('kernel.environment', 'test');
 
         $mockEventDispatcher = $this->createMock(EventDispatcherInterface::class);

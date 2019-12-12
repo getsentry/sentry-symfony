@@ -49,9 +49,6 @@ abstract class BaseTestCase extends TestCase
         }
     }
 
-    /**
-     * @return GetResponseEvent|RequestEvent
-     */
     protected function createRequestEvent(Request $request = null, int $type = KernelInterface::MASTER_REQUEST)
     {
         if ($request === null) {
@@ -62,8 +59,7 @@ abstract class BaseTestCase extends TestCase
             $event = new RequestEvent(
                 $this->prophesize(KernelInterface::class)->reveal(),
                 $request,
-                $type,
-                $this->prophesize(Response::class)->reveal()
+                $type
             );
         } else {
             $event = new GetResponseEvent(
