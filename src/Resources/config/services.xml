@@ -32,9 +32,9 @@
 
         <service id="Sentry\SentryBundle\EventListener\ErrorListener" class="Sentry\SentryBundle\EventListener\ErrorListener" public="false">
             <argument type="service" id="Sentry\State\HubInterface" />
-            <tag name="kernel.event_listener" event="kernel.exception" method="onKernelException" priority="%sentry.listener_priorities.request_error%" />
-            <!-- The following tag is done manually in PHP for BC with Symfony < 3.3 -->
-<!--            <tag name="kernel.event_listener" event="console.error" method="onConsoleError" priority="%sentry.listener_priorities.console_error%" />-->
+            <!-- The following tag is done manually in PHP for BC with Symfony < 4.3,  -->
+<!--            <tag name="kernel.event_listener" event="kernel.exception" method="onException" priority="%sentry.listener_priorities.request_error%" />-->
+            <tag name="kernel.event_listener" event="console.error" method="onConsoleError" priority="%sentry.listener_priorities.console_error%" />
         </service>
 
         <service id="Sentry\SentryBundle\EventListener\RequestListener" class="Sentry\SentryBundle\EventListener\RequestListener" public="false">

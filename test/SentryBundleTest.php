@@ -19,7 +19,7 @@ use Sentry\State\HubInterface;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 class SentryBundleTest extends TestCase
@@ -97,29 +97,23 @@ class SentryBundleTest extends TestCase
 
         $consoleListener = $container->getDefinition(ErrorListener::class);
 
+        $method = class_exists(ExceptionEvent::class)
+            ? 'onException'
+            : 'onKernelException';
         $expectedTag = [
             'kernel.event_listener' => [
                 [
+                    'event' => ConsoleEvents::ERROR,
+                    'method' => 'onConsoleError',
+                    'priority' => '%sentry.listener_priorities.console_error%',
+                ],
+                [
                     'event' => KernelEvents::EXCEPTION,
-                    'method' => 'onKernelException',
+                    'method' => $method,
                     'priority' => '%sentry.listener_priorities.request_error%',
                 ],
             ],
         ];
-
-        if (class_exists('Symfony\Component\Console\Event\ConsoleErrorEvent')) {
-            $expectedTag['kernel.event_listener'][] = [
-                'event' => ConsoleEvents::ERROR,
-                'method' => 'onConsoleError',
-                'priority' => '%sentry.listener_priorities.console_error%',
-            ];
-        } else {
-            $expectedTag['kernel.event_listener'][] = [
-                'event' => ConsoleEvents::EXCEPTION,
-                'method' => 'onConsoleException',
-                'priority' => '%sentry.listener_priorities.console_error%',
-            ];
-        }
 
         $this->assertSame($expectedTag, $consoleListener->getTags());
     }
@@ -148,11 +142,8 @@ class SentryBundleTest extends TestCase
     private function getContainer(array $configuration = []): ContainerBuilder
     {
         $containerBuilder = new ContainerBuilder();
-        $containerBuilder->setParameter('kernel.root_dir', 'kernel/root');
         $containerBuilder->setParameter('kernel.cache_dir', 'var/cache');
-        if (method_exists(Kernel::class, 'getProjectDir')) {
-            $containerBuilder->setParameter('kernel.project_dir', '/dir/project/root');
-        }
+        $containerBuilder->setParameter('kernel.project_dir', '/dir/project/root');
 
         $containerBuilder->setParameter('kernel.environment', 'test');
         $containerBuilder->set('event_dispatcher', $this->prophesize(EventDispatcherInterface::class)->reveal());

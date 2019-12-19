@@ -11,6 +11,7 @@ and client, you should read through the [relative upgrade document](https://gith
 ## Changes in the configuration
 There are only two BC impacting the configuration:
  * the `skip_capture` option has been **removed**: the same feature has been implemented in the new SDK, with the PHP `excluded_exceptions` option; you just have to move your values from `sentry.skip_capture` to `sentry.options.excluded_exceptions`
+ * Symfony internal exceptions are no longer ignored by default: Sentry will start getting events for 404 or 403, or even 403 which are followed by a (remembered) login. Add new values to the `sentry.options.excluded_exceptions` option; notice that it works with an `instanceof` against the exception, so you could ignore multiple kind of events using a common ancestor class.
  * The `sentry.options` values reflect the options of the PHP SDK; many of those have been removed, and there are some new ones. You can read the [appropriate section of the upgrade document](https://github.com/getsentry/sentry-php/blob/master/UPGRADE-2.0.md#client-options), with the exception of the `server` to `dsn` migration, which is still handled in the same way by the bundle, under `sentry.dsn`
  * A new notable option is `send_default_pii`: it's a new option of the new SDK with by default is turned off, for GDPR compliance. You need to set `sentry.options.send_default_pii: true` to have the user's username and IP address attached to the events, as in the 2.0 bundle.
 

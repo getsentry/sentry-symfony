@@ -5,7 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
- - ...
+ - Add support for Symfony 5.0 (#266, thanks to @Big-Shark)
+ - Drop support for Symfony < 3.4 (#277)
 
 ## 3.2.1 (2019-12-19)
  - Fix handling of command with no name on `ConsoleListener` (#261)

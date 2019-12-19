@@ -2,22 +2,23 @@
 
 namespace Sentry\SentryBundle\Test\EventListener;
 
-use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Sentry\Event;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
-use Sentry\State\Hub;
+use Sentry\SentryBundle\Test\BaseTestCase;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
-class ConsoleListenerTest extends TestCase
+class ConsoleListenerTest extends BaseTestCase
 {
     private $currentHub;
     private $currentScope;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -31,7 +32,7 @@ class ConsoleListenerTest extends TestCase
                 $callable($scope);
             });
 
-        Hub::setCurrent($this->currentHub->reveal());
+        $this->setCurrentHub($this->currentHub->reveal());
     }
 
     public function testOnConsoleCommandAddsCommandName(): void
@@ -40,26 +41,22 @@ class ConsoleListenerTest extends TestCase
         $command->getName()
             ->willReturn('sf:command:name');
 
-        $event = $this->prophesize(ConsoleCommandEvent::class);
-        $event->getCommand()
-            ->willReturn($command->reveal());
+        $event = $this->createConsoleCommandEvent($command->reveal());
 
         $listener = new ConsoleListener($this->currentHub->reveal());
 
-        $listener->onConsoleCommand($event->reveal());
+        $listener->onConsoleCommand($event);
 
         $this->assertSame(['command' => 'sf:command:name'], $this->getTagsContext($this->currentScope));
     }
 
     public function testOnConsoleCommandWithNoCommandAddsPlaceholder(): void
     {
-        $event = $this->prophesize(ConsoleCommandEvent::class);
-        $event->getCommand()
-            ->willReturn(null);
+        $event = $this->createConsoleCommandEvent(null);
 
         $listener = new ConsoleListener($this->currentHub->reveal());
 
-        $listener->onConsoleCommand($event->reveal());
+        $listener->onConsoleCommand($event);
 
         $this->assertSame(['command' => 'N/A'], $this->getTagsContext($this->currentScope));
     }
@@ -70,13 +67,11 @@ class ConsoleListenerTest extends TestCase
         $command->getName()
             ->willReturn(null);
 
-        $event = $this->prophesize(ConsoleCommandEvent::class);
-        $event->getCommand()
-            ->willReturn($command->reveal());
+        $event = $this->createConsoleCommandEvent($command->reveal());
 
         $listener = new ConsoleListener($this->currentHub->reveal());
 
-        $listener->onConsoleCommand($event->reveal());
+        $listener->onConsoleCommand($event);
 
         $this->assertSame(['command' => 'N/A'], $this->getTagsContext($this->currentScope));
     }
@@ -87,5 +82,14 @@ class ConsoleListenerTest extends TestCase
         $scope->applyToEvent($event, []);
 
         return $event->getTagsContext()->toArray();
+    }
+
+    private function createConsoleCommandEvent(?Command $command): ConsoleCommandEvent
+    {
+        return new ConsoleCommandEvent(
+            $command,
+            $this->prophesize(InputInterface::class)->reveal(),
+            $this->prophesize(OutputInterface::class)->reveal()
+        );
     }
 }

@@ -2,17 +2,16 @@
 
 namespace Sentry\SentryBundle\Test\Command;
 
-use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Sentry\ClientInterface;
 use Sentry\Options;
 use Sentry\SentryBundle\Command\SentryTestCommand;
-use Sentry\State\Hub;
+use Sentry\SentryBundle\Test\BaseTestCase;
 use Sentry\State\HubInterface;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
-class SentryTestCommandTest extends TestCase
+class SentryTestCommandTest extends BaseTestCase
 {
     public function testExecuteSuccessfully(): void
     {
@@ -29,15 +28,15 @@ class SentryTestCommandTest extends TestCase
             ->shouldBeCalled()
             ->willReturn($lastEventId);
 
-        Hub::setCurrent($hub->reveal());
+        $this->setCurrentHub($hub->reveal());
 
         $commandTester = $this->executeCommand();
 
         $output = $commandTester->getDisplay();
-        $this->assertContains('DSN correctly configured', $output);
-        $this->assertContains('Sending test message', $output);
-        $this->assertContains('Message sent', $output);
-        $this->assertContains($lastEventId, $output);
+        $this->assertStringContainsString('DSN correctly configured', $output);
+        $this->assertStringContainsString('Sending test message', $output);
+        $this->assertStringContainsString('Message sent', $output);
+        $this->assertStringContainsString($lastEventId, $output);
         $this->assertSame(0, $commandTester->getStatusCode());
     }
 
@@ -51,14 +50,14 @@ class SentryTestCommandTest extends TestCase
         $hub->getClient()
             ->willReturn($client->reveal());
 
-        Hub::setCurrent($hub->reveal());
+        $this->setCurrentHub($hub->reveal());
 
         $commandTester = $this->executeCommand();
 
         $this->assertNotSame(0, $commandTester->getStatusCode());
         $output = $commandTester->getDisplay();
-        $this->assertContains('No DSN configured', $output);
-        $this->assertContains('try bin/console debug:config sentry', $output);
+        $this->assertStringContainsString('No DSN configured', $output);
+        $this->assertStringContainsString('try bin/console debug:config sentry', $output);
     }
 
     public function testExecuteFailsDueToMessageNotSent(): void
@@ -75,15 +74,15 @@ class SentryTestCommandTest extends TestCase
             ->shouldBeCalled()
             ->willReturn(null);
 
-        Hub::setCurrent($hub->reveal());
+        $this->setCurrentHub($hub->reveal());
 
         $commandTester = $this->executeCommand();
 
         $this->assertNotSame(0, $commandTester->getStatusCode());
         $output = $commandTester->getDisplay();
-        $this->assertContains('DSN correctly configured', $output);
-        $this->assertContains('Sending test message', $output);
-        $this->assertContains('Message not sent', $output);
+        $this->assertStringContainsString('DSN correctly configured', $output);
+        $this->assertStringContainsString('Sending test message', $output);
+        $this->assertStringContainsString('Message not sent', $output);
     }
 
     public function testExecuteFailsDueToMissingClient(): void
@@ -92,14 +91,14 @@ class SentryTestCommandTest extends TestCase
         $hub->getClient()
             ->willReturn(null);
 
-        Hub::setCurrent($hub->reveal());
+        $this->setCurrentHub($hub->reveal());
 
         $commandTester = $this->executeCommand();
 
         $this->assertNotSame(0, $commandTester->getStatusCode());
         $output = $commandTester->getDisplay();
-        $this->assertContains('No client found', $output);
-        $this->assertContains('DSN is probably missing', $output);
+        $this->assertStringContainsString('No client found', $output);
+        $this->assertStringContainsString('DSN is probably missing', $output);
     }
 
     private function executeCommand(): CommandTester

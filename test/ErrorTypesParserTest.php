@@ -10,7 +10,7 @@ class ErrorTypesParserTest extends TestCase
     /**
      * @dataProvider parsableValueProvider
      */
-    public function testParse(string $value, int $expected): void
+    public function testParse($value, int $expected): void
     {
         $ex = new ErrorTypesParser($value);
         $this->assertEquals($expected, $ex->parse());
