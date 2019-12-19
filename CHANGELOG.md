@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
  - ...
 
-## 3.2.1 (TBA)
+## 3.2.1 (2019-12-19)
  - Fix handling of command with no name on `ConsoleListener` (#261)
  - Remove check by AuthorizationChecker in  `RequestListener` (#264)
  - Fixed undefined variable in `RequestListener` (#263)
