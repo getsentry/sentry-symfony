@@ -3,6 +3,7 @@
 namespace Sentry\SentryBundle\DependencyInjection;
 
 use Jean85\PrettyVersions;
+use PackageVersions\Versions;
 use Sentry\Options;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -114,7 +115,10 @@ class Configuration implements ConfigurationInterface
             ->prototype('scalar');
         $optionsChildNodes->scalarNode('project_root')
             ->defaultValue('%kernel.project_dir%');
-        $optionsChildNodes->scalarNode('release');
+        $optionsChildNodes->scalarNode('release')
+            ->defaultValue(Versions::getVersion(Versions::ROOT_PACKAGE_NAME))
+            ->info('Release version to be reported to sentry, see https://docs.sentry.io/workflow/releases/?platform=php')
+            ->example('my/application@ff11bb');
         $optionsChildNodes->floatNode('sample_rate')
             ->min(0.0)
             ->max(1.0);
