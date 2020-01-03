@@ -3,6 +3,7 @@
 namespace Sentry\SentryBundle\Test\DependencyInjection;
 
 use Jean85\PrettyVersions;
+use PackageVersions\Versions;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
 use Sentry\SentryBundle\Test\BaseTestCase;
@@ -66,6 +67,7 @@ class ConfigurationTest extends BaseTestCase
                 'prefixes' => $defaultSdkValues->getPrefixes(),
                 'project_root' => '%kernel.project_dir%',
                 'tags' => [],
+                'release' => Versions::getVersion('sentry/sentry-symfony'),
             ],
             'monolog' => [
                 'error_handler' => [
