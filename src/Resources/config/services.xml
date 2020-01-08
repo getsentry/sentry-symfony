@@ -54,10 +54,15 @@
             <tag name="console.command" />
         </service>
 
+        <service id="sentry.monolog.psr_log_message_processor" class="Monolog\Processor\PsrLogMessageProcessor" public="false"/>
+
         <service id="Sentry\Monolog\Handler" class="Sentry\Monolog\Handler" public="false">
             <argument type="service" id="Sentry\State\HubInterface" />
             <argument key="$level" />
             <argument key="$bubble" />
+            <call method="pushProcessor">
+                <argument type="service" id="sentry.monolog.psr_log_message_processor" />
+            </call>
         </service>
     </services>
 </container>
