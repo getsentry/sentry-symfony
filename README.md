@@ -129,6 +129,14 @@ monolog:
             id: Sentry\Monolog\Handler
 ```
 
+It's recommended to enable `PsrLogMessageProcessor`.
+
+```yaml
+services:
+    Monolog\Processor\PsrLogMessageProcessor:
+        tags: { name: monolog.processor, handler: sentry }
+```
+
 ## Maintained versions
  * 3.x is actively maintained and developed on the master branch, and uses Sentry SDK 2.0;
  * 2.x is supported only for fixes; from this version onwards it requires Symfony 3+ and PHP 7.1+;
