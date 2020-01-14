@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
  - ...
 
+## 3.3.1 (2020-01-14)
+
+- Fixed Release
+
 ## 3.3.0 (2020-01-14)
  - Add support for Symfony 5.0 (#266, thanks to @Big-Shark)
  - Drop support for Symfony < 3.4 (#277)
