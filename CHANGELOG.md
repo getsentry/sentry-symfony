@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+ - ...
+
+## 3.3.0 (2020-01-14)
  - Add support for Symfony 5.0 (#266, thanks to @Big-Shark)
  - Drop support for Symfony < 3.4 (#277)
  - Add default value for the `release` option, using the detected root package version (#291 #292, thanks to @Ocramius)
