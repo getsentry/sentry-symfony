@@ -27,7 +27,7 @@ abstract class BaseTestCase extends TestCase
 
     protected function getSupportedOptionsCount(): int
     {
-        $count = 23;
+        $count = 24;
 
         if ($this->classSerializersAreSupported()) {
             ++$count;

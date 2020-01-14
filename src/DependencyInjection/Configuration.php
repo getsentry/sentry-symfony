@@ -75,6 +75,11 @@ class Configuration implements ConfigurationInterface
             ->defaultValue('%kernel.environment%')
             ->cannotBeEmpty();
         $optionsChildNodes->scalarNode('error_types');
+        $optionsChildNodes->arrayNode('in_app_include')
+            ->defaultValue([
+                '%kernel.project_dir%',
+            ])
+            ->prototype('scalar');
         $optionsChildNodes->arrayNode('in_app_exclude')
             ->defaultValue([
                 '%kernel.cache_dir%',
@@ -114,7 +119,7 @@ class Configuration implements ConfigurationInterface
             ->defaultValue($defaultValues->getPrefixes())
             ->prototype('scalar');
         $optionsChildNodes->scalarNode('project_root')
-            ->defaultValue('%kernel.project_dir%');
+            ->setDeprecated();
         $optionsChildNodes->scalarNode('release')
             ->defaultValue(Versions::getVersion(Versions::ROOT_PACKAGE_NAME))
             ->info('Release version to be reported to sentry, see https://docs.sentry.io/workflow/releases/?platform=php')

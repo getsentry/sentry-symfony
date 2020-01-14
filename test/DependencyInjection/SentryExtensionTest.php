@@ -59,7 +59,7 @@ class SentryExtensionTest extends BaseTestCase
         $options = $this->getOptionsFrom($container);
 
         $vendorDir = '/dir/project/root/vendor';
-        $this->assertSame('/dir/project/root', $options->getProjectRoot());
+        $this->assertContains('/dir/project/root', $options->getInAppIncludedPaths());
 
         $this->assertNull($options->getDsn());
         $this->assertSame('test', $options->getEnvironment());
@@ -126,6 +126,7 @@ class SentryExtensionTest extends BaseTestCase
             ['enable_compression', false, 'isCompressionEnabled'],
             ['environment', 'staging'],
             ['error_types', E_ALL & ~E_NOTICE],
+            ['in_app_include', ['/some/path'], 'getInAppIncludedPaths'],
             ['in_app_exclude', ['/some/path'], 'getInAppExcludedPaths'],
             ['excluded_exceptions', [\Throwable::class]],
             ['http_proxy', '1.2.3.4'],

@@ -58,6 +58,7 @@ class ConfigurationTest extends BaseTestCase
             ],
             'options' => [
                 'environment' => '%kernel.environment%',
+                'in_app_include' => ['%kernel.project_dir%'],
                 'in_app_exclude' => [
                     '%kernel.cache_dir%',
                     '%kernel.project_dir%/vendor',
@@ -65,7 +66,6 @@ class ConfigurationTest extends BaseTestCase
                 'integrations' => [],
                 'excluded_exceptions' => $defaultSdkValues->getExcludedExceptions(),
                 'prefixes' => $defaultSdkValues->getPrefixes(),
-                'project_root' => '%kernel.project_dir%',
                 'tags' => [],
                 'release' => Versions::getVersion('sentry/sentry-symfony'),
             ],
@@ -87,6 +87,8 @@ class ConfigurationTest extends BaseTestCase
     }
 
     /**
+     * @group legacy
+     * 
      * @dataProvider optionValuesProvider
      */
     public function testOptionValuesProcessing(string $option, $value): void
@@ -111,6 +113,7 @@ class ConfigurationTest extends BaseTestCase
             ['environment', 'staging'],
             ['error_types', E_ALL],
             ['http_proxy', '1.2.3.4:5678'],
+            ['in_app_include', ['some/path']],
             ['in_app_exclude', ['some/path']],
             ['integrations', []],
             ['excluded_exceptions', [\Throwable::class]],
@@ -181,6 +184,7 @@ class ConfigurationTest extends BaseTestCase
             ['error_types', []],
             ['excluded_exceptions', 'some-string'],
             ['http_proxy', []],
+            ['in_app_include', 'some/single/path'],
             ['in_app_exclude', 'some/single/path'],
             ['integrations', [1]],
             ['integrations', 'a string'],
