@@ -129,7 +129,7 @@ monolog:
             id: Sentry\Monolog\Handler
 ```
 
-It's recommended to enable `PsrLogMessageProcessor`.
+Additionally, you can register the `PsrLogMessageProcessor` to resolve PSR-3 placeholders in reported messages:
 
 ```yaml
 services:
