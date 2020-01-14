@@ -64,7 +64,7 @@ class ConfigurationTest extends BaseTestCase
                     '%kernel.project_dir%/vendor',
                 ],
                 'integrations' => [],
-                'excluded_exceptions' => $defaultSdkValues->getExcludedExceptions(),
+                'excluded_exceptions' => [],
                 'prefixes' => $defaultSdkValues->getPrefixes(),
                 'tags' => [],
                 'release' => Versions::getVersion('sentry/sentry-symfony'),
@@ -88,7 +88,7 @@ class ConfigurationTest extends BaseTestCase
 
     /**
      * @group legacy
-     * 
+     *
      * @dataProvider optionValuesProvider
      */
     public function testOptionValuesProcessing(string $option, $value): void

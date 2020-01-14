@@ -4,6 +4,7 @@ namespace Sentry\SentryBundle\DependencyInjection;
 
 use Monolog\Logger as MonologLogger;
 use Sentry\ClientBuilderInterface;
+use Sentry\Integration\IgnoreErrorsIntegration;
 use Sentry\Monolog\Handler;
 use Sentry\Options;
 use Sentry\SentryBundle\ErrorTypesParser;
@@ -64,7 +65,6 @@ class SentryExtension extends Extension
             'default_integrations',
             'enable_compression',
             'environment',
-            'excluded_exceptions',
             'http_proxy',
             'logger',
             'max_request_body_size',
@@ -120,6 +120,14 @@ class SentryExtension extends Extension
             foreach ($processedOptions['integrations'] as $integrationName) {
                 $integrations[] = new Reference(substr($integrationName, 1));
             }
+        }
+
+        if (\array_key_exists('excluded_exceptions', $processedOptions) && $processedOptions['excluded_exceptions']) {
+            $ignoreOptions = [
+                'ignore_exceptions' => $processedOptions['excluded_exceptions'],
+            ];
+
+            $integrations[] = new Definition(IgnoreErrorsIntegration::class, [$ignoreOptions]);
         }
 
         $integrationsCallable = new Definition('callable', [$integrations]);

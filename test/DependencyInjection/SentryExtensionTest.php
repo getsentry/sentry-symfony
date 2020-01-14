@@ -128,7 +128,6 @@ class SentryExtensionTest extends BaseTestCase
             ['error_types', E_ALL & ~E_NOTICE],
             ['in_app_include', ['/some/path'], 'getInAppIncludedPaths'],
             ['in_app_exclude', ['/some/path'], 'getInAppExcludedPaths'],
-            ['excluded_exceptions', [\Throwable::class]],
             ['http_proxy', '1.2.3.4'],
             ['logger', 'sentry-logger'],
             ['max_breadcrumbs', 15],

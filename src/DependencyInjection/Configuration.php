@@ -87,7 +87,7 @@ class Configuration implements ConfigurationInterface
             ])
             ->prototype('scalar');
         $optionsChildNodes->arrayNode('excluded_exceptions')
-            ->defaultValue($defaultValues->getExcludedExceptions())
+            ->defaultValue([])
             ->prototype('scalar');
         $optionsChildNodes->scalarNode('http_proxy');
         $optionsChildNodes->arrayNode('integrations')
