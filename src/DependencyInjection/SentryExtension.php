@@ -91,6 +91,10 @@ class SentryExtension extends Extension
             $options->addMethodCall('setInAppExcludedPaths', [$processedOptions['in_app_exclude']]);
         }
 
+        if (\array_key_exists('in_app_include', $processedOptions)) {
+            $options->addMethodCall('setInAppIncludedPaths', [$processedOptions['in_app_include']]);
+        }
+
         if (\array_key_exists('error_types', $processedOptions)) {
             $parsedValue = (new ErrorTypesParser($processedOptions['error_types']))->parse();
             $options->addMethodCall('setErrorTypes', [$parsedValue]);
