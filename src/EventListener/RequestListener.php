@@ -81,7 +81,7 @@ final class RequestListener
 
         SentryBundle::getCurrentHub()
             ->configureScope(function (Scope $scope) use ($userData): void {
-                $scope->setUser($userData);
+                $scope->setUser($userData, true);
             });
     }
 
