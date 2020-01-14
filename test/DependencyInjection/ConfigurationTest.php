@@ -62,7 +62,7 @@ class ConfigurationTest extends BaseTestCase
                     '%kernel.cache_dir%',
                     '%kernel.project_dir%/vendor',
                 ],
-                'integrations' => $defaultSdkValues->getIntegrations(),
+                'integrations' => [],
                 'excluded_exceptions' => $defaultSdkValues->getExcludedExceptions(),
                 'prefixes' => $defaultSdkValues->getPrefixes(),
                 'project_root' => '%kernel.project_dir%',
