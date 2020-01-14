@@ -11,6 +11,7 @@ use Sentry\SentryBundle\EventListener\ErrorListener;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
@@ -114,14 +115,17 @@ class SentryExtension extends Extension
             $options->addMethodCall('setClassSerializers', [$classSerializers]);
         }
 
+        $integrations = [];
         if (\array_key_exists('integrations', $processedOptions)) {
-            $integrations = [];
             foreach ($processedOptions['integrations'] as $integrationName) {
                 $integrations[] = new Reference(substr($integrationName, 1));
             }
-
-            $options->addMethodCall('setIntegrations', [$integrations]);
         }
+
+        $integrationsCallable = new Definition('callable', [$integrations]);
+        $integrationsCallable->setFactory([IntegrationFilterFactory::class, 'create']);
+
+        $options->addMethodCall('setIntegrations', [$integrationsCallable]);
     }
 
     private function valueToCallable($value)

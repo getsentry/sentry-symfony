@@ -8,6 +8,8 @@ use Prophecy\Argument;
 use Sentry\Breadcrumb;
 use Sentry\ClientInterface;
 use Sentry\Event;
+use Sentry\Integration\ErrorListenerIntegration;
+use Sentry\Integration\ExceptionListenerIntegration;
 use Sentry\Integration\IntegrationInterface;
 use Sentry\Monolog\Handler;
 use Sentry\Options;
@@ -203,8 +205,8 @@ class SentryExtensionTest extends BaseTestCase
     {
         $container = $this->getContainer([
             'options' => [
-                    'before_send' => '@callable_mock',
-                ],
+                'before_send' => '@callable_mock',
+            ],
         ]);
 
         $beforeSendCallback = $this->getOptionsFrom($container)->getBeforeSendCallback();
@@ -228,8 +230,8 @@ class SentryExtensionTest extends BaseTestCase
     {
         $container = $this->getContainer([
             'options' => [
-                    'before_send' => $scalarCallable,
-                ],
+                'before_send' => $scalarCallable,
+            ],
         ]);
 
         $beforeSendCallback = $this->getOptionsFrom($container)->getBeforeSendCallback();
@@ -250,8 +252,8 @@ class SentryExtensionTest extends BaseTestCase
     {
         $container = $this->getContainer([
             'options' => [
-                    'before_send' => '@event_dispatcher',
-                ],
+                'before_send' => '@event_dispatcher',
+            ],
         ]);
 
         $this->expectException(\TypeError::class);
@@ -263,8 +265,8 @@ class SentryExtensionTest extends BaseTestCase
     {
         $container = $this->getContainer([
             'options' => [
-                    'before_breadcrumb' => '@callable_mock',
-                ],
+                'before_breadcrumb' => '@callable_mock',
+            ],
         ]);
 
         $beforeBreadcrumbCallback = $this->getOptionsFrom($container)->getBeforeBreadcrumbCallback();
@@ -288,8 +290,8 @@ class SentryExtensionTest extends BaseTestCase
     {
         $container = $this->getContainer([
             'options' => [
-                    'before_breadcrumb' => $scalarCallable,
-                ],
+                'before_breadcrumb' => $scalarCallable,
+            ],
         ]);
 
         $beforeBreadcrumbCallback = $this->getOptionsFrom($container)->getBeforeBreadcrumbCallback();
@@ -319,8 +321,8 @@ class SentryExtensionTest extends BaseTestCase
     {
         $container = $this->getContainer([
             'options' => [
-                    'before_breadcrumb' => '@event_dispatcher',
-                ],
+                'before_breadcrumb' => '@event_dispatcher',
+            ],
         ]);
 
         $this->expectException(\TypeError::class);
@@ -337,8 +339,24 @@ class SentryExtensionTest extends BaseTestCase
         ]);
 
         $integrations = $this->getOptionsFrom($container)->getIntegrations();
-        $this->assertContainsOnlyInstancesOf(IntegrationMock::class, $integrations);
-        $this->assertCount(1, $integrations);
+        $this->assertNotEmpty($integrations);
+
+        $found = false;
+        foreach ($integrations as $integration) {
+            if ($integration instanceof ErrorListenerIntegration) {
+                $this->fail('Should not have FatalErrorListenerIntegration registered');
+            }
+
+            if ($integration instanceof ExceptionListenerIntegration) {
+                $this->fail('Should not have ExceptionListenerIntegration registered');
+            }
+
+            if ($integration instanceof IntegrationMock) {
+                $found = true;
+            }
+        }
+
+        $this->assertTrue($found, 'No IntegrationMock found in final integrations enabled');
     }
 
     /**
@@ -458,7 +476,10 @@ class SentryExtensionTest extends BaseTestCase
 
     private function getOptionsFrom(Container $container): Options
     {
-        $this->assertTrue($container->has(self::OPTIONS_TEST_PUBLIC_ALIAS), 'Options (or public alias) missing from container!');
+        $this->assertTrue(
+            $container->has(self::OPTIONS_TEST_PUBLIC_ALIAS),
+            'Options (or public alias) missing from container!'
+        );
 
         $options = $container->get(self::OPTIONS_TEST_PUBLIC_ALIAS);
         $this->assertInstanceOf(Options::class, $options);
