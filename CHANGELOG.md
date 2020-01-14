@@ -5,7 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
- - ...
+ - Drop support for `sentry/sentry` < 2.3 (#298)
+ - Add support to `in_app_include` client option (#298)
+ - Remap `excluded_exception` option to use the new `IgnoreErrorIntegration` (#298)
 
 ## 3.3.0 (2020-01-14)
  - Add support for Symfony 5.0 (#266, thanks to @Big-Shark)
