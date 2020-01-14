@@ -15,8 +15,8 @@ use Sentry\Monolog\Handler;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ErrorListener;
-use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Test\BaseTestCase;
+use Sentry\SentrySdk;
 use Sentry\Severity;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
@@ -468,7 +468,7 @@ class SentryExtensionTest extends BaseTestCase
 
         $hub = $this->prophesize(HubInterface::class);
         $hub->bindClient(Argument::type(ClientMock::class));
-        SentryBundle::setCurrentHub($hub->reveal());
+        SentrySdk::setCurrentHub($hub->reveal());
 
         $containerBuilder->compile();
 
