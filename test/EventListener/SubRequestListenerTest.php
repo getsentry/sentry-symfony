@@ -4,6 +4,7 @@ namespace Sentry\SentryBundle\Test\EventListener;
 
 use Sentry\SentryBundle\EventListener\SubRequestListener;
 use Sentry\SentryBundle\Test\BaseTestCase;
+use Sentry\SentrySdk;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +19,7 @@ class SubRequestListenerTest extends BaseTestCase
     {
         $this->currentHub = $this->prophesize(HubInterface::class);
 
-        $this->setCurrentHub($this->currentHub->reveal());
+        SentrySdk::setCurrentHub($this->currentHub->reveal());
     }
 
     public function testOnKernelRequestWithMasterRequest(): void

@@ -122,6 +122,13 @@ class SentryExtensionTest extends BaseTestCase
             ['attach_stacktrace', true, 'shouldAttachStacktrace'],
             ['before_breadcrumb', __NAMESPACE__ . '\mockBeforeBreadcrumb', 'getBeforeBreadcrumbCallback'],
             ['before_send', __NAMESPACE__ . '\mockBeforeSend', 'getBeforeSendCallback'],
+            [
+                'class_serializers',
+                [
+                    self::class => __NAMESPACE__ . '\mockClassSerializer',
+                ],
+                'getClassSerializers',
+            ],
             ['context_lines', 1],
             ['default_integrations', false, 'hasDefaultIntegrations'],
             ['enable_compression', false, 'isCompressionEnabled'],
@@ -132,6 +139,7 @@ class SentryExtensionTest extends BaseTestCase
             ['http_proxy', '1.2.3.4'],
             ['logger', 'sentry-logger'],
             ['max_breadcrumbs', 15],
+            ['max_request_body_size', 'always'],
             ['max_value_length', 1000],
             ['prefixes', ['/some/path/prefix/']],
             ['project_root', '/some/project/'],
@@ -145,20 +153,6 @@ class SentryExtensionTest extends BaseTestCase
 
         if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
             $options[] = ['capture_silenced_errors', true, 'shouldCaptureSilencedErrors'];
-        }
-
-        if ($this->classSerializersAreSupported()) {
-            $options['class_serializer'] = [
-                'class_serializers',
-                [
-                    self::class => __NAMESPACE__ . '\mockClassSerializer',
-                ],
-                'getClassSerializers',
-            ];
-        }
-
-        if ($this->maxRequestBodySizeIsSupported()) {
-            $options[] = ['max_request_body_size', 'always'];
         }
 
         return $options;
