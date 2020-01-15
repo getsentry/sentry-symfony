@@ -2,5 +2,5 @@ examples/ export-ignore
 test/ export-ignore
 .* export-ignore
 Makefile export-ignore
-phpunit.xml
-phpstan.neon
+phpunit.xml export-ignore
+phpstan.neon export-ignore
