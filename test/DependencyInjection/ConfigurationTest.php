@@ -54,7 +54,9 @@ class ConfigurationTest extends BaseTestCase
             'options' => [
                 'class_serializers' => [],
                 'environment' => '%kernel.environment%',
-                'in_app_include' => ['%kernel.project_dir%'],
+                'in_app_include' => [
+                    '%kernel.project_dir%/src',
+                ],
                 'in_app_exclude' => [
                     '%kernel.cache_dir%',
                     '%kernel.project_dir%/vendor',
