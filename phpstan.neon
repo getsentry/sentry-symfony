@@ -5,6 +5,7 @@ parameters:
         - test/
     ignoreErrors:
          - "/Call to function method_exists.. with 'Symfony.+' and 'getRootNode' will always evaluate to false./"
+         - "/Call to function method_exists.. with 'Symfony.+' and 'getThrowable' will always evaluate to false./"
          - '/Class PHPUnit_Framework_TestCase not found/'
          - '/Symfony\\Component\\HttpKernel\\Event\\(GetResponse|FilterController)Event not found.$/'
          - 
