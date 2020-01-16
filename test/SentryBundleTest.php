@@ -97,7 +97,7 @@ class SentryBundleTest extends TestCase
 
         $consoleListener = $container->getDefinition(ErrorListener::class);
 
-        $method = class_exists(ExceptionEvent::class)
+        $method = class_exists(ExceptionEvent::class) && method_exists(ExceptionEvent::class, 'getThrowable')
             ? 'onException'
             : 'onKernelException';
         $expectedTag = [
