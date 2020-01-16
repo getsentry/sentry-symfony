@@ -150,7 +150,7 @@ class SentryExtension extends Extension
     private function tagExceptionListener(ContainerBuilder $container): void
     {
         $listener = $container->getDefinition(ErrorListener::class);
-        $method = class_exists(ExceptionEvent::class)
+        $method = class_exists(ExceptionEvent::class) && method_exists(ExceptionEvent::class, 'getThrowable')
             ? 'onException'
             : 'onKernelException';
 
