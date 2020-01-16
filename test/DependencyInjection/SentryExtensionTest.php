@@ -60,7 +60,7 @@ class SentryExtensionTest extends BaseTestCase
         $options = $this->getOptionsFrom($container);
 
         $vendorDir = '/dir/project/root/vendor';
-        $this->assertContains('/dir/project/root', $options->getInAppIncludedPaths());
+        $this->assertContains('/dir/project/root/src', $options->getInAppIncludedPaths());
 
         $this->assertNull($options->getDsn());
         $this->assertSame('test', $options->getEnvironment());
