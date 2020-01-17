@@ -2,7 +2,7 @@
 
 namespace Sentry\SentryBundle\Command;
 
-use Sentry\SentryBundle\SentryBundle;
+use Sentry\SentrySdk;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -16,7 +16,7 @@ class SentryTestCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $currentHub = SentryBundle::getCurrentHub();
+        $currentHub = SentrySdk::getCurrentHub();
         $client = $currentHub->getClient();
 
         if (! $client) {

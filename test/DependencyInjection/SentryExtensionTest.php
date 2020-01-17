@@ -8,13 +8,15 @@ use Prophecy\Argument;
 use Sentry\Breadcrumb;
 use Sentry\ClientInterface;
 use Sentry\Event;
+use Sentry\Integration\ErrorListenerIntegration;
+use Sentry\Integration\ExceptionListenerIntegration;
 use Sentry\Integration\IntegrationInterface;
 use Sentry\Monolog\Handler;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ErrorListener;
-use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Test\BaseTestCase;
+use Sentry\SentrySdk;
 use Sentry\Severity;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
@@ -39,6 +41,7 @@ class SentryExtensionTest extends BaseTestCase
 
         // subtracted one is `integration`, which cannot be tested with the provider
         $expectedCount = $this->getSupportedOptionsCount();
+        --$expectedCount; // excluded_exceptions is remapped to the new IgnoreErrorIntegration
 
         if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() === '2.0.0') {
             --$expectedCount;
@@ -57,7 +60,7 @@ class SentryExtensionTest extends BaseTestCase
         $options = $this->getOptionsFrom($container);
 
         $vendorDir = '/dir/project/root/vendor';
-        $this->assertSame('/dir/project/root', $options->getProjectRoot());
+        $this->assertContains('/dir/project/root/src', $options->getInAppIncludedPaths());
 
         $this->assertNull($options->getDsn());
         $this->assertSame('test', $options->getEnvironment());
@@ -119,16 +122,24 @@ class SentryExtensionTest extends BaseTestCase
             ['attach_stacktrace', true, 'shouldAttachStacktrace'],
             ['before_breadcrumb', __NAMESPACE__ . '\mockBeforeBreadcrumb', 'getBeforeBreadcrumbCallback'],
             ['before_send', __NAMESPACE__ . '\mockBeforeSend', 'getBeforeSendCallback'],
+            [
+                'class_serializers',
+                [
+                    self::class => __NAMESPACE__ . '\mockClassSerializer',
+                ],
+                'getClassSerializers',
+            ],
             ['context_lines', 1],
             ['default_integrations', false, 'hasDefaultIntegrations'],
             ['enable_compression', false, 'isCompressionEnabled'],
             ['environment', 'staging'],
             ['error_types', E_ALL & ~E_NOTICE],
+            ['in_app_include', ['/some/path'], 'getInAppIncludedPaths'],
             ['in_app_exclude', ['/some/path'], 'getInAppExcludedPaths'],
-            ['excluded_exceptions', [\Throwable::class]],
             ['http_proxy', '1.2.3.4'],
             ['logger', 'sentry-logger'],
             ['max_breadcrumbs', 15],
+            ['max_request_body_size', 'always'],
             ['max_value_length', 1000],
             ['prefixes', ['/some/path/prefix/']],
             ['project_root', '/some/project/'],
@@ -142,20 +153,6 @@ class SentryExtensionTest extends BaseTestCase
 
         if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
             $options[] = ['capture_silenced_errors', true, 'shouldCaptureSilencedErrors'];
-        }
-
-        if ($this->classSerializersAreSupported()) {
-            $options['class_serializer'] = [
-                'class_serializers',
-                [
-                    self::class => __NAMESPACE__ . '\mockClassSerializer',
-                ],
-                'getClassSerializers',
-            ];
-        }
-
-        if ($this->maxRequestBodySizeIsSupported()) {
-            $options[] = ['max_request_body_size', 'always'];
         }
 
         return $options;
@@ -203,8 +200,8 @@ class SentryExtensionTest extends BaseTestCase
     {
         $container = $this->getContainer([
             'options' => [
-                    'before_send' => '@callable_mock',
-                ],
+                'before_send' => '@callable_mock',
+            ],
         ]);
 
         $beforeSendCallback = $this->getOptionsFrom($container)->getBeforeSendCallback();
@@ -228,8 +225,8 @@ class SentryExtensionTest extends BaseTestCase
     {
         $container = $this->getContainer([
             'options' => [
-                    'before_send' => $scalarCallable,
-                ],
+                'before_send' => $scalarCallable,
+            ],
         ]);
 
         $beforeSendCallback = $this->getOptionsFrom($container)->getBeforeSendCallback();
@@ -250,8 +247,8 @@ class SentryExtensionTest extends BaseTestCase
     {
         $container = $this->getContainer([
             'options' => [
-                    'before_send' => '@event_dispatcher',
-                ],
+                'before_send' => '@event_dispatcher',
+            ],
         ]);
 
         $this->expectException(\TypeError::class);
@@ -263,8 +260,8 @@ class SentryExtensionTest extends BaseTestCase
     {
         $container = $this->getContainer([
             'options' => [
-                    'before_breadcrumb' => '@callable_mock',
-                ],
+                'before_breadcrumb' => '@callable_mock',
+            ],
         ]);
 
         $beforeBreadcrumbCallback = $this->getOptionsFrom($container)->getBeforeBreadcrumbCallback();
@@ -288,8 +285,8 @@ class SentryExtensionTest extends BaseTestCase
     {
         $container = $this->getContainer([
             'options' => [
-                    'before_breadcrumb' => $scalarCallable,
-                ],
+                'before_breadcrumb' => $scalarCallable,
+            ],
         ]);
 
         $beforeBreadcrumbCallback = $this->getOptionsFrom($container)->getBeforeBreadcrumbCallback();
@@ -319,8 +316,8 @@ class SentryExtensionTest extends BaseTestCase
     {
         $container = $this->getContainer([
             'options' => [
-                    'before_breadcrumb' => '@event_dispatcher',
-                ],
+                'before_breadcrumb' => '@event_dispatcher',
+            ],
         ]);
 
         $this->expectException(\TypeError::class);
@@ -337,8 +334,24 @@ class SentryExtensionTest extends BaseTestCase
         ]);
 
         $integrations = $this->getOptionsFrom($container)->getIntegrations();
-        $this->assertContainsOnlyInstancesOf(IntegrationMock::class, $integrations);
-        $this->assertCount(1, $integrations);
+        $this->assertNotEmpty($integrations);
+
+        $found = false;
+        foreach ($integrations as $integration) {
+            if ($integration instanceof ErrorListenerIntegration) {
+                $this->fail('Should not have ErrorListenerIntegration registered');
+            }
+
+            if ($integration instanceof ExceptionListenerIntegration) {
+                $this->fail('Should not have ExceptionListenerIntegration registered');
+            }
+
+            if ($integration instanceof IntegrationMock) {
+                $found = true;
+            }
+        }
+
+        $this->assertTrue($found, 'No IntegrationMock found in final integrations enabled');
     }
 
     /**
@@ -449,7 +462,7 @@ class SentryExtensionTest extends BaseTestCase
 
         $hub = $this->prophesize(HubInterface::class);
         $hub->bindClient(Argument::type(ClientMock::class));
-        SentryBundle::setCurrentHub($hub->reveal());
+        SentrySdk::setCurrentHub($hub->reveal());
 
         $containerBuilder->compile();
 
@@ -458,7 +471,10 @@ class SentryExtensionTest extends BaseTestCase
 
     private function getOptionsFrom(Container $container): Options
     {
-        $this->assertTrue($container->has(self::OPTIONS_TEST_PUBLIC_ALIAS), 'Options (or public alias) missing from container!');
+        $this->assertTrue(
+            $container->has(self::OPTIONS_TEST_PUBLIC_ALIAS),
+            'Options (or public alias) missing from container!'
+        );
 
         $options = $container->get(self::OPTIONS_TEST_PUBLIC_ALIAS);
         $this->assertInstanceOf(Options::class, $options);

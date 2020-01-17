@@ -2,7 +2,6 @@
 
 namespace Sentry\SentryBundle\Test\DependencyInjection;
 
-use Jean85\PrettyVersions;
 use PackageVersions\Versions;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
@@ -17,11 +16,7 @@ class ConfigurationTest extends BaseTestCase
         $providerData = $this->optionValuesProvider();
         $supportedOptions = \array_unique(\array_column($providerData, 0));
 
-        $expectedCount = $this->getSupportedOptionsCount();
-
-        if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
-            ++$expectedCount;
-        }
+        $expectedCount = $this->getSupportedOptionsCount() + 1;
 
         $this->assertCount(
             $expectedCount,
@@ -57,15 +52,18 @@ class ConfigurationTest extends BaseTestCase
                 'console_error' => 128,
             ],
             'options' => [
+                'class_serializers' => [],
                 'environment' => '%kernel.environment%',
+                'in_app_include' => [
+                    '%kernel.project_dir%/src',
+                ],
                 'in_app_exclude' => [
                     '%kernel.cache_dir%',
                     '%kernel.project_dir%/vendor',
                 ],
-                'integrations' => $defaultSdkValues->getIntegrations(),
-                'excluded_exceptions' => $defaultSdkValues->getExcludedExceptions(),
+                'integrations' => [],
+                'excluded_exceptions' => [],
                 'prefixes' => $defaultSdkValues->getPrefixes(),
-                'project_root' => '%kernel.project_dir%',
                 'tags' => [],
                 'release' => Versions::getVersion('sentry/sentry-symfony'),
             ],
@@ -78,15 +76,13 @@ class ConfigurationTest extends BaseTestCase
             ],
         ];
 
-        if ($this->classSerializersAreSupported()) {
-            $expectedDefaults['options']['class_serializers'] = [];
-        }
-
         $this->assertEquals($expectedDefaults, $processed);
         $this->assertArrayNotHasKey('server_name', $processed['options'], 'server_name has to be fetched at runtime, not before (see #181)');
     }
 
     /**
+     * @group legacy
+     *
      * @dataProvider optionValuesProvider
      */
     public function testOptionValuesProcessing(string $option, $value): void
@@ -99,10 +95,12 @@ class ConfigurationTest extends BaseTestCase
 
     public function optionValuesProvider(): array
     {
-        $options = [
+        return [
             ['attach_stacktrace', true],
             ['before_breadcrumb', 'count'],
             ['before_send', 'count'],
+            ['capture_silenced_errors', true],
+            ['class_serializers', ['count']],
             ['context_lines', 4],
             ['context_lines', 99],
             ['default_integrations', true],
@@ -111,11 +109,16 @@ class ConfigurationTest extends BaseTestCase
             ['environment', 'staging'],
             ['error_types', E_ALL],
             ['http_proxy', '1.2.3.4:5678'],
+            ['in_app_include', ['some/path']],
             ['in_app_exclude', ['some/path']],
             ['integrations', []],
             ['excluded_exceptions', [\Throwable::class]],
             ['logger', 'some-logger'],
             ['max_breadcrumbs', 15],
+            ['max_request_body_size', 'none'],
+            ['max_request_body_size', 'small'],
+            ['max_request_body_size', 'medium'],
+            ['max_request_body_size', 'always'],
             ['max_value_length', 1000],
             ['prefixes', ['some-string']],
             ['project_root', '/some/dir'],
@@ -128,23 +131,6 @@ class ConfigurationTest extends BaseTestCase
             ['server_name', 'server001.example.com'],
             ['tags', ['tag-name' => 'value']],
         ];
-
-        if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
-            $options[] = ['capture_silenced_errors', true];
-        }
-
-        if ($this->classSerializersAreSupported()) {
-            $options[] = ['max_request_body_size', 'none'];
-            $options[] = ['max_request_body_size', 'small'];
-            $options[] = ['max_request_body_size', 'medium'];
-            $options[] = ['max_request_body_size', 'always'];
-        }
-
-        if ($this->maxRequestBodySizeIsSupported()) {
-            $options[] = ['class_serializers', ['count']];
-        }
-
-        return $options;
     }
 
     /**
@@ -171,6 +157,10 @@ class ConfigurationTest extends BaseTestCase
             ['before_send', [$this, 'is not a callable']],
             ['before_send', false],
             ['before_send', -1],
+            ['class_serializers', 'this is not a callable'],
+            ['class_serializers', [$this, 'is not a callable']],
+            ['class_serializers', false],
+            ['class_serializers', -1],
             ['context_lines', -1],
             ['context_lines', 99999],
             ['context_lines', 'string'],
@@ -181,12 +171,15 @@ class ConfigurationTest extends BaseTestCase
             ['error_types', []],
             ['excluded_exceptions', 'some-string'],
             ['http_proxy', []],
+            ['in_app_include', 'some/single/path'],
             ['in_app_exclude', 'some/single/path'],
             ['integrations', [1]],
             ['integrations', 'a string'],
             ['logger', []],
             ['max_breadcrumbs', -1],
             ['max_breadcrumbs', 'string'],
+            ['max_request_body_size', null],
+            ['max_request_body_size', 'invalid'],
             ['max_value_length', -1],
             ['max_value_length', []],
             ['prefixes', 'string'],
@@ -201,18 +194,6 @@ class ConfigurationTest extends BaseTestCase
             ['server_name', []],
             ['tags', 'invalid-unmapped-tag'],
         ];
-
-        if ($this->classSerializersAreSupported()) {
-            $values[] = ['class_serializers', 'this is not a callable'];
-            $values[] = ['class_serializers', [$this, 'is not a callable']];
-            $values[] = ['class_serializers', false];
-            $values[] = ['class_serializers', -1];
-        }
-
-        if ($this->maxRequestBodySizeIsSupported()) {
-            $values[] = ['max_request_body_size', null];
-            $values[] = ['max_request_body_size', 'invalid'];
-        }
 
         return $values;
     }

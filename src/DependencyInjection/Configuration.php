@@ -2,7 +2,6 @@
 
 namespace Sentry\SentryBundle\DependencyInjection;
 
-use Jean85\PrettyVersions;
 use PackageVersions\Versions;
 use Sentry\Options;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
@@ -58,14 +57,10 @@ class Configuration implements ConfigurationInterface
             ->validate()
             ->ifTrue($this->isNotAValidCallback())
             ->thenInvalid('Expecting callable or service reference, got %s');
-        if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
-            $optionsChildNodes->booleanNode('capture_silenced_errors');
-        }
-        if ($this->classSerializersAreSupported()) {
-            $optionsChildNodes->arrayNode('class_serializers')
-                ->defaultValue([])
-                ->prototype('scalar');
-        }
+        $optionsChildNodes->booleanNode('capture_silenced_errors');
+        $optionsChildNodes->arrayNode('class_serializers')
+            ->defaultValue([])
+            ->prototype('scalar');
         $optionsChildNodes->integerNode('context_lines')
             ->min(0)
             ->max(99);
@@ -75,6 +70,11 @@ class Configuration implements ConfigurationInterface
             ->defaultValue('%kernel.environment%')
             ->cannotBeEmpty();
         $optionsChildNodes->scalarNode('error_types');
+        $optionsChildNodes->arrayNode('in_app_include')
+            ->defaultValue([
+                '%kernel.project_dir%/src',
+            ])
+            ->prototype('scalar');
         $optionsChildNodes->arrayNode('in_app_exclude')
             ->defaultValue([
                 '%kernel.cache_dir%',
@@ -82,7 +82,7 @@ class Configuration implements ConfigurationInterface
             ])
             ->prototype('scalar');
         $optionsChildNodes->arrayNode('excluded_exceptions')
-            ->defaultValue($defaultValues->getExcludedExceptions())
+            ->defaultValue([])
             ->prototype('scalar');
         $optionsChildNodes->scalarNode('http_proxy');
         $optionsChildNodes->arrayNode('integrations')
@@ -97,15 +97,13 @@ class Configuration implements ConfigurationInterface
             })
             ->thenInvalid('Expecting service reference, got "%s"');
         $optionsChildNodes->scalarNode('logger');
-        if ($this->maxRequestBodySizeIsSupported()) {
-            $optionsChildNodes->enumNode('max_request_body_size')
-                ->values([
-                    'none',
-                    'small',
-                    'medium',
-                    'always',
-                ]);
-        }
+        $optionsChildNodes->enumNode('max_request_body_size')
+            ->values([
+                'none',
+                'small',
+                'medium',
+                'always',
+            ]);
         $optionsChildNodes->integerNode('max_breadcrumbs')
             ->min(1);
         $optionsChildNodes->integerNode('max_value_length')
@@ -113,8 +111,7 @@ class Configuration implements ConfigurationInterface
         $optionsChildNodes->arrayNode('prefixes')
             ->defaultValue($defaultValues->getPrefixes())
             ->prototype('scalar');
-        $optionsChildNodes->scalarNode('project_root')
-            ->defaultValue('%kernel.project_dir%');
+        $optionsChildNodes->scalarNode('project_root');
         $optionsChildNodes->scalarNode('release')
             ->defaultValue(Versions::getVersion(Versions::ROOT_PACKAGE_NAME))
             ->info('Release version to be reported to sentry, see https://docs.sentry.io/workflow/releases/?platform=php')
@@ -192,15 +189,5 @@ class Configuration implements ConfigurationInterface
 
             return true;
         };
-    }
-
-    private function classSerializersAreSupported(): bool
-    {
-        return method_exists(Options::class, 'getClassSerializers');
-    }
-
-    private function maxRequestBodySizeIsSupported(): bool
-    {
-        return method_exists(Options::class, 'getMaxRequestBodySize');
     }
 }

@@ -6,6 +6,7 @@ use Prophecy\Argument;
 use Sentry\Event;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\Test\BaseTestCase;
+use Sentry\SentrySdk;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\Console\Command\Command;
@@ -32,7 +33,7 @@ class ConsoleListenerTest extends BaseTestCase
                 $callable($scope);
             });
 
-        $this->setCurrentHub($this->currentHub->reveal());
+        SentrySdk::setCurrentHub($this->currentHub->reveal());
     }
 
     public function testOnConsoleCommandAddsCommandName(): void

@@ -13,7 +13,7 @@ use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
-use Sentry\SentryBundle\SentryBundle;
+use Sentry\SentrySdk;
 use Sentry\State\Hub;
 use Sentry\State\HubInterface;
 use Symfony\Component\Console\ConsoleEvents;
@@ -97,7 +97,7 @@ class SentryBundleTest extends TestCase
 
         $consoleListener = $container->getDefinition(ErrorListener::class);
 
-        $method = class_exists(ExceptionEvent::class)
+        $method = class_exists(ExceptionEvent::class) && method_exists(ExceptionEvent::class, 'getThrowable')
             ? 'onException'
             : 'onKernelException';
         $expectedTag = [
@@ -151,7 +151,7 @@ class SentryBundleTest extends TestCase
         $extension = new SentryExtension();
         $extension->load(['sentry' => $configuration], $containerBuilder);
 
-        SentryBundle::setCurrentHub(new Hub());
+        SentrySdk::setCurrentHub(new Hub());
 
         return $containerBuilder;
     }

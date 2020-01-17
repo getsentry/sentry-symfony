@@ -16,6 +16,9 @@ if (! class_exists(KernelBrowser::class)) {
     class_alias(Client::class, KernelBrowser::class);
 }
 
+/**
+ * @runTestsInSeparateProcesses
+ */
 class End2EndTest extends WebTestCase
 {
     protected static function getKernelClass(): string
