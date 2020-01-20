@@ -41,7 +41,7 @@ class SentryExtensionTest extends BaseTestCase
 
         // subtracted one is `integration`, which cannot be tested with the provider
         $expectedCount = $this->getSupportedOptionsCount();
-        --$expectedCount; // excluded_exceptions is remapped to the new IgnoreErrorIntegration
+        --$expectedCount; // excluded_exceptions is remapped to the new IgnoreErrorsIntegration
 
         if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() === '2.0.0') {
             --$expectedCount;
