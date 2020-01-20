@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Add support for `sentry/sentry` 2.3 (#298)
  - Drop support for `sentry/sentry` < 2.3 (#298)
  - Add support to `in_app_include` client option (#298)
- - Remap `excluded_exception` option to use the new `IgnoreErrorIntegration` (#298)
+ - Remap `excluded_exceptions` option to use the new `IgnoreErrorsIntegration` (#298)
 
 ## 3.3.2 (2020-01-16)
  - Fix issue with exception listener under Symfony 4.3 (#301)
