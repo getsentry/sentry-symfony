@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
  - ...
 
-## 3.4.0 (TBA)
+## 3.4.0 (2020-01-20)
  - Add support for `sentry/sentry` 2.3 (#298)
  - Drop support for `sentry/sentry` < 2.3 (#298)
  - Add support to `in_app_include` client option (#298)
