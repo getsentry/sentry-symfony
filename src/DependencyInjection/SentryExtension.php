@@ -200,7 +200,9 @@ class SentryExtension extends Extension
         $subrequestListener = $container->getDefinition(SubRequestListener::class);
         $subrequestListener->addTag(self::KERNEL_EVENT_LISTENER, [
             'event' => KernelEvents::REQUEST,
-            'method' => $method,
+            'method' => class_exists(RequestEvent::class)
+                ? 'onRequest'
+                : 'onKernelRequest',
             'priority' => '%sentry.listener_priorities.sub_request%',
         ]);
     }
