@@ -82,10 +82,6 @@ class SubRequestListenerTest extends BaseTestCase
         );
     }
 
-    /**
-     * @param SubRequestListener $listener
-     * @param $event
-     */
     private function callOnRequest(SubRequestListener $listener, $event): void
     {
         if (class_exists(RequestEvent::class)) {

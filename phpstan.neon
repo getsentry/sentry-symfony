@@ -17,6 +17,12 @@ parameters:
          -
              message: '/Symfony\\Component\\HttpKernel\\Event\\GetResponseForExceptionEvent.$/'
              path: src/EventListener/ErrorListener.php
+         -
+             message: '/(GetResponseEvent|FilterControllerEvent)/'
+             path: src/EventListener/RequestListener.php
+         -
+             message: '/GetResponseEvent/'
+             path: src/EventListener/SubRequestListener.php
 
 includes:
 	- vendor/jangregor/phpstan-prophecy/src/extension.neon

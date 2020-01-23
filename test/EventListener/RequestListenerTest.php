@@ -14,7 +14,6 @@ use Sentry\State\Scope;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
-use Symfony\Component\HttpKernel\Event\KernelEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -330,10 +329,6 @@ class RequestListenerTest extends BaseTestCase
         return $event;
     }
 
-    /**
-     * @param RequestListener $listener
-     * @param KernelEvent $event
-     */
     private function callOnRequest(RequestListener $listener, $event): void
     {
         if (class_exists(RequestEvent::class)) {
@@ -343,10 +338,6 @@ class RequestListenerTest extends BaseTestCase
         }
     }
 
-    /**
-     * @param RequestListener $listener
-     * @param $event
-     */
     private function callOnKernel(RequestListener $listener, $event): void
     {
         if (class_exists(ControllerEvent::class)) {
