@@ -19,6 +19,7 @@ use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
+use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -181,12 +182,18 @@ class SentryExtension extends Extension
         ]);
 
         $requestListener = $container->getDefinition(RequestListener::class);
-        $method = class_exists(RequestEvent::class)
-            ? 'onRequest'
-            : 'onKernelRequest';
         $requestListener->addTag(self::KERNEL_EVENT_LISTENER, [
             'event' => KernelEvents::REQUEST,
-            'method' => $method,
+            'method' => class_exists(RequestEvent::class)
+                ? 'onRequest'
+                : 'onKernelRequest',
+            'priority' => '%sentry.listener_priorities.request%',
+        ]);
+        $requestListener->addTag(self::KERNEL_EVENT_LISTENER, [
+            'event' => KernelEvents::CONTROLLER,
+            'method' => class_exists(ControllerEvent::class)
+                ? 'onController'
+                : 'onKernelController',
             'priority' => '%sentry.listener_priorities.request%',
         ]);
 

@@ -20,6 +20,7 @@ use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 class SentryBundleTest extends TestCase
@@ -49,16 +50,24 @@ class SentryBundleTest extends TestCase
 
         $consoleListener = $container->getDefinition(RequestListener::class);
 
+        if (class_exists(RequestEvent::class)) {
+            $requestMethod = 'onRequest';
+            $controllerMethod = 'onController';
+        } else {
+            $requestMethod = 'onKernelRequest';
+            $controllerMethod = 'onKernelController';
+        }
+
         $expectedTag = [
             'kernel.event_listener' => [
                 [
                     'event' => KernelEvents::REQUEST,
-                    'method' => 'onKernelRequest',
+                    'method' => $requestMethod,
                     'priority' => '%sentry.listener_priorities.request%',
                 ],
                 [
                     'event' => KernelEvents::CONTROLLER,
-                    'method' => 'onKernelController',
+                    'method' => $controllerMethod,
                     'priority' => '%sentry.listener_priorities.request%',
                 ],
             ],
@@ -73,16 +82,22 @@ class SentryBundleTest extends TestCase
 
         $consoleListener = $container->getDefinition(SubRequestListener::class);
 
+        if (class_exists(RequestEvent::class)) {
+            $requestMethod = 'onRequest';
+        } else {
+            $requestMethod = 'onKernelRequest';
+        }
+
         $expectedTag = [
             'kernel.event_listener' => [
                 [
-                    'event' => KernelEvents::REQUEST,
-                    'method' => 'onKernelRequest',
+                    'event' => KernelEvents::FINISH_REQUEST,
+                    'method' => 'onFinishRequest',
                     'priority' => '%sentry.listener_priorities.sub_request%',
                 ],
                 [
-                    'event' => KernelEvents::FINISH_REQUEST,
-                    'method' => 'onKernelFinishRequest',
+                    'event' => KernelEvents::REQUEST,
+                    'method' => $requestMethod,
                     'priority' => '%sentry.listener_priorities.sub_request%',
                 ],
             ],

@@ -48,7 +48,7 @@ class SubRequestListenerTest extends BaseTestCase
         $listener->onKernelRequest($subRequestEvent);
     }
 
-    public function testOnKernelFinishRequestWithMasterRequest(): void
+    public function testonFinishRequestWithMasterRequest(): void
     {
         $listener = new SubRequestListener();
 
@@ -57,10 +57,10 @@ class SubRequestListenerTest extends BaseTestCase
         $this->currentHub->popScope()
             ->shouldNotBeCalled();
 
-        $listener->onKernelFinishRequest($masterRequestEvent);
+        $listener->onFinishRequest($masterRequestEvent);
     }
 
-    public function testOnKernelFinishRequestWithSubRequest(): void
+    public function testonFinishRequestWithSubRequest(): void
     {
         $listener = new SubRequestListener();
 
@@ -70,7 +70,7 @@ class SubRequestListenerTest extends BaseTestCase
             ->shouldBeCalledTimes(1)
             ->willReturn(true);
 
-        $listener->onKernelFinishRequest($subRequestEvent);
+        $listener->onFinishRequest($subRequestEvent);
     }
 
     private function createFinishRequestEvent(int $type): FinishRequestEvent
