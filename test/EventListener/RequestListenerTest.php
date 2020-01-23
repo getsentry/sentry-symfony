@@ -251,7 +251,7 @@ class RequestListenerTest extends BaseTestCase
             $this->prophesize(TokenStorageInterface::class)->reveal()
         );
 
-        $listener->onKernelController($event);
+        $this->callOnKernel($listener, $event);
 
         $this->assertSame(['route' => 'sf-route'], $this->getTagsContext($this->currentScope));
     }
@@ -268,7 +268,7 @@ class RequestListenerTest extends BaseTestCase
             $this->prophesize(TokenStorageInterface::class)->reveal()
         );
 
-        $listener->onKernelController($event);
+        $this->callOnKernel($listener, $event);
     }
 
     public function testOnKernelRequestUserDataAndTagsAreNotSetInSubRequest(): void
@@ -340,6 +340,19 @@ class RequestListenerTest extends BaseTestCase
             $listener->onRequest($event);
         } else {
             $listener->onKernelRequest($event);
+        }
+    }
+
+    /**
+     * @param RequestListener $listener
+     * @param $event
+     */
+    private function callOnKernel(RequestListener $listener, $event): void
+    {
+        if (class_exists(ControllerEvent::class)) {
+            $listener->onController($event);
+        } else {
+            $listener->onKernelController($event);
         }
     }
 }

@@ -45,7 +45,7 @@ class SubRequestListenerTest extends BaseTestCase
             ->shouldBeCalledTimes(1)
             ->willReturn(new Scope());
 
-        $listener->onKernelRequest($subRequestEvent);
+        $this->callOnRequest($listener, $subRequestEvent);
     }
 
     public function testonFinishRequestWithMasterRequest(): void
