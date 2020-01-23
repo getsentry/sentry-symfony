@@ -5,20 +5,13 @@ namespace Sentry\SentryBundle\EventListener;
 use Sentry\SentrySdk;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-
-if (! class_exists(RequestEvent::class)) {
-    class_alias(GetResponseEvent::class, RequestEvent::class);
-}
-
-if (! class_exists(ControllerEvent::class)) {
-    class_alias(FilterControllerEvent::class, ControllerEvent::class);
-}
 
 /**
  * Class RequestListener
@@ -50,12 +43,29 @@ final class RequestListener
      *
      * @param RequestEvent $event
      */
-    public function onKernelRequest(RequestEvent $event): void
+    public function onRequest(RequestEvent $event): void
     {
         if (! $event->isMasterRequest()) {
             return;
         }
 
+        $this->handleRequestEvent($event->getRequest());
+    }
+
+    /**
+     * BC layer for SF < 4.3
+     */
+    public function onKernelRequest(GetResponseEvent $event): void
+    {
+        if (! $event->isMasterRequest()) {
+            return;
+        }
+
+        $this->handleRequestEvent($event->getRequest());
+    }
+
+    private function handleRequestEvent(Request $request): void
+    {
         $currentClient = SentrySdk::getCurrentHub()->getClient();
         if (null === $currentClient || ! $currentClient->getOptions()->shouldSendDefaultPii()) {
             return;
@@ -77,7 +87,7 @@ final class RequestListener
             $userData = $this->getUserData($token->getUser());
         }
 
-        $userData['ip_address'] = $event->getRequest()->getClientIp();
+        $userData['ip_address'] = $request->getClientIp();
 
         SentrySdk::getCurrentHub()
             ->configureScope(function (Scope $scope) use ($userData): void {
@@ -85,17 +95,34 @@ final class RequestListener
             });
     }
 
-    public function onKernelController(ControllerEvent $event): void
+    public function onController(ControllerEvent $event): void
     {
         if (! $event->isMasterRequest()) {
             return;
         }
 
-        if (! $event->getRequest()->attributes->has('_route')) {
+        $this->handleControllerEvent($event->getRequest());
+    }
+
+    /**
+     * BC layer for SF < 4.3
+     */
+    public function onKernelController(FilterControllerEvent $event): void
+    {
+        if (! $event->isMasterRequest()) {
             return;
         }
 
-        $matchedRoute = (string) $event->getRequest()->attributes->get('_route');
+        $this->handleControllerEvent($event->getRequest());
+    }
+
+    private function handleControllerEvent(Request $request): void
+    {
+        if (! $request->attributes->has('_route')) {
+            return;
+        }
+
+        $matchedRoute = (string)$request->attributes->get('_route');
 
         SentrySdk::getCurrentHub()
             ->configureScope(function (Scope $scope) use ($matchedRoute): void {

@@ -7,10 +7,6 @@ use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 
-if (! class_exists(RequestEvent::class)) {
-    class_alias(GetResponseEvent::class, RequestEvent::class);
-}
-
 final class SubRequestListener
 {
     /**
@@ -18,7 +14,19 @@ final class SubRequestListener
      *
      * @param RequestEvent $event
      */
-    public function onKernelRequest(RequestEvent $event): void
+    public function onRequest(RequestEvent $event): void
+    {
+        if ($event->isMasterRequest()) {
+            return;
+        }
+
+        SentrySdk::getCurrentHub()->pushScope();
+    }
+
+    /**
+     * BC layer for SF < 4.3
+     */
+    public function onKernelRequest(GetResponseEvent $event): void
     {
         if ($event->isMasterRequest()) {
             return;
@@ -32,7 +40,7 @@ final class SubRequestListener
      *
      * @param FinishRequestEvent $event
      */
-    public function onKernelFinishRequest(FinishRequestEvent $event): void
+    public function onFinishRequest(FinishRequestEvent $event): void
     {
         if ($event->isMasterRequest()) {
             return;
