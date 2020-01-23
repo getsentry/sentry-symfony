@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
  
- - ...
+ - Fix issue due to usage of `class_alias` to fix deprecations, which could break BC layers of third party packages (#309, thanks to @scheb)
 
 ## 3.4.0 (2020-01-20)
  - Add support for `sentry/sentry` 2.3 (#298)
