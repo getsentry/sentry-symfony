@@ -9,6 +9,8 @@ use Sentry\Monolog\Handler;
 use Sentry\Options;
 use Sentry\SentryBundle\ErrorTypesParser;
 use Sentry\SentryBundle\EventListener\ErrorListener;
+use Sentry\SentryBundle\EventListener\RequestListener;
+use Sentry\SentryBundle\EventListener\SubRequestListener;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -18,6 +20,7 @@ use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -27,6 +30,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 class SentryExtension extends Extension
 {
+    private const KERNEL_EVENT_LISTENER = 'kernel.event_listener';
+
     /**
      * {@inheritDoc}
      *
@@ -165,18 +170,32 @@ class SentryExtension extends Extension
      */
     private function tagExceptionListener(ContainerBuilder $container): void
     {
-        $listener = $container->getDefinition(ErrorListener::class);
+        $errorListener = $container->getDefinition(ErrorListener::class);
         $method = class_exists(ExceptionEvent::class) && method_exists(ExceptionEvent::class, 'getThrowable')
             ? 'onException'
             : 'onKernelException';
-
-        $tagAttributes = [
+        $errorListener->addTag(self::KERNEL_EVENT_LISTENER, [
             'event' => KernelEvents::EXCEPTION,
             'method' => $method,
             'priority' => '%sentry.listener_priorities.request_error%',
-        ];
+        ]);
 
-        $listener->addTag('kernel.event_listener', $tagAttributes);
+        $requestListener = $container->getDefinition(RequestListener::class);
+        $method = class_exists(RequestEvent::class)
+            ? 'onRequest'
+            : 'onKernelRequest';
+        $requestListener->addTag(self::KERNEL_EVENT_LISTENER, [
+            'event' => KernelEvents::REQUEST,
+            'method' => $method,
+            'priority' => '%sentry.listener_priorities.request%',
+        ]);
+
+        $subrequestListener = $container->getDefinition(SubRequestListener::class);
+        $subrequestListener->addTag(self::KERNEL_EVENT_LISTENER, [
+            'event' => KernelEvents::REQUEST,
+            'method' => $method,
+            'priority' => '%sentry.listener_priorities.sub_request%',
+        ]);
     }
 
     private function configureMonologHandler(ContainerBuilder $container, array $monologConfiguration): void

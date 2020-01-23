@@ -14,6 +14,8 @@ use Sentry\State\Scope;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
+use Symfony\Component\HttpKernel\Event\KernelEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -79,7 +81,7 @@ class RequestListenerTest extends BaseTestCase
             $tokenStorage->reveal()
         );
 
-        $listener->onKernelRequest($event);
+        $this->callOnRequest($listener, $event);
 
         $expectedUserData = [
             'ip_address' => '1.2.3.4',
@@ -110,7 +112,7 @@ class RequestListenerTest extends BaseTestCase
             $tokenStorage->reveal()
         );
 
-        $listener->onKernelRequest($event);
+        $this->callOnRequest($listener, $event);
 
         $this->assertEquals([], $this->getUserContext($this->currentScope));
     }
@@ -130,7 +132,7 @@ class RequestListenerTest extends BaseTestCase
             $tokenStorage->reveal()
         );
 
-        $listener->onKernelRequest($event);
+        $this->callOnRequest($listener, $event);
 
         $this->assertEquals([], $this->getUserContext($this->currentScope));
     }
@@ -148,7 +150,7 @@ class RequestListenerTest extends BaseTestCase
             null
         );
 
-        $listener->onKernelRequest($event);
+        $this->callOnRequest($listener, $event);
 
         $expectedUserData = [
             'ip_address' => '1.2.3.4',
@@ -173,7 +175,7 @@ class RequestListenerTest extends BaseTestCase
             $tokenStorage->reveal()
         );
 
-        $listener->onKernelRequest($event);
+        $this->callOnRequest($listener, $event);
 
         $expectedUserData = [
             'ip_address' => '1.2.3.4',
@@ -205,7 +207,7 @@ class RequestListenerTest extends BaseTestCase
             $tokenStorage->reveal()
         );
 
-        $listener->onKernelRequest($event);
+        $this->callOnRequest($listener, $event);
 
         $expectedUserData = [
             'ip_address' => '1.2.3.4',
@@ -230,7 +232,7 @@ class RequestListenerTest extends BaseTestCase
             $tokenStorage->reveal()
         );
 
-        $listener->onKernelRequest($event);
+        $this->callOnRequest($listener, $event);
 
         $expectedUserData = [
             'ip_address' => '1.2.3.4',
@@ -285,7 +287,7 @@ class RequestListenerTest extends BaseTestCase
             $tokenStorage->reveal()
         );
 
-        $listener->onKernelRequest($event);
+        $this->callOnRequest($listener, $event);
 
         $this->assertEmpty($this->getUserContext($this->currentScope));
         $this->assertEmpty($this->getTagsContext($this->currentScope));
@@ -326,6 +328,19 @@ class RequestListenerTest extends BaseTestCase
         }
 
         return $event;
+    }
+
+    /**
+     * @param RequestListener $listener
+     * @param KernelEvent $event
+     */
+    private function callOnRequest(RequestListener $listener, $event): void
+    {
+        if (class_exists(RequestEvent::class)) {
+            $listener->onRequest($event);
+        } else {
+            $listener->onKernelRequest($event);
+        }
     }
 }
 

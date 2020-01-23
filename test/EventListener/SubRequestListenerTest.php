@@ -9,6 +9,7 @@ use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 class SubRequestListenerTest extends BaseTestCase
@@ -31,7 +32,7 @@ class SubRequestListenerTest extends BaseTestCase
         $this->currentHub->pushScope()
             ->shouldNotBeCalled();
 
-        $listener->onKernelRequest($masterRequestEvent);
+        $this->callOnRequest($listener, $masterRequestEvent);
     }
 
     public function testOnKernelRequestWithSubRequest(): void
@@ -79,5 +80,18 @@ class SubRequestListenerTest extends BaseTestCase
             $this->prophesize(Request::class)->reveal(),
             $type
         );
+    }
+
+    /**
+     * @param SubRequestListener $listener
+     * @param $event
+     */
+    private function callOnRequest(SubRequestListener $listener, $event): void
+    {
+        if (class_exists(RequestEvent::class)) {
+            $listener->onRequest($event);
+        } else {
+            $listener->onKernelRequest($event);
+        }
     }
 }

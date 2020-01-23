@@ -41,13 +41,15 @@
             <argument type="service" id="Sentry\State\HubInterface" />
             <argument type="service" id="security.token_storage" on-invalid="ignore" />
 
-            <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="%sentry.listener_priorities.request%" />
-            <tag name="kernel.event_listener" event="kernel.controller" method="onKernelController" priority="%sentry.listener_priorities.request%" />
+            <!-- The following tags are done manually in PHP for BC with Symfony < 4.3,  -->
+<!--            <tag name="kernel.event_listener" event="kernel.request" method="onRequest" priority="%sentry.listener_priorities.request%" />-->
+<!--            <tag name="kernel.event_listener" event="kernel.controller" method="onController" priority="%sentry.listener_priorities.request%" />-->
         </service>
 
         <service id="Sentry\SentryBundle\EventListener\SubRequestListener" class="Sentry\SentryBundle\EventListener\SubRequestListener" public="false">
-            <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="%sentry.listener_priorities.sub_request%" />
-            <tag name="kernel.event_listener" event="kernel.finish_request" method="onKernelFinishRequest" priority="%sentry.listener_priorities.sub_request%" />
+            <!-- The following tag is done manually in PHP for BC with Symfony < 4.3,  -->
+<!--            <tag name="kernel.event_listener" event="kernel.request" method="onRequest" priority="%sentry.listener_priorities.sub_request%" />-->
+            <tag name="kernel.event_listener" event="kernel.finish_request" method="onFinishRequest" priority="%sentry.listener_priorities.sub_request%" />
         </service>
 
         <service id="Sentry\SentryBundle\Command\SentryTestCommand" class="Sentry\SentryBundle\Command\SentryTestCommand" public="false">
