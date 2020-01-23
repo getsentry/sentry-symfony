@@ -9,15 +9,24 @@ use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-if (! class_exists(RequestEvent::class)) {
-    class_alias(GetResponseEvent::class, RequestEvent::class);
-}
-
-if (! class_exists(ControllerEvent::class)) {
-    class_alias(FilterControllerEvent::class, ControllerEvent::class);
+if (Kernel::MAJOR_VERSION >= 5) {
+    if (! class_exists('Sentry\SentryBundle\EventListener\UserContextRequestEvent')) {
+        class_alias(RequestEvent::class, 'Sentry\SentryBundle\EventListener\UserContextRequestEvent');
+    }
+    if (! class_exists('Sentry\SentryBundle\EventListener\UserContextControllerEvent')) {
+        class_alias(ControllerEvent::class, 'Sentry\SentryBundle\EventListener\UserContextControllerEvent');
+    }
+} else {
+    if (! class_exists('Sentry\SentryBundle\EventListener\UserContextRequestEvent')) {
+        class_alias(GetResponseEvent::class, 'Sentry\SentryBundle\EventListener\UserContextRequestEvent');
+    }
+    if (! class_exists('Sentry\SentryBundle\EventListener\UserContextControllerEvent')) {
+        class_alias(FilterControllerEvent::class, 'Sentry\SentryBundle\EventListener\UserContextControllerEvent');
+    }
 }
 
 /**
@@ -48,9 +57,9 @@ final class RequestListener
     /**
      * Set the username from the security context by listening on core.request
      *
-     * @param RequestEvent $event
+     * @param UserContextRequestEvent $event
      */
-    public function onKernelRequest(RequestEvent $event): void
+    public function onKernelRequest(UserContextRequestEvent $event): void
     {
         if (! $event->isMasterRequest()) {
             return;
@@ -85,7 +94,7 @@ final class RequestListener
             });
     }
 
-    public function onKernelController(ControllerEvent $event): void
+    public function onKernelController(UserContextControllerEvent $event): void
     {
         if (! $event->isMasterRequest()) {
             return;
