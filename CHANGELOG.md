@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
- 
+ - Change default of `in_app_include` to empty, due to getsentry/sentry-php#958 (#311)
 
 ## 3.4.1 (2020-01-24)
  - Fix issue due to usage of `class_alias` to fix deprecations, which could break BC layers of third party packages (#309, thanks to @scheb)
