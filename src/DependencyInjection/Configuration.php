@@ -45,6 +45,12 @@ class Configuration implements ConfigurationInterface
             ->arrayNode('options')
             ->addDefaultsIfNotSet();
 
+        try {
+            $defaultReleaseVersion = Versions::getVersion(Versions::ROOT_PACKAGE_NAME);
+        } catch (\OutOfBoundsException $exception) {
+            $defaultReleaseVersion = 'unknown';
+        }
+
         $defaultValues = new Options();
         $optionsChildNodes = $optionsNode->children();
 
@@ -113,7 +119,7 @@ class Configuration implements ConfigurationInterface
             ->prototype('scalar');
         $optionsChildNodes->scalarNode('project_root');
         $optionsChildNodes->scalarNode('release')
-            ->defaultValue(Versions::getVersion(Versions::ROOT_PACKAGE_NAME))
+            ->defaultValue($defaultReleaseVersion)
             ->info('Release version to be reported to sentry, see https://docs.sentry.io/workflow/releases/?platform=php')
             ->example('my/application@ff11bb');
         $optionsChildNodes->floatNode('sample_rate')
