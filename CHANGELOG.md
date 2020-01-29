@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
  
 
+## 3.4.2 (2020-01-29)
+ - Remove space from classname used with `class_alias` (#313)
+
 ## 3.4.1 (2020-01-24)
  - Fix issue due to usage of `class_alias` to fix deprecations, which could break BC layers of third party packages (#309, thanks to @scheb)
 

@@ -14,7 +14,7 @@ if (Kernel::MAJOR_VERSION >= 5) {
     }
 } else {
     if (! class_exists('Sentry\SentryBundle\EventListener\UserContextRequestEvent')) {
-        class_alias(GetResponseEvent::class, 'Sentry\SentryBundle\EventListener\UserCon textRequestEvent');
+        class_alias(GetResponseEvent::class, 'Sentry\SentryBundle\EventListener\UserContextRequestEvent');
     }
 }
 
