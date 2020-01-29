@@ -49,7 +49,7 @@ final class RequestListener
         HubInterface $hub,
         ?TokenStorageInterface $tokenStorage
     ) {
-        $this->hub = $hub; // not used, needed to trigger instantiation
+        $this->hub = $hub;
         $this->tokenStorage = $tokenStorage;
     }
 
