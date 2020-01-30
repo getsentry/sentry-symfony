@@ -9,13 +9,9 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Kernel;
 
 if (Kernel::MAJOR_VERSION >= 5) {
-    if (! class_exists('Sentry\SentryBundle\EventListener\UserContextRequestEvent')) {
-        class_alias(RequestEvent::class, 'Sentry\SentryBundle\EventListener\UserContextRequestEvent');
-    }
+    class_alias(RequestEvent::class, SubRequestListenerRequestEvent::class);
 } else {
-    if (! class_exists('Sentry\SentryBundle\EventListener\UserContextRequestEvent')) {
-        class_alias(GetResponseEvent::class, 'Sentry\SentryBundle\EventListener\UserContextRequestEvent');
-    }
+    class_alias(GetResponseEvent::class, SubRequestListenerRequestEvent::class);
 }
 
 final class SubRequestListener
@@ -23,9 +19,9 @@ final class SubRequestListener
     /**
      * Pushes a new {@see Scope} for each SubRequest
      *
-     * @param UserContextRequestEvent $event
+     * @param SubRequestListenerRequestEvent $event
      */
-    public function onKernelRequest(UserContextRequestEvent $event): void
+    public function onKernelRequest(SubRequestListenerRequestEvent $event): void
     {
         if ($event->isMasterRequest()) {
             return;
