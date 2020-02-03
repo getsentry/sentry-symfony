@@ -14,19 +14,11 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\User\UserInterface;
 
 if (Kernel::MAJOR_VERSION >= 5) {
-    if (! class_exists('Sentry\SentryBundle\EventListener\UserContextRequestEvent')) {
-        class_alias(RequestEvent::class, 'Sentry\SentryBundle\EventListener\UserContextRequestEvent');
-    }
-    if (! class_exists('Sentry\SentryBundle\EventListener\UserContextControllerEvent')) {
-        class_alias(ControllerEvent::class, 'Sentry\SentryBundle\EventListener\UserContextControllerEvent');
-    }
+    class_alias(RequestEvent::class, RequestListenerRequestEvent::class);
+    class_alias(ControllerEvent::class, RequestListenerControllerEvent::class);
 } else {
-    if (! class_exists('Sentry\SentryBundle\EventListener\UserContextRequestEvent')) {
-        class_alias(GetResponseEvent::class, 'Sentry\SentryBundle\EventListener\UserContextRequestEvent');
-    }
-    if (! class_exists('Sentry\SentryBundle\EventListener\UserContextControllerEvent')) {
-        class_alias(FilterControllerEvent::class, 'Sentry\SentryBundle\EventListener\UserContextControllerEvent');
-    }
+    class_alias(GetResponseEvent::class, RequestListenerRequestEvent::class);
+    class_alias(FilterControllerEvent::class, RequestListenerControllerEvent::class);
 }
 
 /**
@@ -57,9 +49,9 @@ final class RequestListener
     /**
      * Set the username from the security context by listening on core.request
      *
-     * @param UserContextRequestEvent $event
+     * @param RequestListenerRequestEvent $event
      */
-    public function onKernelRequest(UserContextRequestEvent $event): void
+    public function onKernelRequest(RequestListenerRequestEvent $event): void
     {
         if (! $event->isMasterRequest()) {
             return;
@@ -94,7 +86,7 @@ final class RequestListener
             });
     }
 
-    public function onKernelController(UserContextControllerEvent $event): void
+    public function onKernelController(RequestListenerControllerEvent $event): void
     {
         if (! $event->isMasterRequest()) {
             return;
