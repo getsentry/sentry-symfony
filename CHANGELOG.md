@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
- 
+ - Change default of `in_app_include` to empty, due to getsentry/sentry-php#958 (#311)
 
 ## 3.4.2 (2020-01-29)
  - Remove space from classname used with `class_alias` (#313)

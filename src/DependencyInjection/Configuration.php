@@ -71,9 +71,7 @@ class Configuration implements ConfigurationInterface
             ->cannotBeEmpty();
         $optionsChildNodes->scalarNode('error_types');
         $optionsChildNodes->arrayNode('in_app_include')
-            ->defaultValue([
-                '%kernel.project_dir%/src',
-            ])
+            ->defaultValue([])
             ->prototype('scalar');
         $optionsChildNodes->arrayNode('in_app_exclude')
             ->defaultValue([
