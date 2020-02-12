@@ -1,3 +1,7 @@
+sentry:
+  options:
+    capture_silenced_errors: true
+
 framework:
   router: { resource: "%routing_config_dir%/routing.yml" }
   secret: secret

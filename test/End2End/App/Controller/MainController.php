@@ -38,6 +38,13 @@ class MainController
         return new Response('Hello there');
     }
 
+    public function notice(): Response
+    {
+        @trigger_error('This is an intentional notice', E_USER_NOTICE);
+
+        return new Response('Hello there');
+    }
+
     public function subrequest(): Response
     {
         $request = $this->requestStack->getCurrentRequest();

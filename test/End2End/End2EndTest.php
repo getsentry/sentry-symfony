@@ -134,6 +134,20 @@ class End2EndTest extends WebTestCase
         $this->assertEventCount(1);
     }
 
+    public function testNotice(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/notice');
+
+        $response = $client->getResponse();
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
+
+        $this->assertLastEventIdIsNotNull($client);
+        $this->assertEventCount(1);
+    }
+
     private function assertLastEventIdIsNotNull(KernelBrowser $client): void
     {
         $container = $client->getContainer();
