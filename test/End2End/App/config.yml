@@ -8,6 +8,15 @@ services:
     alias: Sentry\State\HubInterface
     public: true
 
+  Sentry\ClientBuilderInterface:
+    class: Sentry\ClientBuilder
+    calls:
+      - method: setTransportFactory
+        arguments:
+          - '@Sentry\SentryBundle\Test\End2End\StubTransportFactory'
+
+  Sentry\SentryBundle\Test\End2End\StubTransportFactory: ~
+
   Sentry\SentryBundle\Test\End2End\App\Controller\MainController:
     autowire: true
     tags:

@@ -21,9 +21,25 @@ if (! class_exists(KernelBrowser::class)) {
  */
 class End2EndTest extends WebTestCase
 {
+    public const SENT_EVENTS_LOG = '/tmp/sentry_e2e_test_sent_events.log';
+
     protected static function getKernelClass(): string
     {
         return Kernel::class;
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->assertEmpty(file_get_contents(self::SENT_EVENTS_LOG), 'Sent events log is not empty before starting test!');
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        file_put_contents(self::SENT_EVENTS_LOG, '');
     }
 
     public function testGet200(): void
@@ -38,6 +54,7 @@ class End2EndTest extends WebTestCase
         $this->assertSame(200, $response->getStatusCode());
 
         $this->assertLastEventIdIsNotNull($client);
+        $this->assertEventCount(1);
     }
 
     public function testGet200BehindFirewall(): void
@@ -52,6 +69,7 @@ class End2EndTest extends WebTestCase
         $this->assertSame(200, $response->getStatusCode());
 
         $this->assertLastEventIdIsNotNull($client);
+        $this->assertEventCount(1);
     }
 
     public function testGet200WithSubrequest(): void
@@ -66,6 +84,7 @@ class End2EndTest extends WebTestCase
         $this->assertSame(200, $response->getStatusCode());
 
         $this->assertLastEventIdIsNotNull($client);
+        $this->assertEventCount(1);
     }
 
     public function testGet404(): void
@@ -88,6 +107,7 @@ class End2EndTest extends WebTestCase
         }
 
         $this->assertLastEventIdIsNotNull($client);
+        $this->assertEventCount(1);
     }
 
     public function testGet500(): void
@@ -111,6 +131,7 @@ class End2EndTest extends WebTestCase
         }
 
         $this->assertLastEventIdIsNotNull($client);
+        $this->assertEventCount(1);
     }
 
     private function assertLastEventIdIsNotNull(KernelBrowser $client): void
@@ -122,5 +143,12 @@ class End2EndTest extends WebTestCase
         $this->assertInstanceOf(HubInterface::class, $hub);
 
         $this->assertNotNull($hub->getLastEventId(), 'Last error not captured');
+    }
+
+    private function assertEventCount(int $expectedCount): void
+    {
+        $events = file_get_contents(self::SENT_EVENTS_LOG);
+        $this->assertNotFalse($events, 'Cannot read sent events log');
+        $this->assertCount($expectedCount, explode(PHP_EOL, trim($events)), 'Wrong number of events sent: ' . PHP_EOL . $events);
     }
 }
