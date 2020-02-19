@@ -1,6 +1,5 @@
 language: php
 sudo: false
-dist: trusty
 
 php:
   - 7.1
@@ -13,7 +12,6 @@ cache:
     - $HOME/.composer/cache/files
 
 before_install:
-  - phpenv config-rm xdebug.ini || echo "Can't disable xDebug"
   - |
     if [ "$SYMFONY_VERSION" != "" ]; then
       sed -ri '/symfony\/monolog-bundle/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'$SYMFONY_VERSION'"/' composer.json;
@@ -54,12 +52,6 @@ jobs:
     - script: 
         - composer cs-check
       name: PHP-CS-Fixer
-    - stage: coverage
-      script: 
-        - phpdbg -qrr vendor/bin/phpunit --coverage-clover clover.xml
-      after_success:
-        - wget https://scrutinizer-ci.com/ocular.phar
-        - php ocular.phar code-coverage:upload --format=php-clover clover.xml --revision=$TRAVIS_COMMIT
   allow_failures:
     - name: sentry/sentry dev-develop
       stage: Test
