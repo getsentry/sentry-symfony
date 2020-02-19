@@ -24,8 +24,9 @@ before_install:
 install: 
   - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable
 
-script:
-  - vendor/bin/phpunit -v
+script: >-
+  vendor/bin/phpunit -v --coverage-clover=build/coverage-report.xml 
+  && bash <(curl -s https://codecov.io/bash) -f build/coverage-report.xml
 
 jobs:
   include:
