@@ -21,8 +21,23 @@ Use sentry-symfony for:
    - app path
    - excluded paths (cache and vendor)
 
-## Installation
+## Installation for Symfony 4 or newest:
+### Step 1: Install the sentry-symfony flex recipe:
+You can install this recipe using Composer: 
 
+```bash
+composer require sentry/sentry-symfony
+```
+This could show a message similar to this:
+```
+   The recipe for this package comes from the "contrib" repository, which is open to community contributions.
+    Review the recipe at https://github.com/symfony/recipes-contrib/tree/master/sentry/sentry-symfony/3.0
+
+    Do you want to execute this recipe?
+```
+Press `y` and return to allow the installation.
+
+## Installation for Symfony 3.4:
 ### Step 1: Download the Bundle
 You can install this bundle using Composer: 
 
@@ -49,8 +64,6 @@ composer require sentry/sentry-symfony:^3.0 sentry/sentry:^2.0 php-http/guzzle6-
 
 The `sentry/sentry` package is required directly to override `sentry/sdk`, and the other two packages are up to your choice;
 in the current example, we're using both Guzzle's components (client and message factory).
-
-> TODO: Flex recipe
 
 ### Step 2: Enable the Bundle
 
@@ -80,10 +93,10 @@ class AppKernel extends Kernel
 Note that, unlike before in version 3, the bundle will be enabled in all environments; event reporting, instead, is enabled
 only when providing a DSN (see the next step).
 
-### Step 3: Configure the SDK
+### Configuration of the SDK
 
-Add your [Sentry DSN](https://docs.sentry.io/quickstart/#configure-the-dsn) value of your project to ``app/config/config_prod.yml``.
-Leaving this value empty (or undeclared) in other environments will effectively disable Sentry reporting.
+Add your [Sentry DSN](https://docs.sentry.io/quickstart/#configure-the-dsn) value of your project, if you have Symfony 3.4 add it to ``app/config/config_prod.yml`` for Symfony 4 or newest add the value to `config/packages/sentry.yaml`.
+Keep in mind that leaving the `dsn` value empty (or undeclared) in other environments will effectively disable Sentry reporting.
 
 ```yaml
 sentry:
