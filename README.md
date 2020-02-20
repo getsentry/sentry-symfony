@@ -182,11 +182,5 @@ final class SentryCustomizationCompilerPass implements CompilerPassInterface
 [Packagist link]: https://packagist.org/packages/sentry/sentry-symfony
 [Travis Build Status]: http://travis-ci.org/getsentry/sentry-symfony
 [Travis Master Build Status Image]: https://img.shields.io/travis/getsentry/sentry-symfony/master?logo=travis
-[Travis Develop Build Status Image]: https://img.shields.io/travis/getsentry/sentry-symfony/develop?logo=travis
-[AppVeyor Build Status]: https://ci.appveyor.com/project/sentry/sentry-symfony
-[AppVeyor Master Build Status Image]: https://img.shields.io/appveyor/ci/sentry/sentry-symfony/master?logo=appveyor
-[AppVeyor Develop Build Status Image]: https://img.shields.io/appveyor/ci/sentry/sentry-symfony/develop?logo=appveyor
 [Master Code Coverage]: https://codecov.io/gh/getsentry/sentry-symfony/branch/master
 [Master Code Coverage Image]: https://img.shields.io/codecov/c/github/getsentry/sentry-symfony/master?logo=codecov
-[Develop Code Coverage]: https://codecov.io/gh/getsentry/sentry-symfony/branch/develop
-[Develop Code Coverage Image]: https://img.shields.io/codecov/c/github/getsentry/sentry-symfony/develop?logo=codecov
