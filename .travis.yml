@@ -1,19 +1,17 @@
 language: php
-sudo: false
-dist: trusty
+os: linux
 
 php:
-  - 7.1
-  - 7.2
-  - 7.3
   - 7.4
+  - 7.3
+  - 7.2
+  - 7.1
 
 cache:
   directories:
     - $HOME/.composer/cache/files
 
 before_install:
-  - phpenv config-rm xdebug.ini || echo "Can't disable xDebug"
   - |
     if [ "$SYMFONY_VERSION" != "" ]; then
       sed -ri '/symfony\/monolog-bundle/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'$SYMFONY_VERSION'"/' composer.json;
@@ -24,8 +22,9 @@ before_install:
 install: 
   - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable
 
-script:
-  - vendor/bin/phpunit -v
+script: >-
+  vendor/bin/phpunit -v --coverage-clover=build/coverage-report.xml 
+  && bash <(curl -s https://codecov.io/bash) -f build/coverage-report.xml
 
 jobs:
   include:
@@ -47,18 +46,11 @@ jobs:
         - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable --prefer-lowest
     - stage: Code style and static analysis
       name: PHPStan
-      php: 7.4
       script:
         - composer phpstan
     - script: 
         - composer cs-check
       name: PHP-CS-Fixer
-    - stage: coverage
-      script: 
-        - phpdbg -qrr vendor/bin/phpunit --coverage-clover clover.xml
-      after_success:
-        - wget https://scrutinizer-ci.com/ocular.phar
-        - php ocular.phar code-coverage:upload --format=php-clover clover.xml --revision=$TRAVIS_COMMIT
   allow_failures:
     - name: sentry/sentry dev-develop
       stage: Test
