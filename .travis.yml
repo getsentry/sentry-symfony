@@ -2,10 +2,10 @@ language: php
 os: linux
 
 php:
-  - 7.1
-  - 7.2
-  - 7.3
   - 7.4
+  - 7.3
+  - 7.2
+  - 7.1
 
 cache:
   directories:
@@ -46,7 +46,6 @@ jobs:
         - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable --prefer-lowest
     - stage: Code style and static analysis
       name: PHPStan
-      php: 7.4
       script:
         - composer phpstan
     - script: 
