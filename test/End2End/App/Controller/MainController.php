@@ -33,8 +33,9 @@ class MainController
 
     public function fatal(): Response
     {
-        $foo = new class() implements \Serializable {};
-        
+        $foo = new class() implements \Serializable {
+        };
+
         return new Response('This response should not happen: ' . json_encode($foo));
     }
 

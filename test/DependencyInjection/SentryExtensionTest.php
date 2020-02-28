@@ -8,8 +8,6 @@ use Prophecy\Argument;
 use Sentry\Breadcrumb;
 use Sentry\ClientInterface;
 use Sentry\Event;
-use Sentry\Integration\ErrorListenerIntegration;
-use Sentry\Integration\ExceptionListenerIntegration;
 use Sentry\Integration\IntegrationInterface;
 use Sentry\Monolog\Handler;
 use Sentry\Options;
