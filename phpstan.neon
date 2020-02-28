@@ -3,26 +3,28 @@ parameters:
     paths:
         - src/
         - test/
+    excludes_analyse:
+        - test/End2End/App/Controller/MainController.php 
     ignoreErrors:
-         - "/Call to function method_exists.. with 'Symfony.+' and 'getRootNode' will always evaluate to false./"
-         - "/Call to function method_exists.. with 'Symfony.+' and 'getThrowable' will always evaluate to false./"
-         - '/Class PHPUnit_Framework_TestCase not found/'
-         - '/Symfony\\Component\\HttpKernel\\Event\\(GetResponse|FilterController)Event not found.$/'
-         - 
-             message: '/Symfony\\Bundle\\FrameworkBundle\\Client/'
-             path: test/End2End/End2EndTest.php
-         - 
-             message: '/^Call to an undefined method Symfony\\Component\\Config\\Definition\\Builder\\TreeBuilder::root...$/'
-             path: src/DependencyInjection/Configuration.php
-         -
-             message: '/Symfony\\Component\\HttpKernel\\Event\\GetResponseForExceptionEvent.$/'
-             path: src/EventListener/ErrorListener.php
-         -
-             message: '/Sentry\\SentryBundle\\EventListener\\RequestListener(Request|Controller)Event( not found)?.$/'
-             path: src/EventListener/RequestListener.php
-         -
-             message: '/Sentry\\SentryBundle\\EventListener\\SubRequestListenerRequestEvent( not found)?.$/'
-             path: src/EventListener/SubRequestListener.php
+        - "/Call to function method_exists.. with 'Symfony.+' and 'getRootNode' will always evaluate to false./"
+        - "/Call to function method_exists.. with 'Symfony.+' and 'getThrowable' will always evaluate to false./"
+        - '/Class PHPUnit_Framework_TestCase not found/'
+        - '/Symfony\\Component\\HttpKernel\\Event\\(GetResponse|FilterController)Event not found.$/'
+        - 
+            message: '/Symfony\\Bundle\\FrameworkBundle\\Client/'
+            path: test/End2End/End2EndTest.php
+        - 
+            message: '/^Call to an undefined method Symfony\\Component\\Config\\Definition\\Builder\\TreeBuilder::root...$/'
+            path: src/DependencyInjection/Configuration.php
+        -
+            message: '/Symfony\\Component\\HttpKernel\\Event\\GetResponseForExceptionEvent.$/'
+            path: src/EventListener/ErrorListener.php
+        -
+            message: '/Sentry\\SentryBundle\\EventListener\\RequestListener(Request|Controller)Event( not found)?.$/'
+            path: src/EventListener/RequestListener.php
+        -
+            message: '/Sentry\\SentryBundle\\EventListener\\SubRequestListenerRequestEvent( not found)?.$/'
+            path: src/EventListener/SubRequestListener.php
 
 includes:
 	- vendor/jangregor/phpstan-prophecy/src/extension.neon

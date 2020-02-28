@@ -183,7 +183,7 @@ class End2EndTest extends WebTestCase
     {
         $events = file_get_contents(self::SENT_EVENTS_LOG);
         $this->assertNotFalse($events, 'Cannot read sent events log');
-        $listOfEvents = array_filter(explode(StubTransportFactory::SEPARATOR, $events), 'trim');
+        $listOfEvents = array_filter(explode(StubTransportFactory::SEPARATOR, trim($events)));
         $this->assertCount($expectedCount, $listOfEvents, 'Wrong number of events sent: ' . PHP_EOL . $events);
     }
 }
