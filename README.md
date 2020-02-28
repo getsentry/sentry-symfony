@@ -3,11 +3,12 @@
 Symfony integration for [Sentry](https://getsentry.com/).
 
 [![Stable release][Last stable image]][Packagist link]
-[![Unstable release][Last unstable image]][Packagist link]
+[![Total Downloads](https://poser.pugx.org/sentry/sentry/downloads)](https://packagist.org/packages/sentry/sentry)
+[![Monthly Downloads](https://poser.pugx.org/sentry/sentry/d/monthly)](https://packagist.org/packages/sentry/sentry)
+[![License](https://poser.pugx.org/sentry/sentry/license)](https://packagist.org/packages/sentry/sentry)
 
-[![Build status][Master build image]][Master build link]
-[![Scrutinizer][Master scrutinizer image]][Master scrutinizer link]
-[![Coverage Status][Master coverage image]][Master scrutinizer link]
+[![Build Status][Travis Master Build Status Image]][Travis Build Status] [![Coverage Status][Master Code Coverage Image]][Master Code Coverage]
+[![Discord](https://img.shields.io/discord/621778831602221064)](https://discord.gg/cWnMQeA)
 
 ## Benefits
 
@@ -21,36 +22,27 @@ Use sentry-symfony for:
    - app path
    - excluded paths (cache and vendor)
 
-## Installation
+## Installation with Symfony Flex (Symfony 4 or newer):
+If you're using the [Symfony Flex](https://symfony.com/doc/current/setup/flex.html) Composer plugin, you can install this bundle in a single, easy step: 
+```bash
+composer require sentry/sentry-symfony
+```
+This could show a message similar to this:
+```
+   The recipe for this package comes from the "contrib" repository, which is open to community contributions.
+    Review the recipe at https://github.com/symfony/recipes-contrib/tree/master/sentry/sentry-symfony/3.0
 
+    Do you want to execute this recipe?
+```
+Press `y` and return to allow the installation.
+
+## Installation without Symfony Flex:
 ### Step 1: Download the Bundle
 You can install this bundle using Composer: 
 
 ```bash
 composer require sentry/sentry-symfony:^3.0
 ```
-
-#### Optional: use custom HTTP factory/transport
-*Note: this step is optional*
-
-Since SDK 2.0 uses HTTPlug to remain transport-agnostic, you need to have installed two packages that provides 
-[`php-http/async-client-implementation`](https://packagist.org/providers/php-http/async-client-implementation)
-and [`http-message-implementation`](https://packagist.org/providers/psr/http-message-implementation).
-
-This bundle depends on `sentry/sdk`, which is a metapackage that already solves this need, requiring our suggested HTTP
-packages: the Curl client and Guzzle's message factories.
-
-If instead you want to use a different HTTP client or message factory, you'll need to require manually those additional
-packages:
-
-```bash
-composer require sentry/sentry-symfony:^3.0 sentry/sentry:^2.0 php-http/guzzle6-adapter guzzlehttp/psr7
-```
-
-The `sentry/sentry` package is required directly to override `sentry/sdk`, and the other two packages are up to your choice;
-in the current example, we're using both Guzzle's components (client and message factory).
-
-> TODO: Flex recipe
 
 ### Step 2: Enable the Bundle
 
@@ -80,10 +72,10 @@ class AppKernel extends Kernel
 Note that, unlike before in version 3, the bundle will be enabled in all environments; event reporting, instead, is enabled
 only when providing a DSN (see the next step).
 
-### Step 3: Configure the SDK
+## Configuration of the SDK
 
-Add your [Sentry DSN](https://docs.sentry.io/quickstart/#configure-the-dsn) value of your project to ``app/config/config_prod.yml``.
-Leaving this value empty (or undeclared) in other environments will effectively disable Sentry reporting.
+Add your [Sentry DSN](https://docs.sentry.io/quickstart/#configure-the-dsn) value of your project, if you have Symfony 3.4 add it to ``app/config/config_prod.yml`` for Symfony 4 or newer add the value to `config/packages/sentry.yaml`.
+Keep in mind that leaving the `dsn` value empty (or undeclared) in other environments will effectively disable Sentry reporting.
 
 ```yaml
 sentry:
@@ -137,6 +129,29 @@ services:
         tags: { name: monolog.processor, handler: sentry }
 ```
 
+#### Optional: use custom HTTP factory/transport
+
+Since SDK 2.0 uses HTTPlug to remain transport-agnostic, you need to have installed two packages that provides 
+[`php-http/async-client-implementation`](https://packagist.org/providers/php-http/async-client-implementation)
+and [`http-message-implementation`](https://packagist.org/providers/psr/http-message-implementation).
+
+This bundle depends on `sentry/sdk`, which is a metapackage that already solves this need, requiring our suggested HTTP
+packages: the Curl client and Guzzle's message factories.
+
+If instead you want to use a different HTTP client or message factory, you can override the ``sentry/sdk`` package adding the following to your ``composer.json`` after the ``require`` section:
+```yaml
+    "replace": {
+        "sentry/sdk": "*"
+    }
+```
+This will prevent the installation of ``sentry/sdk`` package and will allow you to install through Composer the HTTP client or message factory of your choice.
+
+For example for using Guzzle's components: 
+
+```bash
+composer require php-http/guzzle6-adapter guzzlehttp/psr7
+```
+
 ## Maintained versions
  * 3.x is actively maintained and developed on the master branch, and uses Sentry SDK 2.0;
  * 2.x is supported only for fixes; from this version onwards it requires Symfony 3+ and PHP 7.1+;
@@ -178,11 +193,8 @@ final class SentryCustomizationCompilerPass implements CompilerPassInterface
 ```
 
 [Last stable image]: https://poser.pugx.org/sentry/sentry-symfony/version.svg
-[Last unstable image]: https://poser.pugx.org/sentry/sentry-symfony/v/unstable.svg
-[Master build image]: https://travis-ci.org/getsentry/sentry-symfony.svg?branch=master
-[Master scrutinizer image]: https://scrutinizer-ci.com/g/getsentry/sentry-symfony/badges/quality-score.png?b=master
-[Master coverage image]: https://scrutinizer-ci.com/g/getsentry/sentry-symfony/badges/coverage.png?b=master
-
 [Packagist link]: https://packagist.org/packages/sentry/sentry-symfony
-[Master build link]: https://travis-ci.org/getsentry/sentry-symfony
-[Master scrutinizer link]: https://scrutinizer-ci.com/g/getsentry/sentry-symfony/?branch=master
+[Travis Build Status]: http://travis-ci.org/getsentry/sentry-symfony
+[Travis Master Build Status Image]: https://img.shields.io/travis/getsentry/sentry-symfony/master?logo=travis
+[Master Code Coverage]: https://codecov.io/gh/getsentry/sentry-symfony/branch/master
+[Master Code Coverage Image]: https://img.shields.io/codecov/c/github/getsentry/sentry-symfony/master?logo=codecov
