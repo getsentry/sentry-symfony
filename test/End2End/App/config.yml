@@ -1,6 +1,7 @@
 sentry:
   options:
     capture_silenced_errors: true
+    error_types: E_ALL
 
 framework:
   router: { resource: "%routing_config_dir%/routing.yml" }
@@ -14,6 +15,8 @@ services:
 
   Sentry\ClientBuilderInterface:
     class: Sentry\ClientBuilder
+    arguments: 
+      - '@Sentry\Options'
     calls:
       - method: setTransportFactory
         arguments:

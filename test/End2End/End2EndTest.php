@@ -3,6 +3,7 @@
 namespace Sentry\SentryBundle\Test\End2End;
 
 use PHPUnit\Framework\TestCase;
+use Sentry\SentryBundle\Test\End2End\App\Controller\MainController;
 use Sentry\SentryBundle\Test\End2End\App\Kernel;
 use Sentry\State\HubInterface;
 use Symfony\Bundle\FrameworkBundle\Client;
@@ -127,6 +128,32 @@ class End2EndTest extends WebTestCase
         $this->assertEventCount(1);
     }
 
+    public function testGetFatal(): void
+    {
+        $client = static::createClient();
+
+        try {
+            $client->insulate(true);
+            $client->request('GET', '/fatal');
+
+            $response = $client->getResponse();
+
+            $this->assertInstanceOf(Response::class, $response);
+            $this->assertSame(500, $response->getStatusCode());
+            $this->assertStringNotContainsString('not happen', $response->getContent() ?: '');
+        } catch (\Throwable $exception) {
+            if (! $exception instanceof \RuntimeException) {
+                throw $exception;
+            }
+
+            $this->assertStringContainsStringIgnoringCase('error', $exception->getMessage());
+            $this->assertStringContainsStringIgnoringCase('contains 2 abstract methods', $exception->getMessage());
+            $this->assertStringContainsStringIgnoringCase(MainController::class, $exception->getMessage());
+        }
+
+        $this->assertEventCount(1);
+    }
+
     public function testNotice(): void
     {
         $client = static::createClient();
@@ -156,6 +183,7 @@ class End2EndTest extends WebTestCase
     {
         $events = file_get_contents(self::SENT_EVENTS_LOG);
         $this->assertNotFalse($events, 'Cannot read sent events log');
-        $this->assertCount($expectedCount, explode(PHP_EOL, trim($events)), 'Wrong number of events sent: ' . PHP_EOL . $events);
+        $listOfEvents = array_filter(explode(StubTransportFactory::SEPARATOR, $events), 'trim');
+        $this->assertCount($expectedCount, $listOfEvents, 'Wrong number of events sent: ' . PHP_EOL . $events);
     }
 }
