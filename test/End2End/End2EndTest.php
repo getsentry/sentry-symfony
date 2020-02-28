@@ -32,13 +32,6 @@ class End2EndTest extends WebTestCase
     {
         parent::setUp();
 
-        $this->assertEmpty(file_get_contents(self::SENT_EVENTS_LOG), 'Sent events log is not empty before starting test!');
-    }
-
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-
         file_put_contents(self::SENT_EVENTS_LOG, '');
     }
 
