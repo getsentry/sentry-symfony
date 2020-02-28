@@ -134,10 +134,7 @@ class SentryExtension extends Extension
             $integrations[] = new Definition(IgnoreErrorsIntegration::class, [$ignoreOptions]);
         }
 
-        $integrationsCallable = new Definition('callable', [$integrations]);
-        $integrationsCallable->setFactory([IntegrationFilterFactory::class, 'create']);
-
-        $options->addMethodCall('setIntegrations', [$integrationsCallable]);
+        $options->addMethodCall('setIntegrations', [$integrations]);
     }
 
     private function valueToCallable($value)
