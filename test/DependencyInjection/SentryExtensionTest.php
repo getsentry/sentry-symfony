@@ -337,14 +337,6 @@ class SentryExtensionTest extends BaseTestCase
 
         $found = false;
         foreach ($integrations as $integration) {
-            if ($integration instanceof ErrorListenerIntegration) {
-                $this->fail('Should not have ErrorListenerIntegration registered');
-            }
-
-            if ($integration instanceof ExceptionListenerIntegration) {
-                $this->fail('Should not have ExceptionListenerIntegration registered');
-            }
-
             if ($integration instanceof IntegrationMock) {
                 $found = true;
             }
