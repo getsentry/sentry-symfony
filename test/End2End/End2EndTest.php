@@ -2,7 +2,6 @@
 
 namespace Sentry\SentryBundle\Test\End2End;
 
-use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\Test\End2End\App\Controller\MainController;
 use Sentry\SentryBundle\Test\End2End\App\Kernel;
 use Sentry\State\HubInterface;
@@ -12,7 +11,6 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-class_alias(TestCase::class, \PHPUnit_Framework_TestCase::class);
 if (! class_exists(KernelBrowser::class)) {
     class_alias(Client::class, KernelBrowser::class);
 }
