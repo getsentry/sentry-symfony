@@ -9,6 +9,7 @@ use Sentry\Monolog\Handler;
 use Sentry\Options;
 use Sentry\SentryBundle\ErrorTypesParser;
 use Sentry\SentryBundle\EventListener\ErrorListener;
+use Sentry\SentryBundle\EventListener\MessengerListener;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -19,6 +20,7 @@ use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * This is the class that loads and manages your bundle configuration
@@ -158,6 +160,10 @@ class SentryExtension extends Extension
         }
 
         $this->tagExceptionListener($container);
+
+        if (!interface_exists(MessageBusInterface::class)) {
+            $container->removeDefinition(MessengerListener::class);
+        }
     }
 
     /**
