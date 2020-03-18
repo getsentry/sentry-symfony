@@ -4,6 +4,7 @@ namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\FlushableClientInterface;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
+use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
 
 class MessengerListener
@@ -39,7 +40,13 @@ class MessengerListener
         }
 
         $this->client->captureException($error);
+    }
 
+    /**
+     * @param WorkerMessageHandledEvent $event
+     */
+    public function onWorkerMessageHandled(WorkerMessageHandledEvent $event): void
+    {
         // Flush normally happens at shutdown... which only happens in the worker if it is run with a lifecycle limit
         // such as --time=X or --limit=Y. Flush immediately in a background worker.
         $this->client->flush();
