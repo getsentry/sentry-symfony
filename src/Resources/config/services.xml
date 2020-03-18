@@ -15,6 +15,8 @@
             <factory service="Sentry\ClientBuilderInterface" method="getClient" />
         </service>
 
+        <service id="Sentry\FlushableClientInterface" alias="Sentry\ClientInterface" public="false"/>
+
         <service id="Sentry\State\HubInterface" class="Sentry\State\Hub" public="false">
             <factory class="Sentry\SentryBundle\SentryBundle" method="getCurrentHub" />
             <call method="bindClient">
