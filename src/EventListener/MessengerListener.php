@@ -47,6 +47,7 @@ final class MessengerListener
         }
 
         $this->client->captureException($error);
+        $this->client->flush();
     }
 
     /**
