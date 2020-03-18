@@ -7,7 +7,7 @@ use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
 
-class MessengerListener
+final class MessengerListener
 {
     /**
      * @var FlushableClientInterface
