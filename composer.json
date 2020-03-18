@@ -40,7 +40,7 @@
         "symfony/browser-kit": "^3.4||^4.0||^5.0",
         "symfony/expression-language": "^3.4||^4.0||^5.0",
         "symfony/framework-bundle": "^3.4||^4.0||^5.0",
-        "symfony/messenger": "^3.4||^4.0||^5.0",
+        "symfony/messenger": "^4.3||^5.0",
         "symfony/monolog-bundle": "^3.4",
         "symfony/phpunit-bridge": "^5.0",
         "symfony/yaml": "^3.4||^4.0||^5.0"
