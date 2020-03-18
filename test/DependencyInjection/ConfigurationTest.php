@@ -60,6 +60,7 @@ class ConfigurationTest extends BaseTestCase
                     '%kernel.cache_dir%',
                     '%kernel.project_dir%/vendor',
                 ],
+                'capture_messenger_soft_fails' => true,
                 'integrations' => [],
                 'excluded_exceptions' => [],
                 'prefixes' => $defaultSdkValues->getPrefixes(),

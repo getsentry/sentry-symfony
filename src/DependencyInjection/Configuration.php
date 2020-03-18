@@ -84,6 +84,8 @@ class Configuration implements ConfigurationInterface
             ->defaultValue([])
             ->prototype('scalar');
         $optionsChildNodes->scalarNode('http_proxy');
+        $optionsChildNodes->booleanNode('capture_messenger_soft_fails')
+            ->defaultTrue();
         $optionsChildNodes->arrayNode('integrations')
             ->prototype('scalar')
             ->validate()

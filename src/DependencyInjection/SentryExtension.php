@@ -161,6 +161,8 @@ class SentryExtension extends Extension
 
         $this->tagExceptionListener($container);
 
+        $container->setParameter('sentry.options.capture_messenger_soft_fails', $processedConfiguration['options']['capture_messenger_soft_fails']);
+
         if (!interface_exists(MessageBusInterface::class)) {
             $container->removeDefinition(MessengerListener::class);
         }

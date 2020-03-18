@@ -15,11 +15,18 @@ class MessengerListener
     private $client;
 
     /**
-     * @param FlushableClientInterface $client
+     * @var bool
      */
-    public function __construct(FlushableClientInterface $client)
+    private $captureSoftFails;
+
+    /**
+     * @param FlushableClientInterface $client
+     * @param bool                     $captureSoftFails
+     */
+    public function __construct(FlushableClientInterface $client, bool $captureSoftFails = true)
     {
         $this->client = $client;
+        $this->captureSoftFails = $captureSoftFails;
     }
 
     /**
@@ -27,8 +34,8 @@ class MessengerListener
      */
     public function onWorkerMessageFailed(WorkerMessageFailedEvent $event): void
     {
-        if ($event->willRetry()) {
-            // Only capture the hard fails. I.e. not those that will be scheduled for retry.
+        if (!$this->captureSoftFails && $event->willRetry()) {
+            // Don't capture soft fails. I.e. those that will be scheduled for retry.
             return;
         }
 
