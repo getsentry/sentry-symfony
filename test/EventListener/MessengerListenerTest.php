@@ -31,7 +31,7 @@ class MessengerListenerTest extends BaseTestCase
         $listener = new MessengerListener($this->client->reveal(), true);
         $message  = (object) ['foo' => 'bar'];
         $envelope = Envelope::wrap($message);
-        $event    = new WorkerMessageFailedEvent($envelope, 'receiver', $error);
+        $event    = $this->getMessageFailedEvent($envelope, 'receiver', $error, true);
         $event->setForRetry();
 
         $listener->onWorkerMessageFailed($event);
@@ -47,7 +47,7 @@ class MessengerListenerTest extends BaseTestCase
         $listener = new MessengerListener($this->client->reveal(), true);
         $message  = (object) ['foo' => 'bar'];
         $envelope = Envelope::wrap($message);
-        $event    = new WorkerMessageFailedEvent($envelope, 'receiver', $error);
+        $event    = $this->getMessageFailedEvent($envelope, 'receiver', $error, false);
 
         $listener->onWorkerMessageFailed($event);
     }
@@ -62,7 +62,7 @@ class MessengerListenerTest extends BaseTestCase
         $listener = new MessengerListener($this->client->reveal(), false);
         $message  = (object) ['foo' => 'bar'];
         $envelope = Envelope::wrap($message);
-        $event    = new WorkerMessageFailedEvent($envelope, 'receiver', $error);
+        $event    = $this->getMessageFailedEvent($envelope, 'receiver', $error, true);
         $event->setForRetry();
 
         $listener->onWorkerMessageFailed($event);
@@ -78,7 +78,7 @@ class MessengerListenerTest extends BaseTestCase
         $listener = new MessengerListener($this->client->reveal(), false);
         $message  = (object) ['foo' => 'bar'];
         $envelope = Envelope::wrap($message);
-        $event    = new WorkerMessageFailedEvent($envelope, 'receiver', $error);
+        $event    = $this->getMessageFailedEvent($envelope, 'receiver', $error, false);
 
         $listener->onWorkerMessageFailed($event);
     }
@@ -90,7 +90,7 @@ class MessengerListenerTest extends BaseTestCase
         $error        = new \RuntimeException();
         $wrappedError = new HandlerFailedException($envelope, [$error]);
 
-        $event = new WorkerMessageFailedEvent($envelope, 'receiver', $wrappedError);
+        $event = $this->getMessageFailedEvent($envelope, 'receiver', $wrappedError, false);
 
         $this->client->captureException($error)->shouldBeCalledOnce();
         $this->client->flush()->shouldBeCalledOnce();
@@ -106,8 +106,30 @@ class MessengerListenerTest extends BaseTestCase
 
         $message  = (object) ['foo' => 'bar'];
         $envelope = Envelope::wrap($message);
-        $event    = new WorkerMessageHandledEvent($envelope, 'receiver');
+        $event    = new WorkerMessageHandledEvent($envelope, 'receiver', false);
 
         $listener->onWorkerMessageHandled($event);
+    }
+
+    /**
+     * Messenger 4.4 and above removed the fourth constructor argument for whether the message will be retried.
+     * Instead, the setForRetry setter method is used.
+     *
+     * @param Envelope   $envelope
+     * @param string     $receiverName
+     * @param \Throwable $error
+     * @param bool       $retry
+     *
+     * @return WorkerMessageFailedEvent
+     */
+    private function getMessageFailedEvent(Envelope $envelope, string $receiverName, \Throwable $error, bool $retry): WorkerMessageFailedEvent
+    {
+        $event = new WorkerMessageFailedEvent($envelope, $receiverName, $error, $retry);
+
+        if ($retry && version_compare($_ENV['SYMFONY_VERSION'] ?? '4.4', '4.4', '>=')) {
+            $event->setForRetry();
+        }
+
+        return $event;
     }
 }
