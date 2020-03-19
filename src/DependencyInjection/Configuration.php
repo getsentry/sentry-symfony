@@ -40,7 +40,8 @@ class Configuration implements ConfigurationInterface
         $rootNode->children()
             ->booleanNode('register_error_listener')
             ->defaultTrue();
-
+        $rootNode->booleanNode('capture_messenger_soft_fails')
+            ->defaultTrue();
         // Options array (to be passed to Sentry\Options constructor) -- please keep alphabetical order!
         $optionsNode = $rootNode->children()
             ->arrayNode('options')
@@ -84,8 +85,6 @@ class Configuration implements ConfigurationInterface
             ->defaultValue([])
             ->prototype('scalar');
         $optionsChildNodes->scalarNode('http_proxy');
-        $optionsChildNodes->booleanNode('capture_messenger_soft_fails')
-            ->defaultTrue();
         $optionsChildNodes->arrayNode('integrations')
             ->prototype('scalar')
             ->validate()
