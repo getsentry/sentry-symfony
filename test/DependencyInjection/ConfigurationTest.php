@@ -52,7 +52,6 @@ class ConfigurationTest extends BaseTestCase
                 'console_error' => 128,
                 'worker_error' => 128,
             ],
-            'capture_messenger_soft_fails' => true,
             'options' => [
                 'class_serializers' => [],
                 'environment' => '%kernel.environment%',
@@ -74,6 +73,10 @@ class ConfigurationTest extends BaseTestCase
                     'bubble' => true,
                 ],
             ],
+            'messenger' => [
+                'enabled' => true,
+                'capture_soft_fails' => true,
+            ]
         ];
 
         $this->assertEquals($expectedDefaults, $processed);

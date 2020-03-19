@@ -8,6 +8,7 @@ use Sentry\Options;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * This is the class that validates and merges configuration from your app/config files
@@ -39,9 +40,6 @@ class Configuration implements ConfigurationInterface
 
         $rootNode->children()
             ->booleanNode('register_error_listener')
-            ->defaultTrue();
-        $rootNode->children()
-            ->booleanNode('capture_messenger_soft_fails')
             ->defaultTrue();
         // Options array (to be passed to Sentry\Options constructor) -- please keep alphabetical order!
         $optionsNode = $rootNode->children()
@@ -162,6 +160,17 @@ class Configuration implements ConfigurationInterface
             ->defaultValue('DEBUG')
             ->cannotBeEmpty();
         $errorHandler->booleanNode('bubble')
+            ->defaultTrue();
+
+        // Messenger configuration
+        $messengerConfiguration = $rootNode->children()
+            ->arrayNode('messenger')
+            ->addDefaultsIfNotSet()
+            ->children();
+
+        $messengerConfiguration->booleanNode('enabled')
+            ->defaultValue(interface_exists(MessageBusInterface::class));
+        $messengerConfiguration->booleanNode('capture_soft_fails')
             ->defaultTrue();
 
         return $treeBuilder;
