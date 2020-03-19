@@ -51,6 +51,7 @@ class SentryExtension extends Extension
         }
 
         $this->configureErrorListener($container, $processedConfiguration);
+        $this->configureMessengerListener($container, $processedConfiguration);
         $this->configureMonologHandler($container, $processedConfiguration['monolog']);
     }
 
@@ -160,11 +161,19 @@ class SentryExtension extends Extension
         }
 
         $this->tagExceptionListener($container);
+    }
 
-        $container->setParameter('sentry.capture_messenger_soft_fails', $processedConfiguration['capture_messenger_soft_fails'] ?? true);
-
+    private function configureMessengerListener(ContainerBuilder $container, array $processedConfiguration): void
+    {
         if (!interface_exists(MessageBusInterface::class)) {
+            // We do not have Messenger installed, remove the listener definition.
             $container->removeDefinition(MessengerListener::class);
+
+            return;
+        }
+
+        if (false === $processedConfiguration['capture_messenger_soft_fails']) {
+            $container->getDefinition(MessengerListener::class)->setArgument(1, false);
         }
     }
 
