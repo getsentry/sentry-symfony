@@ -14,23 +14,23 @@ cache:
 before_install:
   - |
     if [ "$SYMFONY_VERSION" != "" ]; then
-      sed -ri '/symfony\/monolog-bundle/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'$SYMFONY_VERSION'"/' composer.json;
+      sed -ri '/symfony\/(monolog-bundle|messenger)/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'$SYMFONY_VERSION'"/' composer.json;
     fi;
   - composer self-update
   - composer global require hirak/prestissimo
 
-install: 
+install:
   - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable
 
 script: >-
-  vendor/bin/phpunit -v --coverage-clover=build/coverage-report.xml 
+  vendor/bin/phpunit -v --coverage-clover=build/coverage-report.xml
   && bash <(curl -s https://codecov.io/bash) -f build/coverage-report.xml
 
 jobs:
   include:
     - stage: Test
       php: 7.1
-      env: 
+      env:
       - SYMFONY_VERSION: 3.4.*
       - SYMFONY_DEPRECATIONS_HELPER: disabled
     - php: 7.3
@@ -48,7 +48,7 @@ jobs:
       name: PHPStan
       script:
         - composer phpstan
-    - script: 
+    - script:
         - composer cs-check
       name: PHP-CS-Fixer
   allow_failures:
