@@ -126,7 +126,7 @@ class MessengerListenerTest extends BaseTestCase
     {
         $event = new WorkerMessageFailedEvent($envelope, $receiverName, $error, $retry);
 
-        if ($retry && version_compare($_ENV['SYMFONY_VERSION'] ?? '4.4', '4.4', '>=')) {
+        if ($retry && version_compare($_SERVER['SYMFONY_VERSION'] ?? '4.4', '4.4', '>=')) {
             $event->setForRetry();
         }
 
