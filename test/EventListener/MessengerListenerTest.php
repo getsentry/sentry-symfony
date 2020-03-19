@@ -32,7 +32,6 @@ class MessengerListenerTest extends BaseTestCase
         $message  = (object) ['foo' => 'bar'];
         $envelope = Envelope::wrap($message);
         $event    = $this->getMessageFailedEvent($envelope, 'receiver', $error, true);
-        $event->setForRetry();
 
         $listener->onWorkerMessageFailed($event);
     }
@@ -63,7 +62,6 @@ class MessengerListenerTest extends BaseTestCase
         $message  = (object) ['foo' => 'bar'];
         $envelope = Envelope::wrap($message);
         $event    = $this->getMessageFailedEvent($envelope, 'receiver', $error, true);
-        $event->setForRetry();
 
         $listener->onWorkerMessageFailed($event);
     }
