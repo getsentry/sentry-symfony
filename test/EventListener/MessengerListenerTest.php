@@ -25,8 +25,8 @@ class MessengerListenerTest extends BaseTestCase
     {
         $error = new \RuntimeException();
 
-        $this->client->captureException($error)->shouldBeCalledOnce();
-        $this->client->flush()->shouldBeCalledOnce();
+        $this->client->captureException($error)->shouldBeCalled();
+        $this->client->flush()->shouldBeCalled();
 
         $listener = new MessengerListener($this->client->reveal(), true);
         $message  = (object) ['foo' => 'bar'];
@@ -40,8 +40,8 @@ class MessengerListenerTest extends BaseTestCase
     {
         $error = new \RuntimeException();
 
-        $this->client->captureException($error)->shouldBeCalledOnce();
-        $this->client->flush()->shouldBeCalledOnce();
+        $this->client->captureException($error)->shouldBeCalled();
+        $this->client->flush()->shouldBeCalled();
 
         $listener = new MessengerListener($this->client->reveal(), true);
         $message  = (object) ['foo' => 'bar'];
@@ -70,8 +70,8 @@ class MessengerListenerTest extends BaseTestCase
     {
         $error = new \RuntimeException();
 
-        $this->client->captureException($error)->shouldBeCalledOnce();
-        $this->client->flush()->shouldBeCalledOnce();
+        $this->client->captureException($error)->shouldBeCalled();
+        $this->client->flush()->shouldBeCalled();
 
         $listener = new MessengerListener($this->client->reveal(), false);
         $message  = (object) ['foo' => 'bar'];
@@ -90,8 +90,8 @@ class MessengerListenerTest extends BaseTestCase
 
         $event = $this->getMessageFailedEvent($envelope, 'receiver', $wrappedError, false);
 
-        $this->client->captureException($error)->shouldBeCalledOnce();
-        $this->client->flush()->shouldBeCalledOnce();
+        $this->client->captureException($error)->shouldBeCalled();
+        $this->client->flush()->shouldBeCalled();
 
         $listener = new MessengerListener($this->client->reveal());
         $listener->onWorkerMessageFailed($event);
@@ -99,7 +99,7 @@ class MessengerListenerTest extends BaseTestCase
 
     public function testClientIsFlushedWhenMessageHandled(): void
     {
-        $this->client->flush()->shouldBeCalledOnce();
+        $this->client->flush()->shouldBeCalled();
         $listener = new MessengerListener($this->client->reveal());
 
         $message  = (object) ['foo' => 'bar'];
