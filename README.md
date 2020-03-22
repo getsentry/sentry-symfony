@@ -152,6 +152,12 @@ For example for using Guzzle's components:
 composer require php-http/guzzle6-adapter guzzlehttp/psr7
 ```
 
+A possible alternate solution is using `pugx/sentry-sdk`, a metapackage that replaces `sentry/sdk` and uses `symfony/http-client` instead of `guzzlehttp/guzzle`:
+
+```bash
+composer require pugx/sentry-sdk
+```
+
 ## Maintained versions
  * 3.x is actively maintained and developed on the master branch, and uses Sentry SDK 2.0;
  * 2.x is supported only for fixes; from this version onwards it requires Symfony 3+ and PHP 7.1+;
