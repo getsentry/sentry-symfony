@@ -8,10 +8,10 @@ parameters:
          - "/Call to function method_exists.. with 'Symfony.+' and 'getThrowable' will always evaluate to false./"
          - '/Class PHPUnit_Framework_TestCase not found/'
          - '/Symfony\\Component\\HttpKernel\\Event\\(GetResponse|FilterController)Event not found.$/'
-         - 
+         -
              message: '/Symfony\\Bundle\\FrameworkBundle\\Client/'
              path: test/End2End/End2EndTest.php
-         - 
+         -
              message: '/^Call to an undefined method Symfony\\Component\\Config\\Definition\\Builder\\TreeBuilder::root...$/'
              path: src/DependencyInjection/Configuration.php
          -
@@ -23,6 +23,9 @@ parameters:
          -
              message: '/Sentry\\SentryBundle\\EventListener\\SubRequestListenerRequestEvent( not found)?.$/'
              path: src/EventListener/SubRequestListener.php
+         -
+             message: '/Class Symfony\\Component\\Messenger\\Event\\WorkerMessage[a-zA-Z]*Event constructor invoked with [0-9]+ parameters, [0-9]+ required\.$/'
+             path: test/EventListener/MessengerListenerTest.php
 
 includes:
 	- vendor/jangregor/phpstan-prophecy/src/extension.neon

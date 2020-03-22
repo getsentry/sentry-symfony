@@ -41,7 +41,7 @@ final class MessengerListener
 
         $error = $event->getThrowable();
 
-        if ($error instanceof HandlerFailedException) {
+        if ($error instanceof HandlerFailedException && null !== $error->getPrevious()) {
             // Unwrap the messenger exception to get the original error
             $error = $error->getPrevious();
         }
