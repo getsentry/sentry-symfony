@@ -16,6 +16,10 @@ before_install:
     if [ "$SYMFONY_VERSION" != "" ]; then
       sed -ri '/symfony\/(monolog-bundle|messenger)/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'$SYMFONY_VERSION'"/' composer.json;
     fi;
+  - |
+    if [ "$SYMFONY_VERSION" == "3.4.*" ]; then
+      composer remove --dev symfony/messenger
+    fi;
   - composer self-update
   - composer global require hirak/prestissimo
 
