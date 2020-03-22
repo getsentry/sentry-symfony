@@ -9,6 +9,7 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class MessengerListenerTest extends BaseTestCase
 {
@@ -23,6 +24,11 @@ class MessengerListenerTest extends BaseTestCase
 
     public function testSoftFailsAreRecorded(): void
     {
+        if (!$this->supportsMessenger()) {
+            self::markTestSkipped('Messenger not supported in this environment.');
+            return;
+        }
+
         $error = new \RuntimeException();
 
         $this->client->captureException($error)->shouldBeCalled();
@@ -38,6 +44,11 @@ class MessengerListenerTest extends BaseTestCase
 
     public function testHardFailsAreRecorded(): void
     {
+        if (!$this->supportsMessenger()) {
+            self::markTestSkipped('Messenger not supported in this environment.');
+            return;
+        }
+
         $error = new \RuntimeException();
 
         $this->client->captureException($error)->shouldBeCalled();
@@ -53,6 +64,11 @@ class MessengerListenerTest extends BaseTestCase
 
     public function testSoftFailsAreNotRecorded(): void
     {
+        if (!$this->supportsMessenger()) {
+            self::markTestSkipped('Messenger not supported in this environment.');
+            return;
+        }
+
         $error = new \RuntimeException();
 
         $this->client->captureException($error)->shouldNotBeCalled();
@@ -68,6 +84,11 @@ class MessengerListenerTest extends BaseTestCase
 
     public function testHardFailsAreRecordedWithCaptureSoftDisabled(): void
     {
+        if (!$this->supportsMessenger()) {
+            self::markTestSkipped('Messenger not supported in this environment.');
+            return;
+        }
+
         $error = new \RuntimeException();
 
         $this->client->captureException($error)->shouldBeCalled();
@@ -83,6 +104,11 @@ class MessengerListenerTest extends BaseTestCase
 
     public function testHandlerFailedExceptionIsUnwrapped(): void
     {
+        if (!$this->supportsMessenger()) {
+            self::markTestSkipped('Messenger not supported in this environment.');
+            return;
+        }
+
         $message      = (object) ['foo' => 'bar'];
         $envelope     = Envelope::wrap($message);
         $error        = new \RuntimeException();
@@ -99,6 +125,11 @@ class MessengerListenerTest extends BaseTestCase
 
     public function testClientIsFlushedWhenMessageHandled(): void
     {
+        if (!$this->supportsMessenger()) {
+            self::markTestSkipped('Messenger not supported in this environment.');
+            return;
+        }
+
         $this->client->flush()->shouldBeCalled();
         $listener = new MessengerListener($this->client->reveal());
 
@@ -130,5 +161,10 @@ class MessengerListenerTest extends BaseTestCase
         }
 
         return $event;
+    }
+
+    private function supportsMessenger(): bool
+    {
+        return interface_exists(MessageBusInterface::class);
     }
 }
