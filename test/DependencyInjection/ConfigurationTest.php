@@ -77,7 +77,7 @@ class ConfigurationTest extends BaseTestCase
             'messenger' => [
                 'enabled' => interface_exists(MessageBusInterface::class),
                 'capture_soft_fails' => true,
-            ]
+            ],
         ];
 
         $this->assertEquals($expectedDefaults, $processed);

@@ -34,7 +34,7 @@ final class MessengerListener
      */
     public function onWorkerMessageFailed(WorkerMessageFailedEvent $event): void
     {
-        if (!$this->captureSoftFails && $event->willRetry()) {
+        if (! $this->captureSoftFails && $event->willRetry()) {
             // Don't capture soft fails. I.e. those that will be scheduled for retry.
             return;
         }
