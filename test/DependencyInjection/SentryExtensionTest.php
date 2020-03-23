@@ -15,6 +15,7 @@ use Sentry\Monolog\Handler;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ErrorListener;
+use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\Test\BaseTestCase;
 use Sentry\SentrySdk;
 use Sentry\Severity;
@@ -421,6 +422,17 @@ class SentryExtensionTest extends BaseTestCase
         ]);
 
         $this->assertFalse($container->has(self::MONOLOG_HANDLER_TEST_PUBLIC_ALIAS));
+    }
+
+    public function testMessengerHandlerIsNotRegistered(): void
+    {
+        $container = $this->getContainer([
+            'messenger' => [
+                'enabled' => false,
+            ],
+        ]);
+
+        $this->assertFalse($container->has(MessengerListener::class));
     }
 
     private function getContainer(array $configuration = []): Container

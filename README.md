@@ -80,6 +80,9 @@ Keep in mind that leaving the `dsn` value empty (or undeclared) in other environ
 ```yaml
 sentry:
     dsn: "https://public:secret@sentry.example.com/1"
+    messenger: 
+        enabled: true # flushes Sentry messages at the end of each message handling
+        capture_soft_fails: true # captures exceptions marked for retry too
     options:
         environment: '%kernel.environment%'
         release: '%env(VERSION)%' #your app version
@@ -171,7 +174,7 @@ The 3.0 version of the bundle uses the newest version (2.x) of the underlying Se
 
 The Sentry 2.0 SDK uses the Unified API, hence it uses the concept of `Scope`s to hold information about the current 
 state of the app, and attach it to any event that is reported. This bundle has three listeners (`RequestListener`, 
-`SubRequestListener` and `ConsoleListener`) that adds some easy default information. 
+`SubRequestListener` and `ConsoleListener`) that adds some easy default information. Since 3.5, a fourth listener has been added to handle the case of Messanger Workers: `MessengerListener`.
 
 Those listeners normally are executed with a priority of `1` to allow easier customization with custom listener, that by 
 default run with a lower priority of `0`.

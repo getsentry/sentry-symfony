@@ -9,6 +9,7 @@ use Sentry\Monolog\Handler;
 use Sentry\Options;
 use Sentry\SentryBundle\ErrorTypesParser;
 use Sentry\SentryBundle\EventListener\ErrorListener;
+use Sentry\SentryBundle\EventListener\MessengerListener;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -49,6 +50,7 @@ class SentryExtension extends Extension
         }
 
         $this->configureErrorListener($container, $processedConfiguration);
+        $this->configureMessengerListener($container, $processedConfiguration['messenger']);
         $this->configureMonologHandler($container, $processedConfiguration['monolog']);
     }
 
@@ -158,6 +160,17 @@ class SentryExtension extends Extension
         }
 
         $this->tagExceptionListener($container);
+    }
+
+    private function configureMessengerListener(ContainerBuilder $container, array $processedConfiguration): void
+    {
+        if (! $processedConfiguration['enabled']) {
+            $container->removeDefinition(MessengerListener::class);
+
+            return;
+        }
+
+        $container->getDefinition(MessengerListener::class)->setArgument(1, $processedConfiguration['capture_soft_fails']);
     }
 
     /**

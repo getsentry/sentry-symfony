@@ -8,6 +8,7 @@ use Sentry\SentryBundle\DependencyInjection\Configuration;
 use Sentry\SentryBundle\Test\BaseTestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class ConfigurationTest extends BaseTestCase
 {
@@ -50,6 +51,7 @@ class ConfigurationTest extends BaseTestCase
                 'console' => 1,
                 'request_error' => 128,
                 'console_error' => 128,
+                'worker_error' => 128,
             ],
             'options' => [
                 'class_serializers' => [],
@@ -71,6 +73,10 @@ class ConfigurationTest extends BaseTestCase
                     'level' => 'DEBUG',
                     'bubble' => true,
                 ],
+            ],
+            'messenger' => [
+                'enabled' => interface_exists(MessageBusInterface::class),
+                'capture_soft_fails' => true,
             ],
         ];
 

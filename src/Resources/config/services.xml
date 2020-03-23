@@ -15,6 +15,8 @@
             <factory service="Sentry\ClientBuilderInterface" method="getClient" />
         </service>
 
+        <service id="Sentry\FlushableClientInterface" alias="Sentry\ClientInterface" public="false"/>
+
         <service id="Sentry\State\HubInterface" class="Sentry\State\Hub" public="false">
             <factory class="Sentry\SentryBundle\SentryBundle" method="getCurrentHub" />
             <call method="bindClient">
@@ -48,6 +50,12 @@
         <service id="Sentry\SentryBundle\EventListener\SubRequestListener" class="Sentry\SentryBundle\EventListener\SubRequestListener" public="false">
             <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="%sentry.listener_priorities.sub_request%" />
             <tag name="kernel.event_listener" event="kernel.finish_request" method="onKernelFinishRequest" priority="%sentry.listener_priorities.sub_request%" />
+        </service>
+
+        <service id="Sentry\SentryBundle\EventListener\MessengerListener" class="Sentry\SentryBundle\EventListener\MessengerListener" public="false">
+            <argument type="service" id="Sentry\FlushableClientInterface" />
+            <tag name="kernel.event_listener" event="Symfony\Component\Messenger\Event\WorkerMessageFailedEvent" method="onWorkerMessageFailed" priority="%sentry.listener_priorities.worker_error%" />
+            <tag name="kernel.event_listener" event="Symfony\Component\Messenger\Event\WorkerMessageHandledEvent" method="onWorkerMessageHandled" priority="%sentry.listener_priorities.worker_error%" />
         </service>
 
         <service id="Sentry\SentryBundle\Command\SentryTestCommand" class="Sentry\SentryBundle\Command\SentryTestCommand" public="false">
