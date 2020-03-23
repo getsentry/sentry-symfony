@@ -24,6 +24,9 @@ parameters:
         -
             message: '/Sentry\\SentryBundle\\EventListener\\SubRequestListenerRequestEvent( not found)?.$/'
             path: src/EventListener/SubRequestListener.php
+        -
+            message: '/Class Symfony\\Component\\Messenger\\Event\\WorkerMessage[a-zA-Z]*Event constructor invoked with [0-9]+ parameters, [0-9]+ required\.$/'
+            path: test/EventListener/MessengerListenerTest.php
 
 includes:
 	- vendor/jangregor/phpstan-prophecy/src/extension.neon

@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
  - Enable back all error listeners from base SDK integration (#322)
+ - Capture and flush messages in a Messenger Worker context (#326, thanks to @emarref)
+ - ...
+
+## 3.4.4 (2020-03-16)
+ - Improve `release` option default value (#325)
 
 ## 3.4.3 (2020-02-03)
  - Change default of `in_app_include` to empty, due to getsentry/sentry-php#958 (#311)
