@@ -5,10 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
- - ...
-
-## 3.4.5 (2020-03-19)
  - Capture and flush messages in a Messenger Worker context (#326)
+ - ...
 
 ## 3.4.4 (2020-03-16)
  - Improve `release` option default value (#325)
