@@ -201,6 +201,31 @@ final class SentryCustomizationCompilerPass implements CompilerPassInterface
 }
 ```
 
+#### Custom serializers
+
+The option class_serializers can be used to send customized objects serialization.
+```yml
+sentry:
+    options:
+        class_serializers:
+            YourValueObject: '@ValueObjectSerializer'
+```
+
+Several serializers can be added and the serializable check is done using **instanceof**. The serializer must implements the `__invoke` method returning an **array** with the information to send to sentry (class name is always sent).
+
+Serializer example:
+```php
+final class ValueObjectSerializer
+{
+    public function __invoke(YourValueObject $vo): array
+    {
+        return [
+            'value' => $vo->value()
+        ];
+    }
+}
+```
+
 [Last stable image]: https://poser.pugx.org/sentry/sentry-symfony/version.svg
 [Packagist link]: https://packagist.org/packages/sentry/sentry-symfony
 [Travis Build Status]: http://travis-ci.org/getsentry/sentry-symfony
