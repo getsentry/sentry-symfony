@@ -12,9 +12,9 @@ Symfony integration for [Sentry](https://getsentry.com/).
 
 ## Benefits
 
-Use sentry-symfony for:
+Use `sentry-symfony` for:
 
- * A fast sentry setup
+ * A fast Sentry setup
  * Easy configuration in your Symfony app
  * Automatic wiring in your app. Each event has the following things added automatically to it:
    - user
