@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
  - Capture and flush messages in a Messenger Worker context (#326, thanks to @emarref)
+ - Support Composer 2 (#335)
+ - Avoid issues with dependency lower bound, fix #331 (#335)
  - ...
 
 ## 3.4.4 (2020-03-16)
