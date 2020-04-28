@@ -106,6 +106,7 @@ final class RequestListener
 
     /**
      * @param UserInterface | object | string $user
+     * @return array<string, string>
      */
     private function getUserData($user): array
     {

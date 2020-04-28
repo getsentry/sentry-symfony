@@ -1,0 +1,342 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Call to an undefined method Symfony\\\\Component\\\\Config\\\\Definition\\\\Builder\\\\TreeBuilder\\:\\:root\\(\\)\\.$#"
+			count: 1
+			path: src/DependencyInjection/Configuration.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:load\\(\\) has parameter \\$configs with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:passConfigurationToOptions\\(\\) has parameter \\$processedConfiguration with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:configureErrorListener\\(\\) has parameter \\$processedConfiguration with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:configureMessengerListener\\(\\) has parameter \\$processedConfiguration with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:configureMonologHandler\\(\\) has parameter \\$monologConfiguration with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\ErrorListener\\:\\:onKernelException\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent\\.$#"
+			count: 1
+			path: src/EventListener/ErrorListener.php
+
+		-
+			message: "#^Call to method getException\\(\\) on an unknown class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent\\.$#"
+			count: 1
+			path: src/EventListener/ErrorListener.php
+
+		-
+			message: "#^Comparison operation \"\\>\\=\" between 5 and 5 is always true\\.$#"
+			count: 1
+			path: src/EventListener/RequestListener.php
+
+		-
+			message: "#^Class Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListenerRequestEvent not found\\.$#"
+			count: 2
+			path: src/EventListener/RequestListener.php
+
+		-
+			message: "#^Class Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListenerControllerEvent not found\\.$#"
+			count: 2
+			path: src/EventListener/RequestListener.php
+
+		-
+			message: "#^Else branch is unreachable because previous condition is always true\\.$#"
+			count: 1
+			path: src/EventListener/RequestListener.php
+
+		-
+			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListener\\:\\:onKernelRequest\\(\\) has invalid typehint type Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListenerRequestEvent\\.$#"
+			count: 2
+			path: src/EventListener/RequestListener.php
+
+		-
+			message: "#^Call to method isMasterRequest\\(\\) on an unknown class Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListenerRequestEvent\\.$#"
+			count: 1
+			path: src/EventListener/RequestListener.php
+
+		-
+			message: "#^Call to method getRequest\\(\\) on an unknown class Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListenerRequestEvent\\.$#"
+			count: 1
+			path: src/EventListener/RequestListener.php
+
+		-
+			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListener\\:\\:onKernelController\\(\\) has invalid typehint type Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListenerControllerEvent\\.$#"
+			count: 1
+			path: src/EventListener/RequestListener.php
+
+		-
+			message: "#^Call to method isMasterRequest\\(\\) on an unknown class Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListenerControllerEvent\\.$#"
+			count: 1
+			path: src/EventListener/RequestListener.php
+
+		-
+			message: "#^Call to method getRequest\\(\\) on an unknown class Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListenerControllerEvent\\.$#"
+			count: 2
+			path: src/EventListener/RequestListener.php
+
+		-
+			message: "#^Comparison operation \"\\>\\=\" between 5 and 5 is always true\\.$#"
+			count: 1
+			path: src/EventListener/SubRequestListener.php
+
+		-
+			message: "#^Class Sentry\\\\SentryBundle\\\\EventListener\\\\SubRequestListenerRequestEvent not found\\.$#"
+			count: 2
+			path: src/EventListener/SubRequestListener.php
+
+		-
+			message: "#^Else branch is unreachable because previous condition is always true\\.$#"
+			count: 1
+			path: src/EventListener/SubRequestListener.php
+
+		-
+			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\SubRequestListener\\:\\:onKernelRequest\\(\\) has invalid typehint type Sentry\\\\SentryBundle\\\\EventListener\\\\SubRequestListenerRequestEvent\\.$#"
+			count: 2
+			path: src/EventListener/SubRequestListener.php
+
+		-
+			message: "#^Call to method isMasterRequest\\(\\) on an unknown class Sentry\\\\SentryBundle\\\\EventListener\\\\SubRequestListenerRequestEvent\\.$#"
+			count: 1
+			path: src/EventListener/SubRequestListener.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\BaseTestCase\\:\\:createRequestEvent\\(\\) has no return typehint specified\\.$#"
+			count: 1
+			path: test/BaseTestCase.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\ConfigurationTest\\:\\:testOptionValuesProcessing\\(\\) has parameter \\$value with no typehint specified\\.$#"
+			count: 1
+			path: test/DependencyInjection/ConfigurationTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\ConfigurationTest\\:\\:optionValuesProvider\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: test/DependencyInjection/ConfigurationTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\ConfigurationTest\\:\\:testInvalidValues\\(\\) has parameter \\$value with no typehint specified\\.$#"
+			count: 1
+			path: test/DependencyInjection/ConfigurationTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\ConfigurationTest\\:\\:invalidValuesProvider\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: test/DependencyInjection/ConfigurationTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\ConfigurationTest\\:\\:processConfiguration\\(\\) has parameter \\$values with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: test/DependencyInjection/ConfigurationTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\ConfigurationTest\\:\\:processConfiguration\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: test/DependencyInjection/ConfigurationTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:optionsValueProvider\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: test/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:test_that_it_ignores_empty_dsn_value\\(\\) has parameter \\$emptyDsn with no typehint specified\\.$#"
+			count: 1
+			path: test/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:emptyDsnValueProvider\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: test/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:testBeforeSendUsingScalarCallable\\(\\) has parameter \\$scalarCallable with no typehint specified\\.$#"
+			count: 1
+			path: test/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:testBeforeBreadcrumbUsingScalarCallable\\(\\) has parameter \\$scalarCallable with no typehint specified\\.$#"
+			count: 1
+			path: test/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:scalarCallableDataProvider\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: test/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:errorListenerConfigurationProvider\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: test/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:testMonologHandlerIsConfiguredProperly\\(\\) has parameter \\$level with no typehint specified\\.$#"
+			count: 1
+			path: test/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:monologHandlerConfigurationProvider\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: test/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:getContainer\\(\\) has parameter \\$configuration with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: test/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Function Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\mockBeforeSend\\(\\) never returns Sentry\\\\Event so it can be removed from the return typehint\\.$#"
+			count: 1
+			path: test/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Function Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\mockBeforeBreadcrumb\\(\\) never returns Sentry\\\\Breadcrumb so it can be removed from the return typehint\\.$#"
+			count: 1
+			path: test/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Function Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\mockClassSerializer\\(\\) has no return typehint specified\\.$#"
+			count: 1
+			path: test/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Function Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\mockClassSerializer\\(\\) has parameter \\$object with no typehint specified\\.$#"
+			count: 1
+			path: test/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\CallbackMock\\:\\:callback\\(\\) has no return typehint specified\\.$#"
+			count: 1
+			path: test/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\ClientMock\\:\\:captureEvent\\(\\) has parameter \\$payload with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: test/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\End2End\\\\App\\\\Kernel\\:\\:build\\(\\) has no return typehint specified\\.$#"
+			count: 1
+			path: test/End2End/App/Kernel.php
+
+		-
+			message: "#^Class PHPUnit_Framework_TestCase not found\\.$#"
+			count: 1
+			path: test/End2End/End2EndTest.php
+
+		-
+			message: "#^Class Symfony\\\\Bundle\\\\FrameworkBundle\\\\Client not found\\.$#"
+			count: 1
+			path: test/End2End/End2EndTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\ErrorTypesParserTest\\:\\:testParse\\(\\) has parameter \\$value with no typehint specified\\.$#"
+			count: 1
+			path: test/ErrorTypesParserTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\ErrorTypesParserTest\\:\\:parsableValueProvider\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: test/ErrorTypesParserTest.php
+
+		-
+			message: "#^Property Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\ConsoleListenerTest\\:\\:\\$currentHub has no typehint specified\\.$#"
+			count: 1
+			path: test/EventListener/ConsoleListenerTest.php
+
+		-
+			message: "#^Property Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\ConsoleListenerTest\\:\\:\\$currentScope has no typehint specified\\.$#"
+			count: 1
+			path: test/EventListener/ConsoleListenerTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\ConsoleListenerTest\\:\\:getTagsContext\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: test/EventListener/ConsoleListenerTest.php
+
+		-
+			message: "#^Property Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\MessengerListenerTest\\:\\:\\$client has no typehint specified\\.$#"
+			count: 1
+			path: test/EventListener/MessengerListenerTest.php
+
+		-
+			message: "#^Class Symfony\\\\Component\\\\Messenger\\\\Event\\\\WorkerMessageHandledEvent constructor invoked with 3 parameters, 2 required\\.$#"
+			count: 1
+			path: test/EventListener/MessengerListenerTest.php
+
+		-
+			message: "#^Class Symfony\\\\Component\\\\Messenger\\\\Event\\\\WorkerMessageFailedEvent constructor invoked with 4 parameters, 3 required\\.$#"
+			count: 1
+			path: test/EventListener/MessengerListenerTest.php
+
+		-
+			message: "#^Property Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\RequestListenerTest\\:\\:\\$currentScope has no typehint specified\\.$#"
+			count: 1
+			path: test/EventListener/RequestListenerTest.php
+
+		-
+			message: "#^Property Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\RequestListenerTest\\:\\:\\$currentHub has no typehint specified\\.$#"
+			count: 1
+			path: test/EventListener/RequestListenerTest.php
+
+		-
+			message: "#^Property Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\RequestListenerTest\\:\\:\\$options has no typehint specified\\.$#"
+			count: 1
+			path: test/EventListener/RequestListenerTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\RequestListenerTest\\:\\:testOnKernelRequestUserDataIsSetToScope\\(\\) has parameter \\$user with no typehint specified\\.$#"
+			count: 1
+			path: test/EventListener/RequestListenerTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\RequestListenerTest\\:\\:userDataProvider\\(\\) return type has no value type specified in iterable type Generator\\.$#"
+			count: 1
+			path: test/EventListener/RequestListenerTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\RequestListenerTest\\:\\:getUserContext\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: test/EventListener/RequestListenerTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\RequestListenerTest\\:\\:getTagsContext\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: test/EventListener/RequestListenerTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\RequestListenerTest\\:\\:createControllerEvent\\(\\) has no return typehint specified\\.$#"
+			count: 1
+			path: test/EventListener/RequestListenerTest.php
+
+		-
+			message: "#^Property Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\UserWithInterface\\:\\:\\$username has no typehint specified\\.$#"
+			count: 1
+			path: test/EventListener/RequestListenerTest.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\UserWithInterface\\:\\:eraseCredentials\\(\\) has no return typehint specified\\.$#"
+			count: 1
+			path: test/EventListener/RequestListenerTest.php
+
+		-
+			message: "#^Property Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\ToStringUser\\:\\:\\$username has no typehint specified\\.$#"
+			count: 1
+			path: test/EventListener/RequestListenerTest.php
+

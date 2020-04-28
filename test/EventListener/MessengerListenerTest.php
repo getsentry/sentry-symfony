@@ -26,8 +26,6 @@ class MessengerListenerTest extends BaseTestCase
     {
         if (! $this->supportsMessenger()) {
             self::markTestSkipped('Messenger not supported in this environment.');
-
-            return;
         }
 
         $error = new \RuntimeException();
@@ -47,8 +45,6 @@ class MessengerListenerTest extends BaseTestCase
     {
         if (! $this->supportsMessenger()) {
             self::markTestSkipped('Messenger not supported in this environment.');
-
-            return;
         }
 
         $error = new \RuntimeException();
@@ -68,8 +64,6 @@ class MessengerListenerTest extends BaseTestCase
     {
         if (! $this->supportsMessenger()) {
             self::markTestSkipped('Messenger not supported in this environment.');
-
-            return;
         }
 
         $error = new \RuntimeException();
@@ -89,8 +83,6 @@ class MessengerListenerTest extends BaseTestCase
     {
         if (! $this->supportsMessenger()) {
             self::markTestSkipped('Messenger not supported in this environment.');
-
-            return;
         }
 
         $error = new \RuntimeException();
@@ -110,8 +102,6 @@ class MessengerListenerTest extends BaseTestCase
     {
         if (! $this->supportsMessenger()) {
             self::markTestSkipped('Messenger not supported in this environment.');
-
-            return;
         }
 
         $message = (object) ['foo' => 'bar'];
@@ -132,8 +122,6 @@ class MessengerListenerTest extends BaseTestCase
     {
         if (! $this->supportsMessenger()) {
             self::markTestSkipped('Messenger not supported in this environment.');
-
-            return;
         }
 
         $this->client->flush()->shouldBeCalled();

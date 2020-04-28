@@ -142,6 +142,10 @@ class SentryExtension extends Extension
         $options->addMethodCall('setIntegrations', [$integrationsCallable]);
     }
 
+    /**
+     * @param string|Reference $value
+     * @return string|Reference
+     */
     private function valueToCallable($value)
     {
         if (is_string($value) && 0 === strpos($value, '@')) {

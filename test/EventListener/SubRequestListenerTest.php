@@ -13,23 +13,13 @@ use Symfony\Component\HttpKernel\KernelInterface;
 
 class SubRequestListenerTest extends BaseTestCase
 {
-    private $currentHub;
-
-    protected function setUp(): void
-    {
-        $this->currentHub = $this->prophesize(HubInterface::class);
-
-        SentrySdk::setCurrentHub($this->currentHub->reveal());
-    }
-
     public function testOnKernelRequestWithMasterRequest(): void
     {
         $listener = new SubRequestListener();
 
         $masterRequestEvent = $this->createRequestEvent();
 
-        $this->currentHub->pushScope()
-            ->shouldNotBeCalled();
+        $this->mockHub();
 
         $listener->onKernelRequest($masterRequestEvent);
     }
@@ -40,9 +30,7 @@ class SubRequestListenerTest extends BaseTestCase
 
         $subRequestEvent = $this->createRequestEvent(null, KernelInterface::SUB_REQUEST);
 
-        $this->currentHub->pushScope()
-            ->shouldBeCalledTimes(1)
-            ->willReturn(new Scope());
+        $this->mockHub(1);
 
         $listener->onKernelRequest($subRequestEvent);
     }
@@ -53,8 +41,7 @@ class SubRequestListenerTest extends BaseTestCase
 
         $masterRequestEvent = $this->createFinishRequestEvent(KernelInterface::MASTER_REQUEST);
 
-        $this->currentHub->popScope()
-            ->shouldNotBeCalled();
+        $this->mockHub();
 
         $listener->onKernelFinishRequest($masterRequestEvent);
     }
@@ -65,11 +52,23 @@ class SubRequestListenerTest extends BaseTestCase
 
         $subRequestEvent = $this->createFinishRequestEvent(KernelInterface::SUB_REQUEST);
 
-        $this->currentHub->popScope()
-            ->shouldBeCalledTimes(1)
-            ->willReturn(true);
+        $this->mockHub(0, 1);
 
         $listener->onKernelFinishRequest($subRequestEvent);
+    }
+
+    private function mockHub(int $pushCount = 0, int $popCount = 0): void
+    {
+        $currentHub = $this->prophesize(HubInterface::class);
+        SentrySdk::setCurrentHub($currentHub->reveal());
+
+        $currentHub->pushScope()
+            ->shouldBeCalledTimes($pushCount)
+            ->willReturn(new Scope());
+
+        $currentHub->popScope()
+            ->shouldBeCalledTimes($popCount)
+            ->willReturn(true);
     }
 
     private function createFinishRequestEvent(int $type): FinishRequestEvent
