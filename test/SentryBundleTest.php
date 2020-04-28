@@ -150,7 +150,7 @@ class SentryBundleTest extends TestCase
 
         $extension = new SentryExtension();
         $extension->load([], $containerBuilder);
-        
+
         SentrySdk::setCurrentHub(new Hub());
 
         return $containerBuilder;
