@@ -48,6 +48,10 @@ jobs:
         - travis_retry travis_wait composer install --no-interaction --prefer-dist
         - composer remove --dev friendsofphp/php-cs-fixer phpstan/phpstan phpstan/phpstan-phpunit jangregor/phpstan-prophecy --no-update
         - travis_retry travis_wait composer update --no-interaction --prefer-dist --prefer-stable --prefer-lowest
+    - name: Composer 2
+      before_install:
+        - composer self-update --snapshot
+        - composer require jean85/pretty-package-versions:^1.4 --no-interaction --no-update
     - stage: Code style and static analysis
       name: PHPStan
       script:

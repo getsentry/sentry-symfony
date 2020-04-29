@@ -139,7 +139,7 @@ class SentryBundleTest extends TestCase
         $this->assertNull($hub->getIntegration(ExceptionListenerIntegration::class));
     }
 
-    private function getContainer(array $configuration = []): ContainerBuilder
+    private function getContainer(): ContainerBuilder
     {
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->setParameter('kernel.cache_dir', 'var/cache');
@@ -149,7 +149,7 @@ class SentryBundleTest extends TestCase
         $containerBuilder->set('event_dispatcher', $this->prophesize(EventDispatcherInterface::class)->reveal());
 
         $extension = new SentryExtension();
-        $extension->load(['sentry' => $configuration], $containerBuilder);
+        $extension->load([], $containerBuilder);
 
         SentrySdk::setCurrentHub(new Hub());
 

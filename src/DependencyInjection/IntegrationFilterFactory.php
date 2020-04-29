@@ -8,6 +8,9 @@ use Sentry\Integration\IntegrationInterface;
 
 class IntegrationFilterFactory
 {
+    /**
+     * @param IntegrationInterface[] $integrationsFromConfiguration
+     */
     public static function create(array $integrationsFromConfiguration): callable
     {
         return function (array $integrations) use ($integrationsFromConfiguration) {

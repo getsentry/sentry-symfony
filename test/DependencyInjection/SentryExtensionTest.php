@@ -88,6 +88,7 @@ class SentryExtensionTest extends BaseTestCase
 
     /**
      * @dataProvider optionsValueProvider
+     * @param bool|int|float|string|string[] $value
      */
     public function testValuesArePassedToOptions(string $name, $value, string $getter = null): void
     {
