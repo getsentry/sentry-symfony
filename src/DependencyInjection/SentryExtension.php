@@ -174,7 +174,7 @@ class SentryExtension extends Extension
             return;
         }
 
-        $container->getDefinition(MessengerListener::class)->setArgument(1, $processedConfiguration['capture_soft_fails']);
+        $container->getDefinition(MessengerListener::class)->setArgument(0, $processedConfiguration['capture_soft_fails']);
     }
 
     /**
