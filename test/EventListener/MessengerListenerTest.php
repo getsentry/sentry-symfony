@@ -5,6 +5,7 @@ namespace Sentry\SentryBundle\Test\EventListener;
 use Sentry\FlushableClientInterface;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\Test\BaseTestCase;
+use Sentry\State\HubInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
@@ -13,13 +14,18 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 class MessengerListenerTest extends BaseTestCase
 {
+    /** @var \Prophecy\Prophecy\ObjectProphecy|FlushableClientInterface */
     private $client;
+    /** @var \Prophecy\Prophecy\ObjectProphecy|HubInterface */
+    private $hub;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->client = $this->prophesize(FlushableClientInterface::class);
+        $this->hub = $this->prophesize(HubInterface::class);
+        $this->hub->getClient()->willReturn($this->client);
     }
 
     public function testSoftFailsAreRecorded(): void
@@ -34,10 +40,10 @@ class MessengerListenerTest extends BaseTestCase
         $error = new \RuntimeException();
         $wrappedError = new HandlerFailedException($envelope, [$error]);
 
-        $this->client->captureException($error)->shouldBeCalled();
+        $this->hub->captureException($error)->shouldBeCalled();
         $this->client->flush()->shouldBeCalled();
 
-        $listener = new MessengerListener($this->client->reveal(), true);
+        $listener = new MessengerListener($this->hub->reveal(), true);
         $event = $this->getMessageFailedEvent($envelope, 'receiver', $wrappedError, true);
 
         $listener->onWorkerMessageFailed($event);
@@ -54,10 +60,10 @@ class MessengerListenerTest extends BaseTestCase
 
         $error = new \RuntimeException();
 
-        $this->client->captureException($error)->shouldBeCalled();
+        $this->hub->captureException($error)->shouldBeCalled();
         $this->client->flush()->shouldBeCalled();
 
-        $listener = new MessengerListener($this->client->reveal(), true);
+        $listener = new MessengerListener($this->hub->reveal(), true);
         $event = $this->getMessageFailedEvent($envelope, 'receiver', $error, false);
 
         $listener->onWorkerMessageFailed($event);
@@ -75,10 +81,10 @@ class MessengerListenerTest extends BaseTestCase
         $error = new \RuntimeException();
         $wrappedError = new HandlerFailedException($envelope, [$error]);
 
-        $this->client->captureException($error)->shouldBeCalled();
+        $this->hub->captureException($error)->shouldBeCalled();
         $this->client->flush()->shouldBeCalled();
 
-        $listener = new MessengerListener($this->client->reveal(), true);
+        $listener = new MessengerListener($this->hub->reveal(), true);
         $event = $this->getMessageFailedEvent($envelope, 'receiver', $wrappedError, false);
 
         $listener->onWorkerMessageFailed($event);
@@ -96,10 +102,10 @@ class MessengerListenerTest extends BaseTestCase
         $error = new \RuntimeException();
         $wrappedError = new HandlerFailedException($envelope, [$error]);
 
-        $this->client->captureException($error)->shouldNotBeCalled();
+        $this->hub->captureException($error)->shouldNotBeCalled();
         $this->client->flush()->shouldNotBeCalled();
 
-        $listener = new MessengerListener($this->client->reveal(), false);
+        $listener = new MessengerListener($this->hub->reveal(), false);
         $event = $this->getMessageFailedEvent($envelope, 'receiver', $wrappedError, true);
 
         $listener->onWorkerMessageFailed($event);
@@ -117,10 +123,10 @@ class MessengerListenerTest extends BaseTestCase
         $error = new \RuntimeException();
         $wrappedError = new HandlerFailedException($envelope, [$error]);
 
-        $this->client->captureException($error)->shouldBeCalled();
+        $this->hub->captureException($error)->shouldBeCalled();
         $this->client->flush()->shouldBeCalled();
 
-        $listener = new MessengerListener($this->client->reveal(), false);
+        $listener = new MessengerListener($this->hub->reveal(), false);
         $event = $this->getMessageFailedEvent($envelope, 'receiver', $wrappedError, false);
 
         $listener->onWorkerMessageFailed($event);
@@ -140,11 +146,11 @@ class MessengerListenerTest extends BaseTestCase
 
         $event = $this->getMessageFailedEvent($envelope, 'receiver', $wrappedError, false);
 
-        $this->client->captureException($error1)->shouldBeCalled();
-        $this->client->captureException($error2)->shouldBeCalled();
+        $this->hub->captureException($error1)->shouldBeCalled();
+        $this->hub->captureException($error2)->shouldBeCalled();
         $this->client->flush()->shouldBeCalled();
 
-        $listener = new MessengerListener($this->client->reveal());
+        $listener = new MessengerListener($this->hub->reveal());
         $listener->onWorkerMessageFailed($event);
     }
 
@@ -155,7 +161,7 @@ class MessengerListenerTest extends BaseTestCase
         }
 
         $this->client->flush()->shouldBeCalled();
-        $listener = new MessengerListener($this->client->reveal());
+        $listener = new MessengerListener($this->hub->reveal());
 
         $message = (object) ['foo' => 'bar'];
         $envelope = Envelope::wrap($message);

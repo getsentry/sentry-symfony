@@ -53,7 +53,7 @@
         </service>
 
         <service id="Sentry\SentryBundle\EventListener\MessengerListener" class="Sentry\SentryBundle\EventListener\MessengerListener" public="false">
-            <argument type="service" id="Sentry\FlushableClientInterface" />
+            <argument type="service" id="Sentry\State\HubInterface" />
             <tag name="kernel.event_listener" event="Symfony\Component\Messenger\Event\WorkerMessageFailedEvent" method="onWorkerMessageFailed" priority="%sentry.listener_priorities.worker_error%" />
             <tag name="kernel.event_listener" event="Symfony\Component\Messenger\Event\WorkerMessageHandledEvent" method="onWorkerMessageHandled" priority="%sentry.listener_priorities.worker_error%" />
         </service>

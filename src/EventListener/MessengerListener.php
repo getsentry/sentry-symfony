@@ -3,6 +3,7 @@
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\FlushableClientInterface;
+use Sentry\State\HubInterface;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
@@ -10,9 +11,9 @@ use Symfony\Component\Messenger\Exception\HandlerFailedException;
 final class MessengerListener
 {
     /**
-     * @var FlushableClientInterface
+     * @var HubInterface
      */
-    private $client;
+    private $hub;
 
     /**
      * @var bool
@@ -20,12 +21,12 @@ final class MessengerListener
     private $captureSoftFails;
 
     /**
-     * @param FlushableClientInterface $client
-     * @param bool                     $captureSoftFails
+     * @param HubInterface $hub
+     * @param bool         $captureSoftFails
      */
-    public function __construct(FlushableClientInterface $client, bool $captureSoftFails = true)
+    public function __construct(HubInterface $hub, bool $captureSoftFails = true)
     {
-        $this->client = $client;
+        $this->hub = $hub;
         $this->captureSoftFails = $captureSoftFails;
     }
 
@@ -43,10 +44,10 @@ final class MessengerListener
 
         if ($error instanceof HandlerFailedException) {
             foreach ($error->getNestedExceptions() as $nestedException) {
-                $this->client->captureException($nestedException);
+                $this->hub->captureException($nestedException);
             }
         } else {
-            $this->client->captureException($error);
+            $this->hub->captureException($error);
         }
 
         $this->flush();
@@ -64,6 +65,9 @@ final class MessengerListener
 
     private function flush(): void
     {
-        $this->client->flush();
+        $client = $this->hub->getClient();
+        if ($client instanceof FlushableClientInterface) {
+            $client->flush();
+        }
     }
 }
