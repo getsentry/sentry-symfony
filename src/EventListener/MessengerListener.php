@@ -51,7 +51,7 @@ final class MessengerListener
             $this->client->captureException($nestedException);
         }
 
-        $this->client->flush();
+        $this->flush();
     }
 
     /**
@@ -61,6 +61,11 @@ final class MessengerListener
     {
         // Flush normally happens at shutdown... which only happens in the worker if it is run with a lifecycle limit
         // such as --time=X or --limit=Y. Flush immediately in a background worker.
+        $this->flush();
+    }
+
+    private function flush(): void
+    {
         $this->client->flush();
     }
 }
