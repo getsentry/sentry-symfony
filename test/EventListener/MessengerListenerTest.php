@@ -114,12 +114,14 @@ class MessengerListenerTest extends BaseTestCase
 
         $message = (object) ['foo' => 'bar'];
         $envelope = Envelope::wrap($message);
-        $error = new \RuntimeException();
-        $wrappedError = new HandlerFailedException($envelope, [$error]);
+        $error1 = new \RuntimeException();
+        $error2 = new \RuntimeException();
+        $wrappedError = new HandlerFailedException($envelope, [$error1, $error2]);
 
         $event = $this->getMessageFailedEvent($envelope, 'receiver', $wrappedError, false);
 
-        $this->client->captureException($error)->shouldBeCalled();
+        $this->client->captureException($error1)->shouldBeCalled();
+        $this->client->captureException($error2)->shouldBeCalled();
         $this->client->flush()->shouldBeCalled();
 
         $listener = new MessengerListener($this->client->reveal());
