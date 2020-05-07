@@ -2,7 +2,8 @@
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\SentrySdk;
+use Sentry\FlushableClientInterface;
+use Sentry\State\HubInterface;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
@@ -10,15 +11,22 @@ use Symfony\Component\Messenger\Exception\HandlerFailedException;
 final class MessengerListener
 {
     /**
+     * @var HubInterface
+     */
+    private $hub;
+
+    /**
      * @var bool
      */
     private $captureSoftFails;
 
     /**
-     * @param bool $captureSoftFails
+     * @param HubInterface $hub
+     * @param bool         $captureSoftFails
      */
-    public function __construct(bool $captureSoftFails = true)
+    public function __construct(HubInterface $hub, bool $captureSoftFails = true)
     {
+        $this->hub = $hub;
         $this->captureSoftFails = $captureSoftFails;
     }
 
@@ -39,10 +47,10 @@ final class MessengerListener
             $error = $error->getPrevious();
         }
 
-        $hub = SentrySdk::getCurrentHub();
-        $hub->captureException($error);
-        if (method_exists($hub->getClient(), 'flush')) {
-            $hub->getClient()->flush();
+        $this->hub->captureException($error);
+        $client = $this->hub->getClient();
+        if ($client instanceof FlushableClientInterface) {
+            $client->flush();
         }
     }
 
@@ -53,9 +61,9 @@ final class MessengerListener
     {
         // Flush normally happens at shutdown... which only happens in the worker if it is run with a lifecycle limit
         // such as --time=X or --limit=Y. Flush immediately in a background worker.
-        $hub = SentrySdk::getCurrentHub();
-        if (method_exists($hub->getClient(), 'flush')) {
-            $hub->getClient()->flush();
+        $client = $this->hub->getClient();
+        if ($client instanceof FlushableClientInterface) {
+            $client->flush();
         }
     }
 }

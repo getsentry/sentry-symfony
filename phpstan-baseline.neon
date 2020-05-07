@@ -276,7 +276,7 @@ parameters:
 			path: test/EventListener/MessengerListenerTest.php
 
 		-
-			message: "#^Property Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\MessengerListenerTest\\:\\:\\$currentHub has no typehint specified\\.$#"
+			message: "#^Property Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\MessengerListenerTest\\:\\:\\$hub has no typehint specified\\.$#"
 			count: 1
 			path: test/EventListener/MessengerListenerTest.php
 
