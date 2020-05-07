@@ -60,7 +60,7 @@ class MessengerListenerTest extends BaseTestCase
 
         $error = new \RuntimeException();
 
-        $this->client->captureException($error)->shouldBeCalled();
+        $this->hub->captureException($error)->shouldBeCalled();
         $this->client->flush()->shouldBeCalled();
 
         $listener = new MessengerListener($this->hub->reveal(), true);
