@@ -41,13 +41,15 @@ final class MessengerListener
 
         $error = $event->getThrowable();
 
-        if ($error instanceof HandlerFailedException && null !== $error->getPrevious()) {
-            // Unwrap the messenger exception to get the original error
-            $error = $error->getPrevious();
+        if ($error instanceof HandlerFailedException) {
+            foreach ($error->getNestedExceptions() as $nestedException) {
+                $this->client->captureException($nestedException);
+            }
+        } else {
+            $this->client->captureException($error);
         }
 
-        $this->client->captureException($error);
-        $this->client->flush();
+        $this->flush();
     }
 
     /**
@@ -57,6 +59,11 @@ final class MessengerListener
     {
         // Flush normally happens at shutdown... which only happens in the worker if it is run with a lifecycle limit
         // such as --time=X or --limit=Y. Flush immediately in a background worker.
+        $this->flush();
+    }
+
+    private function flush(): void
+    {
         $this->client->flush();
     }
 }
