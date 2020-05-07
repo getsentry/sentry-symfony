@@ -28,15 +28,17 @@ class MessengerListenerTest extends BaseTestCase
             self::markTestSkipped('Messenger not supported in this environment.');
         }
 
+        $message = (object) ['foo' => 'bar'];
+        $envelope = Envelope::wrap($message);
+
         $error = new \RuntimeException();
+        $wrappedError = new HandlerFailedException($envelope, [$error]);
 
         $this->client->captureException($error)->shouldBeCalled();
         $this->client->flush()->shouldBeCalled();
 
         $listener = new MessengerListener($this->client->reveal(), true);
-        $message = (object) ['foo' => 'bar'];
-        $envelope = Envelope::wrap($message);
-        $event = $this->getMessageFailedEvent($envelope, 'receiver', $error, true);
+        $event = $this->getMessageFailedEvent($envelope, 'receiver', $wrappedError, true);
 
         $listener->onWorkerMessageFailed($event);
     }
@@ -47,15 +49,17 @@ class MessengerListenerTest extends BaseTestCase
             self::markTestSkipped('Messenger not supported in this environment.');
         }
 
+        $message = (object) ['foo' => 'bar'];
+        $envelope = Envelope::wrap($message);
+
         $error = new \RuntimeException();
+        $wrappedError = new HandlerFailedException($envelope, [$error]);
 
         $this->client->captureException($error)->shouldBeCalled();
         $this->client->flush()->shouldBeCalled();
 
         $listener = new MessengerListener($this->client->reveal(), true);
-        $message = (object) ['foo' => 'bar'];
-        $envelope = Envelope::wrap($message);
-        $event = $this->getMessageFailedEvent($envelope, 'receiver', $error, false);
+        $event = $this->getMessageFailedEvent($envelope, 'receiver', $wrappedError, false);
 
         $listener->onWorkerMessageFailed($event);
     }
@@ -66,15 +70,17 @@ class MessengerListenerTest extends BaseTestCase
             self::markTestSkipped('Messenger not supported in this environment.');
         }
 
+        $message = (object) ['foo' => 'bar'];
+        $envelope = Envelope::wrap($message);
+
         $error = new \RuntimeException();
+        $wrappedError = new HandlerFailedException($envelope, [$error]);
 
         $this->client->captureException($error)->shouldNotBeCalled();
         $this->client->flush()->shouldNotBeCalled();
 
         $listener = new MessengerListener($this->client->reveal(), false);
-        $message = (object) ['foo' => 'bar'];
-        $envelope = Envelope::wrap($message);
-        $event = $this->getMessageFailedEvent($envelope, 'receiver', $error, true);
+        $event = $this->getMessageFailedEvent($envelope, 'receiver', $wrappedError, true);
 
         $listener->onWorkerMessageFailed($event);
     }
@@ -85,15 +91,17 @@ class MessengerListenerTest extends BaseTestCase
             self::markTestSkipped('Messenger not supported in this environment.');
         }
 
+        $message = (object) ['foo' => 'bar'];
+        $envelope = Envelope::wrap($message);
+
         $error = new \RuntimeException();
+        $wrappedError = new HandlerFailedException($envelope, [$error]);
 
         $this->client->captureException($error)->shouldBeCalled();
         $this->client->flush()->shouldBeCalled();
 
         $listener = new MessengerListener($this->client->reveal(), false);
-        $message = (object) ['foo' => 'bar'];
-        $envelope = Envelope::wrap($message);
-        $event = $this->getMessageFailedEvent($envelope, 'receiver', $error, false);
+        $event = $this->getMessageFailedEvent($envelope, 'receiver', $wrappedError, false);
 
         $listener->onWorkerMessageFailed($event);
     }
