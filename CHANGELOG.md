@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+ - Capture events using the `Hub` in the `MessengerListener` to avoid loosing `Scope` data (#339, thanks to @sh41)
  - Capture multiple events if multiple exceptions are generated in a Messenger Worker context (#340, thanks to @emarref)
  - ...
 
