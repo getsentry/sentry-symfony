@@ -271,16 +271,6 @@ parameters:
 			path: test/EventListener/ConsoleListenerTest.php
 
 		-
-			message: "#^Property Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\MessengerListenerTest\\:\\:\\$client has no typehint specified\\.$#"
-			count: 1
-			path: test/EventListener/MessengerListenerTest.php
-
-		-
-			message: "#^Property Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\MessengerListenerTest\\:\\:\\$hub has no typehint specified\\.$#"
-			count: 1
-			path: test/EventListener/MessengerListenerTest.php
-
-		-
 			message: "#^Class Symfony\\\\Component\\\\Messenger\\\\Event\\\\WorkerMessageHandledEvent constructor invoked with 3 parameters, 2 required\\.$#"
 			count: 1
 			path: test/EventListener/MessengerListenerTest.php

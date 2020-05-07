@@ -14,7 +14,9 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 class MessengerListenerTest extends BaseTestCase
 {
+    /** @var \Prophecy\Prophecy\ObjectProphecy|FlushableClientInterface */
     private $client;
+    /** @var \Prophecy\Prophecy\ObjectProphecy|HubInterface */
     private $hub;
 
     protected function setUp(): void
