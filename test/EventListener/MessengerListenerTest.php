@@ -43,6 +43,26 @@ class MessengerListenerTest extends BaseTestCase
         $listener->onWorkerMessageFailed($event);
     }
 
+    public function testNonMessengerErrorsAreRecorded(): void
+    {
+        if (! $this->supportsMessenger()) {
+            self::markTestSkipped('Messenger not supported in this environment.');
+        }
+
+        $message = (object) ['foo' => 'bar'];
+        $envelope = Envelope::wrap($message);
+
+        $error = new \RuntimeException();
+
+        $this->client->captureException($error)->shouldBeCalled();
+        $this->client->flush()->shouldBeCalled();
+
+        $listener = new MessengerListener($this->client->reveal(), true);
+        $event = $this->getMessageFailedEvent($envelope, 'receiver', $error, false);
+
+        $listener->onWorkerMessageFailed($event);
+    }
+
     public function testHardFailsAreRecorded(): void
     {
         if (! $this->supportsMessenger()) {

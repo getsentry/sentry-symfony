@@ -41,14 +41,12 @@ final class MessengerListener
 
         $error = $event->getThrowable();
 
-        if (! $error instanceof HandlerFailedException) {
-            // All errors thrown during handling a command are captured by the HandleMessageMiddleware,
-            // and are raised inside a HandlerFailedException. Type check for safety.
-            return;
-        }
-
-        foreach ($error->getNestedExceptions() as $nestedException) {
-            $this->client->captureException($nestedException);
+        if ($error instanceof HandlerFailedException) {
+            foreach ($error->getNestedExceptions() as $nestedException) {
+                $this->client->captureException($nestedException);
+            }
+        } else {
+            $this->client->captureException($error);
         }
 
         $this->flush();
