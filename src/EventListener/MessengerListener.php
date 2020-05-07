@@ -41,7 +41,7 @@ final class MessengerListener
 
         $error = $event->getThrowable();
 
-        if (!$error instanceof HandlerFailedException) {
+        if (! $error instanceof HandlerFailedException) {
             // All errors thrown during handling a command are captured by the HandleMessageMiddleware,
             // and are raised inside a HandlerFailedException. Type check for safety.
             return;
