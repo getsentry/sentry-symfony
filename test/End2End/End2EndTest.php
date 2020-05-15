@@ -2,7 +2,6 @@
 
 namespace Sentry\SentryBundle\Test\End2End;
 
-use Sentry\SentryBundle\Test\End2End\App\Controller\MainController;
 use Sentry\SentryBundle\Test\End2End\App\Kernel;
 use Sentry\State\HubInterface;
 use Symfony\Bundle\FrameworkBundle\Client;
@@ -139,14 +138,11 @@ class End2EndTest extends WebTestCase
             $this->assertInstanceOf(Response::class, $response);
             $this->assertSame(500, $response->getStatusCode());
             $this->assertStringNotContainsString('not happen', $response->getContent() ?: '');
-        } catch (\Throwable $exception) {
-            if (! $exception instanceof \RuntimeException) {
-                throw $exception;
-            }
-
+        } catch (\RuntimeException $exception) {
             $this->assertStringContainsStringIgnoringCase('error', $exception->getMessage());
             $this->assertStringContainsStringIgnoringCase('contains 2 abstract methods', $exception->getMessage());
-            $this->assertStringContainsStringIgnoringCase(MainController::class, $exception->getMessage());
+            $this->assertStringContainsStringIgnoringCase('MainController.php', $exception->getMessage());
+            $this->assertStringContainsStringIgnoringCase('eval()\'d code on line', $exception->getMessage());
         }
 
         $this->assertEventCount(1);

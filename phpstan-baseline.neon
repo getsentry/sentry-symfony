@@ -236,11 +236,6 @@ parameters:
 			path: test/End2End/App/Kernel.php
 
 		-
-			message: "#^Class PHPUnit_Framework_TestCase not found\\.$#"
-			count: 1
-			path: test/End2End/End2EndTest.php
-
-		-
 			message: "#^Class Symfony\\\\Bundle\\\\FrameworkBundle\\\\Client not found\\.$#"
 			count: 1
 			path: test/End2End/End2EndTest.php
