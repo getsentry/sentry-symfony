@@ -12,9 +12,9 @@ Symfony integration for [Sentry](https://getsentry.com/).
 
 ## Benefits
 
-Use sentry-symfony for:
+Use `sentry-symfony` for:
 
- * A fast sentry setup
+ * A fast Sentry setup
  * Easy configuration in your Symfony app
  * Automatic wiring in your app. Each event has the following things added automatically to it:
    - user
@@ -174,7 +174,7 @@ The 3.0 version of the bundle uses the newest version (2.x) of the underlying Se
 
 The Sentry 2.0 SDK uses the Unified API, hence it uses the concept of `Scope`s to hold information about the current 
 state of the app, and attach it to any event that is reported. This bundle has three listeners (`RequestListener`, 
-`SubRequestListener` and `ConsoleListener`) that adds some easy default information. Since 3.5, a fourth listener has been added to handle the case of Messanger Workers: `MessengerListener`.
+`SubRequestListener` and `ConsoleListener`) that adds some easy default information. Since 3.5, a fourth listener has been added to handle the case of Messenger Workers: `MessengerListener`.
 
 Those listeners normally are executed with a priority of `1` to allow easier customization with custom listener, that by 
 default run with a lower priority of `0`.
@@ -197,6 +197,31 @@ final class SentryCustomizationCompilerPass implements CompilerPassInterface
             ->addMethodCall('setSerializer', [
                 new Reference(MyCustomSerializer::class),
             ]);
+    }
+}
+```
+
+#### Custom serializers
+
+The option class_serializers can be used to send customized objects serialization.
+```yml
+sentry:
+    options:
+        class_serializers:
+            YourValueObject: '@ValueObjectSerializer'
+```
+
+Several serializers can be added and the serializable check is done using **instanceof**. The serializer must implements the `__invoke` method returning an **array** with the information to send to sentry (class name is always sent).
+
+Serializer example:
+```php
+final class ValueObjectSerializer
+{
+    public function __invoke(YourValueObject $vo): array
+    {
+        return [
+            'value' => $vo->value()
+        ];
     }
 }
 ```

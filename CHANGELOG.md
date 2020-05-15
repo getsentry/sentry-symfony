@@ -5,9 +5,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
- - Enable back all error listeners from base SDK integration (#322)
- - Capture and flush messages in a Messenger Worker context (#326, thanks to @emarref)
  - ...
+
+## 4.0.0 (TBA)
+ - Enable back all error listeners from base SDK integration (#322)
+
+## 3.5.1 (2020-05-07)
+ - Capture events using the `Hub` in the `MessengerListener` to avoid loosing `Scope` data (#339, thanks to @sh41)
+ - Capture multiple events if multiple exceptions are generated in a Messenger Worker context (#340, thanks to @emarref)
+
+## 3.5.0 (2020-05-04)
+ - Capture and flush messages in a Messenger Worker context (#326, thanks to @emarref)
+ - Support Composer 2 (#335)
+ - Avoid issues with dependency lower bound, fix #331 (#335)
 
 ## 3.4.4 (2020-03-16)
  - Improve `release` option default value (#325)

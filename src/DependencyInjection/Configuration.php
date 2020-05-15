@@ -2,6 +2,7 @@
 
 namespace Sentry\SentryBundle\DependencyInjection;
 
+use Composer\InstalledVersions;
 use Jean85\PrettyVersions;
 use PackageVersions\Versions;
 use Sentry\Options;
@@ -111,10 +112,17 @@ class Configuration implements ConfigurationInterface
             ->defaultValue($defaultValues->getPrefixes())
             ->prototype('scalar');
         $optionsChildNodes->scalarNode('project_root');
-        $optionsChildNodes->scalarNode('release')
-            ->defaultValue(PrettyVersions::getVersion(Versions::ROOT_PACKAGE_NAME)->getPrettyVersion())
+
+        $releaseNode = $optionsChildNodes->scalarNode('release')
             ->info('Release version to be reported to sentry, see https://docs.sentry.io/workflow/releases/?platform=php')
             ->example('my/application@ff11bb');
+
+        if (class_exists(InstalledVersions::class)) {
+            $releaseNode->defaultValue(PrettyVersions::getVersion(InstalledVersions::getRootPackage()['name'])->getPrettyVersion());
+        } elseif (class_exists(Versions::class)) {
+            $releaseNode->defaultValue(PrettyVersions::getVersion(Versions::ROOT_PACKAGE_NAME)->getPrettyVersion());
+        }
+
         $optionsChildNodes->floatNode('sample_rate')
             ->min(0.0)
             ->max(1.0);

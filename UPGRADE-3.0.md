@@ -39,7 +39,7 @@ changed:
  * All services are now private; declare public aliases to access them if needed; you can still use the Sentry SDK global
    functions if you want just to capture messages manually without injecting Sentry services in your code
  * All services uses the full qualified name of their interfaces to name them
- * The `ExceptionListener` has been splitted and renamed: we now have a simpler `ErrorListener`, and three other listeners
+ * The `ExceptionListener` has been split and renamed: we now have a simpler `ErrorListener`, and three other listeners
  dedicated to enriching events of data (`RequestListener`, `SubRequestListener` and `ConsoleListener`)
  * The listeners are now `final`; append your own listeners to override their behavior
  * The `SentrySymfonyEvents::PRE_CAPTURE` and `SentrySymfonyEvents::SET_USER_CONTEXT` events are dropped; if you want to inject data into your events, write your own listener in a similar fashion to `RequestListener`, using the `Hub` and the `Scope` to handle how and when the new information is attached to events
@@ -53,7 +53,7 @@ This is a brief description of the services registered by this bundle:
  * `Sentry\State\HubInterface`: this is the central root of the SDK; it's the `Hub` that the bundle will instantiate at
  startup, and the current one too if you do not change it
  * `Sentry\ClientInterface`: this is the proper client; compared to the 1.x SDK version it's a lot more slimmed down,
- since a lot of the stuff has been splitted in separated components, so you probably will not interact with it as much as
+ since a lot of the stuff has been split in separated components, so you probably will not interact with it as much as
  in the past. You also have to remind you that the client is bound to the `Hub`, and has to be changed there if you want 
  to use a different one automatically in error reporting
  * `Sentry\ClientBuilderInterface`: this is the factory that builds the client; you can call its methods to change all
