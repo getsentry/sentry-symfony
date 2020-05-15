@@ -2,6 +2,10 @@ exception:
   path:  /exception
   defaults: { _controller: 'Sentry\SentryBundle\Test\End2End\App\Controller\MainController::exception' }
 
+fatal:
+  path:  /fatal
+  defaults: { _controller: 'Sentry\SentryBundle\Test\End2End\App\Controller\MainController::fatal' }
+
 200:
   path:  /200
   defaults: { _controller: 'Sentry\SentryBundle\Test\End2End\App\Controller\MainController::index' }
@@ -13,3 +17,7 @@ secured200:
 subrequest:
   path:  /subrequest
   defaults: { _controller: 'Sentry\SentryBundle\Test\End2End\App\Controller\MainController::subrequest' }
+
+notice:
+  path:  /notice
+  defaults: { _controller: 'Sentry\SentryBundle\Test\End2End\App\Controller\MainController::notice' }

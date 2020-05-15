@@ -8,8 +8,6 @@ use Prophecy\Argument;
 use Sentry\Breadcrumb;
 use Sentry\ClientInterface;
 use Sentry\Event;
-use Sentry\Integration\ErrorListenerIntegration;
-use Sentry\Integration\ExceptionListenerIntegration;
 use Sentry\Integration\IntegrationInterface;
 use Sentry\Monolog\Handler;
 use Sentry\Options;
@@ -339,14 +337,6 @@ class SentryExtensionTest extends BaseTestCase
 
         $found = false;
         foreach ($integrations as $integration) {
-            if ($integration instanceof ErrorListenerIntegration) {
-                $this->fail('Should not have ErrorListenerIntegration registered');
-            }
-
-            if ($integration instanceof ExceptionListenerIntegration) {
-                $this->fail('Should not have ExceptionListenerIntegration registered');
-            }
-
             if ($integration instanceof IntegrationMock) {
                 $found = true;
             }

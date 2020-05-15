@@ -127,7 +127,7 @@ class SentryBundleTest extends TestCase
         $this->assertArrayHasKey('console.command', $consoleListener->getTags());
     }
 
-    public function testIntegrationsListenersAreDisabledByDefault(): void
+    public function testIntegrationsListenersAreEnabled(): void
     {
         $container = $this->getContainer();
 
@@ -135,8 +135,8 @@ class SentryBundleTest extends TestCase
 
         $this->assertInstanceOf(HubInterface::class, $hub);
         $this->assertInstanceOf(IntegrationInterface::class, $hub->getIntegration(RequestIntegration::class));
-        $this->assertNull($hub->getIntegration(ErrorListenerIntegration::class));
-        $this->assertNull($hub->getIntegration(ExceptionListenerIntegration::class));
+        $this->assertNotNull($hub->getIntegration(ErrorListenerIntegration::class));
+        $this->assertNotNull($hub->getIntegration(ExceptionListenerIntegration::class));
     }
 
     private function getContainer(): ContainerBuilder

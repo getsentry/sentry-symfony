@@ -31,9 +31,23 @@ class MainController
         throw new \RuntimeException('This is an intentional error');
     }
 
+    public function fatal(): Response
+    {
+        $foo = eval("return new class() implements \Serializable {};");
+
+        return new Response('This response should not happen: ' . json_encode($foo));
+    }
+
     public function index(): Response
     {
         $this->sentry->captureMessage('Hello there');
+
+        return new Response('Hello there');
+    }
+
+    public function notice(): Response
+    {
+        @trigger_error('This is an intentional notice', E_USER_NOTICE);
 
         return new Response('Hello there');
     }

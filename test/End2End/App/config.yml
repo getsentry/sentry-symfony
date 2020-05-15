@@ -1,3 +1,8 @@
+sentry:
+  options:
+    capture_silenced_errors: true
+    error_types: E_ALL & ~E_USER_DEPRECATED
+
 framework:
   router: { resource: "%routing_config_dir%/routing.yml" }
   secret: secret
@@ -7,6 +12,17 @@ services:
   test.hub:
     alias: Sentry\State\HubInterface
     public: true
+
+  Sentry\ClientBuilderInterface:
+    class: Sentry\ClientBuilder
+    arguments: 
+      - '@Sentry\Options'
+    calls:
+      - method: setTransportFactory
+        arguments:
+          - '@Sentry\SentryBundle\Test\End2End\StubTransportFactory'
+
+  Sentry\SentryBundle\Test\End2End\StubTransportFactory: ~
 
   Sentry\SentryBundle\Test\End2End\App\Controller\MainController:
     autowire: true

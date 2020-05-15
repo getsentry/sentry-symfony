@@ -17,6 +17,7 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\ErrorHandler\Error\FatalError;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -128,18 +129,15 @@ class SentryExtension extends Extension
             }
         }
 
-        if (\array_key_exists('excluded_exceptions', $processedOptions) && $processedOptions['excluded_exceptions']) {
-            $ignoreOptions = [
-                'ignore_exceptions' => $processedOptions['excluded_exceptions'],
-            ];
+        // we ignore fatal errors wrapped by Symfony because they produce double event reporting
+        $processedOptions['excluded_exceptions'][] = FatalError::class;
+        $ignoreOptions = [
+            'ignore_exceptions' => $processedOptions['excluded_exceptions'],
+        ];
 
-            $integrations[] = new Definition(IgnoreErrorsIntegration::class, [$ignoreOptions]);
-        }
+        $integrations[] = new Definition(IgnoreErrorsIntegration::class, [$ignoreOptions]);
 
-        $integrationsCallable = new Definition('callable', [$integrations]);
-        $integrationsCallable->setFactory([IntegrationFilterFactory::class, 'create']);
-
-        $options->addMethodCall('setIntegrations', [$integrationsCallable]);
+        $options->addMethodCall('setIntegrations', [$integrations]);
     }
 
     /**
