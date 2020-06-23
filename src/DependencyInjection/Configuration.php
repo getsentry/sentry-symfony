@@ -116,12 +116,7 @@ class Configuration implements ConfigurationInterface
         $releaseNode = $optionsChildNodes->scalarNode('release')
             ->info('Release version to be reported to sentry, see https://docs.sentry.io/workflow/releases/?platform=php')
             ->example('my/application@ff11bb');
-
-        if (class_exists(InstalledVersions::class)) {
-            $releaseNode->defaultValue(PrettyVersions::getVersion(InstalledVersions::getRootPackage()['name'])->getPrettyVersion());
-        } elseif (class_exists(Versions::class)) {
-            $releaseNode->defaultValue(PrettyVersions::getVersion(Versions::ROOT_PACKAGE_NAME)->getPrettyVersion());
-        }
+        $releaseNode->defaultValue(PrettyVersions::getRootPackageVersion()->getPrettyVersion());
 
         $optionsChildNodes->floatNode('sample_rate')
             ->min(0.0)
