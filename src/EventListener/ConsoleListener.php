@@ -9,6 +9,7 @@ use Sentry\State\Scope;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\Console\Event\ConsoleTerminateEvent;
+use Symfony\Component\Console\Input\ArgvInput;
 
 /**
  * This listener handles all errors thrown while running a console command and
@@ -49,9 +50,14 @@ class ConsoleListener
     {
         $scope = $this->hub->pushScope();
         $command = $event->getCommand();
+        $input = $event->getInput();
 
         if (null !== $command && null !== $command->getName()) {
             $scope->setTag('console.command', $command->getName());
+        }
+
+        if ($input instanceof ArgvInput) {
+            $scope->setExtra('Full command', (string) $input);
         }
     }
 

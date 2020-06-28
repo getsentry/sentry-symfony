@@ -7,6 +7,7 @@
 - Add support for distributed tracing of SQL queries while using Doctrine DBAL (#426)
 - Add support for distributed tracing when running a console command (#455)
 - Add support for distributed tracing of cache pools (#)
+- Add `Full command` to extras for CLI commands, which includes command with all arguments
 - Deprecate the `Sentry\SentryBundle\EventListener\ConsoleCommandListener` class in favor of its parent class `Sentry\SentryBundle\EventListener\ConsoleListener` (#429)
 - Lower the required version of `symfony/psr-http-message-bridge` to allow installing it on a project that uses Symfony `3.4.x` components only (#480)
 
