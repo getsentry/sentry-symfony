@@ -51,7 +51,7 @@ class ConfigurationTest extends BaseTestCase
                 'console' => 1,
                 'request_error' => 128,
                 'console_error' => 128,
-                'worker_error' => 128,
+                'worker_error' => 99,
             ],
             'options' => [
                 'class_serializers' => [],
