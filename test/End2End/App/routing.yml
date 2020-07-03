@@ -13,3 +13,7 @@ secured200:
 subrequest:
   path:  /subrequest
   defaults: { _controller: 'Sentry\SentryBundle\Test\End2End\App\Controller\MainController::subrequest' }
+
+dispatch:
+  path: /dispatch-message
+  defaults: { _controller: 'Sentry\SentryBundle\Test\End2End\App\Controller\MessengerController::dispatchMessage' }

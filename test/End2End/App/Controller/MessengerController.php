@@ -1,0 +1,25 @@
+<?php
+
+namespace Sentry\SentryBundle\Test\End2End\App\Controller;
+
+use Sentry\SentryBundle\Test\End2End\App\Messenger\FooMessage;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
+
+class MessengerController
+{
+    /** @var MessageBusInterface */
+    private $messenger;
+
+    public function __construct(MessageBusInterface $messenger)
+    {
+        $this->messenger = $messenger;
+    }
+
+    public function dispatchMessage(): Response
+    {
+        $this->messenger->dispatch(new FooMessage());
+
+        return new Response('Success');
+    }
+}

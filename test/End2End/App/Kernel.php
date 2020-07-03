@@ -6,6 +6,7 @@ use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\HttpKernel\Kernel as SymfonyKernel;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class Kernel extends SymfonyKernel
 {
@@ -26,6 +27,10 @@ class Kernel extends SymfonyKernel
     public function registerContainerConfiguration(LoaderInterface $loader): void
     {
         $loader->load(__DIR__ . '/config.yml');
+
+        if (interface_exists(MessageBusInterface::class)) {
+            $loader->load(__DIR__ . '/messenger.yml');
+        }
     }
 
     protected function build(ContainerBuilder $container)
