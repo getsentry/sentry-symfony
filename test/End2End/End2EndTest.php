@@ -117,6 +117,26 @@ class End2EndTest extends WebTestCase
         $this->assertLastEventIdIsNotNull($client);
     }
 
+    public function testMessengerCaptureHardFailure(): void
+    {
+        if (! interface_exists(MessageBusInterface::class)) {
+            $this->markTestSkipped('Messenger missing');
+        }
+
+        $client = static::createClient();
+
+        $client->request('GET', '/dispatch-unrecoverable-message');
+
+        $response = $client->getResponse();
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
+
+        $this->consumeOneMessage($client->getKernel());
+
+        $this->assertLastEventIdIsNotNull($client);
+    }
+
     public function testMessengerCaptureSoftFailCanBeDisabled(): void
     {
         if (! interface_exists(MessageBusInterface::class)) {

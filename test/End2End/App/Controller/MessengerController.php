@@ -22,4 +22,11 @@ class MessengerController
 
         return new Response('Success');
     }
+
+    public function dispatchUnrecoverableMessage(): Response
+    {
+        $this->messenger->dispatch(new FooMessage(false));
+
+        return new Response('Success');
+    }
 }
