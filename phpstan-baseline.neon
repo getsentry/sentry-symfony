@@ -226,7 +226,7 @@ parameters:
 			path: test/DependencyInjection/SentryExtensionTest.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\End2End\\\\App\\\\Kernel\\:\\:build\\(\\) has no return typehint specified\\.$#"
+			message: "#^Comparison operation \"\\>\\=\" between 50102 and 40300 is always true\\.$#"
 			count: 1
 			path: test/End2End/App/Kernel.php
 
