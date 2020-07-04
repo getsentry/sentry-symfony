@@ -119,9 +119,7 @@ class End2EndTest extends WebTestCase
 
     public function testMessengerCaptureHardFailure(): void
     {
-        if (! interface_exists(MessageBusInterface::class)) {
-            $this->markTestSkipped('Messenger missing');
-        }
+        $this->skipIfMessengerIsMissing();
 
         $client = static::createClient();
 
@@ -139,9 +137,7 @@ class End2EndTest extends WebTestCase
 
     public function testMessengerCaptureSoftFailCanBeDisabled(): void
     {
-        if (! interface_exists(MessageBusInterface::class)) {
-            $this->markTestSkipped('Messenger missing');
-        }
+        $this->skipIfMessengerIsMissing();
 
         $client = static::createClient();
 
@@ -193,5 +189,12 @@ class End2EndTest extends WebTestCase
         $this->assertInstanceOf(HubInterface::class, $hub);
 
         $this->assertNull($hub->getLastEventId(), 'Some error was captured');
+    }
+
+    private function skipIfMessengerIsMissing(): void
+    {
+        if (! interface_exists(MessageBusInterface::class) || Kernel::VERSION_ID < 40300) {
+            $this->markTestSkipped('Messenger missing');
+        }
     }
 }
