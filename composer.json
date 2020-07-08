@@ -34,6 +34,7 @@
         "jangregor/phpstan-prophecy": "^0.6.2",
         "monolog/monolog": "^1.11||^2.0",
         "php-http/mock-client": "^1.0",
+        "phpspec/prophecy": "!=1.11.0",
         "phpstan/extension-installer": "^1.0",
         "phpstan/phpstan": "^0.12.19",
         "phpstan/phpstan-phpunit": "^0.12.8",

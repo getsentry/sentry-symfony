@@ -2,9 +2,7 @@
 
 namespace Sentry\SentryBundle\DependencyInjection;
 
-use Composer\InstalledVersions;
 use Jean85\PrettyVersions;
-use PackageVersions\Versions;
 use Sentry\Options;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;

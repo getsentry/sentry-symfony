@@ -226,11 +226,6 @@ parameters:
 			path: test/DependencyInjection/SentryExtensionTest.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\ClientMock\\:\\:captureEvent\\(\\) has parameter \\$payload with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: test/DependencyInjection/SentryExtensionTest.php
-
-		-
 			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\End2End\\\\App\\\\Kernel\\:\\:build\\(\\) has no return typehint specified\\.$#"
 			count: 1
 			path: test/End2End/App/Kernel.php
