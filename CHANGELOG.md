@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
  - Use `jean85/pretty-package-versions` `^1.5` to leverage the new `getRootPackageVersion` method (c8799ac)
- - Support for PHP preloading in Symfony (#354)
+ - Fix support for PHP preloading (#354, thanks to @annuh)
 
 ## 3.5.1 (2020-05-07)
  - Capture events using the `Hub` in the `MessengerListener` to avoid loosing `Scope` data (#339, thanks to @sh41)
