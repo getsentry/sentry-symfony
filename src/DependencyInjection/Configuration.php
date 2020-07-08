@@ -143,7 +143,7 @@ class Configuration implements ConfigurationInterface
         $listenerPriorities->scalarNode('console_error')
             ->defaultValue(128);
         $listenerPriorities->scalarNode('worker_error')
-            ->defaultValue(128);
+            ->defaultValue(99);
 
         // Monolog handler configuration
         $monologConfiguration = $rootNode->children()
