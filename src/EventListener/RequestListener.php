@@ -14,17 +14,17 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\User\UserInterface;
 
 if (Kernel::MAJOR_VERSION >= 5) {
-    if (!class_exists(RequestListenerRequestEvent::class, false)) {
+    if (! class_exists(RequestListenerRequestEvent::class, false)) {
         class_alias(RequestEvent::class, RequestListenerRequestEvent::class);
     }
-    if (!class_exists(RequestListenerControllerEvent::class, false)) {
+    if (! class_exists(RequestListenerControllerEvent::class, false)) {
         class_alias(ControllerEvent::class, RequestListenerControllerEvent::class);
     }
 } else {
-    if (!class_exists(RequestListenerRequestEvent::class, false)) {
+    if (! class_exists(RequestListenerRequestEvent::class, false)) {
         class_alias(GetResponseEvent::class, RequestListenerRequestEvent::class);
     }
-    if (!class_exists(RequestListenerControllerEvent::class, false)) {
+    if (! class_exists(RequestListenerControllerEvent::class, false)) {
         class_alias(FilterControllerEvent::class, RequestListenerControllerEvent::class);
     }
 }
