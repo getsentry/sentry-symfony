@@ -9,9 +9,13 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Kernel;
 
 if (Kernel::MAJOR_VERSION >= 5) {
-    class_alias(RequestEvent::class, SubRequestListenerRequestEvent::class);
+    if (! class_exists(SubRequestListenerRequestEvent::class, false)) {
+        class_alias(RequestEvent::class, SubRequestListenerRequestEvent::class);
+    }
 } else {
-    class_alias(GetResponseEvent::class, SubRequestListenerRequestEvent::class);
+    if (! class_exists(SubRequestListenerRequestEvent::class, false)) {
+        class_alias(GetResponseEvent::class, SubRequestListenerRequestEvent::class);
+    }
 }
 
 final class SubRequestListener
