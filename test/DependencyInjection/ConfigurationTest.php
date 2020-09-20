@@ -137,6 +137,13 @@ class ConfigurationTest extends BaseTestCase
         ];
     }
 
+    public function testReleaseValueEscaped(): void
+    {
+        $processed = $this->processConfiguration(['options' => ['release' => 'abc/123']]);
+
+        $this->assertContains(['options' => ['release' => 'abc-123']], $processed);
+    }
+
     /**
      * @dataProvider invalidValuesProvider
      */

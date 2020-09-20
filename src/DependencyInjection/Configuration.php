@@ -111,10 +111,14 @@ class Configuration implements ConfigurationInterface
             ->prototype('scalar');
         $optionsChildNodes->scalarNode('project_root');
 
-        $releaseNode = $optionsChildNodes->scalarNode('release')
+        $optionsChildNodes->scalarNode('release')
             ->info('Release version to be reported to sentry, see https://docs.sentry.io/workflow/releases/?platform=php')
-            ->example('my/application@ff11bb');
-        $releaseNode->defaultValue(PrettyVersions::getRootPackageVersion()->getPrettyVersion());
+            ->example('my-application@ff11bb')
+            ->beforeNormalization()
+            ->ifString()
+            ->then($this->escapeInvalidReleaseCharacters())
+            ->end()
+            ->defaultValue(PrettyVersions::getRootPackageVersion()->getPrettyVersion());
 
         $optionsChildNodes->floatNode('sample_rate')
             ->min(0.0)
@@ -175,6 +179,13 @@ class Configuration implements ConfigurationInterface
             ->defaultTrue();
 
         return $treeBuilder;
+    }
+
+    private function escapeInvalidReleaseCharacters(): \Closure
+    {
+        return static function ($str): string {
+            return str_replace('/', '-', $str);
+        };
     }
 
     private function getTrimClosure(): \Closure
