@@ -1,4 +1,4 @@
-name: Tests
+name: Continuous integration
 
 on:
   pull_request: null
@@ -16,13 +16,29 @@ jobs:
           - '7.3'
           - '7.2'
           - '7.1'
-    name: PHP ${{ matrix.php }} tests
+        include:
+          - php: '7.1'
+            SYMFONY_VERSION: 3.4.*
+            SYMFONY_DEPRECATIONS_HELPER: disabled
+          - php: '7.3'
+            SYMFONY_VERSION: 4.3.*
+          - php: '7.3'
+            SYMFONY_VERSION: 4.4.*
+          - php: '7.4'
+            SYMFONY_VERSION: 5.0.*
+
+    name: PHP ${{ matrix.php }} tests (${{ matrix.SYMFONY_VERSION }})
     steps:
       - uses: actions/checkout@v2
       - uses: shivammathur/setup-php@v1
         with:
           php-version: ${{ matrix.php }}
           coverage: xdebug
+      - run: |
+          sed -ri '/symfony\/(monolog-bundle|messenger)/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'$SYMFONY_VERSION'"/' composer.json;
+        if: matrix.SYMFONY_VERSION
+      - run: composer remove --dev symfony/messenger
+        if: matrix.SYMFONY_VERSION == '3.4.*'
       - run: composer install --no-progress --ansi
       - run: vendor/bin/phpunit --coverage-clover=coverage.xml
       - uses: codecov/codecov-action@v1
