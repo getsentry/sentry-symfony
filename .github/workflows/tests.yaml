@@ -17,22 +17,27 @@ jobs:
           - '7.2'
           - '7.1'
         include:
-          - php: '7.4'
-            symfony_version: 5.0.*
-          - php: '7.3'
+          - description: 'Symfony 5'
+            php: '7.4'
+            symfony_version: '5.*'
+          - description: 'Symfony 4.4'
+            php: '7.3'
             symfony_version: 4.4.*
-          - php: '7.3'
+          - description: 'Symfony 4.3'
+            php: '7.3'
             symfony_version: 4.3.*
-          - php: '7.1'
+          - description: 'Symfony 3.4'
+            php: '7.1'
             symfony_version: 3.4.*
             env:
               SYMFONY_DEPRECATIONS_HELPER: disabled
-          - php: '7.1'
+          - description: 'prefer lowest'
+            php: '7.1'
             composer_option: '--prefer-lowest'
             env:
               SYMFONY_DEPRECATIONS_HELPER: disabled
 
-    name: PHP ${{ matrix.php }} tests (${{ matrix.symfony_version }}${{ matrix.composer_option }})
+    name: PHP ${{ matrix.php }} tests (${{ matrix.description }})
     steps:
       - uses: actions/checkout@v2
       - uses: shivammathur/setup-php@v1
