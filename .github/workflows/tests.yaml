@@ -43,6 +43,10 @@ jobs:
     name: PHP ${{ matrix.php }} tests (${{ matrix.description }})
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: vendor
+          key: ${{ matrix.php }}-${{ matrix.symfony_constraint }}-${{ matrix.composer_option }} 
       - uses: shivammathur/setup-php@v1
         with:
           php-version: ${{ matrix.php }}
