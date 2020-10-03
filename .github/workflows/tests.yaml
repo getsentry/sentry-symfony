@@ -9,6 +9,7 @@ on:
 jobs:
   Tests:
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.allow_failure }}
     strategy:
       matrix:
         php:
@@ -16,8 +17,13 @@ jobs:
           - '7.3'
           - '7.2'
           - '7.1'
-        symfony_constraint: false
+        sentry_constraint: [false]
+        symfony_constraint: [false]
+        allow_failure: [false]
         include:
+          - description: 'sentry/sentry dev-develop'
+            sentry_constraint: 'dev-develop'
+            allow_failure: true
           - description: 'Symfony 4.4'
             php: '7.3'
             symfony_constraint: 4.4.*
@@ -45,6 +51,8 @@ jobs:
       - run: composer remove --dev symfony/messenger --no-update
         if: matrix.symfony_constraint == '3.4.*'
       - run: composer update --no-progress --ansi ${{ matrix.composer_option }}
+      - run: composer require sentry/sentry dev-develop
+        if: matrix.sentry_constraint == 'dev-develop'
       - run: vendor/bin/phpunit --coverage-clover=coverage.xml
       - uses: codecov/codecov-action@v1
         with:
