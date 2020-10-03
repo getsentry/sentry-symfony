@@ -44,7 +44,7 @@ jobs:
         if: matrix.symfony_version
       - run: composer remove --dev symfony/messenger
         if: matrix.symfony_version == '3.4.*'
-      - run: composer update --no-progress --ansi ${{ composer_option }}
+      - run: composer update --no-progress --ansi ${{ matrix.composer_option }}
       - run: vendor/bin/phpunit --coverage-clover=coverage.xml
       - uses: codecov/codecov-action@v1
         with:
