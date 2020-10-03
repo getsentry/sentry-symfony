@@ -22,6 +22,7 @@ jobs:
         experimental: [false]
         include:
           - description: 'sentry/sentry dev-develop'
+            php: '7.4'
             sentry_constraint: 'dev-develop'
             experimental: true
           - description: 'Symfony 4.4'
