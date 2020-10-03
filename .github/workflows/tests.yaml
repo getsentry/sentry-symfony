@@ -39,7 +39,7 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: xdebug
       - run: |
-          sed -ri '/symfony\/(monolog-bundle|messenger)/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'${{ matrix.symfony_version }}'"/' composer.json;
+          sed -ri '/symfony\/(monolog-bundle|phpunit-bridge|messenger)/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'${{ matrix.symfony_version }}'"/' composer.json;
         if: matrix.symfony_version
       - run: composer remove --dev symfony/messenger --no-update
         if: matrix.symfony_version == '3.4.*'
