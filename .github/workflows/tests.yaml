@@ -1,4 +1,4 @@
-name: Continuous integration
+name: CI
 
 on:
   pull_request: null
@@ -17,15 +17,9 @@ jobs:
           - '7.2'
           - '7.1'
         include:
-          - description: 'Symfony 5'
-            php: '7.4'
-            symfony_version: '5.*'
           - description: 'Symfony 4.4'
             php: '7.3'
             symfony_version: 4.4.*
-          - description: 'Symfony 4.3'
-            php: '7.3'
-            symfony_version: 4.3.*
           - description: 'Symfony 3.4'
             php: '7.1'
             symfony_version: 3.4.*
@@ -57,7 +51,7 @@ jobs:
           fail_ci_if_error: true
   PHP-CS-Fixer:
     runs-on: ubuntu-latest
-    name: Code style check
+    name: Code style
     steps:
       - uses: actions/checkout@v2
       - uses: shivammathur/setup-php@v1
@@ -67,7 +61,7 @@ jobs:
       - run: vendor/bin/php-cs-fixer fix --ansi --verbose --dry-run
   PHPStan:
     runs-on: ubuntu-latest
-    name: PHPStan analysis
+    name: PHPStan
     steps:
       - uses: actions/checkout@v2
       - uses: shivammathur/setup-php@v1
