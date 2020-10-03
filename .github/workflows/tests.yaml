@@ -18,16 +18,17 @@ jobs:
           - '7.1'
         include:
           - php: '7.1'
-            SYMFONY_VERSION: 3.4.*
-            SYMFONY_DEPRECATIONS_HELPER: disabled
+            symfony_version: 3.4.*
+            env:
+              SYMFONY_DEPRECATIONS_HELPER: disabled
           - php: '7.3'
-            SYMFONY_VERSION: 4.3.*
+            symfony_version: 4.3.*
           - php: '7.3'
-            SYMFONY_VERSION: 4.4.*
+            symfony_version: 4.4.*
           - php: '7.4'
-            SYMFONY_VERSION: 5.0.*
+            symfony_version: 5.0.*
 
-    name: PHP ${{ matrix.php }} tests (${{ matrix.SYMFONY_VERSION }})
+    name: PHP ${{ matrix.php }} tests (${{ matrix.symfony_version }})
     steps:
       - uses: actions/checkout@v2
       - uses: shivammathur/setup-php@v1
@@ -35,10 +36,10 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: xdebug
       - run: |
-          sed -ri '/symfony\/(monolog-bundle|messenger)/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'$SYMFONY_VERSION'"/' composer.json;
-        if: matrix.SYMFONY_VERSION
+          sed -ri '/symfony\/(monolog-bundle|messenger)/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'${{ matrix.symfony_version }}'"/' composer.json;
+        if: matrix.symfony_version
       - run: composer remove --dev symfony/messenger
-        if: matrix.SYMFONY_VERSION == '3.4.*'
+        if: matrix.symfony_version == '3.4.*'
       - run: composer install --no-progress --ansi
       - run: vendor/bin/phpunit --coverage-clover=coverage.xml
       - uses: codecov/codecov-action@v1
