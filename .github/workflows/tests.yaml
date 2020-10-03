@@ -9,7 +9,7 @@ on:
 jobs:
   Tests:
     runs-on: ubuntu-latest
-    continue-on-error: ${{ matrix.experimental }} == true
+    continue-on-error: ${{ matrix.experimental == true }}
     strategy:
       matrix:
         php:
