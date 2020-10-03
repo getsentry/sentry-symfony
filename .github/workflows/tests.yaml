@@ -9,7 +9,7 @@ on:
 jobs:
   Tests:
     runs-on: ubuntu-latest
-    continue-on-error: ${{ matrix.allow_failure }}
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
         php:
@@ -19,11 +19,11 @@ jobs:
           - '7.1'
         sentry_constraint: [false]
         symfony_constraint: [false]
-        allow_failure: [false]
+        experimental: [false]
         include:
           - description: 'sentry/sentry dev-develop'
             sentry_constraint: 'dev-develop'
-            allow_failure: true
+            experimental: true
           - description: 'Symfony 4.4'
             php: '7.3'
             symfony_constraint: 4.4.*
