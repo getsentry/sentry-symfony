@@ -44,7 +44,7 @@
         "symfony/framework-bundle": "^3.4||^4.0||^5.0",
         "symfony/messenger": "^4.3||^5.0",
         "symfony/monolog-bundle": "^3.4",
-        "symfony/phpunit-bridge": "^5.1",
+        "symfony/phpunit-bridge": "^5.1.6",
         "symfony/yaml": "^3.4||^4.0||^5.0"
     },
     "suggest": {
