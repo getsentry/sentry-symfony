@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
  - ...
 
+## 3.5.3 (2020-10-13)
+ - Refactors and fixes class aliases for more robustness (#315 #359, thanks to @guilliamxavier)
+
 ## 3.5.2 (2020-07-08)
  - Use `jean85/pretty-package-versions` `^1.5` to leverage the new `getRootPackageVersion` method (c8799ac)
  - Fix support for PHP preloading (#354, thanks to @annuh)
