@@ -60,7 +60,7 @@ class AppKernel extends Kernel
     {
         $bundles = [
             // ...
-            new Sentry\SentryBundle\SentryBundle(),
+            new \Sentry\SentryBundle\SentryBundle(),
         ];
 
         // ...
