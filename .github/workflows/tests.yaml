@@ -48,7 +48,7 @@ jobs:
         with:
           path: ~/.composer/cache/files
           key: ${{ matrix.php }}-${{ matrix.symfony_constraint }}-${{ matrix.composer_option }} 
-      - uses: shivammathur/setup-php@v1
+      - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           coverage: xdebug
@@ -74,7 +74,7 @@ jobs:
         with:
           path: ~/.composer/cache/files
           key: '7.4--'
-      - uses: shivammathur/setup-php@v1
+      - uses: shivammathur/setup-php@v2
         with:
           php-version: '7.4'
       - run: composer install --no-progress --ansi
@@ -88,7 +88,7 @@ jobs:
         with:
           path: ~/.composer/cache/files
           key: '7.4--'
-      - uses: shivammathur/setup-php@v1
+      - uses: shivammathur/setup-php@v2
         with:
           php-version: '7.4'
       - run: composer install --no-progress --ansi
