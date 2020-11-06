@@ -11,6 +11,7 @@ use Sentry\SentryBundle\Test\BaseTestCase;
 use Sentry\SentrySdk;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
+use Sentry\UserDataBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
@@ -81,10 +82,10 @@ class RequestListenerTest extends BaseTestCase
 
         $listener->onKernelRequest($event);
 
-        $expectedUserData = [
+        $expectedUserData = UserDataBag::createFromArray([
             'ip_address' => '1.2.3.4',
             'username' => 'john-doe',
-        ];
+        ]);
         $this->assertEquals($expectedUserData, $this->getUserContext($this->currentScope));
     }
 
@@ -112,7 +113,7 @@ class RequestListenerTest extends BaseTestCase
 
         $listener->onKernelRequest($event);
 
-        $this->assertEquals([], $this->getUserContext($this->currentScope));
+        $this->assertNull($this->getUserContext($this->currentScope));
     }
 
     public function testOnKernelRequestUserDataIsNotSetIfNoClientIsPresent(): void
@@ -132,7 +133,7 @@ class RequestListenerTest extends BaseTestCase
 
         $listener->onKernelRequest($event);
 
-        $this->assertEquals([], $this->getUserContext($this->currentScope));
+        $this->assertNull($this->getUserContext($this->currentScope));
     }
 
     public function testOnKernelRequestUsernameIsNotSetIfTokenStorageIsAbsent(): void
@@ -150,9 +151,9 @@ class RequestListenerTest extends BaseTestCase
 
         $listener->onKernelRequest($event);
 
-        $expectedUserData = [
+        $expectedUserData = UserDataBag::createFromArray([
             'ip_address' => '1.2.3.4',
-        ];
+        ]);
         $this->assertEquals($expectedUserData, $this->getUserContext($this->currentScope));
     }
 
@@ -175,9 +176,9 @@ class RequestListenerTest extends BaseTestCase
 
         $listener->onKernelRequest($event);
 
-        $expectedUserData = [
+        $expectedUserData = UserDataBag::createFromArray([
             'ip_address' => '1.2.3.4',
-        ];
+        ]);
         $this->assertEquals($expectedUserData, $this->getUserContext($this->currentScope));
     }
 
@@ -207,9 +208,9 @@ class RequestListenerTest extends BaseTestCase
 
         $listener->onKernelRequest($event);
 
-        $expectedUserData = [
+        $expectedUserData = UserDataBag::createFromArray([
             'ip_address' => '1.2.3.4',
-        ];
+        ]);
         $this->assertEquals($expectedUserData, $this->getUserContext($this->currentScope));
     }
 
@@ -232,9 +233,9 @@ class RequestListenerTest extends BaseTestCase
 
         $listener->onKernelRequest($event);
 
-        $expectedUserData = [
+        $expectedUserData = UserDataBag::createFromArray([
             'ip_address' => '1.2.3.4',
-        ];
+        ]);
         $this->assertEquals($expectedUserData, $this->getUserContext($this->currentScope));
     }
 
@@ -291,20 +292,20 @@ class RequestListenerTest extends BaseTestCase
         $this->assertEmpty($this->getTagsContext($this->currentScope));
     }
 
-    private function getUserContext(Scope $scope): array
+    private function getUserContext(Scope $scope): ?UserDataBag
     {
-        $event = new Event();
-        $scope->applyToEvent($event, []);
+        $event = Event::createEvent();
+        $scope->applyToEvent($event);
 
-        return $event->getUserContext()->toArray();
+        return $event->getUser();
     }
 
     private function getTagsContext(Scope $scope): array
     {
-        $event = new Event();
-        $scope->applyToEvent($event, []);
+        $event = Event::createEvent();
+        $scope->applyToEvent($event);
 
-        return $event->getTagsContext()->toArray();
+        return $event->getTags();
     }
 
     private function createControllerEvent(Request $request)

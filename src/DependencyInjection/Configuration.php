@@ -109,7 +109,6 @@ class Configuration implements ConfigurationInterface
         $optionsChildNodes->arrayNode('prefixes')
             ->defaultValue($defaultValues->getPrefixes())
             ->prototype('scalar');
-        $optionsChildNodes->scalarNode('project_root');
 
         $releaseNode = $optionsChildNodes->scalarNode('release')
             ->info('Release version to be reported to sentry, see https://docs.sentry.io/workflow/releases/?platform=php')

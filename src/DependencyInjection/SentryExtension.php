@@ -74,7 +74,6 @@ class SentryExtension extends Extension
             'max_breadcrumbs',
             'max_value_length',
             'prefixes',
-            'project_root',
             'release',
             'sample_rate',
             'send_attempts',

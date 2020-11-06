@@ -4,6 +4,7 @@ namespace Sentry\SentryBundle\Test\Command;
 
 use Prophecy\Argument;
 use Sentry\ClientInterface;
+use Sentry\EventId;
 use Sentry\Options;
 use Sentry\SentryBundle\Command\SentryTestCommand;
 use Sentry\SentryBundle\Test\BaseTestCase;
@@ -24,7 +25,7 @@ class SentryTestCommandTest extends BaseTestCase
         $hub = $this->prophesize(HubInterface::class);
         $hub->getClient()
             ->willReturn($client->reveal());
-        $lastEventId = 'abcdef0123456';
+        $lastEventId = EventId::generate();
         $hub->captureMessage(Argument::containingString('test'), Argument::cetera())
             ->shouldBeCalled()
             ->willReturn($lastEventId);

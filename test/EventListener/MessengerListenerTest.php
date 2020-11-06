@@ -2,7 +2,8 @@
 
 namespace Sentry\SentryBundle\Test\EventListener;
 
-use Sentry\FlushableClientInterface;
+use Sentry\ClientInterface;
+use Sentry\EventId;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\Test\BaseTestCase;
 use Sentry\State\HubInterface;
@@ -14,7 +15,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 class MessengerListenerTest extends BaseTestCase
 {
-    /** @var \Prophecy\Prophecy\ObjectProphecy|FlushableClientInterface */
+    /** @var \Prophecy\Prophecy\ObjectProphecy|ClientInterface */
     private $client;
     /** @var \Prophecy\Prophecy\ObjectProphecy|HubInterface */
     private $hub;
@@ -23,7 +24,7 @@ class MessengerListenerTest extends BaseTestCase
     {
         parent::setUp();
 
-        $this->client = $this->prophesize(FlushableClientInterface::class);
+        $this->client = $this->prophesize(ClientInterface::class);
         $this->hub = $this->prophesize(HubInterface::class);
         $this->hub->getClient()->willReturn($this->client);
     }
@@ -40,7 +41,7 @@ class MessengerListenerTest extends BaseTestCase
         $error = new \RuntimeException();
         $wrappedError = new HandlerFailedException($envelope, [$error]);
 
-        $this->hub->captureException($error)->shouldBeCalled();
+        $this->hub->captureException($error)->shouldBeCalled()->willReturn(EventId::generate());
         $this->client->flush()->shouldBeCalled();
 
         $listener = new MessengerListener($this->hub->reveal(), true);
@@ -60,7 +61,7 @@ class MessengerListenerTest extends BaseTestCase
 
         $error = new \RuntimeException();
 
-        $this->hub->captureException($error)->shouldBeCalled();
+        $this->hub->captureException($error)->shouldBeCalled()->willReturn(EventId::generate());
         $this->client->flush()->shouldBeCalled();
 
         $listener = new MessengerListener($this->hub->reveal(), true);
@@ -81,7 +82,7 @@ class MessengerListenerTest extends BaseTestCase
         $error = new \RuntimeException();
         $wrappedError = new HandlerFailedException($envelope, [$error]);
 
-        $this->hub->captureException($error)->shouldBeCalled();
+        $this->hub->captureException($error)->shouldBeCalled()->willReturn(EventId::generate());
         $this->client->flush()->shouldBeCalled();
 
         $listener = new MessengerListener($this->hub->reveal(), true);
@@ -123,7 +124,7 @@ class MessengerListenerTest extends BaseTestCase
         $error = new \RuntimeException();
         $wrappedError = new HandlerFailedException($envelope, [$error]);
 
-        $this->hub->captureException($error)->shouldBeCalled();
+        $this->hub->captureException($error)->shouldBeCalled()->willReturn(EventId::generate());
         $this->client->flush()->shouldBeCalled();
 
         $listener = new MessengerListener($this->hub->reveal(), false);
@@ -146,8 +147,8 @@ class MessengerListenerTest extends BaseTestCase
 
         $event = $this->getMessageFailedEvent($envelope, 'receiver', $wrappedError, false);
 
-        $this->hub->captureException($error1)->shouldBeCalled();
-        $this->hub->captureException($error2)->shouldBeCalled();
+        $this->hub->captureException($error1)->shouldBeCalled()->willReturn(EventId::generate());
+        $this->hub->captureException($error2)->shouldBeCalled()->willReturn(EventId::generate());
         $this->client->flush()->shouldBeCalled();
 
         $listener = new MessengerListener($this->hub->reveal());

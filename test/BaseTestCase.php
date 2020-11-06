@@ -13,7 +13,7 @@ abstract class BaseTestCase extends TestCase
 {
     protected function getSupportedOptionsCount(): int
     {
-        return 26;
+        return 25;
     }
 
     protected function createRequestEvent(Request $request = null, int $type = KernelInterface::MASTER_REQUEST)

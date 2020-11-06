@@ -226,11 +226,6 @@ parameters:
 			path: test/DependencyInjection/SentryExtensionTest.php
 
 		-
-			message: "#^Comparison operation \"\\>\\=\" between \\d+ and 40300 is always true\\.$#"
-			count: 1
-			path: test/End2End/App/Kernel.php
-
-		-
 			message: "#^Class Symfony\\\\Bundle\\\\FrameworkBundle\\\\Client not found\\.$#"
 			count: 1
 			path: test/End2End/End2EndTest.php
@@ -297,11 +292,6 @@ parameters:
 
 		-
 			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\RequestListenerTest\\:\\:userDataProvider\\(\\) return type has no value type specified in iterable type Generator\\.$#"
-			count: 1
-			path: test/EventListener/RequestListenerTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\RequestListenerTest\\:\\:getUserContext\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: test/EventListener/RequestListenerTest.php
 
