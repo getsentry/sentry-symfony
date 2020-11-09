@@ -226,6 +226,10 @@ parameters:
 			path: test/DependencyInjection/SentryExtensionTest.php
 
 		-
+			message: "#^Comparison operation \"\\>\\=\" between \\d+ and 40300 is always true\\.$#"
+			count: 1
+			path: test/End2End/App/Kernel.php
+		-
 			message: "#^Class Symfony\\\\Bundle\\\\FrameworkBundle\\\\Client not found\\.$#"
 			count: 1
 			path: test/End2End/End2EndTest.php
