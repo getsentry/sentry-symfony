@@ -9,10 +9,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class SentryTestCommand extends Command
 {
-    public function __construct()
-    {
-        parent::__construct('sentry:test');
-    }
+    protected static $defaultName = 'sentry:test';
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

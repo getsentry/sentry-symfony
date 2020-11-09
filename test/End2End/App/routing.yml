@@ -21,3 +21,11 @@ subrequest:
 notice:
   path:  /notice
   defaults: { _controller: 'Sentry\SentryBundle\Test\End2End\App\Controller\MainController::notice' }
+
+dispatch:
+  path: /dispatch-message
+  defaults: { _controller: 'Sentry\SentryBundle\Test\End2End\App\Controller\MessengerController::dispatchMessage' }
+
+dispatch_unrecoverable:
+  path: /dispatch-unrecoverable-message
+  defaults: { _controller: 'Sentry\SentryBundle\Test\End2End\App\Controller\MessengerController::dispatchUnrecoverableMessage' }

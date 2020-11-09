@@ -2,9 +2,7 @@
 
 namespace Sentry\SentryBundle\DependencyInjection;
 
-use Composer\InstalledVersions;
 use Jean85\PrettyVersions;
-use PackageVersions\Versions;
 use Sentry\Options;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -116,12 +114,7 @@ class Configuration implements ConfigurationInterface
         $releaseNode = $optionsChildNodes->scalarNode('release')
             ->info('Release version to be reported to sentry, see https://docs.sentry.io/workflow/releases/?platform=php')
             ->example('my/application@ff11bb');
-
-        if (class_exists(InstalledVersions::class)) {
-            $releaseNode->defaultValue(PrettyVersions::getVersion(InstalledVersions::getRootPackage()['name'])->getPrettyVersion());
-        } elseif (class_exists(Versions::class)) {
-            $releaseNode->defaultValue(PrettyVersions::getVersion(Versions::ROOT_PACKAGE_NAME)->getPrettyVersion());
-        }
+        $releaseNode->defaultValue(PrettyVersions::getRootPackageVersion()->getPrettyVersion());
 
         $optionsChildNodes->floatNode('sample_rate')
             ->min(0.0)
@@ -150,7 +143,7 @@ class Configuration implements ConfigurationInterface
         $listenerPriorities->scalarNode('console_error')
             ->defaultValue(128);
         $listenerPriorities->scalarNode('worker_error')
-            ->defaultValue(128);
+            ->defaultValue(99);
 
         // Monolog handler configuration
         $monologConfiguration = $rootNode->children()

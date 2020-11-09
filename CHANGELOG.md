@@ -5,7 +5,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
- - ...
+ - CLI commands registration policy changed to lazy load
+
+## 3.5.3 (2020-10-13)
+ - Refactors and fixes class aliases for more robustness (#315 #359, thanks to @guilliamxavier)
+
+## 3.5.2 (2020-07-08)
+ - Use `jean85/pretty-package-versions` `^1.5` to leverage the new `getRootPackageVersion` method (c8799ac)
+ - Fix support for PHP preloading (#354, thanks to @annuh)
+ - Fix `capture_soft_fails: false` option for the Messenger (#353) 
 
 ## 4.0.0 (TBA)
  - Enable back all error listeners from base SDK integration (#322)
