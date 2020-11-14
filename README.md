@@ -86,9 +86,6 @@ sentry:
     options:
         environment: '%kernel.environment%'
         release: '%env(VERSION)%' #your app version
-        excluded_exceptions: #exclude validation errors
-            - App\Exception\UserNotFoundException
-            - Symfony\Component\Security\Core\Exception\AccessDeniedException
 ```
 
 The parameter `options` allows to fine-tune exceptions. To discover more options, please refer to

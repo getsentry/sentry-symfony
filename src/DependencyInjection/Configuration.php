@@ -79,9 +79,6 @@ class Configuration implements ConfigurationInterface
                 '%kernel.project_dir%/vendor',
             ])
             ->prototype('scalar');
-        $optionsChildNodes->arrayNode('excluded_exceptions')
-            ->defaultValue([])
-            ->prototype('scalar');
         $optionsChildNodes->scalarNode('http_proxy');
         $optionsChildNodes->arrayNode('integrations')
             ->prototype('scalar')
@@ -125,6 +122,13 @@ class Configuration implements ConfigurationInterface
         $optionsChildNodes->arrayNode('tags')
             ->normalizeKeys(false)
             ->prototype('scalar');
+        $optionsChildNodes->scalarNode('traces_sampler')
+            ->validate()
+            ->ifTrue($this->isNotAValidCallback())
+            ->thenInvalid('Expecting callable or service reference, got %s');
+        $optionsChildNodes->floatNode('traces_sample_rate')
+            ->min(0.0)
+            ->max(1.0);
 
         // Bundle-specific configuration
         $listenerPriorities = $rootNode->children()

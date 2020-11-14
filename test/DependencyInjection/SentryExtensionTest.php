@@ -4,7 +4,6 @@ namespace Sentry\SentryBundle\Test\DependencyInjection;
 
 use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Promise\PromiseInterface;
-use Jean85\PrettyVersions;
 use Monolog\Logger as MonologLogger;
 use Prophecy\Argument;
 use Sentry\Breadcrumb;
@@ -116,7 +115,7 @@ class SentryExtensionTest extends BaseTestCase
 
     public function optionsValueProvider(): array
     {
-        $options = [
+        return [
             ['attach_stacktrace', true, 'shouldAttachStacktrace'],
             ['before_breadcrumb', __NAMESPACE__ . '\mockBeforeBreadcrumb', 'getBeforeBreadcrumbCallback'],
             ['before_send', __NAMESPACE__ . '\mockBeforeSend', 'getBeforeSendCallback'],
@@ -146,13 +145,10 @@ class SentryExtensionTest extends BaseTestCase
             ['send_default_pii', true, 'shouldSendDefaultPii'],
             ['server_name', 'server.example.com'],
             ['tags', ['tag-name' => 'tag-value']],
+            ['traces_sample_rate', 0.5],
+            ['traces_sampler', __NAMESPACE__ . '\mockTracesSampler'],
+            ['capture_silenced_errors', true, 'shouldCaptureSilencedErrors'],
         ];
-
-        if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
-            $options[] = ['capture_silenced_errors', true, 'shouldCaptureSilencedErrors'];
-        }
-
-        return $options;
     }
 
     public function testErrorTypesAreParsed(): void
@@ -507,6 +503,11 @@ function mockBeforeBreadcrumb(Breadcrumb $breadcrumb): ?Breadcrumb
 function mockClassSerializer($object)
 {
     return ['value' => 'serialized_class'];
+}
+
+function mockTracesSampler(): float
+{
+    return 0;
 }
 
 class CallbackMock
