@@ -129,6 +129,9 @@ class End2EndTest extends WebTestCase
         $this->assertEventCount(1);
     }
 
+    /**
+     * @requires PHP >= 7.3
+     */
     public function testGetFatal(): void
     {
         $client = static::createClient();
