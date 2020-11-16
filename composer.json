@@ -2,17 +2,8 @@
     "name": "sentry/sentry-symfony",
     "type": "symfony-bundle",
     "description": "Symfony integration for Sentry (http://getsentry.com)",
-    "keywords": [
-        "sentry",
-        "log",
-        "logging",
-        "error-monitoring",
-        "error-handler",
-        "crash-reporting",
-        "crash-reports",
-        "symfony"
-    ],
-    "homepage": "http://sentry.io",
+    "keywords": ["logging", "errors", "symfony", "sentry"],
+    "homepage": "http://getsentry.com",
     "license": "Apache-2.0",
     "authors": [
         {
@@ -24,6 +15,9 @@
             "email": "alessandro.lai85@gmail.com"
         }
     ],
+    "config": {
+        "sort-packages": true
+    },
     "require": {
         "php": "^7.1",
         "jean85/pretty-package-versions": "^1.5",
@@ -77,9 +71,6 @@
         "phpstan": [
             "vendor/bin/phpstan analyse"
         ]
-    },
-    "config": {
-        "sort-packages": true
     },
     "extra": {
         "branch-alias": {
