@@ -21,5 +21,7 @@
   services:
       Sentry\Integration\IgnoreErrorsIntegration:
           arguments:
-              - [RuntimeException]
+              $options:
+                  ignore_exceptions:
+                      - RuntimeException
   ```
