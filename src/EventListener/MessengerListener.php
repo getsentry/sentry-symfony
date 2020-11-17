@@ -2,7 +2,6 @@
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\FlushableClientInterface;
 use Sentry\State\HubInterface;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
@@ -66,7 +65,7 @@ final class MessengerListener
     private function flush(): void
     {
         $client = $this->hub->getClient();
-        if ($client instanceof FlushableClientInterface) {
+        if (null !== $client) {
             $client->flush();
         }
     }

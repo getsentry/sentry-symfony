@@ -2,12 +2,15 @@
 
 namespace Sentry\SentryBundle\Test\DependencyInjection;
 
-use Jean85\PrettyVersions;
+use GuzzleHttp\Promise\FulfilledPromise;
+use GuzzleHttp\Promise\PromiseInterface;
 use Monolog\Logger as MonologLogger;
 use Prophecy\Argument;
 use Sentry\Breadcrumb;
 use Sentry\ClientInterface;
 use Sentry\Event;
+use Sentry\EventHint;
+use Sentry\EventId;
 use Sentry\Integration\IntegrationInterface;
 use Sentry\Monolog\Handler;
 use Sentry\Options;
@@ -39,12 +42,7 @@ class SentryExtensionTest extends BaseTestCase
         $supportedOptions = \array_unique(\array_column($providerData, 0));
 
         // subtracted one is `integration`, which cannot be tested with the provider
-        $expectedCount = $this->getSupportedOptionsCount();
-        --$expectedCount; // excluded_exceptions is remapped to the new IgnoreErrorsIntegration
-
-        if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() === '2.0.0') {
-            --$expectedCount;
-        }
+        $expectedCount = $this->getSupportedOptionsCount() - 1;
 
         $this->assertCount(
             $expectedCount,
@@ -117,7 +115,7 @@ class SentryExtensionTest extends BaseTestCase
 
     public function optionsValueProvider(): array
     {
-        $options = [
+        return [
             ['attach_stacktrace', true, 'shouldAttachStacktrace'],
             ['before_breadcrumb', __NAMESPACE__ . '\mockBeforeBreadcrumb', 'getBeforeBreadcrumbCallback'],
             ['before_send', __NAMESPACE__ . '\mockBeforeSend', 'getBeforeSendCallback'],
@@ -141,20 +139,16 @@ class SentryExtensionTest extends BaseTestCase
             ['max_request_body_size', 'always'],
             ['max_value_length', 1000],
             ['prefixes', ['/some/path/prefix/']],
-            ['project_root', '/some/project/'],
             ['release', 'abc0123'],
             ['sample_rate', 0.5],
             ['send_attempts', 2],
             ['send_default_pii', true, 'shouldSendDefaultPii'],
             ['server_name', 'server.example.com'],
             ['tags', ['tag-name' => 'tag-value']],
+            ['traces_sample_rate', 0.5],
+            ['traces_sampler', __NAMESPACE__ . '\mockTracesSampler'],
+            ['capture_silenced_errors', true, 'shouldCaptureSilencedErrors'],
         ];
-
-        if (PrettyVersions::getVersion('sentry/sentry')->getPrettyVersion() !== '2.0.0') {
-            $options[] = ['capture_silenced_errors', true, 'shouldCaptureSilencedErrors'];
-        }
-
-        return $options;
     }
 
     public function testErrorTypesAreParsed(): void
@@ -333,6 +327,7 @@ class SentryExtensionTest extends BaseTestCase
         ]);
 
         $integrations = $this->getOptionsFrom($container)->getIntegrations();
+        $this->assertIsArray($integrations);
         $this->assertNotEmpty($integrations);
 
         $found = false;
@@ -510,6 +505,11 @@ function mockClassSerializer($object)
     return ['value' => 'serialized_class'];
 }
 
+function mockTracesSampler(): float
+{
+    return 0;
+}
+
 class CallbackMock
 {
     public static function callback()
@@ -537,22 +537,22 @@ class ClientMock implements ClientInterface
         return new Options();
     }
 
-    public function captureMessage(string $message, ?Severity $level = null, ?Scope $scope = null): ?string
+    public function captureMessage(string $message, ?Severity $level = null, ?Scope $scope = null): ?EventId
     {
         return null;
     }
 
-    public function captureException(\Throwable $exception, ?Scope $scope = null): ?string
+    public function captureException(\Throwable $exception, ?Scope $scope = null): ?EventId
     {
         return null;
     }
 
-    public function captureLastError(?Scope $scope = null): ?string
+    public function captureLastError(?Scope $scope = null): ?EventId
     {
         return null;
     }
 
-    public function captureEvent(array $payload, ?Scope $scope = null): ?string
+    public function captureEvent(Event $event, ?EventHint $hint = null, ?Scope $scope = null): ?EventId
     {
         return null;
     }
@@ -560,5 +560,10 @@ class ClientMock implements ClientInterface
     public function getIntegration(string $className): ?IntegrationInterface
     {
         return null;
+    }
+
+    public function flush(?int $timeout = null): PromiseInterface
+    {
+        return new FulfilledPromise(true);
     }
 }

@@ -17,10 +17,8 @@ class ConfigurationTest extends BaseTestCase
         $providerData = $this->optionValuesProvider();
         $supportedOptions = \array_unique(\array_column($providerData, 0));
 
-        $expectedCount = $this->getSupportedOptionsCount() + 1;
-
         $this->assertCount(
-            $expectedCount,
+            $this->getSupportedOptionsCount(),
             $supportedOptions,
             'Provider for configuration options mismatch: ' . PHP_EOL . print_r($supportedOptions, true)
         );
@@ -62,7 +60,6 @@ class ConfigurationTest extends BaseTestCase
                     '%kernel.project_dir%/vendor',
                 ],
                 'integrations' => [],
-                'excluded_exceptions' => [],
                 'prefixes' => $defaultSdkValues->getPrefixes(),
                 'tags' => [],
                 'release' => PrettyVersions::getVersion('sentry/sentry-symfony')->getPrettyVersion(),
@@ -116,7 +113,6 @@ class ConfigurationTest extends BaseTestCase
             ['in_app_include', ['some/path']],
             ['in_app_exclude', ['some/path']],
             ['integrations', []],
-            ['excluded_exceptions', [\Throwable::class]],
             ['logger', 'some-logger'],
             ['max_breadcrumbs', 15],
             ['max_request_body_size', 'none'],
@@ -125,7 +121,6 @@ class ConfigurationTest extends BaseTestCase
             ['max_request_body_size', 'always'],
             ['max_value_length', 1000],
             ['prefixes', ['some-string']],
-            ['project_root', '/some/dir'],
             ['release', 'abc0123'],
             ['sample_rate', 0],
             ['sample_rate', 1],
@@ -134,6 +129,9 @@ class ConfigurationTest extends BaseTestCase
             ['send_default_pii', true],
             ['server_name', 'server001.example.com'],
             ['tags', ['tag-name' => 'value']],
+            ['traces_sample_rate', 0],
+            ['traces_sample_rate', 1],
+            ['traces_sampler', 'count'],
         ];
     }
 
@@ -151,7 +149,7 @@ class ConfigurationTest extends BaseTestCase
 
     public function invalidValuesProvider(): array
     {
-        $values = [
+        return [
             ['attach_stacktrace', 'string'],
             ['before_breadcrumb', 'this is not a callable'],
             ['before_breadcrumb', [$this, 'is not a callable']],
@@ -161,6 +159,7 @@ class ConfigurationTest extends BaseTestCase
             ['before_send', [$this, 'is not a callable']],
             ['before_send', false],
             ['before_send', -1],
+            ['capture_silenced_errors', 'string'],
             ['class_serializers', 'this is not a callable'],
             ['class_serializers', [$this, 'is not a callable']],
             ['class_serializers', false],
@@ -173,7 +172,6 @@ class ConfigurationTest extends BaseTestCase
             ['enable_compression', 'string'],
             ['environment', ''],
             ['error_types', []],
-            ['excluded_exceptions', 'some-string'],
             ['http_proxy', []],
             ['in_app_include', 'some/single/path'],
             ['in_app_exclude', 'some/single/path'],
@@ -187,7 +185,6 @@ class ConfigurationTest extends BaseTestCase
             ['max_value_length', -1],
             ['max_value_length', []],
             ['prefixes', 'string'],
-            ['project_root', []],
             ['release', []],
             ['sample_rate', 1.1],
             ['sample_rate', -1],
@@ -197,9 +194,13 @@ class ConfigurationTest extends BaseTestCase
             ['send_default_pii', 'false'],
             ['server_name', []],
             ['tags', 'invalid-unmapped-tag'],
+            ['traces_sample_rate', -1],
+            ['traces_sample_rate', 1.1],
+            ['traces_sampler', 'this is not a callable'],
+            ['traces_sampler', [$this, 'is not a callable']],
+            ['traces_sampler', false],
+            ['traces_sampler', -1],
         ];
-
-        return $values;
     }
 
     private function processConfiguration(array $values): array

@@ -74,13 +74,14 @@ class SentryExtension extends Extension
             'max_breadcrumbs',
             'max_value_length',
             'prefixes',
-            'project_root',
             'release',
             'sample_rate',
             'send_attempts',
             'send_default_pii',
             'server_name',
             'tags',
+            'traces_sample_rate',
+            'traces_sampler',
         ];
 
         foreach ($mappableOptions as $optionName) {
@@ -130,9 +131,8 @@ class SentryExtension extends Extension
         }
 
         // we ignore fatal errors wrapped by Symfony because they produce double event reporting
-        $processedOptions['excluded_exceptions'][] = FatalError::class;
         $ignoreOptions = [
-            'ignore_exceptions' => $processedOptions['excluded_exceptions'],
+            'ignore_exceptions' => [FatalError::class],
         ];
 
         $integrations[] = new Definition(IgnoreErrorsIntegration::class, [$ignoreOptions]);

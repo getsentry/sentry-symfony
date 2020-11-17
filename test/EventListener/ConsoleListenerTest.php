@@ -79,10 +79,10 @@ class ConsoleListenerTest extends BaseTestCase
 
     private function getTagsContext(Scope $scope): array
     {
-        $event = new Event();
-        $scope->applyToEvent($event, []);
+        $event = Event::createEvent();
+        $scope->applyToEvent($event);
 
-        return $event->getTagsContext()->toArray();
+        return $event->getTags();
     }
 
     private function createConsoleCommandEvent(?Command $command): ConsoleCommandEvent

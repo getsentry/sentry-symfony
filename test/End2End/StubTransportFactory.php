@@ -2,8 +2,12 @@
 
 namespace Sentry\SentryBundle\Test\End2End;
 
+use GuzzleHttp\Promise\FulfilledPromise;
+use GuzzleHttp\Promise\PromiseInterface;
 use Sentry\Event;
 use Sentry\Options;
+use Sentry\Response;
+use Sentry\ResponseStatus;
 use Sentry\Transport\TransportFactoryInterface;
 use Sentry\Transport\TransportInterface;
 
@@ -14,14 +18,14 @@ class StubTransportFactory implements TransportFactoryInterface
     public function create(Options $options): TransportInterface
     {
         return new class() implements TransportInterface {
-            public function send(Event $event): ?string
+            public function send(Event $event): PromiseInterface
             {
                 touch(End2EndTest::SENT_EVENTS_LOG);
 
                 if ($event->getMessage()) {
                     $message = $event->getMessage();
                 } elseif ($event->getExceptions()) {
-                    $message = $event->getExceptions()[0]['value'];
+                    $message = $event->getExceptions()[0]->getValue();
                 } else {
                     $message = 'NO MESSAGE NOR EXCEPTIONS';
                 }
@@ -32,7 +36,12 @@ class StubTransportFactory implements TransportFactoryInterface
                     FILE_APPEND
                 );
 
-                return $event->getId();
+                return new FulfilledPromise(new Response(ResponseStatus::success(), $event));
+            }
+
+            public function close(?int $timeout = null): PromiseInterface
+            {
+                return new FulfilledPromise(true);
             }
         };
     }
