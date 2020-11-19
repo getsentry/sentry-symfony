@@ -37,7 +37,6 @@ jobs:
           - description: 'prefer lowest'
             php: '7.2'
             composer_option: '--prefer-lowest'
-            symfony_constraint: 3.4.*
             env:
               SYMFONY_DEPRECATIONS_HELPER: disabled
 
@@ -56,7 +55,7 @@ jobs:
           sed -ri '/symfony\/(monolog-bundle|phpunit-bridge|messenger)/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'${{ matrix.symfony_constraint }}'"/' composer.json;
         if: matrix.symfony_constraint
       - run: composer remove --dev symfony/messenger --no-update
-        if: matrix.symfony_constraint == '3.4.*'
+        if: matrix.symfony_constraint == '3.4.*' || matrix.composer_option == '--prefer-lowest'
       - run: composer update --no-progress --ansi ${{ matrix.composer_option }}
       - run: composer require sentry/sentry dev-develop
         if: matrix.sentry_constraint == 'dev-develop'
