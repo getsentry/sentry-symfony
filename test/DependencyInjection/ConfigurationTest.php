@@ -91,7 +91,9 @@ class ConfigurationTest extends BaseTestCase
         $input = ['options' => [$option => $value]];
         $processed = $this->processConfiguration($input);
 
-        $this->assertContains($input, $processed);
+        $this->assertArrayHasKey('options', $processed);
+        $this->assertArrayHasKey($option, $processed['options']);
+        $this->assertEquals($value, $processed['options'][$option]);
     }
 
     public function optionValuesProvider(): array
