@@ -10,18 +10,21 @@ use Symfony\Component\Messenger\Exception\HandlerFailedException;
 final class MessengerListener
 {
     /**
-     * @var HubInterface
+     * @var HubInterface The current hub
      */
     private $hub;
 
     /**
-     * @var bool
+     * @var bool Whether to capture errors thrown while processing a message that
+     *           will be retried
      */
     private $captureSoftFails;
 
     /**
-     * @param HubInterface $hub
-     * @param bool         $captureSoftFails
+     * @param HubInterface $hub The current hub
+     * @param bool         $captureSoftFails Whether to capture errors thrown
+     *                                       while processing a message that
+     *                                       will be retried
      */
     public function __construct(HubInterface $hub, bool $captureSoftFails = true)
     {
@@ -30,12 +33,13 @@ final class MessengerListener
     }
 
     /**
-     * @param WorkerMessageFailedEvent $event
+     * This method is called for each message that failed to be handled.
+     *
+     * @param WorkerMessageFailedEvent $event The event
      */
-    public function onWorkerMessageFailed(WorkerMessageFailedEvent $event): void
+    public function handleWorkerMessageFailedEvent(WorkerMessageFailedEvent $event): void
     {
         if (! $this->captureSoftFails && $event->willRetry()) {
-            // Don't capture soft fails. I.e. those that will be scheduled for retry.
             return;
         }
 
@@ -49,22 +53,25 @@ final class MessengerListener
             $this->hub->captureException($error);
         }
 
-        $this->flush();
+        $this->flushClient();
     }
 
     /**
-     * @param WorkerMessageHandledEvent $event
+     * This method is called for each handled message.
+     *
+     * @param WorkerMessageHandledEvent $event The event
      */
-    public function onWorkerMessageHandled(WorkerMessageHandledEvent $event): void
+    public function handleWorkerMessageHandledEvent(WorkerMessageHandledEvent $event): void
     {
         // Flush normally happens at shutdown... which only happens in the worker if it is run with a lifecycle limit
         // such as --time=X or --limit=Y. Flush immediately in a background worker.
-        $this->flush();
+        $this->flushClient();
     }
 
-    private function flush(): void
+    private function flushClient(): void
     {
         $client = $this->hub->getClient();
+
         if (null !== $client) {
             $client->flush();
         }

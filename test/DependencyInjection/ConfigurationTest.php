@@ -46,7 +46,6 @@ class ConfigurationTest extends BaseTestCase
             'listener_priorities' => [
                 'request' => 1,
                 'sub_request' => 1,
-                'console' => 1,
                 'request_error' => 128,
                 'console_error' => 128,
                 'worker_error' => 99,

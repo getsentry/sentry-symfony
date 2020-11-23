@@ -6,6 +6,7 @@
 - Added `options.traces_sampler` and `options.traces_sample_rate` configuration options (#385)
 - [BC BREAK] Removed the `options.project_root` configuration option. Instead of setting it, use a combination of `options.in_app_include` and `options.in_app_exclude` (#385)
 - [BC BREAK] Removed the `options.excluded_exceptions` configuration option. Instead of setting it, configure the `IgnoreErrorsIntegration` integration (#385)
+- [BC BREAK] Refactorized the `ConsoleCommandListener`, `ErrorListener`, `RequestListener` and `SubRequestListener` event listeners (#387)
 - CLI commands registration policy changed to lazy load
 
 ## 3.5.3 (2020-10-13)

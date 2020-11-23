@@ -2,81 +2,111 @@
 
 namespace Sentry\SentryBundle\Test\EventListener;
 
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
-use Sentry\SentryBundle\Test\BaseTestCase;
-use Sentry\SentrySdk;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
-use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\HttpKernel\Kernel;
 
-class SubRequestListenerTest extends BaseTestCase
+class SubRequestListenerTest extends TestCase
 {
-    public function testOnKernelRequestWithMasterRequest(): void
+    /**
+     * @var MockObject&HubInterface
+     */
+    private $hub;
+
+    /**
+     * @var SubRequestListener
+     */
+    private $listener;
+
+    protected function setUp(): void
     {
-        $listener = new SubRequestListener();
-
-        $masterRequestEvent = $this->createRequestEvent();
-
-        $this->mockHub();
-
-        $listener->onKernelRequest($masterRequestEvent);
+        $this->hub = $this->createMock(HubInterface::class);
+        $this->listener = new SubRequestListener($this->hub);
     }
 
-    public function testOnKernelRequestWithSubRequest(): void
+    /**
+     * @dataProvider handleKernelRequestEventWithSymfonyVersionAtLeast43DataProvider
+     * @dataProvider handleKernelRequestEventWithSymfonyVersionLowerThan43DataProvider
+     *
+     * @param RequestEvent|GetResponseEvent $event
+     */
+    public function testHandleKernelRequestEvent($event): void
     {
-        $listener = new SubRequestListener();
-
-        $subRequestEvent = $this->createRequestEvent(null, KernelInterface::SUB_REQUEST);
-
-        $this->mockHub(1);
-
-        $listener->onKernelRequest($subRequestEvent);
-    }
-
-    public function testOnKernelFinishRequestWithMasterRequest(): void
-    {
-        $listener = new SubRequestListener();
-
-        $masterRequestEvent = $this->createFinishRequestEvent(KernelInterface::MASTER_REQUEST);
-
-        $this->mockHub();
-
-        $listener->onKernelFinishRequest($masterRequestEvent);
-    }
-
-    public function testOnKernelFinishRequestWithSubRequest(): void
-    {
-        $listener = new SubRequestListener();
-
-        $subRequestEvent = $this->createFinishRequestEvent(KernelInterface::SUB_REQUEST);
-
-        $this->mockHub(0, 1);
-
-        $listener->onKernelFinishRequest($subRequestEvent);
-    }
-
-    private function mockHub(int $pushCount = 0, int $popCount = 0): void
-    {
-        $currentHub = $this->prophesize(HubInterface::class);
-        SentrySdk::setCurrentHub($currentHub->reveal());
-
-        $currentHub->pushScope()
-            ->shouldBeCalledTimes($pushCount)
+        $this->hub->expects($event->isMasterRequest() ? $this->never() : $this->once())
+            ->method('pushScope')
             ->willReturn(new Scope());
 
-        $currentHub->popScope()
-            ->shouldBeCalledTimes($popCount)
-            ->willReturn(true);
+        $this->listener->handleKernelRequestEvent($event);
     }
 
-    private function createFinishRequestEvent(int $type): FinishRequestEvent
+    /**
+     * @return \Generator<mixed>
+     */
+    public function handleKernelRequestEventWithSymfonyVersionAtLeast43DataProvider(): \Generator
     {
-        return new FinishRequestEvent(
-            $this->prophesize(KernelInterface::class)->reveal(),
-            $this->prophesize(Request::class)->reveal(),
-            $type
-        );
+        if (version_compare(Kernel::VERSION, '4.3.0', '<')) {
+            return;
+        }
+
+        yield [
+            new RequestEvent($this->createMock(HttpKernelInterface::class), new Request(), HttpKernelInterface::MASTER_REQUEST),
+        ];
+
+        yield [
+            new RequestEvent($this->createMock(HttpKernelInterface::class), new Request(), HttpKernelInterface::SUB_REQUEST),
+        ];
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function handleKernelRequestEventWithSymfonyVersionLowerThan43DataProvider(): \Generator
+    {
+        if (version_compare(Kernel::VERSION, '4.3.0', '>=')) {
+            return;
+        }
+
+        yield [
+            new GetResponseEvent($this->createMock(HttpKernelInterface::class), new Request(), HttpKernelInterface::MASTER_REQUEST),
+        ];
+
+        yield [
+            new GetResponseEvent($this->createMock(HttpKernelInterface::class), new Request(), HttpKernelInterface::SUB_REQUEST),
+        ];
+    }
+
+    /**
+     * @dataProvider handleKernelFinishRequestEventDataProvider
+     *
+     * @param FinishRequestEvent $event
+     */
+    public function testHandleKernelFinishRequestEvent($event): void
+    {
+        $this->hub->expects($event->isMasterRequest() ? $this->never() : $this->once())
+            ->method('popScope');
+
+        $this->listener->handleKernelFinishRequestEvent($event);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function handleKernelFinishRequestEventDataProvider(): \Generator
+    {
+        yield [
+            new FinishRequestEvent($this->createMock(HttpKernelInterface::class), new Request(), HttpKernelInterface::MASTER_REQUEST),
+        ];
+
+        yield [
+            new FinishRequestEvent($this->createMock(HttpKernelInterface::class), new Request(), HttpKernelInterface::SUB_REQUEST),
+        ];
     }
 }

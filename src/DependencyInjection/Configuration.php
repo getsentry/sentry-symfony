@@ -139,8 +139,6 @@ class Configuration implements ConfigurationInterface
             ->defaultValue(1);
         $listenerPriorities->scalarNode('sub_request')
             ->defaultValue(1);
-        $listenerPriorities->scalarNode('console')
-            ->defaultValue(1);
         $listenerPriorities->scalarNode('request_error')
             ->defaultValue(128);
         $listenerPriorities->scalarNode('console_error')

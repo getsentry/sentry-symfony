@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sentry\SentryBundle\Test;
 
 use PHPUnit\Framework\TestCase;
@@ -9,7 +11,7 @@ use Sentry\Integration\IntegrationInterface;
 use Sentry\Integration\RequestIntegration;
 use Sentry\SentryBundle\Command\SentryTestCommand;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
-use Sentry\SentryBundle\EventListener\ConsoleListener;
+use Sentry\SentryBundle\EventListener\ConsoleCommandListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
@@ -19,7 +21,6 @@ use Sentry\State\HubInterface;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 class SentryBundleTest extends TestCase
@@ -28,14 +29,14 @@ class SentryBundleTest extends TestCase
     {
         $container = $this->getContainer();
 
-        $consoleListener = $container->getDefinition(ConsoleListener::class);
+        $consoleListener = $container->getDefinition(ConsoleCommandListener::class);
 
         $expectedTag = [
             'kernel.event_listener' => [
                 [
-                    'event' => ConsoleEvents::COMMAND,
-                    'method' => 'onConsoleCommand',
-                    'priority' => '%sentry.listener_priorities.console%',
+                    'event' => ConsoleEvents::ERROR,
+                    'method' => 'handleConsoleErrorEvent',
+                    'priority' => '%sentry.listener_priorities.console_error%',
                 ],
             ],
         ];
@@ -53,12 +54,12 @@ class SentryBundleTest extends TestCase
             'kernel.event_listener' => [
                 [
                     'event' => KernelEvents::REQUEST,
-                    'method' => 'onKernelRequest',
+                    'method' => 'handleKernelRequestEvent',
                     'priority' => '%sentry.listener_priorities.request%',
                 ],
                 [
                     'event' => KernelEvents::CONTROLLER,
-                    'method' => 'onKernelController',
+                    'method' => 'handleKernelControllerEvent',
                     'priority' => '%sentry.listener_priorities.request%',
                 ],
             ],
@@ -77,12 +78,12 @@ class SentryBundleTest extends TestCase
             'kernel.event_listener' => [
                 [
                     'event' => KernelEvents::REQUEST,
-                    'method' => 'onKernelRequest',
+                    'method' => 'handleKernelRequestEvent',
                     'priority' => '%sentry.listener_priorities.sub_request%',
                 ],
                 [
                     'event' => KernelEvents::FINISH_REQUEST,
-                    'method' => 'onKernelFinishRequest',
+                    'method' => 'handleKernelFinishRequestEvent',
                     'priority' => '%sentry.listener_priorities.sub_request%',
                 ],
             ],
@@ -97,19 +98,11 @@ class SentryBundleTest extends TestCase
 
         $consoleListener = $container->getDefinition(ErrorListener::class);
 
-        $method = class_exists(ExceptionEvent::class) && method_exists(ExceptionEvent::class, 'getThrowable')
-            ? 'onException'
-            : 'onKernelException';
         $expectedTag = [
             'kernel.event_listener' => [
                 [
-                    'event' => ConsoleEvents::ERROR,
-                    'method' => 'onConsoleError',
-                    'priority' => '%sentry.listener_priorities.console_error%',
-                ],
-                [
                     'event' => KernelEvents::EXCEPTION,
-                    'method' => $method,
+                    'method' => 'handleExceptionEvent',
                     'priority' => '%sentry.listener_priorities.request_error%',
                 ],
             ],

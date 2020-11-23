@@ -1,9 +1,12 @@
+includes:
+    - phpstan-baseline.neon
+
 parameters:
     level: 7
     paths:
         - src/
         - test/
-    ignoreErrors:
-         - '/Symfony\\Component\\HttpKernel\\Event\\(GetResponse|FilterController)Event not found.$/'
-includes:
-    - phpstan-baseline.neon
+    excludes_analyse:
+        - test/End2End/App
+    dynamicConstantNames:
+        - Symfony\Component\HttpKernel\Kernel::VERSION
