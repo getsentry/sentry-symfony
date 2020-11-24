@@ -15,8 +15,6 @@
             <factory service="Sentry\ClientBuilderInterface" method="getClient" />
         </service>
 
-        <service id="Sentry\FlushableClientInterface" alias="Sentry\ClientInterface" public="false"/>
-
         <service id="Sentry\State\HubInterface" public="false">
             <factory class="Sentry\State\HubAdapter" method="getInstance" />
             <call method="bindClient">
@@ -27,6 +25,8 @@
         <service id="Sentry\SentryBundle\EventListener\ConsoleCommandListener" class="Sentry\SentryBundle\EventListener\ConsoleCommandListener" public="false">
             <argument type="service" id="Sentry\State\HubInterface" />
 
+            <tag name="kernel.event_listener" event="console.command" method="handleConsoleCommandEvent" priority="%sentry.listener_priorities.console%" />
+            <tag name="kernel.event_listener" event="console.terminate" method="handleConsoleTerminateEvent" priority="%sentry.listener_priorities.console_terminate%" />
             <tag name="kernel.event_listener" event="console.error" method="handleConsoleErrorEvent" priority="%sentry.listener_priorities.console_error%" />
         </service>
 

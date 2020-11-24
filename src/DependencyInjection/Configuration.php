@@ -137,12 +137,16 @@ class Configuration implements ConfigurationInterface
             ->children();
         $listenerPriorities->scalarNode('request')
             ->defaultValue(1);
+        $listenerPriorities->scalarNode('console')
+            ->defaultValue(128);
         $listenerPriorities->scalarNode('sub_request')
             ->defaultValue(1);
         $listenerPriorities->scalarNode('request_error')
             ->defaultValue(128);
         $listenerPriorities->scalarNode('console_error')
-            ->defaultValue(128);
+            ->defaultValue(-64);
+        $listenerPriorities->scalarNode('console_terminate')
+            ->defaultValue(-64);
         $listenerPriorities->scalarNode('worker_error')
             ->defaultValue(99);
 

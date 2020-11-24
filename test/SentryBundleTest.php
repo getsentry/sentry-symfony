@@ -34,6 +34,16 @@ class SentryBundleTest extends TestCase
         $expectedTag = [
             'kernel.event_listener' => [
                 [
+                    'event' => ConsoleEvents::COMMAND,
+                    'method' => 'handleConsoleCommandEvent',
+                    'priority' => '%sentry.listener_priorities.console%',
+                ],
+                [
+                    'event' => ConsoleEvents::TERMINATE,
+                    'method' => 'handleConsoleTerminateEvent',
+                    'priority' => '%sentry.listener_priorities.console_terminate%',
+                ],
+                [
                     'event' => ConsoleEvents::ERROR,
                     'method' => 'handleConsoleErrorEvent',
                     'priority' => '%sentry.listener_priorities.console_error%',
