@@ -1,0 +1,40 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:sentry="https://sentry.io/schema/dic/sentry-symfony"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services https://symfony.com/schema/dic/services/services-1.0.xsd
+                               https://sentry.io/schema/dic/sentry-symfony https://sentry.io/schema/dic/sentry-symfony/sentry-1.0.xsd">
+
+    <sentry:config dsn="https://examplePublicKey@o0.ingest.sentry.io/0">
+        <sentry:options default-integrations="false"
+                        send-attempts="1"
+                        sample-rate="1"
+                        traces-sample-rate="1"
+                        traces-sampler="App\Sentry\Tracing\TracesSampler"
+                        attach-stacktrace="true"
+                        context-lines="0"
+                        enable-compression="true"
+                        environment="development"
+                        logger="php"
+                        release="4.0.x-dev"
+                        server-name="localhost"
+                        before-send="App\Sentry\BeforeSendCallback"
+                        error-types="32767"
+                        max-breadcrumbs="1"
+                        before-breadcrumb="App\Sentry\BeforeBreadcrumbCallback"
+                        send-default-pii="true"
+                        max-value-length="255"
+                        http-proxy="proxy.example.com:8080"
+                        capture-silenced-errors="true"
+                        max-request-body-size="none"
+        >
+            <sentry:integration>App\Sentry\Integration\FooIntegration</sentry:integration>
+            <sentry:prefix>%kernel.project_dir%</sentry:prefix>
+            <sentry:tag name="context">development</sentry:tag>
+            <sentry:in-app-exclude>%kernel.cache_dir%</sentry:in-app-exclude>
+            <sentry:in-app-include>%kernel.project_dir%</sentry:in-app-include>
+            <sentry:class-serializer>App\Sentry\Serializer\FooClassSerializer</sentry:class-serializer>
+        </sentry:options>
+    </sentry:config>
+</container>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<xsd:schema xmlns="https://sentry.io/schema/dic/sentry-symfony"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="https://sentry.io/schema/dic/sentry-symfony"
+            elementFormDefault="qualified">
+
+    <xsd:element name="config" type="config" />
+
+    <xsd:complexType name="config">
+        <xsd:choice maxOccurs="unbounded">
+            <xsd:element name="options" type="options" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="messenger" type="messenger" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="listener-priorities" type="listeners-priorities" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="monolog" type="monolog" minOccurs="0" maxOccurs="1" />
+        </xsd:choice>
+
+        <xsd:attribute name="register-error-listener" type="xsd:boolean" />
+        <xsd:attribute name="dsn" type="xsd:string" />
+    </xsd:complexType>
+
+    <xsd:complexType name="options">
+        <xsd:sequence>
+            <xsd:element name="integration" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="prefix" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="tag" type="tag" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="in-app-exclude" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="in-app-include" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="class-serializer" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+
+        <xsd:attribute name="default-integrations" type="xsd:boolean" />
+        <xsd:attribute name="send-attempts" type="xsd:integer" />
+        <xsd:attribute name="sample-rate" type="xsd:float" />
+        <xsd:attribute name="traces-sample-rate" type="xsd:float" />
+        <xsd:attribute name="traces-sampler" type="xsd:string" />
+        <xsd:attribute name="attach-stacktrace" type="xsd:boolean" />
+        <xsd:attribute name="context-lines" type="xsd:integer" />
+        <xsd:attribute name="enable-compression" type="xsd:boolean" />
+        <xsd:attribute name="environment" type="xsd:string" />
+        <xsd:attribute name="logger" type="xsd:string" />
+        <xsd:attribute name="release" type="xsd:string" />
+        <xsd:attribute name="server-name" type="xsd:string" />
+        <xsd:attribute name="before-send" type="xsd:string" />
+        <xsd:attribute name="error-types" type="xsd:integer" />
+        <xsd:attribute name="max-breadcrumbs" type="xsd:integer" />
+        <xsd:attribute name="before-breadcrumb" type="xsd:string" />
+        <xsd:attribute name="send-default-pii" type="xsd:boolean" />
+        <xsd:attribute name="max-value-length" type="xsd:integer" />
+        <xsd:attribute name="http-proxy" type="xsd:string" />
+        <xsd:attribute name="capture-silenced-errors" type="xsd:boolean" />
+        <xsd:attribute name="max-request-body-size" type="max-request-body-size" />
+    </xsd:complexType>
+
+    <xsd:complexType name="tag">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:simpleType name="max-request-body-size">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none" />
+            <xsd:enumeration value="small" />
+            <xsd:enumeration value="medium" />
+            <xsd:enumeration value="always" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="messenger">
+        <xsd:attribute name="enabled" type="xsd:boolean" />
+    </xsd:complexType>
+
+    <xsd:complexType name="listeners-priorities">
+        <xsd:attribute name="request" type="xsd:integer" />
+        <xsd:attribute name="sub-request" type="xsd:integer" />
+        <xsd:attribute name="console" type="xsd:integer" />
+        <xsd:attribute name="request-error" type="xsd:integer" />
+        <xsd:attribute name="console-error" type="xsd:integer" />
+        <xsd:attribute name="console-terminate" type="xsd:integer" />
+        <xsd:attribute name="worker-error" type="xsd:integer" />
+    </xsd:complexType>
+
+    <xsd:complexType name="monolog">
+        <xsd:choice maxOccurs="unbounded">
+            <xsd:element name="error-handler" type="monolog-error-handler" minOccurs="0" maxOccurs="1" />
+        </xsd:choice>
+
+        <xsd:attribute name="level" type="monolog-level" />
+        <xsd:attribute name="bubble" type="xsd:boolean" />
+    </xsd:complexType>
+
+    <xsd:complexType name="monolog-error-handler">
+        <xsd:attribute name="enabled" type="xsd:boolean" />
+    </xsd:complexType>
+
+    <xsd:simpleType name="monolog-level">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="debug" />
+            <xsd:enumeration value="info" />
+            <xsd:enumeration value="notice" />
+            <xsd:enumeration value="warning" />
+            <xsd:enumeration value="error" />
+            <xsd:enumeration value="critical" />
+            <xsd:enumeration value="alert" />
+            <xsd:enumeration value="emergency" />
+
+            <xsd:enumeration value="DEBUG" />
+            <xsd:enumeration value="INFO" />
+            <xsd:enumeration value="NOTICE" />
+            <xsd:enumeration value="WARNING" />
+            <xsd:enumeration value="ERROR" />
+            <xsd:enumeration value="CRITICAL" />
+            <xsd:enumeration value="ALERT" />
+            <xsd:enumeration value="EMERGENCY" />
+
+            <xsd:enumeration value="100" />
+            <xsd:enumeration value="200" />
+            <xsd:enumeration value="250" />
+            <xsd:enumeration value="300" />
+            <xsd:enumeration value="400" />
+            <xsd:enumeration value="500" />
+            <xsd:enumeration value="550" />
+            <xsd:enumeration value="600" />
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:schema>

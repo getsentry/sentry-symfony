@@ -1,0 +1,3 @@
+sentry:
+    listener_priorities:
+        request_error: -128

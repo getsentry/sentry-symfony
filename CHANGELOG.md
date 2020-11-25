@@ -3,11 +3,13 @@
 ## Unreleased
 
 - Enable back all error listeners from base SDK integration (#322)
-- Added `options.traces_sampler` and `options.traces_sample_rate` configuration options (#385)
-- [BC BREAK] Removed the `options.project_root` configuration option. Instead of setting it, use a combination of `options.in_app_include` and `options.in_app_exclude` (#385)
-- [BC BREAK] Removed the `options.excluded_exceptions` configuration option. Instead of setting it, configure the `IgnoreErrorsIntegration` integration (#385)
-- [BC BREAK] Refactorized the `ConsoleCommandListener`, `ErrorListener`, `RequestListener` and `SubRequestListener` event listeners (#387)
-- CLI commands registration policy changed to lazy load
+- Add the `options.traces_sampler` and `options.traces_sample_rate` configuration options (#385)
+- [BC BREAK] Remove the `options.project_root` configuration option. Instead of setting it, use a combination of `options.in_app_include` and `options.in_app_exclude` (#385)
+- [BC BREAK] Remove the `options.excluded_exceptions` configuration option. Instead of setting it, configure the `IgnoreErrorsIntegration` integration (#385)
+- [BC BREAK] Refactorize the `ConsoleCommandListener`, `ErrorListener`, `RequestListener` and `SubRequestListener` event listeners (#387)
+- Register the CLI commands as lazy services (#373)
+- [BC BREAK] Refactorize the configuration tree and the definitions of some container services (#401)
+- Support the XML format for the bundle configuration (#401)
 
 ## 3.5.3 (2020-10-13)
 

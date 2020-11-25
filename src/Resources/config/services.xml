@@ -5,24 +5,30 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
-        <service id="Sentry\Options" class="Sentry\Options" public="false" />
+        <defaults public="false" />
 
-        <service id="Sentry\ClientBuilderInterface" class="Sentry\ClientBuilder" public="false">
-            <argument type="service" id="Sentry\Options" />
+        <service id="Sentry\ClientInterface" class="Sentry\Client">
+            <factory service="Sentry\ClientBuilder" method="getClient" />
+            <call method="setTransportFactory">
+                <argument type="service" id="Sentry\Transport\TransportFactoryInterface" />
+            </call>
         </service>
 
-        <service id="Sentry\ClientInterface" class="Sentry\Client" public="false">
-            <factory service="Sentry\ClientBuilderInterface" method="getClient" />
+        <service id="Sentry\Transport\TransportFactoryInterface" class="Sentry\SentryBundle\Transport\TransportFactory">
+            <argument type="service" id="Psr\Http\Message\UriFactoryInterface" on-invalid="ignore" />
+            <argument type="service" id="Psr\Http\Message\RequestFactoryInterface" on-invalid="ignore" />
+            <argument type="service" id="Psr\Http\Message\ResponseFactoryInterface" on-invalid="ignore" />
+            <argument type="service" id="Psr\Http\Message\StreamFactoryInterface" on-invalid="ignore" />
         </service>
 
-        <service id="Sentry\State\HubInterface" public="false">
+        <service id="Sentry\State\HubInterface">
             <factory class="Sentry\State\HubAdapter" method="getInstance" />
             <call method="bindClient">
                 <argument type="service" id="Sentry\ClientInterface" />
             </call>
         </service>
 
-        <service id="Sentry\SentryBundle\EventListener\ConsoleCommandListener" class="Sentry\SentryBundle\EventListener\ConsoleCommandListener" public="false">
+        <service id="Sentry\SentryBundle\EventListener\ConsoleCommandListener" class="Sentry\SentryBundle\EventListener\ConsoleCommandListener">
             <argument type="service" id="Sentry\State\HubInterface" />
 
             <tag name="kernel.event_listener" event="console.command" method="handleConsoleCommandEvent" priority="%sentry.listener_priorities.console%" />
@@ -30,13 +36,13 @@
             <tag name="kernel.event_listener" event="console.error" method="handleConsoleErrorEvent" priority="%sentry.listener_priorities.console_error%" />
         </service>
 
-        <service id="Sentry\SentryBundle\EventListener\ErrorListener" class="Sentry\SentryBundle\EventListener\ErrorListener" public="false">
+        <service id="Sentry\SentryBundle\EventListener\ErrorListener" class="Sentry\SentryBundle\EventListener\ErrorListener">
             <argument type="service" id="Sentry\State\HubInterface" />
 
             <tag name="kernel.event_listener" event="kernel.exception" method="handleExceptionEvent" priority="%sentry.listener_priorities.request_error%" />
         </service>
 
-        <service id="Sentry\SentryBundle\EventListener\RequestListener" class="Sentry\SentryBundle\EventListener\RequestListener" public="false">
+        <service id="Sentry\SentryBundle\EventListener\RequestListener" class="Sentry\SentryBundle\EventListener\RequestListener">
             <argument type="service" id="Sentry\State\HubInterface" />
             <argument type="service" id="security.token_storage" on-invalid="ignore" />
 
@@ -44,28 +50,26 @@
             <tag name="kernel.event_listener" event="kernel.controller" method="handleKernelControllerEvent" priority="%sentry.listener_priorities.request%" />
         </service>
 
-        <service id="Sentry\SentryBundle\EventListener\SubRequestListener" class="Sentry\SentryBundle\EventListener\SubRequestListener" public="false">
+        <service id="Sentry\SentryBundle\EventListener\SubRequestListener" class="Sentry\SentryBundle\EventListener\SubRequestListener">
             <argument type="service" id="Sentry\State\HubInterface" />
 
             <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" priority="%sentry.listener_priorities.sub_request%" />
             <tag name="kernel.event_listener" event="kernel.finish_request" method="handleKernelFinishRequestEvent" priority="%sentry.listener_priorities.sub_request%" />
         </service>
 
-        <service id="Sentry\SentryBundle\EventListener\MessengerListener" class="Sentry\SentryBundle\EventListener\MessengerListener" public="false">
+        <service id="Sentry\SentryBundle\EventListener\MessengerListener" class="Sentry\SentryBundle\EventListener\MessengerListener">
             <argument type="service" id="Sentry\State\HubInterface" />
 
             <tag name="kernel.event_listener" event="Symfony\Component\Messenger\Event\WorkerMessageFailedEvent" method="handleWorkerMessageFailedEvent" priority="%sentry.listener_priorities.worker_error%" />
             <tag name="kernel.event_listener" event="Symfony\Component\Messenger\Event\WorkerMessageHandledEvent" method="handleWorkerMessageHandledEvent" priority="%sentry.listener_priorities.worker_error%" />
         </service>
 
-        <service id="Sentry\SentryBundle\Command\SentryTestCommand" class="Sentry\SentryBundle\Command\SentryTestCommand" public="false">
+        <service id="Sentry\SentryBundle\Command\SentryTestCommand" class="Sentry\SentryBundle\Command\SentryTestCommand">
             <tag name="console.command" />
         </service>
 
-        <service id="Sentry\Monolog\Handler" class="Sentry\Monolog\Handler" public="false">
+        <service id="Sentry\Monolog\Handler" class="Sentry\Monolog\Handler">
             <argument type="service" id="Sentry\State\HubInterface" />
-            <argument key="$level" />
-            <argument key="$bubble" />
         </service>
     </services>
 </container>

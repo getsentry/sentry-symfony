@@ -10,7 +10,6 @@
 - Renamed the `RequestListener::onKernelController` method to `RequestListener::handleKernelControllerEvent`.
 - Renamed the `SubRequestListener::onKernelRequest` method to `SubRequestListener::handleKernelRequestEvent`.
 - Renamed the `SubRequestListener::onKernelFinishRequest` method to `SubRequestListener::handleKernelFinishRequestEvent`.
-- Removed the `sentry.listener_priorities.console` configuration option.
 - Removed the `Sentry\FlushableClientInterface` service alias.
 - Removed the `sentry.options.excluded_exceptions` configuration option.
 
@@ -40,3 +39,4 @@
 
 - Changed the default value of the `sentry.listener_priorities.console_error` configuration option to `-64`.
 - Changed the default value of the `sentry.listener_priorities.console` configuration option to `128`.
+- Removed the `Sentry\SentryBundle\ErrorTypesParser` class.

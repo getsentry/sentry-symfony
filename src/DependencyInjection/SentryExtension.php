@@ -1,199 +1,157 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sentry\SentryBundle\DependencyInjection;
 
+use Jean85\PrettyVersions;
 use Monolog\Logger as MonologLogger;
-use Sentry\ClientBuilderInterface;
-use Sentry\Integration\IgnoreErrorsIntegration;
+use Sentry\ClientInterface;
 use Sentry\Monolog\Handler;
 use Sentry\Options;
-use Sentry\SentryBundle\ErrorTypesParser;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
-use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Sentry\SentryBundle\SentryBundle;
+use Sentry\Serializer\RepresentationSerializer;
+use Sentry\Serializer\Serializer;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\ErrorHandler\Error\FatalError;
-use Symfony\Component\HttpKernel\DependencyInjection\Extension;
+use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
-/**
- * This is the class that loads and manages your bundle configuration
- *
- * To learn more see {@link http://symfony.com/doc/current/cookbook/bundles/extension.html}
- */
-class SentryExtension extends Extension
+final class SentryExtension extends ConfigurableExtension
 {
     /**
-     * {@inheritDoc}
-     *
-     * @throws InvalidConfigurationException
+     * {@inheritdoc}
      */
-    public function load(array $configs, ContainerBuilder $container): void
+    public function getXsdValidationBasePath()
     {
-        $configuration = new Configuration();
-        $processedConfiguration = $this->processConfiguration($configuration, $configs);
+        return __DIR__ . '/../Resources/config/schema';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getNamespace()
+    {
+        return 'https://sentry.io/schema/dic/sentry-symfony';
+    }
+
+    /**
+     * @param array<string, mixed> $mergedConfig
+     */
+    protected function loadInternal(array $mergedConfig, ContainerBuilder $container): void
+    {
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.xml');
 
-        $this->passConfigurationToOptions($container, $processedConfiguration);
-
-        $container->getDefinition(ClientBuilderInterface::class)
-            ->setConfigurator([ClientBuilderConfigurator::class, 'configure']);
-
-        foreach ($processedConfiguration['listener_priorities'] as $key => $priority) {
+        foreach ($mergedConfig['listener_priorities'] as $key => $priority) {
             $container->setParameter('sentry.listener_priorities.' . $key, $priority);
         }
 
-        $this->configureErrorListener($container, $processedConfiguration);
-        $this->configureMessengerListener($container, $processedConfiguration['messenger']);
-        $this->configureMonologHandler($container, $processedConfiguration['monolog']);
-    }
-
-    private function passConfigurationToOptions(ContainerBuilder $container, array $processedConfiguration): void
-    {
-        $options = $container->getDefinition(Options::class);
-        $options->addArgument(['dsn' => $processedConfiguration['dsn']]);
-
-        $processedOptions = $processedConfiguration['options'];
-        $mappableOptions = [
-            'attach_stacktrace',
-            'capture_silenced_errors',
-            'context_lines',
-            'default_integrations',
-            'enable_compression',
-            'environment',
-            'http_proxy',
-            'logger',
-            'max_request_body_size',
-            'max_breadcrumbs',
-            'max_value_length',
-            'prefixes',
-            'release',
-            'sample_rate',
-            'send_attempts',
-            'send_default_pii',
-            'server_name',
-            'tags',
-            'traces_sample_rate',
-            'traces_sampler',
-        ];
-
-        foreach ($mappableOptions as $optionName) {
-            if (\array_key_exists($optionName, $processedOptions)) {
-                $setterMethod = 'set' . str_replace('_', '', ucwords($optionName, '_'));
-                $options->addMethodCall($setterMethod, [$processedOptions[$optionName]]);
-            }
-        }
-
-        if (\array_key_exists('in_app_exclude', $processedOptions)) {
-            $options->addMethodCall('setInAppExcludedPaths', [$processedOptions['in_app_exclude']]);
-        }
-
-        if (\array_key_exists('in_app_include', $processedOptions)) {
-            $options->addMethodCall('setInAppIncludedPaths', [$processedOptions['in_app_include']]);
-        }
-
-        if (\array_key_exists('error_types', $processedOptions)) {
-            $parsedValue = (new ErrorTypesParser($processedOptions['error_types']))->parse();
-            $options->addMethodCall('setErrorTypes', [$parsedValue]);
-        }
-
-        if (\array_key_exists('before_send', $processedOptions)) {
-            $beforeSendCallable = $this->valueToCallable($processedOptions['before_send']);
-            $options->addMethodCall('setBeforeSendCallback', [$beforeSendCallable]);
-        }
-
-        if (\array_key_exists('before_breadcrumb', $processedOptions)) {
-            $beforeBreadcrumbCallable = $this->valueToCallable($processedOptions['before_breadcrumb']);
-            $options->addMethodCall('setBeforeBreadcrumbCallback', [$beforeBreadcrumbCallable]);
-        }
-
-        if (\array_key_exists('class_serializers', $processedOptions)) {
-            $classSerializers = [];
-            foreach ($processedOptions['class_serializers'] as $class => $serializer) {
-                $classSerializers[$class] = $this->valueToCallable($serializer);
-            }
-
-            $options->addMethodCall('setClassSerializers', [$classSerializers]);
-        }
-
-        $integrations = [];
-        if (\array_key_exists('integrations', $processedOptions)) {
-            foreach ($processedOptions['integrations'] as $integrationName) {
-                $integrations[] = new Reference(substr($integrationName, 1));
-            }
-        }
-
-        // we ignore fatal errors wrapped by Symfony because they produce double event reporting
-        $ignoreOptions = [
-            'ignore_exceptions' => [FatalError::class],
-        ];
-
-        $integrations[] = new Definition(IgnoreErrorsIntegration::class, [$ignoreOptions]);
-
-        $options->addMethodCall('setIntegrations', [$integrations]);
+        $this->registerConfiguration($container, $mergedConfig);
+        $this->registerErrorListenerConfiguration($container, $mergedConfig);
+        $this->registerMessengerListenerConfiguration($container, $mergedConfig['messenger']);
+        $this->registerMonologHandlerConfiguration($container, $mergedConfig['monolog']);
     }
 
     /**
-     * @param string|Reference $value
-     * @return string|Reference
+     * @param array<string, mixed> $config
      */
-    private function valueToCallable($value)
+    private function registerConfiguration(ContainerBuilder $container, array $config): void
     {
-        if (is_string($value) && 0 === strpos($value, '@')) {
-            return new Reference(substr($value, 1));
+        $options = $config['options'];
+
+        if (isset($config['dsn'])) {
+            $options['dsn'] = $config['dsn'];
         }
 
-        return $value;
+        if (isset($options['traces_sampler'])) {
+            $options['traces_sampler'] = new Reference($options['traces_sampler']);
+        }
+
+        if (isset($options['before_send'])) {
+            $options['before_send'] = new Reference($options['before_send']);
+        }
+
+        if (isset($options['before_breadcrumb'])) {
+            $options['before_breadcrumb'] = new Reference($options['before_breadcrumb']);
+        }
+
+        if (isset($options['class_serializers'])) {
+            $options['class_serializers'] = array_map(static function (string $value): Reference {
+                return new Reference($value);
+            }, $options['class_serializers']);
+        }
+
+        if (isset($options['integrations'])) {
+            $options['integrations'] = array_map(static function (string $value): Reference {
+                return new Reference($value);
+            }, $options['integrations']);
+        }
+
+        $clientOptionsDefinition = $container->register('sentry.client.options', Options::class);
+        $clientOptionsDefinition->setArgument(0, $options);
+
+        $serializerDefinition = $container->register('sentry.client.serializer', Serializer::class);
+        $serializerDefinition->setArgument(0, new Reference('sentry.client.options'));
+
+        $representationSerializerDefinition = $container->register('sentry.client.representation_serializer', RepresentationSerializer::class);
+        $representationSerializerDefinition->setArgument(0, new Reference('sentry.client.options'));
+
+        $clientDefinition = $container->getDefinition(ClientInterface::class);
+        $clientDefinition->setArgument(0, new Reference('sentry.client.options'));
+        $clientDefinition->addMethodCall('setSerializer', [new Reference('sentry.client.serializer')]);
+        $clientDefinition->addMethodCall('setRepresentationSerializer', [new Reference('sentry.client.representation_serializer')]);
+        $clientDefinition->addMethodCall('setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER]);
+        $clientDefinition->addMethodCall('setSdkVersion', [PrettyVersions::getRootPackageVersion()->getPrettyVersion()]);
     }
 
-    private function configureErrorListener(ContainerBuilder $container, array $processedConfiguration): void
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function registerErrorListenerConfiguration(ContainerBuilder $container, array $config): void
     {
-        if (! $processedConfiguration['register_error_listener']) {
+        if (! $config['register_error_listener']) {
             $container->removeDefinition(ErrorListener::class);
         }
     }
 
-    private function configureMessengerListener(ContainerBuilder $container, array $processedConfiguration): void
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function registerMessengerListenerConfiguration(ContainerBuilder $container, array $config): void
     {
-        if (! $processedConfiguration['enabled']) {
+        if (! $config['enabled']) {
             $container->removeDefinition(MessengerListener::class);
 
             return;
         }
 
-        $container->getDefinition(MessengerListener::class)->setArgument(1, $processedConfiguration['capture_soft_fails']);
+        $container->getDefinition(MessengerListener::class)->setArgument(1, $config['capture_soft_fails']);
     }
 
-    private function configureMonologHandler(ContainerBuilder $container, array $monologConfiguration): void
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function registerMonologHandlerConfiguration(ContainerBuilder $container, array $config): void
     {
-        $errorHandler = $monologConfiguration['error_handler'];
+        $errorHandlerConfig = $config['error_handler'];
 
-        if (! $errorHandler['enabled']) {
+        if (! $errorHandlerConfig['enabled']) {
             $container->removeDefinition(Handler::class);
 
             return;
         }
 
-        if (! class_exists(Handler::class)) {
-            throw new LogicException(
-                sprintf('Missing class "%s", try updating "sentry/sentry" to a newer version.', Handler::class)
-            );
-        }
-
         if (! class_exists(MonologLogger::class)) {
-            throw new LogicException(
-                sprintf('You cannot use "%s" if Monolog is not available.', Handler::class)
-            );
+            throw new LogicException(sprintf('To use the "%s" class you need to require the "monolog/monolog" package.', Handler::class));
         }
 
-        $container
-            ->getDefinition(Handler::class)
-            ->replaceArgument('$level', MonologLogger::toMonologLevel($errorHandler['level']))
-            ->replaceArgument('$bubble', $errorHandler['bubble']);
+        $definition = $container->getDefinition(Handler::class);
+        $definition->setArgument(0, MonologLogger::toMonologLevel($config['level']));
+        $definition->setArgument(1, $config['bubble']);
     }
 }

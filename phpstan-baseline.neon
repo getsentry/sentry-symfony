@@ -6,29 +6,9 @@ parameters:
 			path: src/DependencyInjection/Configuration.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:load\\(\\) has parameter \\$configs with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/DependencyInjection/SentryExtension.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:passConfigurationToOptions\\(\\) has parameter \\$processedConfiguration with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/DependencyInjection/SentryExtension.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:configureErrorListener\\(\\) has parameter \\$processedConfiguration with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/DependencyInjection/SentryExtension.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:configureMessengerListener\\(\\) has parameter \\$processedConfiguration with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/DependencyInjection/SentryExtension.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:configureMonologHandler\\(\\) has parameter \\$monologConfiguration with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/DependencyInjection/SentryExtension.php
+			message: "#^Call to an undefined method Symfony\\\\Component\\\\Config\\\\Definition\\\\Builder\\\\NodeParentInterface\\:\\:arrayNode\\(\\)\\.$#"
+			count: 2
+			path: src/DependencyInjection/Configuration.php
 
 		-
 			message: "#^If condition is always true\\.$#"
@@ -146,81 +126,6 @@ parameters:
 			path: test/DependencyInjection/ConfigurationTest.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:optionsValueProvider\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: test/DependencyInjection/SentryExtensionTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:test_that_it_ignores_empty_dsn_value\\(\\) has parameter \\$emptyDsn with no typehint specified\\.$#"
-			count: 1
-			path: test/DependencyInjection/SentryExtensionTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:emptyDsnValueProvider\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: test/DependencyInjection/SentryExtensionTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:testBeforeSendUsingScalarCallable\\(\\) has parameter \\$scalarCallable with no typehint specified\\.$#"
-			count: 1
-			path: test/DependencyInjection/SentryExtensionTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:testBeforeBreadcrumbUsingScalarCallable\\(\\) has parameter \\$scalarCallable with no typehint specified\\.$#"
-			count: 1
-			path: test/DependencyInjection/SentryExtensionTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:scalarCallableDataProvider\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: test/DependencyInjection/SentryExtensionTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:errorListenerConfigurationProvider\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: test/DependencyInjection/SentryExtensionTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:testMonologHandlerIsConfiguredProperly\\(\\) has parameter \\$level with no typehint specified\\.$#"
-			count: 1
-			path: test/DependencyInjection/SentryExtensionTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:monologHandlerConfigurationProvider\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: test/DependencyInjection/SentryExtensionTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\SentryExtensionTest\\:\\:getContainer\\(\\) has parameter \\$configuration with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: test/DependencyInjection/SentryExtensionTest.php
-
-		-
-			message: "#^Function Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\mockBeforeSend\\(\\) never returns Sentry\\\\Event so it can be removed from the return typehint\\.$#"
-			count: 1
-			path: test/DependencyInjection/SentryExtensionTest.php
-
-		-
-			message: "#^Function Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\mockBeforeBreadcrumb\\(\\) never returns Sentry\\\\Breadcrumb so it can be removed from the return typehint\\.$#"
-			count: 1
-			path: test/DependencyInjection/SentryExtensionTest.php
-
-		-
-			message: "#^Function Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\mockClassSerializer\\(\\) has no return typehint specified\\.$#"
-			count: 1
-			path: test/DependencyInjection/SentryExtensionTest.php
-
-		-
-			message: "#^Function Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\mockClassSerializer\\(\\) has parameter \\$object with no typehint specified\\.$#"
-			count: 1
-			path: test/DependencyInjection/SentryExtensionTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\CallbackMock\\:\\:callback\\(\\) has no return typehint specified\\.$#"
-			count: 1
-			path: test/DependencyInjection/SentryExtensionTest.php
-
-		-
 			message: "#^Class Symfony\\\\Bundle\\\\FrameworkBundle\\\\Client not found\\.$#"
 			count: 1
 			path: test/End2End/End2EndTest.php
@@ -229,16 +134,6 @@ parameters:
 			message: "#^Comparison operation \"\\<\" between 50108 and 40300 is always false\\.$#"
 			count: 1
 			path: test/End2End/End2EndTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\ErrorTypesParserTest\\:\\:testParse\\(\\) has parameter \\$value with no typehint specified\\.$#"
-			count: 1
-			path: test/ErrorTypesParserTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\ErrorTypesParserTest\\:\\:parsableValueProvider\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: test/ErrorTypesParserTest.php
 
 		-
 			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\ErrorListenerTest\\:\\:testHandleExceptionEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent\\.$#"
