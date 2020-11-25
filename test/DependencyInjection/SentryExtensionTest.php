@@ -64,7 +64,6 @@ class SentryExtensionTest extends BaseTestCase
 
         $this->assertSame(1, $container->getParameter('sentry.listener_priorities.request'));
         $this->assertSame(1, $container->getParameter('sentry.listener_priorities.sub_request'));
-        $this->assertSame(1, $container->getParameter('sentry.listener_priorities.console'));
     }
 
     public function testListenerPriorities(): void
@@ -74,12 +73,16 @@ class SentryExtensionTest extends BaseTestCase
                 'request' => 123,
                 'sub_request' => 456,
                 'console' => 789,
+                'console_error' => 10,
+                'console_terminate' => 20,
             ],
         ]);
 
         $this->assertSame(123, $container->getParameter('sentry.listener_priorities.request'));
         $this->assertSame(456, $container->getParameter('sentry.listener_priorities.sub_request'));
         $this->assertSame(789, $container->getParameter('sentry.listener_priorities.console'));
+        $this->assertSame(10, $container->getParameter('sentry.listener_priorities.console_error'));
+        $this->assertSame(20, $container->getParameter('sentry.listener_priorities.console_terminate'));
     }
 
     /**

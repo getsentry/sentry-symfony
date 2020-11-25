@@ -45,10 +45,11 @@ class ConfigurationTest extends BaseTestCase
             'register_error_listener' => true,
             'listener_priorities' => [
                 'request' => 1,
+                'console' => 128,
                 'sub_request' => 1,
-                'console' => 1,
                 'request_error' => 128,
-                'console_error' => 128,
+                'console_error' => -64,
+                'console_terminate' => -64,
                 'worker_error' => 99,
             ],
             'options' => [

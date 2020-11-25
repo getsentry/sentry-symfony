@@ -2,10 +2,11 @@
 
 namespace Sentry\SentryBundle\Test\EventListener;
 
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
-use Sentry\EventId;
 use Sentry\SentryBundle\EventListener\MessengerListener;
-use Sentry\SentryBundle\Test\BaseTestCase;
+use Sentry\SentryBundle\Test\End2End\App\Kernel;
 use Sentry\State\HubInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
@@ -13,181 +14,158 @@ use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\MessageBusInterface;
 
-class MessengerListenerTest extends BaseTestCase
+final class MessengerListenerTest extends TestCase
 {
-    /** @var \Prophecy\Prophecy\ObjectProphecy<ClientInterface> */
+    /**
+     * @var MockObject&ClientInterface
+     */
     private $client;
-    /** @var \Prophecy\Prophecy\ObjectProphecy<HubInterface> */
+
+    /**
+     * @var MockObject&HubInterface
+     */
     private $hub;
 
     protected function setUp(): void
     {
-        parent::setUp();
-
-        $this->client = $this->prophesize(ClientInterface::class);
-        $this->hub = $this->prophesize(HubInterface::class);
-        $this->hub->getClient()->willReturn($this->client);
-    }
-
-    public function testSoftFailsAreRecorded(): void
-    {
-        if (! $this->supportsMessenger()) {
-            self::markTestSkipped('Messenger not supported in this environment.');
-        }
-
-        $message = (object) ['foo' => 'bar'];
-        $envelope = Envelope::wrap($message);
-
-        $error = new \RuntimeException();
-        $wrappedError = new HandlerFailedException($envelope, [$error]);
-
-        $this->hub->captureException($error)->shouldBeCalled()->willReturn(EventId::generate());
-        $this->client->flush()->shouldBeCalled();
-
-        $listener = new MessengerListener($this->hub->reveal(), true);
-        $event = $this->getMessageFailedEvent($envelope, 'receiver', $wrappedError, true);
-
-        $listener->onWorkerMessageFailed($event);
-    }
-
-    public function testNonMessengerErrorsAreRecorded(): void
-    {
-        if (! $this->supportsMessenger()) {
-            self::markTestSkipped('Messenger not supported in this environment.');
-        }
-
-        $message = (object) ['foo' => 'bar'];
-        $envelope = Envelope::wrap($message);
-
-        $error = new \RuntimeException();
-
-        $this->hub->captureException($error)->shouldBeCalled()->willReturn(EventId::generate());
-        $this->client->flush()->shouldBeCalled();
-
-        $listener = new MessengerListener($this->hub->reveal(), true);
-        $event = $this->getMessageFailedEvent($envelope, 'receiver', $error, false);
-
-        $listener->onWorkerMessageFailed($event);
-    }
-
-    public function testHardFailsAreRecorded(): void
-    {
-        if (! $this->supportsMessenger()) {
-            self::markTestSkipped('Messenger not supported in this environment.');
-        }
-
-        $message = (object) ['foo' => 'bar'];
-        $envelope = Envelope::wrap($message);
-
-        $error = new \RuntimeException();
-        $wrappedError = new HandlerFailedException($envelope, [$error]);
-
-        $this->hub->captureException($error)->shouldBeCalled()->willReturn(EventId::generate());
-        $this->client->flush()->shouldBeCalled();
-
-        $listener = new MessengerListener($this->hub->reveal(), true);
-        $event = $this->getMessageFailedEvent($envelope, 'receiver', $wrappedError, false);
-
-        $listener->onWorkerMessageFailed($event);
-    }
-
-    public function testSoftFailsAreNotRecorded(): void
-    {
-        if (! $this->supportsMessenger()) {
-            self::markTestSkipped('Messenger not supported in this environment.');
-        }
-
-        $message = (object) ['foo' => 'bar'];
-        $envelope = Envelope::wrap($message);
-
-        $error = new \RuntimeException();
-        $wrappedError = new HandlerFailedException($envelope, [$error]);
-
-        $this->hub->captureException($error)->shouldNotBeCalled();
-        $this->client->flush()->shouldNotBeCalled();
-
-        $listener = new MessengerListener($this->hub->reveal(), false);
-        $event = $this->getMessageFailedEvent($envelope, 'receiver', $wrappedError, true);
-
-        $listener->onWorkerMessageFailed($event);
-    }
-
-    public function testHardFailsAreRecordedWithCaptureSoftDisabled(): void
-    {
-        if (! $this->supportsMessenger()) {
-            self::markTestSkipped('Messenger not supported in this environment.');
-        }
-
-        $message = (object) ['foo' => 'bar'];
-        $envelope = Envelope::wrap($message);
-
-        $error = new \RuntimeException();
-        $wrappedError = new HandlerFailedException($envelope, [$error]);
-
-        $this->hub->captureException($error)->shouldBeCalled()->willReturn(EventId::generate());
-        $this->client->flush()->shouldBeCalled();
-
-        $listener = new MessengerListener($this->hub->reveal(), false);
-        $event = $this->getMessageFailedEvent($envelope, 'receiver', $wrappedError, false);
-
-        $listener->onWorkerMessageFailed($event);
-    }
-
-    public function testHandlerFailedExceptionIsUnwrapped(): void
-    {
-        if (! $this->supportsMessenger()) {
-            self::markTestSkipped('Messenger not supported in this environment.');
-        }
-
-        $message = (object) ['foo' => 'bar'];
-        $envelope = Envelope::wrap($message);
-        $error1 = new \RuntimeException();
-        $error2 = new \RuntimeException();
-        $wrappedError = new HandlerFailedException($envelope, [$error1, $error2]);
-
-        $event = $this->getMessageFailedEvent($envelope, 'receiver', $wrappedError, false);
-
-        $this->hub->captureException($error1)->shouldBeCalled()->willReturn(EventId::generate());
-        $this->hub->captureException($error2)->shouldBeCalled()->willReturn(EventId::generate());
-        $this->client->flush()->shouldBeCalled();
-
-        $listener = new MessengerListener($this->hub->reveal());
-        $listener->onWorkerMessageFailed($event);
-    }
-
-    public function testClientIsFlushedWhenMessageHandled(): void
-    {
-        if (! $this->supportsMessenger()) {
-            self::markTestSkipped('Messenger not supported in this environment.');
-        }
-
-        $this->client->flush()->shouldBeCalled();
-        $listener = new MessengerListener($this->hub->reveal());
-
-        $message = (object) ['foo' => 'bar'];
-        $envelope = Envelope::wrap($message);
-        $event = new WorkerMessageHandledEvent($envelope, 'receiver', false);
-
-        $listener->onWorkerMessageHandled($event);
+        $this->client = $this->createMock(ClientInterface::class);
+        $this->hub = $this->createMock(HubInterface::class);
     }
 
     /**
-     * Messenger 4.4 and above removed the fourth constructor argument for whether the message will be retried.
-     * Instead, the setForRetry setter method is used.
+     * @dataProvider handleWorkerMessageFailedEventDataProvider
      *
-     * @param Envelope   $envelope
-     * @param string     $receiverName
-     * @param \Throwable $error
-     * @param bool       $retry
-     *
-     * @return WorkerMessageFailedEvent
+     * @param \Throwable[] $exceptions
      */
+    public function testHandleWorkerMessageFailedEvent(array $exceptions, WorkerMessageFailedEvent $event): void
+    {
+        if (! $this->supportsMessenger()) {
+            $this->markTestSkipped('Messenger not supported in this environment.');
+        }
+
+        $this->hub->expects($this->exactly(count($exceptions)))
+            ->method('captureException')
+            ->withConsecutive(...array_map(static function (\Throwable $exception): array {
+                return [$exception];
+            }, $exceptions));
+
+        $this->hub->expects($this->once())
+            ->method('getClient')
+            ->willReturn($this->client);
+
+        $listener = new MessengerListener($this->hub);
+        $listener->handleWorkerMessageFailedEvent($event);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function handleWorkerMessageFailedEventDataProvider(): \Generator
+    {
+        if (! $this->supportsMessenger()) {
+            return;
+        }
+
+        $envelope = Envelope::wrap((object) []);
+        $exceptions = [
+            new \Exception(),
+            new \Exception(),
+        ];
+
+        yield [
+            $exceptions,
+            $this->getMessageFailedEvent($envelope, 'receiver', new HandlerFailedException($envelope, $exceptions), false),
+        ];
+
+        $exceptions = [
+            new \Exception(),
+        ];
+
+        yield [
+            $exceptions,
+            $this->getMessageFailedEvent($envelope, 'receiver', $exceptions[0], false),
+        ];
+    }
+
+    /**
+     * @dataProvider handleWorkerMessageFailedEventWithCaptureSoftFailsFlagDataProvider
+     */
+    public function testHandleWorkerMessageFailedEventWithCaptureSoftFailsFlag(bool $captureSoftFails, bool $retry, bool $shouldCallFlush): void
+    {
+        if (! $this->supportsMessenger()) {
+            $this->markTestSkipped('Messenger not supported in this environment.');
+        }
+
+        $envelope = Envelope::wrap((object) []);
+        $event = $this->getMessageFailedEvent($envelope, 'receiver', new \Exception(), $retry);
+
+        $this->hub->expects($this->any())
+            ->method('getClient')
+            ->willReturn($this->client);
+
+        $this->client->expects($shouldCallFlush ? $this->once() : $this->never())
+            ->method('flush');
+
+        $listener = new MessengerListener($this->hub, $captureSoftFails);
+        $listener->handleWorkerMessageFailedEvent($event);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function handleWorkerMessageFailedEventWithCaptureSoftFailsFlagDataProvider(): \Generator
+    {
+        yield '$captureSoftFails = FALSE && $willRetry = TRUE => KO' => [
+            false,
+            true,
+            false,
+        ];
+
+        yield '$captureSoftFails = FALSE && $willRetry = FALSE => OK' => [
+            false,
+            false,
+            true,
+        ];
+
+        yield '$captureSoftFails = TRUE && $willRetry = TRUE => OK' => [
+            false,
+            false,
+            true,
+        ];
+
+        yield '$captureSoftFails = TRUE && $willRetry = FALSE => OK' => [
+            false,
+            false,
+            true,
+        ];
+    }
+
+    public function testHandleWorkerMessageHandledEvent(): void
+    {
+        if (! $this->supportsMessenger()) {
+            $this->markTestSkipped('Messenger not supported in this environment.');
+        }
+
+        $this->hub->expects($this->once())
+            ->method('getClient')
+            ->willReturn($this->client);
+
+        $this->client->expects($this->once())
+            ->method('flush');
+
+        $listener = new MessengerListener($this->hub);
+        $listener->handleWorkerMessageHandledEvent(new WorkerMessageHandledEvent(Envelope::wrap((object) []), 'receiver'));
+    }
+
     private function getMessageFailedEvent(Envelope $envelope, string $receiverName, \Throwable $error, bool $retry): WorkerMessageFailedEvent
     {
-        $event = new WorkerMessageFailedEvent($envelope, $receiverName, $error, $retry);
+        if (version_compare(Kernel::VERSION, '4.4.0', '<')) {
+            return new WorkerMessageFailedEvent($envelope, $receiverName, $error, $retry);
+        }
 
-        if ($retry && method_exists($event, 'setForRetry')) {
-            // Messenger 4.4 and above use this setter instead of the constructor argument.
+        $event = new WorkerMessageFailedEvent($envelope, $receiverName, $error);
+
+        if ($retry) {
             $event->setForRetry();
         }
 

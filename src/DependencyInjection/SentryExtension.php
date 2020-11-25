@@ -19,8 +19,6 @@ use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\ErrorHandler\Error\FatalError;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
-use Symfony\Component\HttpKernel\Event\ExceptionEvent;
-use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
  * This is the class that loads and manages your bundle configuration
@@ -157,11 +155,7 @@ class SentryExtension extends Extension
     {
         if (! $processedConfiguration['register_error_listener']) {
             $container->removeDefinition(ErrorListener::class);
-
-            return;
         }
-
-        $this->tagExceptionListener($container);
     }
 
     private function configureMessengerListener(ContainerBuilder $container, array $processedConfiguration): void
@@ -173,25 +167,6 @@ class SentryExtension extends Extension
         }
 
         $container->getDefinition(MessengerListener::class)->setArgument(1, $processedConfiguration['capture_soft_fails']);
-    }
-
-    /**
-     * BC layer for Symfony < 4.3
-     */
-    private function tagExceptionListener(ContainerBuilder $container): void
-    {
-        $listener = $container->getDefinition(ErrorListener::class);
-        $method = class_exists(ExceptionEvent::class) && method_exists(ExceptionEvent::class, 'getThrowable')
-            ? 'onException'
-            : 'onKernelException';
-
-        $tagAttributes = [
-            'event' => KernelEvents::EXCEPTION,
-            'method' => $method,
-            'priority' => '%sentry.listener_priorities.request_error%',
-        ];
-
-        $listener->addTag('kernel.event_listener', $tagAttributes);
     }
 
     private function configureMonologHandler(ContainerBuilder $container, array $monologConfiguration): void

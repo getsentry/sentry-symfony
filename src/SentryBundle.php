@@ -24,12 +24,4 @@ class SentryBundle extends Bundle
     {
         return SentrySdk::getCurrentHub();
     }
-
-    /**
-     * This method avoids deprecations with sentry/sentry:^2.2
-     */
-    public static function setCurrentHub(HubInterface $hub): void
-    {
-        SentrySdk::setCurrentHub($hub);
-    }
 }
