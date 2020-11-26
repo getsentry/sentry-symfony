@@ -2,10 +2,10 @@
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\SentryBundle\Test\End2End\App\Kernel;
 use Sentry\State\HubInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
+use Symfony\Component\HttpKernel\Kernel;
 
 if (version_compare(Kernel::VERSION, '4.3.0', '>=')) {
     if (! class_exists(ErrorListenerExceptionEvent::class, false)) {

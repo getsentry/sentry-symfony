@@ -31,11 +31,6 @@ parameters:
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
-			message: "#^If condition is always true\\.$#"
-			count: 1
-			path: src/EventListener/ErrorListener.php
-
-		-
 			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent not found\\.$#"
 			count: 1
 			path: src/EventListener/ErrorListener.php
