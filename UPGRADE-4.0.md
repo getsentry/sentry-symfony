@@ -27,8 +27,9 @@
 
   ```yaml
   sentry:
-      integrations:
-          - '@Sentry\Integration\IgnoreErrorsIntegration'
+      options:
+          integrations:
+              - '@Sentry\Integration\IgnoreErrorsIntegration'
   
   services:
       Sentry\Integration\IgnoreErrorsIntegration:
