@@ -2,7 +2,7 @@
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\SentryBundle\Test\End2End\App\Kernel;
+use Symfony\Component\HttpKernel\Kernel;
 use Sentry\State\HubInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
