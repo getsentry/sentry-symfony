@@ -39,7 +39,5 @@
                       - RuntimeException
   ```
 
-- Changed the default value of the `sentry.listener_priorities.console_error` configuration 
-
-to `-64`.
+- Changed the default value of the `sentry.listener_priorities.console_error` configuration to `-64`.
 - Changed the default value of the `sentry.listener_priorities.console` configuration option to `128`.
