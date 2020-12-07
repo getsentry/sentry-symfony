@@ -9,14 +9,11 @@ on:
 
 jobs:
   Tests:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     continue-on-error: ${{ matrix.experimental == true }}
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - windows-latest
         php:
           - '8.0'
           - '7.4'
@@ -40,7 +37,7 @@ jobs:
             env:
               SYMFONY_DEPRECATIONS_HELPER: disabled
 
-    name: PHP ${{ matrix.php }} ${{ matrix.description }} ${{ matrix.os }}
+    name: PHP ${{ matrix.php }} ${{ matrix.description }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/cache@v2
@@ -50,7 +47,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          coverage: xdebug
+          coverage: pcov
       - run: |
           sed -ri '/symfony\/(monolog-bundle|phpunit-bridge|messenger)/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'${{ matrix.symfony_constraint }}'"/' composer.json;
         if: matrix.symfony_constraint
@@ -92,5 +89,6 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '7.4'
+          fast-fast : true
       - run: composer install --no-progress --ansi
       - run: composer phpstan
