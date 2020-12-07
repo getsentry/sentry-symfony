@@ -15,6 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         php:
+          - '8.0'
           - '7.4'
           - '7.3'
           - '7.2'
@@ -22,10 +23,6 @@ jobs:
         symfony_constraint: [false]
         experimental: [false]
         include:
-#          - description: 'sentry/sentry dev-develop'
-#            php: '7.4'
-#            sentry_constraint: 'dev-develop'
-#            experimental: true
           - description: 'Symfony 4.4'
             php: '7.3'
             symfony_constraint: 4.4.*
@@ -40,7 +37,7 @@ jobs:
             env:
               SYMFONY_DEPRECATIONS_HELPER: disabled
 
-    name: PHP ${{ matrix.php }} tests (${{ matrix.description }})
+    name: PHP ${{ matrix.php }} ${{ matrix.description }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/cache@v2
@@ -56,6 +53,8 @@ jobs:
         if: matrix.symfony_constraint
       - run: composer remove --dev symfony/messenger --no-update
         if: matrix.symfony_constraint == '3.4.*' || matrix.composer_option == '--prefer-lowest'
+      - run: composer remove --dev friendsofphp/php-cs-fixer --no-update
+        if: matrix.php == '8.0'
       - run: composer update --no-progress --ansi ${{ matrix.composer_option }}
       - run: composer require sentry/sentry dev-develop
         if: matrix.sentry_constraint == 'dev-develop'
@@ -72,12 +71,12 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ~/.composer/cache/files
-          key: '7.4--'
+          key: '7.4'
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '7.4'
       - run: composer install --no-progress --ansi
-      - run: vendor/bin/php-cs-fixer fix --ansi --verbose --dry-run
+      - run: composer phpcs
   PHPStan:
     runs-on: ubuntu-latest
     name: PHPStan
@@ -86,9 +85,9 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ~/.composer/cache/files
-          key: '7.4--'
+          key: '7.4'
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '7.4'
       - run: composer install --no-progress --ansi
-      - run: vendor/bin/phpstan analyse
+      - run: composer phpstan
