@@ -19,6 +19,9 @@ jobs:
           - '7.4'
           - '7.3'
           - '7.2'
+        composer_option:
+          - ''
+          - '--prefer-lowest'
         sentry_constraint: [false]
         symfony_constraint: [false]
         experimental: [false]
@@ -37,7 +40,7 @@ jobs:
             env:
               SYMFONY_DEPRECATIONS_HELPER: disabled
 
-    name: PHP ${{ matrix.php }} ${{ matrix.description }}
+    name: PHP ${{ matrix.php }} ${{ matrix.description }} ${{ matrix.composer_option }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/cache@v2
