@@ -8,6 +8,7 @@
 - [BC BREAK] Removed the `options.excluded_exceptions` configuration option. Instead of setting it, configure the `IgnoreErrorsIntegration` integration (#385)
 - [BC BREAK] Refactorized the `ConsoleCommandListener`, `ErrorListener`, `RequestListener` and `SubRequestListener` event listeners (#387)
 - CLI commands registration policy changed to lazy load
+- PHP 8 support
 
 ## 3.5.3 (2020-10-13)
 
