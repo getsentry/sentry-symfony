@@ -9,11 +9,14 @@ on:
 
 jobs:
   Tests:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.experimental == true }}
     strategy:
       fail-fast: false
       matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
         php:
           - '8.0'
           - '7.4'
@@ -37,7 +40,7 @@ jobs:
             env:
               SYMFONY_DEPRECATIONS_HELPER: disabled
 
-    name: PHP ${{ matrix.php }} ${{ matrix.description }}
+    name: PHP ${{ matrix.php }} ${{ matrix.description }} ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/cache@v2
