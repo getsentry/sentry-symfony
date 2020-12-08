@@ -1,7 +1,7 @@
 name: CI
 
 on:
-  pull_request: null
+  pull_request:
   push:
     branches:
       - master
@@ -51,8 +51,6 @@ jobs:
         if: matrix.symfony_constraint
       - run: composer remove --dev symfony/messenger --no-update
         if: matrix.symfony_constraint == '3.4.*' || matrix.composer_option == '--prefer-lowest'
-      - run: composer remove --dev friendsofphp/php-cs-fixer --no-update
-        if: matrix.php == '8.0'
       - run: composer update --no-progress --ansi ${{ matrix.composer_option }}
       - run: composer require sentry/sentry dev-develop
         if: matrix.sentry_constraint == 'dev-develop'
@@ -61,31 +59,3 @@ jobs:
         with:
           file: './coverage.xml'
           fail_ci_if_error: true
-  PHP-CS-Fixer:
-    runs-on: ubuntu-latest
-    name: Code style
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        with:
-          path: ~/.composer/cache/files
-          key: '7.4'
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '7.4'
-      - run: composer install --no-progress --ansi
-      - run: composer phpcs
-  PHPStan:
-    runs-on: ubuntu-latest
-    name: PHPStan
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        with:
-          path: ~/.composer/cache/files
-          key: '7.4--'
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '7.4'
-      - run: composer install --no-progress --ansi
-      - run: composer phpstan
