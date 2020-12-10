@@ -41,7 +41,7 @@ Press `y` and return to allow the installation.
 You can install this bundle using Composer: 
 
 ```bash
-composer require sentry/sentry-symfony:^3.0
+composer require sentry/sentry-symfony
 ```
 
 ### Step 2: Enable the Bundle
