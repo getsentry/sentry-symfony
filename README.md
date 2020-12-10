@@ -7,7 +7,7 @@ Symfony integration for [Sentry](https://getsentry.com/).
 [![Monthly Downloads](https://poser.pugx.org/sentry/sentry/d/monthly)](https://packagist.org/packages/sentry/sentry)
 [![License](https://poser.pugx.org/sentry/sentry/license)](https://packagist.org/packages/sentry/sentry)
 
-[![Build Status][Travis Master Build Status Image]][Travis Build Status] [![Coverage Status][Master Code Coverage Image]][Master Code Coverage]
+[![Coverage Status][Master Code Coverage Image]][Master Code Coverage]
 [![Discord](https://img.shields.io/discord/621778831602221064)](https://discord.gg/cWnMQeA)
 
 ## Benefits
@@ -225,7 +225,5 @@ final class ValueObjectSerializer
 
 [Last stable image]: https://poser.pugx.org/sentry/sentry-symfony/version.svg
 [Packagist link]: https://packagist.org/packages/sentry/sentry-symfony
-[Travis Build Status]: http://travis-ci.org/getsentry/sentry-symfony
-[Travis Master Build Status Image]: https://img.shields.io/travis/getsentry/sentry-symfony/master?logo=travis
 [Master Code Coverage]: https://codecov.io/gh/getsentry/sentry-symfony/branch/master
 [Master Code Coverage Image]: https://img.shields.io/codecov/c/github/getsentry/sentry-symfony/master?logo=codecov
