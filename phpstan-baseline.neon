@@ -221,7 +221,7 @@ parameters:
 			path: test/End2End/End2EndTest.php
 
 		-
-			message: "#^Comparison operation \"\\<\" between 50108 and 40300 is always false\\.$#"
+			message: "#^Comparison operation \"\\<\" between \\d+ and 40300 is always false\\.$#"
 			count: 1
 			path: test/End2End/End2EndTest.php
 
