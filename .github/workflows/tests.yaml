@@ -91,4 +91,5 @@ jobs:
         with:
           php-version: '7.4'
       - run: composer install --no-progress --ansi
+      - run: composer show
       - run: vendor/bin/phpstan analyse
