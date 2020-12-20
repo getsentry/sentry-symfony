@@ -10,3 +10,5 @@ parameters:
         - test/End2End/App
     dynamicConstantNames:
         - Symfony\Component\HttpKernel\Kernel::VERSION
+    bootstrapFiles:
+        - src/EventListener/ErrorListener.php
