@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\DependencyInjection;
 
 use Jean85\PrettyVersions;
-use Monolog\Logger as MonologLogger;
+use Monolog\Logger;
 use Sentry\Options;
+use Sentry\SentryBundle\ErrorTypesParser;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -81,7 +82,11 @@ final class Configuration implements ConfigurationInterface
                             ->normalizeKeys(false)
                             ->scalarPrototype()->end()
                         ->end()
-                        ->integerNode('error_types')->end()
+                        ->scalarNode('error_types')
+                            ->beforeNormalization()
+                                ->always(\Closure::fromCallable([ErrorTypesParser::class, 'parse']))
+                            ->end()
+                        ->end()
                         ->integerNode('max_breadcrumbs')
                             ->min(0)
                             ->max(Options::DEFAULT_MAX_BREADCRUMBS)
@@ -101,10 +106,11 @@ final class Configuration implements ConfigurationInterface
                         ->scalarNode('http_proxy')->end()
                         ->booleanNode('capture_silenced_errors')->end()
                         ->enumNode('max_request_body_size')
-                            ->isRequired()
                             ->values(['none', 'small', 'medium', 'always'])
                         ->end()
                         ->arrayNode('class_serializers')
+                            ->useAttributeAsKey('class')
+                            ->normalizeKeys(false)
                             ->scalarPrototype()->end()
                         ->end()
                     ->end()
@@ -140,10 +146,10 @@ final class Configuration implements ConfigurationInterface
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->arrayNode('error_handler')
-                            ->{class_exists(MonologLogger::class) ? 'canBeDisabled' : 'canBeEnabled'}()
+                            ->{class_exists(Logger::class) ? 'canBeDisabled' : 'canBeEnabled'}()
                         ->end()
                         ->scalarNode('level')
-                            ->defaultValue(MonologLogger::DEBUG)
+                            ->defaultValue(Logger::DEBUG)
                             ->cannotBeEmpty()
                         ->end()
                         ->booleanNode('bubble')->defaultTrue()->end()
@@ -166,7 +172,7 @@ final class Configuration implements ConfigurationInterface
                         ->scalarNode('request_error')->defaultValue(128)->end()
                         ->scalarNode('console_error')->defaultValue(-64)->end()
                         ->scalarNode('console_terminate')->defaultValue(-64)->end()
-                        ->scalarNode('worker_error')->defaultValue(128)->end()
+                        ->scalarNode('worker_error')->defaultValue(50)->end()
                     ->end()
                 ->end()
             ->end();

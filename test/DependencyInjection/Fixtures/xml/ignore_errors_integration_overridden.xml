@@ -7,6 +7,9 @@
                                https://sentry.io/schema/dic/sentry-symfony https://sentry.io/schema/dic/sentry-symfony/sentry-1.0.xsd">
 
     <sentry:config>
-        <sentry:listener-priorities worker-error="-50" />
+        <sentry:options>
+            <sentry:integration>App\Sentry\Integration\FooIntegration</sentry:integration>
+            <sentry:integration>Sentry\Integration\IgnoreErrorsIntegration</sentry:integration>
+        </sentry:options>
     </sentry:config>
 </container>

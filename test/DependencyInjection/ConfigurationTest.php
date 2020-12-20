@@ -5,207 +5,191 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Test\DependencyInjection;
 
 use Jean85\PrettyVersions;
-use Sentry\Options;
+use Monolog\Logger;
+use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
-use Sentry\SentryBundle\Test\BaseTestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Messenger\MessageBusInterface;
 
-class ConfigurationTest extends BaseTestCase
+final class ConfigurationTest extends TestCase
 {
-    public function testDataProviderIsMappingTheRightNumberOfOptions(): void
+    public function testProcessConfigurationWithDefaultConfiguration(): void
     {
-        $providerData = $this->optionValuesProvider();
-        $supportedOptions = \array_unique(\array_column($providerData, 0));
-
-        $this->assertCount(
-            $this->getSupportedOptionsCount(),
-            $supportedOptions,
-            'Provider for configuration options mismatch: ' . PHP_EOL . print_r($supportedOptions, true)
-        );
-    }
-
-    public function testInvalidDataProviderIsMappingTheRightNumberOfOptions(): void
-    {
-        $providerData = $this->invalidValuesProvider();
-        $supportedOptions = \array_unique(\array_column($providerData, 0));
-
-        $this->assertCount(
-            $this->getSupportedOptionsCount(),
-            $supportedOptions,
-            'Provider for invalid configuration options mismatch: ' . PHP_EOL . print_r($supportedOptions, true)
-        );
-    }
-
-    public function testConfigurationDefaults(): void
-    {
-        $defaultSdkValues = new Options();
-        $processed = $this->processConfiguration([]);
-        $expectedDefaults = [
-            'dsn' => null,
-            'register_error_listener' => true,
-            'listener_priorities' => [
-                'request' => 1,
-                'sub_request' => 1,
-                'request_error' => 128,
-                'console_error' => 128,
-                'worker_error' => 99,
-            ],
+        $expectedBundleDefaultConfig = [
             'options' => [
-                'class_serializers' => [],
+                'integrations' => [],
+                'prefixes' => [],
                 'environment' => '%kernel.environment%',
-                'in_app_include' => [],
+                'release' => PrettyVersions::getRootPackageVersion()->getPrettyVersion(),
+                'tags' => [],
                 'in_app_exclude' => [
                     '%kernel.cache_dir%',
+                    '%kernel.build_dir%',
                     '%kernel.project_dir%/vendor',
                 ],
-                'integrations' => [],
-                'prefixes' => $defaultSdkValues->getPrefixes(),
-                'tags' => [],
-                'release' => PrettyVersions::getVersion('sentry/sentry-symfony')->getPrettyVersion(),
-            ],
-            'monolog' => [
-                'error_handler' => [
-                    'enabled' => false,
-                    'level' => 'DEBUG',
-                    'bubble' => true,
-                ],
+                'in_app_include' => [],
+                'class_serializers' => [],
             ],
             'messenger' => [
                 'enabled' => interface_exists(MessageBusInterface::class),
                 'capture_soft_fails' => true,
             ],
+            'monolog' => [
+                'error_handler' => [
+                    'enabled' => class_exists(Logger::class),
+                ],
+                'level' => Logger::DEBUG,
+                'bubble' => true,
+            ],
+            'register_error_listener' => true,
+            'listener_priorities' => [
+                'request' => 1,
+                'sub_request' => 1,
+                'console' => 128,
+                'request_error' => 128,
+                'console_error' => -64,
+                'console_terminate' => -64,
+                'worker_error' => 50,
+            ],
         ];
 
-        $this->assertEquals($expectedDefaults, $processed);
-        $this->assertArrayNotHasKey('server_name', $processed['options'], 'server_name has to be fetched at runtime, not before (see #181)');
+        $this->assertSame($expectedBundleDefaultConfig, $this->processConfiguration([]));
     }
 
     /**
-     * @group legacy
+     * @param int|float $value
      *
-     * @dataProvider optionValuesProvider
+     * @dataProvider sampleRateOptionDataProvider
      */
-    public function testOptionValuesProcessing(string $option, $value): void
+    public function testSampleRateOption($value): void
     {
-        $input = ['options' => [$option => $value]];
-        $processed = $this->processConfiguration($input);
+        $config = $this->processConfiguration(['options' => ['sample_rate' => $value]]);
 
-        $this->assertArrayHasKey('options', $processed);
-        $this->assertArrayHasKey($option, $processed['options']);
-        $this->assertEquals($value, $processed['options'][$option]);
+        $this->assertSame($value, $config['options']['sample_rate']);
     }
 
-    public function optionValuesProvider(): array
+    /**
+     * @return \Generator<mixed>
+     */
+    public function sampleRateOptionDataProvider(): \Generator
     {
-        return [
-            ['attach_stacktrace', true],
-            ['before_breadcrumb', 'count'],
-            ['before_send', 'count'],
-            ['capture_silenced_errors', true],
-            ['class_serializers', ['count']],
-            ['context_lines', 4],
-            ['context_lines', 99],
-            ['default_integrations', true],
-            ['default_integrations', false],
-            ['enable_compression', false],
-            ['environment', 'staging'],
-            ['error_types', E_ALL],
-            ['http_proxy', '1.2.3.4:5678'],
-            ['in_app_include', ['some/path']],
-            ['in_app_exclude', ['some/path']],
-            ['integrations', []],
-            ['logger', 'some-logger'],
-            ['max_breadcrumbs', 15],
-            ['max_request_body_size', 'none'],
-            ['max_request_body_size', 'small'],
-            ['max_request_body_size', 'medium'],
-            ['max_request_body_size', 'always'],
-            ['max_value_length', 1000],
-            ['prefixes', ['some-string']],
-            ['release', 'abc0123'],
-            ['sample_rate', 0],
-            ['sample_rate', 1],
-            ['send_attempts', 1],
-            ['send_attempts', 999],
-            ['send_default_pii', true],
-            ['server_name', 'server001.example.com'],
-            ['tags', ['tag-name' => 'value']],
-            ['traces_sample_rate', 0],
-            ['traces_sample_rate', 1],
-            ['traces_sampler', 'count'],
+        yield [0];
+        yield [1];
+        yield [0.0];
+        yield [1.0];
+        yield [0.01];
+        yield [0.9];
+    }
+
+    /**
+     * @param int|float $value
+     *
+     * @dataProvider sampleRateOptionWithInvalidValuesDataProvider
+     */
+    public function testSampleRateOptionWithInvalidValues($value, string $exceptionMessage): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage($exceptionMessage);
+
+        $this->processConfiguration(['options' => ['sample_rate' => $value]]);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function sampleRateOptionWithInvalidValuesDataProvider(): \Generator
+    {
+        yield [
+            -1,
+            'The value -1 is too small for path "sentry.options.sample_rate". Should be greater than or equal to 0',
+        ];
+
+        yield [
+            2,
+            'The value 2 is too big for path "sentry.options.sample_rate". Should be less than or equal to 1',
+        ];
+
+        yield [
+            -0.1,
+            'The value -0.1 is too small for path "sentry.options.sample_rate". Should be greater than or equal to 0',
+        ];
+
+        yield [
+            1.01,
+            'The value 1.01 is too big for path "sentry.options.sample_rate". Should be less than or equal to 1',
         ];
     }
 
     /**
-     * @dataProvider invalidValuesProvider
+     * @param int|float $value
+     *
+     * @dataProvider tracesSampleRateOptionDataProvider
      */
-    public function testInvalidValues(string $option, $value): void
+    public function testTracesSampleRateOption($value): void
     {
-        $input = ['options' => [$option => $value]];
+        $config = $this->processConfiguration(['options' => ['traces_sample_rate' => $value]]);
 
-        $this->expectException(InvalidConfigurationException::class);
-
-        $this->processConfiguration($input);
+        $this->assertSame($value, $config['options']['traces_sample_rate']);
     }
 
-    public function invalidValuesProvider(): array
+    /**
+     * @return \Generator<mixed>
+     */
+    public function tracesSampleRateOptionDataProvider(): \Generator
     {
-        return [
-            ['attach_stacktrace', 'string'],
-            ['before_breadcrumb', 'this is not a callable'],
-            ['before_breadcrumb', [$this, 'is not a callable']],
-            ['before_breadcrumb', false],
-            ['before_breadcrumb', -1],
-            ['before_send', 'this is not a callable'],
-            ['before_send', [$this, 'is not a callable']],
-            ['before_send', false],
-            ['before_send', -1],
-            ['capture_silenced_errors', 'string'],
-            ['class_serializers', 'this is not a callable'],
-            ['class_serializers', [$this, 'is not a callable']],
-            ['class_serializers', false],
-            ['class_serializers', -1],
-            ['context_lines', -1],
-            ['context_lines', 99999],
-            ['context_lines', 'string'],
-            ['default_integrations', 'true'],
-            ['default_integrations', 1],
-            ['enable_compression', 'string'],
-            ['environment', ''],
-            ['error_types', []],
-            ['http_proxy', []],
-            ['in_app_include', 'some/single/path'],
-            ['in_app_exclude', 'some/single/path'],
-            ['integrations', [1]],
-            ['integrations', 'a string'],
-            ['logger', []],
-            ['max_breadcrumbs', -1],
-            ['max_breadcrumbs', 'string'],
-            ['max_request_body_size', null],
-            ['max_request_body_size', 'invalid'],
-            ['max_value_length', -1],
-            ['max_value_length', []],
-            ['prefixes', 'string'],
-            ['release', []],
-            ['sample_rate', 1.1],
-            ['sample_rate', -1],
-            ['send_attempts', 1.5],
-            ['send_attempts', 0],
-            ['send_attempts', -1],
-            ['send_default_pii', 'false'],
-            ['server_name', []],
-            ['tags', 'invalid-unmapped-tag'],
-            ['traces_sample_rate', -1],
-            ['traces_sample_rate', 1.1],
-            ['traces_sampler', 'this is not a callable'],
-            ['traces_sampler', [$this, 'is not a callable']],
-            ['traces_sampler', false],
-            ['traces_sampler', -1],
+        yield [0];
+        yield [1];
+        yield [0.0];
+        yield [1.0];
+        yield [0.01];
+        yield [0.9];
+    }
+
+    /**
+     * @param int|float $value
+     *
+     * @dataProvider tracesSampleRateOptionWithInvalidValuesDataProvider
+     */
+    public function testTracesSampleRateOptionWithInvalidValues($value, string $exceptionMessage): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage($exceptionMessage);
+
+        $this->processConfiguration(['options' => ['traces_sample_rate' => $value]]);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function tracesSampleRateOptionWithInvalidValuesDataProvider(): \Generator
+    {
+        yield [
+            -1,
+            'The value -1 is too small for path "sentry.options.traces_sample_rate". Should be greater than or equal to 0',
+        ];
+
+        yield [
+            2,
+            'The value 2 is too big for path "sentry.options.traces_sample_rate". Should be less than or equal to 1',
+        ];
+
+        yield [
+            -0.1,
+            'The value -0.1 is too small for path "sentry.options.traces_sample_rate". Should be greater than or equal to 0',
+        ];
+
+        yield [
+            1.01,
+            'The value 1.01 is too big for path "sentry.options.traces_sample_rate". Should be less than or equal to 1',
         ];
     }
 
+    /**
+     * @param array<string, mixed> $values
+     *
+     * @return array<string, mixed>
+     */
     private function processConfiguration(array $values): array
     {
         $processor = new Processor();

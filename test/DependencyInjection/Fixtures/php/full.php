@@ -36,6 +36,6 @@ $container->loadFromExtension('sentry', [
         'http_proxy' => 'proxy.example.com:8080',
         'capture_silenced_errors' => true,
         'max_request_body_size' => 'none',
-        'class_serializers' => ['App\\Sentry\\Serializer\\FooClassSerializer'],
+        'class_serializers' => ['App\\FooClass' => 'App\\Sentry\\Serializer\\FooClassSerializer'],
     ],
 ]);

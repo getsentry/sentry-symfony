@@ -7,12 +7,7 @@
     <services>
         <defaults public="false" />
 
-        <service id="Sentry\ClientInterface" class="Sentry\Client">
-            <factory service="Sentry\ClientBuilder" method="getClient" />
-            <call method="setTransportFactory">
-                <argument type="service" id="Sentry\Transport\TransportFactoryInterface" />
-            </call>
-        </service>
+        <service id="Sentry\ClientInterface" alias="sentry.client" />
 
         <service id="Sentry\Transport\TransportFactoryInterface" class="Sentry\SentryBundle\Transport\TransportFactory">
             <argument type="service" id="Psr\Http\Message\UriFactoryInterface" on-invalid="ignore" />

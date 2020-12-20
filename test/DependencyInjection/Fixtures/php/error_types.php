@@ -6,7 +6,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /** @var ContainerBuilder $container */
 $container->loadFromExtension('sentry', [
-    'listener_priorities' => [
-        'worker_error' => -50,
+    'options' => [
+        'error_types' => E_ALL & ~(E_NOTICE | E_STRICT | E_DEPRECATED),
     ],
 ]);

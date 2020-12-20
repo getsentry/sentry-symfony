@@ -8,6 +8,7 @@ use Jean85\PrettyVersions;
 use Monolog\Logger as MonologLogger;
 use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
+use Sentry\Integration\IgnoreErrorsIntegration;
 use Sentry\Monolog\Handler;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
@@ -25,6 +26,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\EnvPlaceholderParameterBag;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\ErrorHandler\Error\FatalError;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
@@ -69,8 +71,10 @@ abstract class SentryExtensionTest extends TestCase
     public function testErrorListenerIsRemovedWhenDisabled(): void
     {
         $container = $this->createContainerFromFixture('error_listener_disabled');
+        $optionsDefinition = $container->getDefinition('sentry.client.options');
 
         $this->assertFalse($container->hasDefinition(ErrorListener::class));
+        $this->assertSame([], $optionsDefinition->getArgument(0)['integrations']);
     }
 
     /**
@@ -159,12 +163,12 @@ abstract class SentryExtensionTest extends TestCase
     {
         yield [
             'full',
-            128,
+            50,
         ];
 
         yield [
             'messenger_listener_overridden_priority',
-            -128,
+            -50,
         ];
     }
 
@@ -280,7 +284,10 @@ abstract class SentryExtensionTest extends TestCase
         $container = $this->createContainerFromFixture('full');
         $optionsDefinition = $container->getDefinition('sentry.client.options');
         $expectedOptions = [
-            'integrations' => [new Reference('App\\Sentry\\Integration\\FooIntegration')],
+            'integrations' => [
+                new Definition(IgnoreErrorsIntegration::class, [['ignore_exceptions' => [FatalError::class]]]),
+                new Reference('App\\Sentry\\Integration\\FooIntegration'),
+            ],
             'default_integrations' => false,
             'send_attempts' => 1,
             'prefixes' => [$container->getParameter('kernel.project_dir')],
@@ -306,31 +313,36 @@ abstract class SentryExtensionTest extends TestCase
             'http_proxy' => 'proxy.example.com:8080',
             'capture_silenced_errors' => true,
             'max_request_body_size' => 'none',
-            'class_serializers' => [new Reference('App\\Sentry\\Serializer\\FooClassSerializer')],
+            'class_serializers' => [
+                'App\\FooClass' => new Reference('App\\Sentry\\Serializer\\FooClassSerializer'),
+            ],
             'dsn' => 'https://examplePublicKey@o0.ingest.sentry.io/0',
         ];
 
         $this->assertSame(Options::class, $optionsDefinition->getClass());
         $this->assertEquals($expectedOptions, $optionsDefinition->getArgument(0));
 
-        $serializerDefinition = $container->getDefinition('sentry.client.serializer');
-
-        $this->assertSame(Serializer::class, $serializerDefinition->getClass());
-        $this->assertEquals(new Reference('sentry.client.options'), $serializerDefinition->getArgument(0));
-
-        $representationSerializerDefinition = $container->getDefinition('sentry.client.representation_serializer');
-
-        $this->assertSame(RepresentationSerializer::class, $representationSerializerDefinition->getClass());
-        $this->assertEquals(new Reference('sentry.client.options'), $serializerDefinition->getArgument(0));
-
         $clientDefinition = $container->findDefinition(ClientInterface::class);
+        $factory = $clientDefinition->getFactory();
 
-        $this->assertEquals(new Reference('sentry.client.options'), $clientDefinition->getArgument(0));
-        $this->assertDefinitionMethodCallAt($clientDefinition, 0, 'setTransportFactory', [new Reference(TransportFactoryInterface::class)]);
-        $this->assertDefinitionMethodCallAt($clientDefinition, 1, 'setSerializer', [new Reference('sentry.client.serializer')]);
-        $this->assertDefinitionMethodCallAt($clientDefinition, 2, 'setRepresentationSerializer', [new Reference('sentry.client.representation_serializer')]);
-        $this->assertDefinitionMethodCallAt($clientDefinition, 3, 'setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER]);
-        $this->assertDefinitionMethodCallAt($clientDefinition, 4, 'setSdkVersion', [PrettyVersions::getRootPackageVersion()->getPrettyVersion()]);
+        $this->assertInstanceOf(Definition::class, $factory[0]);
+        $this->assertSame('getClient', $factory[1]);
+
+        $methodCalls = $factory[0]->getMethodCalls();
+
+        $this->assertDefinitionMethodCallAt($methodCalls[0], 'setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER]);
+        $this->assertDefinitionMethodCallAt($methodCalls[1], 'setSdkVersion', [PrettyVersions::getRootPackageVersion()->getPrettyVersion()]);
+        $this->assertDefinitionMethodCallAt($methodCalls[2], 'setTransportFactory', [new Reference(TransportFactoryInterface::class)]);
+
+        $this->assertSame('setSerializer', $methodCalls[3][0]);
+        $this->assertInstanceOf(Definition::class, $methodCalls[3][1][0]);
+        $this->assertSame(Serializer::class, $methodCalls[3][1][0]->getClass());
+        $this->assertEquals($methodCalls[3][1][0]->getArgument(0), new Reference('sentry.client.options'));
+
+        $this->assertSame('setRepresentationSerializer', $methodCalls[4][0]);
+        $this->assertInstanceOf(Definition::class, $methodCalls[4][1][0]);
+        $this->assertSame(RepresentationSerializer::class, $methodCalls[4][1][0]->getClass());
+        $this->assertEquals($methodCalls[4][1][0]->getArgument(0), new Reference('sentry.client.options'));
     }
 
     public function testEmptyDsnIsTreatedAsIfItWasUnset(): void
@@ -338,8 +350,27 @@ abstract class SentryExtensionTest extends TestCase
         $container = $this->createContainerFromFixture('empty_dsn');
         $optionsDefinition = $container->getDefinition('sentry.client.options');
 
-        $this->assertSame(Options::class, $optionsDefinition->getClass());
         $this->assertArrayNotHasKey('dsn', $optionsDefinition->getArgument(0));
+    }
+
+    public function testErrorTypesOptionIsParsedFromStringToIntegerValue(): void
+    {
+        $container = $this->createContainerFromFixture('error_types');
+        $optionsDefinition = $container->getDefinition('sentry.client.options');
+
+        $this->assertSame(E_ALL & ~(E_NOTICE | E_STRICT | E_DEPRECATED), $optionsDefinition->getArgument(0)['error_types']);
+    }
+
+    public function testIgnoreErrorsIntegrationIsNotAddedTwiceIfAlreadyConfigured(): void
+    {
+        $container = $this->createContainerFromFixture('ignore_errors_integration_overridden');
+        $optionsDefinition = $container->getDefinition('sentry.client.options');
+        $expectedIntegrations = [
+            new Reference('App\\Sentry\\Integration\\FooIntegration'),
+            new Reference(IgnoreErrorsIntegration::class),
+        ];
+
+        $this->assertEquals($expectedIntegrations, $optionsDefinition->getArgument(0)['integrations']);
     }
 
     private function createContainerFromFixture(string $fixtureFile): ContainerBuilder
@@ -363,14 +394,12 @@ abstract class SentryExtensionTest extends TestCase
     }
 
     /**
+     * @param array<int, mixed> $methodCall
      * @param mixed[] $arguments
      */
-    private function assertDefinitionMethodCallAt(Definition $definition, int $methodCallIndex, string $method, array $arguments): void
+    private function assertDefinitionMethodCallAt(array $methodCall, string $method, array $arguments): void
     {
-        $methodCalls = $definition->getMethodCalls();
-
-        $this->assertArrayHasKey($methodCallIndex, $methodCalls);
-        $this->assertSame($method, $methodCalls[$methodCallIndex][0]);
-        $this->assertEquals($arguments, $methodCalls[$methodCallIndex][1]);
+        $this->assertSame($method, $methodCall[0]);
+        $this->assertEquals($arguments, $methodCall[1]);
     }
 }

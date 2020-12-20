@@ -33,4 +33,4 @@ sentry:
         capture_silenced_errors: true
         max_request_body_size: 'none'
         class_serializers:
-            - App\Sentry\Serializer\FooClassSerializer
+            App\FooClass: App\Sentry\Serializer\FooClassSerializer

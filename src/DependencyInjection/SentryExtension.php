@@ -6,7 +6,9 @@ namespace Sentry\SentryBundle\DependencyInjection;
 
 use Jean85\PrettyVersions;
 use Monolog\Logger as MonologLogger;
-use Sentry\ClientInterface;
+use Sentry\Client;
+use Sentry\ClientBuilder;
+use Sentry\Integration\IgnoreErrorsIntegration;
 use Sentry\Monolog\Handler;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\ErrorListener;
@@ -14,11 +16,14 @@ use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\SentryBundle;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
+use Sentry\Transport\TransportFactoryInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\ErrorHandler\Error\FatalError;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
 final class SentryExtension extends ConfigurableExtension
@@ -68,6 +73,12 @@ final class SentryExtension extends ConfigurableExtension
             $options['dsn'] = $config['dsn'];
         }
 
+        if (! $container->hasParameter('kernel.build_dir')) {
+            $options['in_app_exclude'] = array_filter($options['in_app_exclude'], static function (string $value): bool {
+                return '%kernel.build_dir%' !== $value;
+            });
+        }
+
         if (isset($options['traces_sampler'])) {
             $options['traces_sampler'] = new Reference($options['traces_sampler']);
         }
@@ -87,26 +98,34 @@ final class SentryExtension extends ConfigurableExtension
         }
 
         if (isset($options['integrations'])) {
-            $options['integrations'] = array_map(static function (string $value): Reference {
-                return new Reference($value);
-            }, $options['integrations']);
+            $options['integrations'] = $this->configureIntegrationsOption($options['integrations'], $config['register_error_listener']);
         }
 
-        $clientOptionsDefinition = $container->register('sentry.client.options', Options::class);
-        $clientOptionsDefinition->setArgument(0, $options);
+        $container
+            ->register('sentry.client.options', Options::class)
+            ->setPublic(false)
+            ->setArgument(0, $options);
 
-        $serializerDefinition = $container->register('sentry.client.serializer', Serializer::class);
-        $serializerDefinition->setArgument(0, new Reference('sentry.client.options'));
+        $serializer = (new Definition(Serializer::class))
+            ->setPublic(false)
+            ->setArgument(0, new Reference('sentry.client.options'));
 
-        $representationSerializerDefinition = $container->register('sentry.client.representation_serializer', RepresentationSerializer::class);
-        $representationSerializerDefinition->setArgument(0, new Reference('sentry.client.options'));
+        $representationSerializerDefinition = (new Definition(RepresentationSerializer::class))
+            ->setPublic(false)
+            ->setArgument(0, new Reference('sentry.client.options'));
 
-        $clientDefinition = $container->getDefinition(ClientInterface::class);
-        $clientDefinition->setArgument(0, new Reference('sentry.client.options'));
-        $clientDefinition->addMethodCall('setSerializer', [new Reference('sentry.client.serializer')]);
-        $clientDefinition->addMethodCall('setRepresentationSerializer', [new Reference('sentry.client.representation_serializer')]);
-        $clientDefinition->addMethodCall('setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER]);
-        $clientDefinition->addMethodCall('setSdkVersion', [PrettyVersions::getRootPackageVersion()->getPrettyVersion()]);
+        $clientBuilderDefinition = (new Definition(ClientBuilder::class))
+            ->setArgument(0, new Reference('sentry.client.options'))
+            ->addMethodCall('setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER])
+            ->addMethodCall('setSdkVersion', [PrettyVersions::getRootPackageVersion()->getPrettyVersion()])
+            ->addMethodCall('setTransportFactory', [new Reference(TransportFactoryInterface::class)])
+            ->addMethodCall('setSerializer', [$serializer])
+            ->addMethodCall('setRepresentationSerializer', [$representationSerializerDefinition]);
+
+        $container
+            ->setDefinition('sentry.client', new Definition(Client::class))
+            ->setPublic(false)
+            ->setFactory([$clientBuilderDefinition, 'getClient']);
     }
 
     /**
@@ -147,11 +166,33 @@ final class SentryExtension extends ConfigurableExtension
         }
 
         if (! class_exists(MonologLogger::class)) {
-            throw new LogicException(sprintf('To use the "%s" class you need to require the "monolog/monolog" package.', Handler::class));
+            throw new LogicException(sprintf('To use the "%s" class you need to require the "symfony/monolog-bundle" package.', Handler::class));
         }
 
         $definition = $container->getDefinition(Handler::class);
         $definition->setArgument(0, MonologLogger::toMonologLevel($config['level']));
         $definition->setArgument(1, $config['bubble']);
+    }
+
+    /**
+     * @param string[] $integrations
+     *
+     * @return array<Reference|Definition>
+     */
+    private function configureIntegrationsOption(array $integrations, bool $registerErrorListener): array
+    {
+        $existsIgnoreErrorsIntegration = array_search(IgnoreErrorsIntegration::class, $integrations, true);
+        $integrations = array_map(static function (string $value): Reference {
+            return new Reference($value);
+        }, $integrations);
+
+        if ($registerErrorListener && false === $existsIgnoreErrorsIntegration) {
+            // Prepend this integration to the beginning of the array so that
+            // we can save some performance by skipping the rest of the integrations
+            // if the error must be ignored
+            array_unshift($integrations, new Definition(IgnoreErrorsIntegration::class, [['ignore_exceptions' => [FatalError::class]]]));
+        }
+
+        return $integrations;
     }
 }

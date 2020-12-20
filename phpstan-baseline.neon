@@ -31,36 +31,6 @@ parameters:
 			path: src/aliases.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\ConfigurationTest\\:\\:testOptionValuesProcessing\\(\\) has parameter \\$value with no typehint specified\\.$#"
-			count: 1
-			path: test/DependencyInjection/ConfigurationTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\ConfigurationTest\\:\\:optionValuesProvider\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: test/DependencyInjection/ConfigurationTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\ConfigurationTest\\:\\:testInvalidValues\\(\\) has parameter \\$value with no typehint specified\\.$#"
-			count: 1
-			path: test/DependencyInjection/ConfigurationTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\ConfigurationTest\\:\\:invalidValuesProvider\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: test/DependencyInjection/ConfigurationTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\ConfigurationTest\\:\\:processConfiguration\\(\\) has parameter \\$values with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: test/DependencyInjection/ConfigurationTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\ConfigurationTest\\:\\:processConfiguration\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: test/DependencyInjection/ConfigurationTest.php
-
-		-
 			message: "#^Class Symfony\\\\Bundle\\\\FrameworkBundle\\\\Client not found\\.$#"
 			count: 1
 			path: test/End2End/End2EndTest.php

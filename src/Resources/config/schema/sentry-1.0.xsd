@@ -26,7 +26,7 @@
             <xsd:element name="tag" type="tag" minOccurs="0" maxOccurs="unbounded" />
             <xsd:element name="in-app-exclude" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
             <xsd:element name="in-app-include" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
-            <xsd:element name="class-serializer" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="class-serializer" type="class-serializer" minOccurs="0" maxOccurs="unbounded" />
         </xsd:sequence>
 
         <xsd:attribute name="default-integrations" type="xsd:boolean" />
@@ -42,7 +42,7 @@
         <xsd:attribute name="release" type="xsd:string" />
         <xsd:attribute name="server-name" type="xsd:string" />
         <xsd:attribute name="before-send" type="xsd:string" />
-        <xsd:attribute name="error-types" type="xsd:integer" />
+        <xsd:attribute name="error-types" type="xsd:string" />
         <xsd:attribute name="max-breadcrumbs" type="xsd:integer" />
         <xsd:attribute name="before-breadcrumb" type="xsd:string" />
         <xsd:attribute name="send-default-pii" type="xsd:boolean" />
@@ -56,6 +56,14 @@
         <xsd:simpleContent>
             <xsd:extension base="xsd:string">
                 <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="class-serializer">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="class" type="xsd:string" use="required" />
             </xsd:extension>
         </xsd:simpleContent>
     </xsd:complexType>
