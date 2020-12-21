@@ -36,17 +36,17 @@ parameters:
 			path: src/EventListener/ErrorListener.php
 
 		-
-			message: "#^Class GetResponseForExceptionEvent not found\\.$#"
+			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent not found\\.$#"
 			count: 1
 			path: src/aliases.php
 
 		-
-			message: "#^Class GetResponseEvent not found\\.$#"
+			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent not found\\.$#"
 			count: 2
 			path: src/aliases.php
 
 		-
-			message: "#^Class FilterControllerEvent not found\\.$#"
+			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent not found\\.$#"
 			count: 1
 			path: src/aliases.php
 
@@ -161,7 +161,7 @@ parameters:
 			path: test/End2End/End2EndTest.php
 
 		-
-			message: "#^Comparison operation \"\\<\" between \\d+ and 40300 is always false\\.$#"
+			message: "#^Comparison operation \"\\<\" between 50201 and 40300 is always false\\.$#"
 			count: 1
 			path: test/End2End/End2EndTest.php
 
