@@ -5,31 +5,8 @@ namespace Sentry\SentryBundle\EventListener;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Sentry\UserDataBag;
-use Symfony\Component\HttpKernel\Event\ControllerEvent;
-use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-use Symfony\Component\HttpKernel\Event\RequestEvent;
-use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-
-if (version_compare(Kernel::VERSION, '4.3.0', '>=')) {
-    if (! class_exists(RequestListenerRequestEvent::class, false)) {
-        class_alias(RequestEvent::class, RequestListenerRequestEvent::class);
-    }
-
-    if (! class_exists(RequestListenerControllerEvent::class, false)) {
-        class_alias(ControllerEvent::class, RequestListenerControllerEvent::class);
-    }
-} else {
-    if (! class_exists(RequestListenerRequestEvent::class, false)) {
-        class_alias(GetResponseEvent::class, RequestListenerRequestEvent::class);
-    }
-
-    if (! class_exists(RequestListenerControllerEvent::class, false)) {
-        class_alias(FilterControllerEvent::class, RequestListenerControllerEvent::class);
-    }
-}
 
 /**
  * This listener ensures that a new {@see \Sentry\State\Scope} is created for

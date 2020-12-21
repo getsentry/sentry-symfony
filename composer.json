@@ -50,6 +50,9 @@
         "monolog/monolog": "Allow sending log messages to Sentry by using the included Monolog handler."
     },
     "autoload": {
+        "files": [
+            "src/aliases.php"
+        ],
         "psr-4": {
             "Sentry\\SentryBundle\\": "src/"
         }

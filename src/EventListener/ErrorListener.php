@@ -4,18 +4,6 @@ namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\State\HubInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
-use Symfony\Component\HttpKernel\Kernel;
-
-if (version_compare(Kernel::VERSION, '4.3.0', '>=')) {
-    if (! class_exists(ErrorListenerExceptionEvent::class, false)) {
-        class_alias(ExceptionEvent::class, ErrorListenerExceptionEvent::class);
-    }
-} else {
-    if (! class_exists(ErrorListenerExceptionEvent::class, false)) {
-        class_alias(GetResponseForExceptionEvent::class, ErrorListenerExceptionEvent::class);
-    }
-}
 
 /**
  * This listener listens for error events and logs them to Sentry.
