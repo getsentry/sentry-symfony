@@ -16,13 +16,7 @@ if (version_compare(Kernel::VERSION, '4.3.0', '>=')) {
     if (! class_exists(ErrorListenerExceptionEvent::class, false)) {
         class_alias(ExceptionEvent::class, ErrorListenerExceptionEvent::class);
     }
-} else {
-    if (! class_exists(ErrorListenerExceptionEvent::class, false)) {
-        class_alias(GetResponseForExceptionEvent::class, ErrorListenerExceptionEvent::class);
-    }
-}
 
-if (version_compare(Kernel::VERSION, '4.3.0', '>=')) {
     if (! class_exists(RequestListenerRequestEvent::class, false)) {
         class_alias(RequestEvent::class, RequestListenerRequestEvent::class);
     }
@@ -30,7 +24,15 @@ if (version_compare(Kernel::VERSION, '4.3.0', '>=')) {
     if (! class_exists(RequestListenerControllerEvent::class, false)) {
         class_alias(ControllerEvent::class, RequestListenerControllerEvent::class);
     }
+
+    if (! class_exists(SubRequestListenerRequestEvent::class, false)) {
+        class_alias(RequestEvent::class, SubRequestListenerRequestEvent::class);
+    }
 } else {
+    if (! class_exists(ErrorListenerExceptionEvent::class, false)) {
+        class_alias(GetResponseForExceptionEvent::class, ErrorListenerExceptionEvent::class);
+    }
+
     if (! class_exists(RequestListenerRequestEvent::class, false)) {
         class_alias(GetResponseEvent::class, RequestListenerRequestEvent::class);
     }
@@ -38,13 +40,7 @@ if (version_compare(Kernel::VERSION, '4.3.0', '>=')) {
     if (! class_exists(RequestListenerControllerEvent::class, false)) {
         class_alias(FilterControllerEvent::class, RequestListenerControllerEvent::class);
     }
-}
 
-if (version_compare(Kernel::VERSION, '4.3.0', '>=')) {
-    if (! class_exists(SubRequestListenerRequestEvent::class, false)) {
-        class_alias(RequestEvent::class, SubRequestListenerRequestEvent::class);
-    }
-} else {
     if (! class_exists(SubRequestListenerRequestEvent::class, false)) {
         class_alias(GetResponseEvent::class, SubRequestListenerRequestEvent::class);
     }
