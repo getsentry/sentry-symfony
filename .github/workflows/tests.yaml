@@ -73,7 +73,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ~/.composer/cache/files
-          key: '7.4--'
+          key: '7.4'
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '7.4'
@@ -87,7 +87,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ~/.composer/cache/files
-          key: '7.4--'
+          key: '7.4'
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '7.4'
