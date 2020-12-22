@@ -4,19 +4,6 @@ namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\State\HubInterface;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-use Symfony\Component\HttpKernel\Event\RequestEvent;
-use Symfony\Component\HttpKernel\Kernel;
-
-if (version_compare(Kernel::VERSION, '4.3.0', '>=')) {
-    if (! class_exists(SubRequestListenerRequestEvent::class, false)) {
-        class_alias(RequestEvent::class, SubRequestListenerRequestEvent::class);
-    }
-} else {
-    if (! class_exists(SubRequestListenerRequestEvent::class, false)) {
-        class_alias(GetResponseEvent::class, SubRequestListenerRequestEvent::class);
-    }
-}
 
 /**
  * This listener ensures that a new {@see \Sentry\State\Scope} is created for

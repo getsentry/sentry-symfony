@@ -11,89 +11,24 @@ parameters:
 			path: src/DependencyInjection/Configuration.php
 
 		-
-			message: "#^If condition is always true\\.$#"
+			message: "#^Else branch is unreachable because previous condition is always true\\.$#"
 			count: 1
 			path: src/EventListener/ErrorListener.php
 
 		-
 			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent not found\\.$#"
 			count: 1
-			path: src/EventListener/ErrorListener.php
-
-		-
-			message: "#^Else branch is unreachable because previous condition is always true\\.$#"
-			count: 1
-			path: src/EventListener/ErrorListener.php
-
-		-
-			message: "#^Class Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListenerRequestEvent not found\\.$#"
-			count: 2
-			path: src/EventListener/RequestListener.php
-
-		-
-			message: "#^Class Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListenerControllerEvent not found\\.$#"
-			count: 2
-			path: src/EventListener/RequestListener.php
+			path: src/aliases.php
 
 		-
 			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent not found\\.$#"
-			count: 1
-			path: src/EventListener/RequestListener.php
+			count: 2
+			path: src/aliases.php
 
 		-
 			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent not found\\.$#"
 			count: 1
-			path: src/EventListener/RequestListener.php
-
-		-
-			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListener\\:\\:handleKernelRequestEvent\\(\\) has invalid typehint type Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListenerRequestEvent\\.$#"
-			count: 2
-			path: src/EventListener/RequestListener.php
-
-		-
-			message: "#^Call to method isMasterRequest\\(\\) on an unknown class Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListenerRequestEvent\\.$#"
-			count: 1
-			path: src/EventListener/RequestListener.php
-
-		-
-			message: "#^Call to method getRequest\\(\\) on an unknown class Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListenerRequestEvent\\.$#"
-			count: 1
-			path: src/EventListener/RequestListener.php
-
-		-
-			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListener\\:\\:handleKernelControllerEvent\\(\\) has invalid typehint type Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListenerControllerEvent\\.$#"
-			count: 2
-			path: src/EventListener/RequestListener.php
-
-		-
-			message: "#^Call to method isMasterRequest\\(\\) on an unknown class Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListenerControllerEvent\\.$#"
-			count: 1
-			path: src/EventListener/RequestListener.php
-
-		-
-			message: "#^Call to method getRequest\\(\\) on an unknown class Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListenerControllerEvent\\.$#"
-			count: 1
-			path: src/EventListener/RequestListener.php
-
-		-
-			message: "#^Class Sentry\\\\SentryBundle\\\\EventListener\\\\SubRequestListenerRequestEvent not found\\.$#"
-			count: 2
-			path: src/EventListener/SubRequestListener.php
-
-		-
-			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent not found\\.$#"
-			count: 1
-			path: src/EventListener/SubRequestListener.php
-
-		-
-			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\SubRequestListener\\:\\:handleKernelRequestEvent\\(\\) has invalid typehint type Sentry\\\\SentryBundle\\\\EventListener\\\\SubRequestListenerRequestEvent\\.$#"
-			count: 2
-			path: src/EventListener/SubRequestListener.php
-
-		-
-			message: "#^Call to method isMasterRequest\\(\\) on an unknown class Sentry\\\\SentryBundle\\\\EventListener\\\\SubRequestListenerRequestEvent\\.$#"
-			count: 1
-			path: src/EventListener/SubRequestListener.php
+			path: src/aliases.php
 
 		-
 			message: "#^Method Sentry\\\\SentryBundle\\\\Test\\\\DependencyInjection\\\\ConfigurationTest\\:\\:testOptionValuesProcessing\\(\\) has parameter \\$value with no typehint specified\\.$#"
@@ -131,7 +66,7 @@ parameters:
 			path: test/End2End/End2EndTest.php
 
 		-
-			message: "#^Comparison operation \"\\<\" between 50108 and 40300 is always false\\.$#"
+			message: "#^Comparison operation \"\\<\" between 50201 and 40300 is always false\\.$#"
 			count: 1
 			path: test/End2End/End2EndTest.php
 
@@ -171,7 +106,7 @@ parameters:
 			path: test/EventListener/RequestListenerTest.php
 
 		-
-			message: "#^Parameter \\#1 \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListener\\:\\:handleKernelRequestEvent\\(\\) expects Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListenerRequestEvent, Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\|Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\RequestEvent given\\.$#"
+			message: "#^Parameter \\#1 \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListener\\:\\:handleKernelRequestEvent\\(\\) expects Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\RequestEvent, Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\|Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\RequestEvent given\\.$#"
 			count: 1
 			path: test/EventListener/RequestListenerTest.php
 
@@ -186,7 +121,7 @@ parameters:
 			path: test/EventListener/RequestListenerTest.php
 
 		-
-			message: "#^Parameter \\#1 \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListener\\:\\:handleKernelControllerEvent\\(\\) expects Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListenerControllerEvent, Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\ControllerEvent\\|Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent given\\.$#"
+			message: "#^Parameter \\#1 \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListener\\:\\:handleKernelControllerEvent\\(\\) expects Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\ControllerEvent, Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\ControllerEvent\\|Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent given\\.$#"
 			count: 1
 			path: test/EventListener/RequestListenerTest.php
 
@@ -206,7 +141,7 @@ parameters:
 			path: test/EventListener/SubRequestListenerTest.php
 
 		-
-			message: "#^Parameter \\#1 \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\SubRequestListener\\:\\:handleKernelRequestEvent\\(\\) expects Sentry\\\\SentryBundle\\\\EventListener\\\\SubRequestListenerRequestEvent, Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\|Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\RequestEvent given\\.$#"
+			message: "#^Parameter \\#1 \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\SubRequestListener\\:\\:handleKernelRequestEvent\\(\\) expects Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\RequestEvent, Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\|Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\RequestEvent given\\.$#"
 			count: 1
 			path: test/EventListener/SubRequestListenerTest.php
 
