@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        symfony-versions: ['3.4', '4.4.9', '5.1', '5.2']
+        symfony-versions: ['3.4.*', '4.4.*', '5.1', '5.2']
         php: ['7.2', '7.3', '7.4', '8.0']
 
     name: PHP ${{ matrix.php }} Symfony ${{ matrix.symfony-versions }}
