@@ -1,0 +1,44 @@
+name: Symfony
+
+on:
+  pull_request: null
+  push:
+    branches:
+      - master
+      - 3.5.x
+
+jobs:
+  Tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        symfony-versions: ['3.4', '4.4.9', '5.1', '5.2']
+        php: ['7.2', '7.3', '7.4', '8.0']
+
+    name: PHP ${{ matrix.php }} Symfony ${{ matrix.symfony-versions }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.composer/cache/files
+          key: ${{ matrix.php }}-${{ matrix.symfony-versions }}
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: xdebug
+
+      - run: |
+          sed -ri '/symfony\/(monolog-bundle|phpunit-bridge|messenger)/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'${{ matrix.symfony-versions }}'"/' composer.json;
+
+      - run: composer remove --dev symfony/messenger --no-update
+        if: matrix.symfony-versions == '3.4'
+
+      - run: composer remove --dev friendsofphp/php-cs-fixer --no-update
+        if: matrix.symfony-versions == '3.4'
+
+      - run: composer update --no-progress --ansi
+
+      - run: composer tests
