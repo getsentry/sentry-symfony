@@ -1,4 +1,4 @@
-name: CI
+name: PHP
 
 on:
   pull_request: null
@@ -10,7 +10,7 @@ on:
 jobs:
   Tests:
     runs-on: ubuntu-latest
-    continue-on-error: ${{ matrix.experimental == true }}
+    continue-on-error: false
     strategy:
       fail-fast: false
       matrix:
@@ -19,48 +19,34 @@ jobs:
           - '7.4'
           - '7.3'
           - '7.2'
-        sentry_constraint: [false]
-        symfony_constraint: [false]
-        experimental: [false]
         include:
-#          - description: 'sentry/sentry dev-develop'
-#            php: '7.4'
-#            sentry_constraint: 'dev-develop'
-#            experimental: true
-          - description: 'Symfony 4.4'
-            php: '7.3'
-            symfony_constraint: 4.4.*
-          - description: 'Symfony 3.4'
-            php: '7.2'
-            symfony_constraint: 3.4.*
-            env:
-              SYMFONY_DEPRECATIONS_HELPER: disabled
           - description: 'prefer lowest'
             php: '7.2'
             composer_option: '--prefer-lowest'
             env:
               SYMFONY_DEPRECATIONS_HELPER: disabled
 
-    name: PHP ${{ matrix.php }} tests (${{ matrix.description }})
+    name: PHP ${{ matrix.php }} tests ${{ matrix.description }}
     steps:
       - uses: actions/checkout@v2
+
       - uses: actions/cache@v2
         with:
           path: ~/.composer/cache/files
-          key: ${{ matrix.php }}-${{ matrix.symfony_constraint }}-${{ matrix.composer_option }}
+          key: ${{ matrix.php }}-${{ matrix.composer_option }}
+
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           coverage: xdebug
-      - run: |
-          sed -ri '/symfony\/(monolog-bundle|phpunit-bridge|messenger)/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'${{ matrix.symfony_constraint }}'"/' composer.json;
-        if: matrix.symfony_constraint
+
       - run: composer remove --dev symfony/messenger --no-update
-        if: matrix.symfony_constraint == '3.4.*' || matrix.composer_option == '--prefer-lowest'
+        if: matrix.composer_option == '--prefer-lowest'
+
       - run: composer update --no-progress --ansi ${{ matrix.composer_option }}
-      - run: composer require sentry/sentry dev-develop
-        if: matrix.sentry_constraint == 'dev-develop'
+
       - run: vendor/bin/phpunit --coverage-clover=coverage.xml
+
       - uses: codecov/codecov-action@v1
         with:
           file: './coverage.xml'
