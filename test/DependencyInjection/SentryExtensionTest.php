@@ -30,6 +30,7 @@ use Symfony\Component\ErrorHandler\Error\FatalError;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 abstract class SentryExtensionTest extends TestCase
 {
@@ -135,6 +136,10 @@ abstract class SentryExtensionTest extends TestCase
      */
     public function testMessengerListener(string $fixture, int $tagPriority): void
     {
+        if (!interface_exists(MessageBusInterface::class)) {
+            $this->markTestSkipped('This test requires the "symfony/messenger" Composer package to be installed.');
+        }
+
         $container = $this->createContainerFromFixture($fixture);
         $definition = $container->getDefinition(MessengerListener::class);
 
