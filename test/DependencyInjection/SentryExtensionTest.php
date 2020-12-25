@@ -136,7 +136,7 @@ abstract class SentryExtensionTest extends TestCase
      */
     public function testMessengerListener(string $fixture, int $tagPriority): void
     {
-        if (!interface_exists(MessageBusInterface::class)) {
+        if (! interface_exists(MessageBusInterface::class)) {
             $this->markTestSkipped('This test requires the "symfony/messenger" Composer package to be installed.');
         }
 
