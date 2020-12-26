@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Transport;
 
+use Http\Client\HttpAsyncClient as HttpAsyncClientInterface;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Jean85\PrettyVersions;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -17,6 +18,11 @@ use Sentry\Transport\DefaultTransportFactory;
 use Sentry\Transport\TransportFactoryInterface;
 use Sentry\Transport\TransportInterface;
 
+/**
+ * This class wraps the default transport factory provided by the core SDK and
+ * discovers automatically the PSR-17 factory if the user did not configure it
+ * explicitly.
+ */
 final class TransportFactory implements TransportFactoryInterface
 {
     /**
@@ -29,6 +35,7 @@ final class TransportFactory implements TransportFactoryInterface
         ?RequestFactoryInterface $requestFactory = null,
         ?ResponseFactoryInterface $responseFactory = null,
         ?StreamFactoryInterface $streamFactory = null,
+        ?HttpAsyncClientInterface $httpClient = null,
         ?LoggerInterface $logger = null
     ) {
         $uriFactory = $uriFactory ?? Psr17FactoryDiscovery::findUriFactory();
@@ -43,7 +50,7 @@ final class TransportFactory implements TransportFactoryInterface
                 $uriFactory,
                 $responseFactory,
                 $streamFactory,
-                null,
+                $httpClient,
                 'sentry.php.symfony',
                 PrettyVersions::getRootPackageVersion()->getPrettyVersion()
             ),
