@@ -95,7 +95,11 @@ final class Configuration implements ConfigurationInterface
                         ->arrayNode('in_app_exclude')
                             ->scalarPrototype()->end()
                             ->beforeNormalization()->castToArray()->end()
-                            ->defaultValue(['%kernel.cache_dir%', '%kernel.build_dir%', '%kernel.project_dir%/vendor'])
+                            ->defaultValue([
+                                '%kernel.cache_dir%',
+                                '%kernel.build_dir%',
+                                '%kernel.project_dir%/vendor',
+                            ])
                         ->end()
                         ->arrayNode('in_app_include')
                             ->scalarPrototype()->end()
@@ -106,7 +110,12 @@ final class Configuration implements ConfigurationInterface
                         ->scalarNode('http_proxy')->end()
                         ->booleanNode('capture_silenced_errors')->end()
                         ->enumNode('max_request_body_size')
-                            ->values(['none', 'small', 'medium', 'always'])
+                            ->values([
+                                'none',
+                                'small',
+                                'medium',
+                                'always',
+                            ])
                         ->end()
                         ->arrayNode('class_serializers')
                             ->useAttributeAsKey('class')

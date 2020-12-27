@@ -117,7 +117,7 @@ final class SentryExtension extends ConfigurableExtension
         $clientBuilderDefinition = (new Definition(ClientBuilder::class))
             ->setArgument(0, new Reference('sentry.client.options'))
             ->addMethodCall('setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER])
-            ->addMethodCall('setSdkVersion', [PrettyVersions::getRootPackageVersion()->getPrettyVersion()])
+            ->addMethodCall('setSdkVersion', [PrettyVersions::getVersion('sentry/sentry-symfony')->getPrettyVersion()])
             ->addMethodCall('setTransportFactory', [new Reference(TransportFactoryInterface::class)])
             ->addMethodCall('setSerializer', [$serializer])
             ->addMethodCall('setRepresentationSerializer', [$representationSerializerDefinition]);
@@ -181,7 +181,7 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function configureIntegrationsOption(array $integrations, bool $registerErrorListener): array
     {
-        $existsIgnoreErrorsIntegration = array_search(IgnoreErrorsIntegration::class, $integrations, true);
+        $existsIgnoreErrorsIntegration = in_array(IgnoreErrorsIntegration::class, $integrations, true);
         $integrations = array_map(static function (string $value): Reference {
             return new Reference($value);
         }, $integrations);

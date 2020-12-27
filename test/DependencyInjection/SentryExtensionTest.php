@@ -336,7 +336,7 @@ abstract class SentryExtensionTest extends TestCase
         $methodCalls = $factory[0]->getMethodCalls();
 
         $this->assertDefinitionMethodCallAt($methodCalls[0], 'setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER]);
-        $this->assertDefinitionMethodCallAt($methodCalls[1], 'setSdkVersion', [PrettyVersions::getRootPackageVersion()->getPrettyVersion()]);
+        $this->assertDefinitionMethodCallAt($methodCalls[1], 'setSdkVersion', [PrettyVersions::getVersion('sentry/sentry-symfony')->getPrettyVersion()]);
         $this->assertDefinitionMethodCallAt($methodCalls[2], 'setTransportFactory', [new Reference(TransportFactoryInterface::class)]);
 
         $this->assertSame('setSerializer', $methodCalls[3][0]);
