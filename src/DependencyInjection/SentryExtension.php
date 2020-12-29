@@ -9,6 +9,9 @@ use Monolog\Logger as MonologLogger;
 use Sentry\Client;
 use Sentry\ClientBuilder;
 use Sentry\Integration\IgnoreErrorsIntegration;
+use Sentry\Integration\IntegrationInterface;
+use Sentry\Integration\RequestFetcherInterface;
+use Sentry\Integration\RequestIntegration;
 use Sentry\Monolog\Handler;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\ErrorListener;
@@ -98,7 +101,7 @@ final class SentryExtension extends ConfigurableExtension
         }
 
         if (isset($options['integrations'])) {
-            $options['integrations'] = $this->configureIntegrationsOption($options['integrations'], $config['register_error_listener']);
+            $options['integrations'] = $this->configureIntegrationsOption($options['integrations'], $config);
         }
 
         $container
@@ -176,17 +179,30 @@ final class SentryExtension extends ConfigurableExtension
 
     /**
      * @param string[] $integrations
+     * @param array<string, mixed> $config
      *
      * @return array<Reference|Definition>
      */
-    private function configureIntegrationsOption(array $integrations, bool $registerErrorListener): array
+    private function configureIntegrationsOption(array $integrations, array $config): array
     {
-        $existsIgnoreErrorsIntegration = in_array(IgnoreErrorsIntegration::class, $integrations, true);
         $integrations = array_map(static function (string $value): Reference {
             return new Reference($value);
         }, $integrations);
 
-        if ($registerErrorListener && false === $existsIgnoreErrorsIntegration) {
+        $integrations = $this->configureErrorListenerIntegration($integrations, $config['register_error_listener']);
+        $integrations = $this->configureRequestIntegration($integrations, $config['options']['default_integrations'] ?? true);
+
+        return $integrations;
+    }
+
+    /**
+     * @param array<Reference|Definition> $integrations
+     *
+     * @return array<Reference|Definition>
+     */
+    private function configureErrorListenerIntegration(array $integrations, bool $registerErrorListener): array
+    {
+        if ($registerErrorListener && ! $this->isIntegrationEnabled(IgnoreErrorsIntegration::class, $integrations)) {
             // Prepend this integration to the beginning of the array so that
             // we can save some performance by skipping the rest of the integrations
             // if the error must be ignored
@@ -194,5 +210,38 @@ final class SentryExtension extends ConfigurableExtension
         }
 
         return $integrations;
+    }
+
+    /**
+     * @param array<Reference|Definition> $integrations
+     *
+     * @return array<Reference|Definition>
+     */
+    private function configureRequestIntegration(array $integrations, bool $useDefaultIntegrations): array
+    {
+        if ($useDefaultIntegrations && ! $this->isIntegrationEnabled(RequestIntegration::class, $integrations)) {
+            $integrations[] = new Definition(RequestIntegration::class, [new Reference(RequestFetcherInterface::class)]);
+        }
+
+        return $integrations;
+    }
+
+    /**
+     * @param class-string<IntegrationInterface> $integrationClass
+     * @param array<Reference|Definition> $integrations
+     */
+    private function isIntegrationEnabled(string $integrationClass, array $integrations): bool
+    {
+        foreach ($integrations as $integration) {
+            if ($integration instanceof Reference && $integrationClass === (string) $integration) {
+                return true;
+            }
+
+            if ($integration instanceof Definition && $integrationClass === $integration->getClass()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
