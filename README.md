@@ -161,8 +161,8 @@ composer require pugx/sentry-sdk
 ## Maintained versions
 
  * 4.x is actively maintained and developed on the master branch, and uses Sentry SDK 3.0;
- * 3.x is actively maintained and developed on the master branch, and uses Sentry SDK 2.0;
- * 2.x is supported only for fixes; from this version onwards it requires Symfony 3+ and PHP 7.1+;
+ * 3.x is supported only for fixes and uses Sentry SDK 2.0;
+ * 2.x is no longer maintained; from this version onwards it requires Symfony 3+ and PHP 7.1+;
  * 1.x is no longer maintained; you can use it for Symfony < 2.8 and PHP 5.6/7.0; 
  * 0.8.x is no longer maintained.
 
