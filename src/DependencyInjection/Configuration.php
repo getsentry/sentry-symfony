@@ -1,211 +1,189 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sentry\SentryBundle\DependencyInjection;
 
 use Jean85\PrettyVersions;
+use Monolog\Logger;
 use Sentry\Options;
+use Sentry\SentryBundle\ErrorTypesParser;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
-/**
- * This is the class that validates and merges configuration from your app/config files
- *
- * To learn more see {@link http://symfony.com/doc/current/cookbook/bundles/extension.html#cookbook-bundles-extension-config-class}
- */
-class Configuration implements ConfigurationInterface
+final class Configuration implements ConfigurationInterface
 {
     /**
-     * {@inheritDoc}
-     * @throws \InvalidArgumentException
-     * @throws \RuntimeException
+     * {@inheritdoc}
      */
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('sentry');
+
         /** @var ArrayNodeDefinition $rootNode */
         $rootNode = \method_exists(TreeBuilder::class, 'getRootNode')
             ? $treeBuilder->getRootNode()
             : $treeBuilder->root('sentry');
 
-        // Basic Sentry configuration
-        $rootNode->children()
-            ->scalarNode('dsn')
-            ->defaultNull()
-            ->beforeNormalization()
-            ->ifString()
-            ->then($this->getTrimClosure());
+        $rootNode
+            ->children()
+                ->scalarNode('dsn')
+                    ->beforeNormalization()
+                        ->ifTrue(static function ($value): bool {
+                            return empty($value) || (is_string($value) && '' === trim($value));
+                        })
+                        ->thenUnset()
+                    ->end()
+                ->end()
+                ->arrayNode('options')
+                    ->addDefaultsIfNotSet()
+                    ->fixXmlConfig('integration')
+                    ->fixXmlConfig('tag')
+                    ->fixXmlConfig('class_serializer')
+                    ->fixXmlConfig('prefix', 'prefixes')
+                    ->children()
+                        ->arrayNode('integrations')
+                            ->scalarPrototype()->end()
+                        ->end()
+                        ->booleanNode('default_integrations')->end()
+                        ->integerNode('send_attempts')->min(0)->end()
+                        ->arrayNode('prefixes')
+                            ->scalarPrototype()->end()
+                        ->end()
+                        ->floatNode('sample_rate')
+                            ->min(0.0)
+                            ->max(1.0)
+                            ->info('The sampling factor to apply to events. A value of 0 will deny sending any event, and a value of 1 will send all events.')
+                        ->end()
+                        ->floatNode('traces_sample_rate')
+                            ->min(0.0)
+                            ->max(1.0)
+                            ->info('The sampling factor to apply to transactions. A value of 0 will deny sending any transaction, and a value of 1 will send all transactions.')
+                        ->end()
+                        ->scalarNode('traces_sampler')->end()
+                        ->booleanNode('attach_stacktrace')->end()
+                        ->integerNode('context_lines')->min(0)->end()
+                        ->booleanNode('enable_compression')->end()
+                        ->scalarNode('environment')
+                            ->cannotBeEmpty()
+                            ->defaultValue('%kernel.environment%')
+                        ->end()
+                        ->scalarNode('logger')->end()
+                        ->scalarNode('release')
+                            ->cannotBeEmpty()
+                            ->defaultValue(PrettyVersions::getRootPackageVersion()->getPrettyVersion())
+                        ->end()
+                        ->scalarNode('server_name')->end()
+                        ->scalarNode('before_send')->end()
+                        ->arrayNode('tags')
+                            ->useAttributeAsKey('name')
+                            ->normalizeKeys(false)
+                            ->scalarPrototype()->end()
+                        ->end()
+                        ->scalarNode('error_types')
+                            ->beforeNormalization()
+                                ->always(\Closure::fromCallable([ErrorTypesParser::class, 'parse']))
+                            ->end()
+                        ->end()
+                        ->integerNode('max_breadcrumbs')
+                            ->min(0)
+                            ->max(Options::DEFAULT_MAX_BREADCRUMBS)
+                        ->end()
+                        ->variableNode('before_breadcrumb')->end()
+                        ->arrayNode('in_app_exclude')
+                            ->scalarPrototype()->end()
+                            ->beforeNormalization()->castToArray()->end()
+                            ->defaultValue([
+                                '%kernel.cache_dir%',
+                                '%kernel.build_dir%',
+                                '%kernel.project_dir%/vendor',
+                            ])
+                        ->end()
+                        ->arrayNode('in_app_include')
+                            ->scalarPrototype()->end()
+                            ->beforeNormalization()->castToArray()->end()
+                        ->end()
+                        ->booleanNode('send_default_pii')->end()
+                        ->integerNode('max_value_length')->min(0)->end()
+                        ->scalarNode('http_proxy')->end()
+                        ->booleanNode('capture_silenced_errors')->end()
+                        ->enumNode('max_request_body_size')
+                            ->values([
+                                'none',
+                                'small',
+                                'medium',
+                                'always',
+                            ])
+                        ->end()
+                        ->arrayNode('class_serializers')
+                            ->useAttributeAsKey('class')
+                            ->normalizeKeys(false)
+                            ->scalarPrototype()->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
 
-        $rootNode->children()
-            ->booleanNode('register_error_listener')
-            ->defaultTrue();
-        // Options array (to be passed to Sentry\Options constructor) -- please keep alphabetical order!
-        $optionsNode = $rootNode->children()
-            ->arrayNode('options')
-            ->addDefaultsIfNotSet();
-
-        $defaultValues = new Options();
-        $optionsChildNodes = $optionsNode->children();
-
-        $optionsChildNodes->booleanNode('attach_stacktrace');
-        $optionsChildNodes->variableNode('before_breadcrumb')
-            ->validate()
-            ->ifTrue($this->isNotAValidCallback())
-            ->thenInvalid('Expecting callable or service reference, got %s');
-        $optionsChildNodes->variableNode('before_send')
-            ->validate()
-            ->ifTrue($this->isNotAValidCallback())
-            ->thenInvalid('Expecting callable or service reference, got %s');
-        $optionsChildNodes->booleanNode('capture_silenced_errors');
-        $optionsChildNodes->arrayNode('class_serializers')
-            ->defaultValue([])
-            ->prototype('scalar');
-        $optionsChildNodes->integerNode('context_lines')
-            ->min(0)
-            ->max(99);
-        $optionsChildNodes->booleanNode('default_integrations');
-        $optionsChildNodes->booleanNode('enable_compression');
-        $optionsChildNodes->scalarNode('environment')
-            ->defaultValue('%kernel.environment%')
-            ->cannotBeEmpty();
-        $optionsChildNodes->scalarNode('error_types');
-        $optionsChildNodes->arrayNode('in_app_include')
-            ->defaultValue([])
-            ->prototype('scalar');
-        $optionsChildNodes->arrayNode('in_app_exclude')
-            ->defaultValue([
-                '%kernel.cache_dir%',
-                '%kernel.project_dir%/vendor',
-            ])
-            ->prototype('scalar');
-        $optionsChildNodes->scalarNode('http_proxy');
-        $optionsChildNodes->arrayNode('integrations')
-            ->prototype('scalar')
-            ->validate()
-            ->ifTrue(static function ($value): bool {
-                if (! is_string($value) && '' != $value) {
-                    return true;
-                }
-
-                return '@' !== $value[0];
-            })
-            ->thenInvalid('Expecting service reference, got "%s"');
-        $optionsChildNodes->scalarNode('logger');
-        $optionsChildNodes->enumNode('max_request_body_size')
-            ->values([
-                'none',
-                'small',
-                'medium',
-                'always',
-            ]);
-        $optionsChildNodes->integerNode('max_breadcrumbs')
-            ->min(1);
-        $optionsChildNodes->integerNode('max_value_length')
-            ->min(1);
-        $optionsChildNodes->arrayNode('prefixes')
-            ->defaultValue($defaultValues->getPrefixes())
-            ->prototype('scalar');
-
-        $releaseNode = $optionsChildNodes->scalarNode('release')
-            ->info('Release version to be reported to sentry, see https://docs.sentry.io/workflow/releases/?platform=php')
-            ->example('my/application@ff11bb');
-        $releaseNode->defaultValue(PrettyVersions::getRootPackageVersion()->getPrettyVersion());
-
-        $optionsChildNodes->floatNode('sample_rate')
-            ->min(0.0)
-            ->max(1.0);
-        $optionsChildNodes->integerNode('send_attempts')
-            ->min(1);
-        $optionsChildNodes->booleanNode('send_default_pii');
-        $optionsChildNodes->scalarNode('server_name');
-        $optionsChildNodes->arrayNode('tags')
-            ->normalizeKeys(false)
-            ->prototype('scalar');
-        $optionsChildNodes->scalarNode('traces_sampler')
-            ->validate()
-            ->ifTrue($this->isNotAValidCallback())
-            ->thenInvalid('Expecting callable or service reference, got %s');
-        $optionsChildNodes->floatNode('traces_sample_rate')
-            ->min(0.0)
-            ->max(1.0);
-
-        // Bundle-specific configuration
-        $listenerPriorities = $rootNode->children()
-            ->arrayNode('listener_priorities')
-            ->addDefaultsIfNotSet()
-            ->children();
-        $listenerPriorities->scalarNode('request')
-            ->defaultValue(1);
-        $listenerPriorities->scalarNode('console')
-            ->defaultValue(128);
-        $listenerPriorities->scalarNode('sub_request')
-            ->defaultValue(1);
-        $listenerPriorities->scalarNode('request_error')
-            ->defaultValue(128);
-        $listenerPriorities->scalarNode('console_error')
-            ->defaultValue(-64);
-        $listenerPriorities->scalarNode('console_terminate')
-            ->defaultValue(-64);
-        $listenerPriorities->scalarNode('worker_error')
-            ->defaultValue(99);
-
-        // Monolog handler configuration
-        $monologConfiguration = $rootNode->children()
-            ->arrayNode('monolog')
-            ->addDefaultsIfNotSet()
-            ->children();
-
-        $errorHandler = $monologConfiguration
-            ->arrayNode('error_handler')
-            ->addDefaultsIfNotSet()
-            ->children();
-        $errorHandler->booleanNode('enabled')
-            ->defaultFalse();
-        $errorHandler->scalarNode('level')
-            ->defaultValue('DEBUG')
-            ->cannotBeEmpty();
-        $errorHandler->booleanNode('bubble')
-            ->defaultTrue();
-
-        // Messenger configuration
-        $messengerConfiguration = $rootNode->children()
-            ->arrayNode('messenger')
-            ->addDefaultsIfNotSet()
-            ->children();
-
-        $messengerConfiguration->booleanNode('enabled')
-            ->defaultValue(interface_exists(MessageBusInterface::class));
-        $messengerConfiguration->booleanNode('capture_soft_fails')
-            ->defaultTrue();
+        $this->addMessengerSection($rootNode);
+        $this->addMonologSection($rootNode);
+        $this->addListenerSection($rootNode);
 
         return $treeBuilder;
     }
 
-    private function getTrimClosure(): \Closure
+    private function addMessengerSection(ArrayNodeDefinition $rootNode): void
     {
-        return static function ($str): ?string {
-            $value = trim($str);
-            if ($value === '') {
-                return null;
-            }
-
-            return $value;
-        };
+        $rootNode
+            ->children()
+                ->arrayNode('messenger')
+                    ->{interface_exists(MessageBusInterface::class) ? 'canBeDisabled' : 'canBeEnabled'}()
+                    ->children()
+                        ->booleanNode('capture_soft_fails')->defaultTrue()->end()
+                    ->end()
+                ->end()
+            ->end();
     }
 
-    private function isNotAValidCallback(): \Closure
+    private function addMonologSection(ArrayNodeDefinition $rootNode): void
     {
-        return static function ($value): bool {
-            if (is_callable($value)) {
-                return false;
-            }
+        $rootNode
+            ->children()
+                ->arrayNode('monolog')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->arrayNode('error_handler')
+                            ->{class_exists(Logger::class) ? 'canBeDisabled' : 'canBeEnabled'}()
+                        ->end()
+                        ->scalarNode('level')
+                            ->defaultValue(Logger::DEBUG)
+                            ->cannotBeEmpty()
+                        ->end()
+                        ->booleanNode('bubble')->defaultTrue()->end()
+                    ->end()
+                ->end()
+            ->end();
+    }
 
-            if (is_string($value) && 0 === strpos($value, '@')) {
-                return false;
-            }
-
-            return true;
-        };
+    private function addListenerSection(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->booleanNode('register_error_listener')->defaultTrue()->end()
+                ->arrayNode('listener_priorities')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('request')->defaultValue(1)->end()
+                        ->scalarNode('sub_request')->defaultValue(1)->end()
+                        ->scalarNode('console')->defaultValue(128)->end()
+                        ->scalarNode('request_error')->defaultValue(128)->end()
+                        ->scalarNode('console_error')->defaultValue(-64)->end()
+                        ->scalarNode('console_terminate')->defaultValue(-64)->end()
+                        ->scalarNode('worker_error')->defaultValue(50)->end()
+                    ->end()
+                ->end()
+            ->end();
     }
 }

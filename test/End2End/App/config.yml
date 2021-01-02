@@ -13,16 +13,10 @@ services:
     alias: Sentry\State\HubInterface
     public: true
 
-  Sentry\ClientBuilderInterface:
-    class: Sentry\ClientBuilder
-    arguments: 
-      - '@Sentry\Options'
-    calls:
-      - method: setTransportFactory
-        arguments:
-          - '@Sentry\SentryBundle\Test\End2End\StubTransportFactory'
-
   Sentry\SentryBundle\Test\End2End\StubTransportFactory: ~
+
+  Sentry\Transport\TransportFactoryInterface:
+    alias: Sentry\SentryBundle\Test\End2End\StubTransportFactory
 
   Sentry\SentryBundle\Test\End2End\App\Controller\MainController:
     autowire: true

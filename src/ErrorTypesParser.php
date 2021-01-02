@@ -1,81 +1,69 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sentry\SentryBundle;
 
 /**
- * Evaluate an error types expression.
+ * This class provides a useful method to parse a string compatible with the
+ * `error_reporting` PHP INI setting into the corresponding value represented
+ * as an integer.
+ *
+ * @internal
  */
-class ErrorTypesParser
+final class ErrorTypesParser
 {
-    /** @var string */
-    private $expression;
-
     /**
-     * Initialize ErrorParser
+     * Parses a string that contains either an integer representing a bit field
+     * or named constants and returns the corresponding integer value of the
+     * bitmask.
      *
-     * @param string $expression Error Types e.g. E_ALL & ~E_DEPRECATED & ~E_NOTICE
-     */
-    public function __construct(string $expression)
-    {
-        $this->expression = $expression;
-    }
-
-    /**
-     * Parse and compute the error types expression
-     *
-     * @return int the parsed expression
      * @throws \InvalidArgumentException
      */
-    public function parse(): int
+    public static function parse(string $value): int
     {
-        // convert constants to ints
-        $this->expression = $this->convertErrorConstants($this->expression);
-        $this->expression = str_replace(
-            [',', ' '],
-            ['.', ''],
-            $this->expression
-        );
+        $parsedValue = self::convertErrorConstants($value);
 
-        return $this->compute($this->expression);
+        if ('' === trim($parsedValue)) {
+            throw new \InvalidArgumentException('The $value argument cannot be empty.');
+        }
+
+        // Sanitize the string from any character which could lead to a security
+        // issue. The only accepted chars are digits, spaces, parentheses and the
+        // bitwise operators useful to work with a bitmask
+        if (0 !== preg_match('/[^\d^|&~() -]/', $parsedValue)) {
+            throw new \InvalidArgumentException('The $value argument contains unexpected characters.');
+        }
+
+        try {
+            return 0 + (int) eval('return ' . $parsedValue . ';');
+        } catch (\ParseError $exception) {
+            throw new \InvalidArgumentException('The $value argument cannot be parsed to a bitmask.');
+        }
     }
 
     /**
-     * Converts error constants from string to int.
+     * Parses the given value and converts all the constant names with their
+     * corresponding value.
      *
-     * @param  string $expression e.g. E_ALL & ~E_DEPRECATED & ~E_NOTICE
-     * @return string   converted expression e.g. 32767 & ~8192 & ~8
+     * @param string $value e.g. E_ALL & ~E_DEPRECATED & ~E_NOTICE
+     *
+     * @return string The converted expression e.g. 32767 & ~8192 & ~8
      */
-    private function convertErrorConstants(string $expression): string
+    private static function convertErrorConstants(string $value): string
     {
-        $output = preg_replace_callback('/(E_[a-zA-Z_]+)/', function ($errorConstant) {
-            if (defined($errorConstant[1])) {
-                return constant($errorConstant[1]);
+        $output = preg_replace_callback('/(E_[A-Z_]+)/', static function (array $matches) {
+            if (defined($matches[1])) {
+                return constant($matches[1]);
             }
 
-            return $errorConstant[0];
-        }, $expression);
+            return $matches[0];
+        }, $value);
 
         if (null === $output) {
-            throw new \InvalidArgumentException('Unable to parse error types string: ' . $expression);
+            throw new \InvalidArgumentException(sprintf('The "%s" value could not be parsed.', $value));
         }
 
         return $output;
-    }
-
-    /**
-     * Let PHP compute the prepared expression for us.
-     *
-     * @param  string $expression prepared expression e.g. 32767&~8192&~8
-     * @return int  computed expression e.g. 24567
-     * @throws \InvalidArgumentException
-     */
-    private function compute(string $expression): int
-    {
-        // catch anything which could be a security issue
-        if (0 !== preg_match("/[^\d.+*%^|&~<>\/()-]/", $this->expression)) {
-            throw new \InvalidArgumentException('Wrong value in error types config value:' . $this->expression);
-        }
-
-        return 0 + (int)eval('return ' . $expression . ';');
     }
 }

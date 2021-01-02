@@ -19,8 +19,4 @@ if (trait_exists(ProphecyTrait::class)) {
 
 abstract class BaseTestCase extends BaseProphecyTestCase
 {
-    protected function getSupportedOptionsCount(): int
-    {
-        return 27;
-    }
 }

@@ -10,7 +10,6 @@
 - Renamed the `RequestListener::onKernelController` method to `RequestListener::handleKernelControllerEvent`.
 - Renamed the `SubRequestListener::onKernelRequest` method to `SubRequestListener::handleKernelRequestEvent`.
 - Renamed the `SubRequestListener::onKernelFinishRequest` method to `SubRequestListener::handleKernelFinishRequestEvent`.
-- Removed the `sentry.listener_priorities.console` configuration option.
 - Removed the `Sentry\FlushableClientInterface` service alias.
 - Removed the `sentry.options.excluded_exceptions` configuration option.
 
@@ -41,3 +40,123 @@
 
 - Changed the default value of the `sentry.listener_priorities.console_error` configuration option to `-64`.
 - Changed the default value of the `sentry.listener_priorities.console` configuration option to `128`.
+- Changed the default value of the `sentry.listener_priorities.worker_error` configuration option to `50`.
+- Changed the type of the `sentry.options.before_send` configuration option from `scalar` to `string`. The value must always be the name of the container service to call without the `@` prefix.
+
+  Before
+
+  ```yaml
+  sentry:
+      options:
+          before_send: '@app.sentry.before_send'
+  ```
+
+  ```yaml
+  sentry:
+      options:
+          before_send: 'App\Sentry\BeforeSend::__invoke'
+  ```
+
+  ```yaml
+  sentry:
+      options:
+          before_send: ['App\Sentry\BeforeSend', '__invoke']
+  ```
+
+  After
+
+  ```yaml
+  sentry:
+      options:
+          before_send: 'app.sentry.before_send'
+  ```
+
+- Changed the type of the `sentry.options.before_breadcrumb` configuration option from `scalar` to `string`. The value must always be the name of the container service to call without the `@` prefix.
+
+  Before
+
+  ```yaml
+  sentry:
+      options:
+          before_breadcrumb: '@app.sentry.before_breadcrumb'
+  ```
+
+  ```yaml
+  sentry:
+      options:
+          before_breadcrumb: 'App\Sentry\BeforeBreadcrumb::__invoke'
+  ```
+
+  ```yaml
+  sentry:
+      options:
+          before_breadcrumb: ['App\Sentry\BeforeBreadcrumb', '__invoke']
+  ```
+
+  After
+
+  ```yaml
+  sentry:
+      options:
+          before_send: 'app.sentry.before_breadcrumb'
+  ```
+
+- Changed the type of the `sentry.options.class_serializers` configuration option from an array of `scalar` values to an array of `string` values. The value must always be the name of the container service to call without the `@` prefix.
+
+  Before
+
+  ```yaml
+  sentry:
+      options:
+          class_serializers:
+              App\FooClass: '@app.sentry.foo_class_serializer'
+  ```
+
+  ```yaml
+  sentry:
+      options:
+          class_serializers:
+              App\FooClass: 'App\Sentry\FooClassSerializer::__invoke'
+  ```
+
+  ```yaml
+  sentry:
+      options:
+          class_serializers:
+              App\FooClass: ['App\Sentry\FooClassSerializer', 'invoke']
+  ```
+
+  After
+
+  ```yaml
+  sentry:
+      options:
+          class_serializers:
+              App\FooClass: 'app.sentry.foo_class_serializer'
+  ```
+
+- Changed the type of the `sentry.options.integrations` configuration option from an array of `scalar` values to an array of `string` values. The value must always be the name of the container service to call without the `@` prefix.
+
+  Before
+
+  ```yaml
+  sentry:
+      options:
+          integrations:
+              - '@app.sentry.foo_integration'
+  ```
+
+  After
+
+  ```yaml
+  sentry:
+      options:
+          integrations:
+              - 'app.sentry.foo_integration'
+  ```
+
+- Removed the `ClientBuilderConfigurator` class.
+- Removed the `SentryBundle::getSdkVersion()` method.
+- Removed `SentryBundle::getCurrentHub()` method, use `SentrySdk::getCurrentHub()` instead.
+- Removed the `Sentry\ClientBuilderInterface` and `Sentry\Options` services.
+- Refactorized the `ErrorTypesParser` class and made it `@internal`.

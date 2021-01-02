@@ -159,44 +159,16 @@ composer require pugx/sentry-sdk
 ```
 
 ## Maintained versions
- * 3.x is actively maintained and developed on the master branch, and uses Sentry SDK 2.0;
- * 2.x is supported only for fixes; from this version onwards it requires Symfony 3+ and PHP 7.1+;
+
+ * 4.x is actively maintained and developed on the master branch, and uses Sentry SDK 3.0;
+ * 3.x is supported only for fixes and uses Sentry SDK 2.0;
+ * 2.x is no longer maintained; from this version onwards it requires Symfony 3+ and PHP 7.1+;
  * 1.x is no longer maintained; you can use it for Symfony < 2.8 and PHP 5.6/7.0; 
  * 0.8.x is no longer maintained.
 
-### Upgrading to 3.0
-The 3.0 version of the bundle uses the newest version (2.x) of the underlying Sentry SDK. If you need to migrate from previous versions, please check the `UPGRADE-3.0.md` document.
+### Upgrading to 4.0
 
-## Customization
-
-The Sentry 2.0 SDK uses the Unified API, hence it uses the concept of `Scope`s to hold information about the current 
-state of the app, and attach it to any event that is reported. This bundle has three listeners (`RequestListener`, 
-`SubRequestListener` and `ConsoleListener`) that adds some easy default information. Since 3.5, a fourth listener has been added to handle the case of Messenger Workers: `MessengerListener`.
-
-Those listeners normally are executed with a priority of `1` to allow easier customization with custom listener, that by 
-default run with a lower priority of `0`.
-
-Those listeners are `final` so not extendable, but you can look at those to know how to add more information to the 
-current `Scope` and enrich you Sentry events.
-
-
-#### Services configuration
-
-Services registered by the bundle (the `ClientBuilder` in the example below) can be configured in several ways, one of them is by using a [compiler pass](https://symfony.com/doc/current/service_container/compiler_passes.html):
-
-```php
-final class SentryCustomizationCompilerPass implements CompilerPassInterface
-{
-    public function process(ContainerBuilder $containerBuilder): void
-    {
-        // Example - setting own serializer to Sentry\ClientBuilder
-        $containerBuilder->getDefinition(ClientBuilderInterface::class)
-            ->addMethodCall('setSerializer', [
-                new Reference(MyCustomSerializer::class),
-            ]);
-    }
-}
-```
+The 4.0 version of the bundle uses the newest version (3.x) of the underlying Sentry SDK. If you need to migrate from previous versions, please check the `UPGRADE-4.0.md` document.
 
 #### Custom serializers
 
@@ -205,7 +177,7 @@ The option class_serializers can be used to send customized objects serializatio
 sentry:
     options:
         class_serializers:
-            YourValueObject: '@ValueObjectSerializer'
+            YourValueObject: 'ValueObjectSerializer'
 ```
 
 Several serializers can be added and the serializable check is done using **instanceof**. The serializer must implements the `__invoke` method returning an **array** with the information to send to sentry (class name is always sent).

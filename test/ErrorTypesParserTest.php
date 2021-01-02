@@ -1,44 +1,75 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sentry\SentryBundle\Test;
 
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\ErrorTypesParser;
 
-class ErrorTypesParserTest extends TestCase
+final class ErrorTypesParserTest extends TestCase
 {
     /**
-     * @dataProvider parsableValueProvider
+     * @dataProvider parseDataProvider
      */
-    public function testParse($value, int $expected): void
+    public function testParse(string $value, int $expectedValue): void
     {
-        $ex = new ErrorTypesParser($value);
-        $this->assertEquals($expected, $ex->parse());
+        $this->assertSame($expectedValue, ErrorTypesParser::parse($value));
     }
 
-    public function parsableValueProvider(): array
+    /**
+     * @return \Generator<mixed>
+     */
+    public function parseDataProvider(): \Generator
     {
-        return [
-            ['E_ALL', E_ALL],
-            ['E_ALL & ~E_DEPRECATED & ~E_NOTICE', E_ALL & ~E_DEPRECATED & ~E_NOTICE],
-            ['-1', -1],
-            [-1, -1],
+        yield [
+            'E_ALL',
+            E_ALL,
+        ];
+
+        yield [
+            'E_ERROR | E_WARNING | E_PARSE',
+            E_ERROR | E_WARNING | E_PARSE,
+        ];
+
+        yield [
+            'E_ALL & ~E_DEPRECATED & ~E_NOTICE',
+            E_ALL & ~E_DEPRECATED & ~E_NOTICE,
+        ];
+
+        yield [
+            'E_ALL & ~(E_DEPRECATED|E_NOTICE)',
+            E_ALL & ~(E_DEPRECATED | E_NOTICE),
+        ];
+
+        yield [
+            '-1',
+            -1,
         ];
     }
 
-    public function testParseStopsAtDangerousValues(): void
+    /**
+     * @dataProvider parseThrowsExceptionIfArgumentContainsInvalidCharactersDataProvider
+     */
+    public function testParseThrowsExceptionIfArgumentContainsInvalidCharacters(string $value): void
     {
-        $ex = new ErrorTypesParser('exec(something-dangerous)');
-
         $this->expectException(\InvalidArgumentException::class);
-        $ex->parse();
+
+        ErrorTypesParser::parse($value);
     }
 
-    public function testErrorTypesParserThrowsExceptionForUnparsableValues(): void
+    /**
+     * @return \Generator<mixed>
+     */
+    public function parseThrowsExceptionIfArgumentContainsInvalidCharactersDataProvider(): \Generator
     {
-        $ex = new ErrorTypesParser('something-wrong');
-
-        $this->expectException(\InvalidArgumentException::class);
-        $ex->parse();
+        yield ['foo'];
+        yield ['-'];
+        yield [' '];
+        yield ['&'];
+        yield ['|'];
+        yield ['('];
+        yield [')'];
+        yield ['()'];
     }
 }
