@@ -23,7 +23,7 @@ final class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder('sentry');
 
         /** @var ArrayNodeDefinition $rootNode */
-        $rootNode = \method_exists(TreeBuilder::class, 'getRootNode')
+        $rootNode = method_exists(TreeBuilder::class, 'getRootNode')
             ? $treeBuilder->getRootNode()
             : $treeBuilder->root('sentry');
 
@@ -32,7 +32,7 @@ final class Configuration implements ConfigurationInterface
                 ->scalarNode('dsn')
                     ->beforeNormalization()
                         ->ifTrue(static function ($value): bool {
-                            return empty($value) || (is_string($value) && '' === trim($value));
+                            return empty($value) || (\is_string($value) && '' === trim($value));
                         })
                         ->thenUnset()
                     ->end()

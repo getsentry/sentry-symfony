@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\State\HubInterface;
@@ -21,7 +23,7 @@ final class MessengerListener
     private $captureSoftFails;
 
     /**
-     * @param HubInterface $hub The current hub
+     * @param HubInterface $hub              The current hub
      * @param bool         $captureSoftFails Whether to capture errors thrown
      *                                       while processing a message that
      *                                       will be retried
@@ -39,7 +41,7 @@ final class MessengerListener
      */
     public function handleWorkerMessageFailedEvent(WorkerMessageFailedEvent $event): void
     {
-        if (! $this->captureSoftFails && $event->willRetry()) {
+        if (!$this->captureSoftFails && $event->willRetry()) {
             return;
         }
 

@@ -4,9 +4,9 @@ includes:
 parameters:
     level: 7
     paths:
-        - src/
-        - test/
+        - src
+        - tests
     excludes_analyse:
-        - test/End2End/App
+        - tests/End2End/App
     dynamicConstantNames:
         - Symfony\Component\HttpKernel\Kernel::VERSION

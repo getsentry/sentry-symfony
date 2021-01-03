@@ -1,0 +1,31 @@
+exception:
+  path:  /exception
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::exception' }
+
+fatal:
+  path:  /fatal
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::fatal' }
+
+200:
+  path:  /200
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::index' }
+
+secured200:
+  path:  /secured/200
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::index' }
+
+subrequest:
+  path:  /subrequest
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::subrequest' }
+
+notice:
+  path:  /notice
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::notice' }
+
+dispatch:
+  path: /dispatch-message
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MessengerController::dispatchMessage' }
+
+dispatch_unrecoverable:
+  path: /dispatch-unrecoverable-message
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MessengerController::dispatchUnrecoverableMessage' }

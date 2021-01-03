@@ -53,8 +53,8 @@ final class ErrorTypesParser
     private static function convertErrorConstants(string $value): string
     {
         $output = preg_replace_callback('/(E_[A-Z_]+)/', static function (array $matches) {
-            if (defined($matches[1])) {
-                return constant($matches[1]);
+            if (\defined($matches[1])) {
+                return \constant($matches[1]);
             }
 
             return $matches[0];

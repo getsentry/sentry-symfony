@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sentry\SentryBundle\Command;
 
 use Sentry\SentrySdk;
@@ -16,7 +18,7 @@ class SentryTestCommand extends Command
         $currentHub = SentrySdk::getCurrentHub();
         $client = $currentHub->getClient();
 
-        if (! $client) {
+        if (!$client) {
             $output->writeln('<error>No client found</error>');
             $output->writeln('<info>Your DSN is probably missing, check your configuration</info>');
 
