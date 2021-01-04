@@ -66,5 +66,33 @@
         <service id="Sentry\Monolog\Handler" class="Sentry\Monolog\Handler">
             <argument type="service" id="Sentry\State\HubInterface" />
         </service>
+
+        <service id="Sentry\Integration\RequestFetcherInterface" class="Sentry\SentryBundle\Integration\RequestFetcher">
+            <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack" />
+            <argument type="service">
+                <service class="Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory">
+                    <argument type="service">
+                        <service class="Psr\Http\Message\ServerRequestFactoryInterface">
+                            <factory class="Http\Discovery\Psr17FactoryDiscovery" method="findServerRequestFactory" />
+                        </service>
+                    </argument>
+                    <argument type="service">
+                        <service class="Psr\Http\Message\StreamFactoryInterface">
+                            <factory class="Http\Discovery\Psr17FactoryDiscovery" method="findStreamFactory" />
+                        </service>
+                    </argument>
+                    <argument type="service">
+                        <service class="Psr\Http\Message\UploadedFileFactoryInterface">
+                            <factory class="Http\Discovery\Psr17FactoryDiscovery" method="findUploadedFileFactory" />
+                        </service>
+                    </argument>
+                    <argument type="service">
+                        <service class="Psr\Http\Message\ResponseFactoryInterface">
+                            <factory class="Http\Discovery\Psr17FactoryDiscovery" method="findResponseFactory" />
+                        </service>
+                    </argument>
+                </service>
+            </argument>
+        </service>
     </services>
 </container>

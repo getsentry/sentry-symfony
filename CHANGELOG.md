@@ -11,6 +11,7 @@
 - [BC BREAK] Refactorized the configuration tree and the definitions of some container services (#401)
 - Support the XML format for the bundle configuration (#401)
 - PHP 8 support (#399, thanks to @Yozhef)
+- Retrieve the request from the `RequestStack` when using the `RequestIntegration` integration (#361)
 
 ## 3.5.3 (2020-10-13)
 

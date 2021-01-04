@@ -8,7 +8,6 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 $container->loadFromExtension('sentry', [
     'options' => [
         'integrations' => [
-            'App\\Sentry\\Integration\\FooIntegration',
             'Sentry\\Integration\\IgnoreErrorsIntegration',
         ],
     ],

@@ -1,5 +1,4 @@
 sentry:
     options:
         integrations:
-            - App\Sentry\Integration\FooIntegration
             - Sentry\Integration\IgnoreErrorsIntegration

@@ -72,10 +72,8 @@ abstract class SentryExtensionTest extends TestCase
     public function testErrorListenerIsRemovedWhenDisabled(): void
     {
         $container = $this->createContainerFromFixture('error_listener_disabled');
-        $optionsDefinition = $container->getDefinition('sentry.client.options');
 
         $this->assertFalse($container->hasDefinition(ErrorListener::class));
-        $this->assertSame([], $optionsDefinition->getArgument(0)['integrations']);
     }
 
     /**
@@ -369,13 +367,20 @@ abstract class SentryExtensionTest extends TestCase
     public function testIgnoreErrorsIntegrationIsNotAddedTwiceIfAlreadyConfigured(): void
     {
         $container = $this->createContainerFromFixture('ignore_errors_integration_overridden');
-        $optionsDefinition = $container->getDefinition('sentry.client.options');
-        $expectedIntegrations = [
-            new Reference('App\\Sentry\\Integration\\FooIntegration'),
-            new Reference(IgnoreErrorsIntegration::class),
-        ];
+        $integrations = $container->getDefinition('sentry.client.options')->getArgument(0)['integrations'];
+        $ignoreErrorsIntegrationsCount = 0;
 
-        $this->assertEquals($expectedIntegrations, $optionsDefinition->getArgument(0)['integrations']);
+        foreach ($integrations as $integration) {
+            if ($integration instanceof Reference && IgnoreErrorsIntegration::class === (string) $integration) {
+                ++$ignoreErrorsIntegrationsCount;
+            }
+
+            if ($integration instanceof Definition && IgnoreErrorsIntegration::class === $integration->getClass()) {
+                ++$ignoreErrorsIntegrationsCount;
+            }
+        }
+
+        $this->assertSame(1, $ignoreErrorsIntegrationsCount);
     }
 
     private function createContainerFromFixture(string $fixtureFile): ContainerBuilder
