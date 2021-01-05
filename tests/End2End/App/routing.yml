@@ -6,7 +6,7 @@ fatal:
   path:  /fatal
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::fatal' }
 
-200:
+success:
   path:  /200
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::index' }
 

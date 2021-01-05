@@ -86,7 +86,7 @@ final class RequestListener
         }
 
         $this->hub->configureScope(static function (Scope $scope) use ($request): void {
-            $scope->setTag('route', $request->attributes->get('_route'));
+            $scope->setTag('route', (string) $request->attributes->get('_route'));
         });
     }
 
