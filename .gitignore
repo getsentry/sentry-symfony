@@ -3,5 +3,7 @@ package.xml
 /vendor
 .idea
 .php_cs.cache
+.phpunit.result.cache
 docs/_build
 var
+tests/clover.xml

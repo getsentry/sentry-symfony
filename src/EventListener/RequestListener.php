@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\State\HubInterface;
@@ -28,7 +30,7 @@ final class RequestListener
     /**
      * Constructor.
      *
-     * @param HubInterface $hub The current hub
+     * @param HubInterface               $hub          The current hub
      * @param TokenStorageInterface|null $tokenStorage The token storage
      */
     public function __construct(HubInterface $hub, ?TokenStorageInterface $tokenStorage)
@@ -45,7 +47,7 @@ final class RequestListener
      */
     public function handleKernelRequestEvent(RequestListenerRequestEvent $event): void
     {
-        if (! $event->isMasterRequest()) {
+        if (!$event->isMasterRequest()) {
             return;
         }
 
@@ -73,18 +75,18 @@ final class RequestListener
      */
     public function handleKernelControllerEvent(RequestListenerControllerEvent $event): void
     {
-        if (! $event->isMasterRequest()) {
+        if (!$event->isMasterRequest()) {
             return;
         }
 
         $request = $event->getRequest();
 
-        if (! $request->attributes->has('_route')) {
+        if (!$request->attributes->has('_route')) {
             return;
         }
 
         $this->hub->configureScope(static function (Scope $scope) use ($request): void {
-            $scope->setTag('route', $request->attributes->get('_route'));
+            $scope->setTag('route', (string) $request->attributes->get('_route'));
         });
     }
 
@@ -97,11 +99,11 @@ final class RequestListener
             return $user->getUsername();
         }
 
-        if (is_string($user)) {
+        if (\is_string($user)) {
             return $user;
         }
 
-        if (is_object($user) && method_exists($user, '__toString')) {
+        if (\is_object($user) && method_exists($user, '__toString')) {
             return (string) $user;
         }
 

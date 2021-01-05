@@ -33,90 +33,90 @@ parameters:
 		-
 			message: "#^Class Symfony\\\\Bundle\\\\FrameworkBundle\\\\Client not found\\.$#"
 			count: 1
-			path: test/End2End/End2EndTest.php
+			path: tests/End2End/End2EndTest.php
 
 		-
 			message: "#^Comparison operation \"\\<\" between 50201 and 40300 is always false\\.$#"
 			count: 1
-			path: test/End2End/End2EndTest.php
+			path: tests/End2End/End2EndTest.php
 
 		-
-			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\ErrorListenerTest\\:\\:testHandleExceptionEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent\\.$#"
+			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\ErrorListenerTest\\:\\:testHandleExceptionEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent\\.$#"
 			count: 1
-			path: test/EventListener/ErrorListenerTest.php
+			path: tests/EventListener/ErrorListenerTest.php
 
 		-
 			message: "#^Call to method getException\\(\\) on an unknown class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent\\.$#"
 			count: 1
-			path: test/EventListener/ErrorListenerTest.php
+			path: tests/EventListener/ErrorListenerTest.php
 
 		-
 			message: "#^Parameter \\#1 \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\ErrorListener\\:\\:handleExceptionEvent\\(\\) expects Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\ExceptionEvent, Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\ExceptionEvent\\|Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent given\\.$#"
 			count: 1
-			path: test/EventListener/ErrorListenerTest.php
+			path: tests/EventListener/ErrorListenerTest.php
 
 		-
 			message: "#^Instantiated class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent not found\\.$#"
 			count: 1
-			path: test/EventListener/ErrorListenerTest.php
+			path: tests/EventListener/ErrorListenerTest.php
 
 		-
 			message: "#^If condition is always false\\.$#"
 			count: 1
-			path: test/EventListener/MessengerListenerTest.php
+			path: tests/EventListener/MessengerListenerTest.php
 
 		-
 			message: "#^Class Symfony\\\\Component\\\\Messenger\\\\Event\\\\WorkerMessageFailedEvent constructor invoked with 4 parameters, 3 required\\.$#"
 			count: 1
-			path: test/EventListener/MessengerListenerTest.php
+			path: tests/EventListener/MessengerListenerTest.php
 
 		-
-			message: "#^Parameter \\$requestEvent of method Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\RequestListenerTest\\:\\:testHandleKernelRequestEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\.$#"
+			message: "#^Parameter \\$requestEvent of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\RequestListenerTest\\:\\:testHandleKernelRequestEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\.$#"
 			count: 1
-			path: test/EventListener/RequestListenerTest.php
+			path: tests/EventListener/RequestListenerTest.php
 
 		-
 			message: "#^Parameter \\#1 \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListener\\:\\:handleKernelRequestEvent\\(\\) expects Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\RequestEvent, Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\|Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\RequestEvent given\\.$#"
 			count: 1
-			path: test/EventListener/RequestListenerTest.php
+			path: tests/EventListener/RequestListenerTest.php
 
 		-
 			message: "#^Instantiated class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent not found\\.$#"
 			count: 6
-			path: test/EventListener/RequestListenerTest.php
+			path: tests/EventListener/RequestListenerTest.php
 
 		-
-			message: "#^Parameter \\$controllerEvent of method Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\RequestListenerTest\\:\\:testHandleKernelControllerEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent\\.$#"
+			message: "#^Parameter \\$controllerEvent of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\RequestListenerTest\\:\\:testHandleKernelControllerEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent\\.$#"
 			count: 1
-			path: test/EventListener/RequestListenerTest.php
+			path: tests/EventListener/RequestListenerTest.php
 
 		-
 			message: "#^Parameter \\#1 \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListener\\:\\:handleKernelControllerEvent\\(\\) expects Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\ControllerEvent, Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\ControllerEvent\\|Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent given\\.$#"
 			count: 1
-			path: test/EventListener/RequestListenerTest.php
+			path: tests/EventListener/RequestListenerTest.php
 
 		-
 			message: "#^Instantiated class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent not found\\.$#"
 			count: 3
-			path: test/EventListener/RequestListenerTest.php
+			path: tests/EventListener/RequestListenerTest.php
 
 		-
-			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\Test\\\\EventListener\\\\SubRequestListenerTest\\:\\:testHandleKernelRequestEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\.$#"
+			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\SubRequestListenerTest\\:\\:testHandleKernelRequestEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\.$#"
 			count: 1
-			path: test/EventListener/SubRequestListenerTest.php
+			path: tests/EventListener/SubRequestListenerTest.php
 
 		-
 			message: "#^Call to method isMasterRequest\\(\\) on an unknown class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\.$#"
 			count: 1
-			path: test/EventListener/SubRequestListenerTest.php
+			path: tests/EventListener/SubRequestListenerTest.php
 
 		-
 			message: "#^Parameter \\#1 \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\SubRequestListener\\:\\:handleKernelRequestEvent\\(\\) expects Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\RequestEvent, Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\|Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\RequestEvent given\\.$#"
 			count: 1
-			path: test/EventListener/SubRequestListenerTest.php
+			path: tests/EventListener/SubRequestListenerTest.php
 
 		-
 			message: "#^Instantiated class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent not found\\.$#"
 			count: 2
-			path: test/EventListener/SubRequestListenerTest.php
+			path: tests/EventListener/SubRequestListenerTest.php
 

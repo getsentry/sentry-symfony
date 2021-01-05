@@ -76,7 +76,7 @@ final class SentryExtension extends ConfigurableExtension
             $options['dsn'] = $config['dsn'];
         }
 
-        if (! $container->hasParameter('kernel.build_dir')) {
+        if (!$container->hasParameter('kernel.build_dir')) {
             $options['in_app_exclude'] = array_filter($options['in_app_exclude'], static function (string $value): bool {
                 return '%kernel.build_dir%' !== $value;
             });
@@ -136,7 +136,7 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function registerErrorListenerConfiguration(ContainerBuilder $container, array $config): void
     {
-        if (! $config['register_error_listener']) {
+        if (!$config['register_error_listener']) {
             $container->removeDefinition(ErrorListener::class);
         }
     }
@@ -146,7 +146,7 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function registerMessengerListenerConfiguration(ContainerBuilder $container, array $config): void
     {
-        if (! $config['enabled']) {
+        if (!$config['enabled']) {
             $container->removeDefinition(MessengerListener::class);
 
             return;
@@ -162,13 +162,13 @@ final class SentryExtension extends ConfigurableExtension
     {
         $errorHandlerConfig = $config['error_handler'];
 
-        if (! $errorHandlerConfig['enabled']) {
+        if (!$errorHandlerConfig['enabled']) {
             $container->removeDefinition(Handler::class);
 
             return;
         }
 
-        if (! class_exists(MonologLogger::class)) {
+        if (!class_exists(MonologLogger::class)) {
             throw new LogicException(sprintf('To use the "%s" class you need to require the "symfony/monolog-bundle" package.', Handler::class));
         }
 
@@ -178,7 +178,7 @@ final class SentryExtension extends ConfigurableExtension
     }
 
     /**
-     * @param string[] $integrations
+     * @param string[]             $integrations
      * @param array<string, mixed> $config
      *
      * @return array<Reference|Definition>
@@ -202,7 +202,7 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function configureErrorListenerIntegration(array $integrations, bool $registerErrorListener): array
     {
-        if ($registerErrorListener && ! $this->isIntegrationEnabled(IgnoreErrorsIntegration::class, $integrations)) {
+        if ($registerErrorListener && !$this->isIntegrationEnabled(IgnoreErrorsIntegration::class, $integrations)) {
             // Prepend this integration to the beginning of the array so that
             // we can save some performance by skipping the rest of the integrations
             // if the error must be ignored
@@ -219,7 +219,7 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function configureRequestIntegration(array $integrations, bool $useDefaultIntegrations): array
     {
-        if ($useDefaultIntegrations && ! $this->isIntegrationEnabled(RequestIntegration::class, $integrations)) {
+        if ($useDefaultIntegrations && !$this->isIntegrationEnabled(RequestIntegration::class, $integrations)) {
             $integrations[] = new Definition(RequestIntegration::class, [new Reference(RequestFetcherInterface::class)]);
         }
 
@@ -228,7 +228,7 @@ final class SentryExtension extends ConfigurableExtension
 
     /**
      * @param class-string<IntegrationInterface> $integrationClass
-     * @param array<Reference|Definition> $integrations
+     * @param array<Reference|Definition>        $integrations
      */
     private function isIntegrationEnabled(string $integrationClass, array $integrations): bool
     {

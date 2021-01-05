@@ -12,7 +12,8 @@
 - Support the XML format for the bundle configuration (#401)
 - PHP 8 support (#399, thanks to @Yozhef)
 - Retrieve the request from the `RequestStack` when using the `RequestIntegration` integration (#361)
-
+- Reorganize the folder structure and change CS standard (#405)
+  
 ## 3.5.3 (2020-10-13)
 
 - Refactors and fixes class aliases for more robustness (#315 #359, thanks to @guilliamxavier)

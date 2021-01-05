@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/8.5/phpunit.xsd"
-        colors="true"
-        backupGlobals="false"
-        bootstrap="vendor/autoload.php"
-        cacheResult="false"
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/schema/8.5.xsd"
+         colors="true"
+         bootstrap="vendor/autoload.php"
+         cacheResult="false"
+         beStrictAboutOutputDuringTests="true"
 >
     <php>
         <env name="SYMFONY_DEPRECATIONS_HELPER" value="weak" />
@@ -13,15 +12,21 @@
 
     <testsuites>
         <testsuite name="SentryBundle test suite">
-            <directory>./test</directory>
+            <directory>tests</directory>
         </testsuite>
     </testsuites>
 
+    <coverage>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+    </coverage>
+
     <filter>
         <whitelist>
-            <directory>./src</directory>
+            <directory suffix=".php">src</directory>
             <exclude>
-                <file>./src/aliases.php</file>
+                <file>src/aliases.php</file>
             </exclude>
         </whitelist>
     </filter>

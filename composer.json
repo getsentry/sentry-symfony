@@ -61,7 +61,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Sentry\\SentryBundle\\Test\\": "test"
+            "Sentry\\SentryBundle\\Tests\\": "tests/"
         }
     },
     "scripts": {

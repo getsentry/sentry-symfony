@@ -1,5 +1,4 @@
-examples/ export-ignore
-test/ export-ignore
+tests/ export-ignore
 var/ export-ignore
 .* export-ignore
 Makefile export-ignore

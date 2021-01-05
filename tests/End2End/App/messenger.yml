@@ -1,0 +1,28 @@
+services:
+  _defaults:
+    autoconfigure: true
+
+  Sentry\SentryBundle\Tests\End2End\App\Messenger\StaticInMemoryTransportFactory:
+    class: \Sentry\SentryBundle\Tests\End2End\App\Messenger\StaticInMemoryTransportFactory
+
+  Sentry\SentryBundle\Tests\End2End\App\Messenger\FooMessageHandler:
+    class: \Sentry\SentryBundle\Tests\End2End\App\Messenger\FooMessageHandler
+
+  Sentry\SentryBundle\Tests\End2End\App\Controller\MessengerController:
+    autowire: true
+    tags:
+      - controller.service_arguments
+
+framework:
+  messenger:
+    transports:
+      async:
+        dsn: 'static://'
+        retry_strategy:
+          max_retries: 1
+    routing:
+      '*': async
+
+sentry:
+  messenger:
+    capture_soft_fails: false
