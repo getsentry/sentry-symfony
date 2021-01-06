@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
 use Jean85\PrettyVersions;
-use Monolog\Logger;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -34,13 +33,6 @@ final class ConfigurationTest extends TestCase
             'messenger' => [
                 'enabled' => interface_exists(MessageBusInterface::class),
                 'capture_soft_fails' => true,
-            ],
-            'monolog' => [
-                'error_handler' => [
-                    'enabled' => class_exists(Logger::class),
-                ],
-                'level' => Logger::DEBUG,
-                'bubble' => true,
             ],
             'register_error_listener' => true,
             'listener_priorities' => [

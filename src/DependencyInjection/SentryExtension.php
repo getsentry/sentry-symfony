@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\DependencyInjection;
 
 use Jean85\PrettyVersions;
-use Monolog\Logger as MonologLogger;
 use Sentry\Client;
 use Sentry\ClientBuilder;
 use Sentry\Integration\IgnoreErrorsIntegration;
 use Sentry\Integration\IntegrationInterface;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\Integration\RequestIntegration;
-use Sentry\Monolog\Handler;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
@@ -23,7 +21,6 @@ use Sentry\Transport\TransportFactoryInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\ErrorHandler\Error\FatalError;
@@ -62,7 +59,6 @@ final class SentryExtension extends ConfigurableExtension
         $this->registerConfiguration($container, $mergedConfig);
         $this->registerErrorListenerConfiguration($container, $mergedConfig);
         $this->registerMessengerListenerConfiguration($container, $mergedConfig['messenger']);
-        $this->registerMonologHandlerConfiguration($container, $mergedConfig['monolog']);
     }
 
     /**
@@ -153,28 +149,6 @@ final class SentryExtension extends ConfigurableExtension
         }
 
         $container->getDefinition(MessengerListener::class)->setArgument(1, $config['capture_soft_fails']);
-    }
-
-    /**
-     * @param array<string, mixed> $config
-     */
-    private function registerMonologHandlerConfiguration(ContainerBuilder $container, array $config): void
-    {
-        $errorHandlerConfig = $config['error_handler'];
-
-        if (!$errorHandlerConfig['enabled']) {
-            $container->removeDefinition(Handler::class);
-
-            return;
-        }
-
-        if (!class_exists(MonologLogger::class)) {
-            throw new LogicException(sprintf('To use the "%s" class you need to require the "symfony/monolog-bundle" package.', Handler::class));
-        }
-
-        $definition = $container->getDefinition(Handler::class);
-        $definition->setArgument(0, MonologLogger::toMonologLevel($config['level']));
-        $definition->setArgument(1, $config['bubble']);
     }
 
     /**

@@ -1,3 +1,0 @@
-sentry:
-    monolog:
-        error_handler: false
