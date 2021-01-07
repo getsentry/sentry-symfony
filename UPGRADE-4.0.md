@@ -157,6 +157,29 @@
 
 - Removed the `ClientBuilderConfigurator` class.
 - Removed the `SentryBundle::getSdkVersion()` method.
-- Removed `SentryBundle::getCurrentHub()` method, use `SentrySdk::getCurrentHub()` instead.
+- Removed the `SentryBundle::getCurrentHub()` method, use `SentrySdk::getCurrentHub()` instead.
 - Removed the `Sentry\ClientBuilderInterface` and `Sentry\Options` services.
 - Refactorized the `ErrorTypesParser` class and made it `@internal`.
+- Removed the `sentry.monolog` configuration option.
+
+  Before
+
+  ```yaml
+  sentry:
+      monolog:
+          level: !php/const Monolog\Logger::ERROR
+          bubble: false
+          error_handler:
+              enabled: true
+  ```
+
+  After
+
+  ```yaml
+  services:
+      Sentry\Monolog\Handler:
+          arguments:
+              $hub: Sentry\State\HubInterface
+              $level: !php/const Monolog\Logger::ERROR
+              $bubble: false
+  ```

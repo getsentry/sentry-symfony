@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\DependencyInjection;
 
 use Jean85\PrettyVersions;
-use Monolog\Logger;
 use Sentry\Options;
 use Sentry\SentryBundle\ErrorTypesParser;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
@@ -128,7 +127,6 @@ final class Configuration implements ConfigurationInterface
         ;
 
         $this->addMessengerSection($rootNode);
-        $this->addMonologSection($rootNode);
         $this->addListenerSection($rootNode);
 
         return $treeBuilder;
@@ -142,26 +140,6 @@ final class Configuration implements ConfigurationInterface
                     ->{interface_exists(MessageBusInterface::class) ? 'canBeDisabled' : 'canBeEnabled'}()
                     ->children()
                         ->booleanNode('capture_soft_fails')->defaultTrue()->end()
-                    ->end()
-                ->end()
-            ->end();
-    }
-
-    private function addMonologSection(ArrayNodeDefinition $rootNode): void
-    {
-        $rootNode
-            ->children()
-                ->arrayNode('monolog')
-                    ->addDefaultsIfNotSet()
-                    ->children()
-                        ->arrayNode('error_handler')
-                            ->{class_exists(Logger::class) ? 'canBeDisabled' : 'canBeEnabled'}()
-                        ->end()
-                        ->scalarNode('level')
-                            ->defaultValue(Logger::DEBUG)
-                            ->cannotBeEmpty()
-                        ->end()
-                        ->booleanNode('bubble')->defaultTrue()->end()
                     ->end()
                 ->end()
             ->end();

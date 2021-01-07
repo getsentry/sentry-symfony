@@ -13,6 +13,7 @@
 - PHP 8 support (#399, thanks to @Yozhef)
 - Retrieve the request from the `RequestStack` when using the `RequestIntegration` integration (#361)
 - Reorganize the folder structure and change CS standard (#405)
+- [BC BREAK] Removed the `monolog` configuration option. Instead, register the service manually (#406)
   
 ## 3.5.3 (2020-10-13)
 

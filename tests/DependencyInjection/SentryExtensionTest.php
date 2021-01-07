@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
 use Jean85\PrettyVersions;
-use Monolog\Logger as MonologLogger;
 use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
 use Sentry\Integration\IgnoreErrorsIntegration;
-use Sentry\Monolog\Handler;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ConsoleCommandListener;
@@ -264,22 +262,6 @@ abstract class SentryExtensionTest extends TestCase
             'sub_request_listener_overridden_priority',
             -1,
         ];
-    }
-
-    public function testMonologHandler(): void
-    {
-        $container = $this->createContainerFromFixture('monolog_handler');
-        $definition = $container->getDefinition(Handler::class);
-
-        $this->assertSame(MonologLogger::ERROR, $definition->getArgument(0));
-        $this->assertFalse($definition->getArgument(1));
-    }
-
-    public function testMonologHandlerIsRemovedWhenDisabled(): void
-    {
-        $container = $this->createContainerFromFixture('monolog_handler_disabled');
-
-        $this->assertFalse($container->hasDefinition(Handler::class));
     }
 
     public function testClentIsCreatedFromOptions(): void
