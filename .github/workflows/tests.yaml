@@ -53,7 +53,7 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: xdebug
       - run: |
-          sed -ri '/symfony\/(monolog-bundle|phpunit-bridge|messenger|psr-http-message-bridge)/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'${{ matrix.symfony_constraint }}'"/' composer.json;
+          sed -ri '/symfony\/(monolog-bundle|phpunit-bridge|messenger|psr-http-message-bridge|polyfill-php80)/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'${{ matrix.symfony_constraint }}'"/' composer.json;
         if: matrix.symfony_constraint
       - run: composer remove --dev symfony/messenger --no-update
         if: matrix.symfony_constraint == '3.4.*' || matrix.composer_option == '--prefer-lowest'

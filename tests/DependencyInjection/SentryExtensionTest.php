@@ -34,37 +34,17 @@ abstract class SentryExtensionTest extends TestCase
 {
     abstract protected function loadFixture(ContainerBuilder $container, string $fixtureFile): void;
 
-    /**
-     * @dataProvider errorListenerDataProvider
-     */
-    public function testErrorListener(string $fixture, int $tagPriority): void
+    public function testErrorListener(): void
     {
-        $container = $this->createContainerFromFixture($fixture);
+        $container = $this->createContainerFromFixture('full');
         $definition = $container->getDefinition(ErrorListener::class);
 
-        $this->assertSame($tagPriority, $container->getParameter('sentry.listener_priorities.request_error'));
         $this->assertSame(ErrorListener::class, $definition->getClass());
         $this->assertSame([
             'event' => KernelEvents::EXCEPTION,
             'method' => 'handleExceptionEvent',
-            'priority' => '%sentry.listener_priorities.request_error%',
+            'priority' => 128,
         ], $definition->getTag('kernel.event_listener')[0]);
-    }
-
-    /**
-     * @return \Generator<mixed>
-     */
-    public function errorListenerDataProvider(): \Generator
-    {
-        yield [
-            'full',
-            128,
-        ];
-
-        yield [
-            'error_listener_overridden_priority',
-            -128,
-        ];
     }
 
     public function testErrorListenerIsRemovedWhenDisabled(): void
@@ -74,103 +54,57 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertFalse($container->hasDefinition(ErrorListener::class));
     }
 
-    /**
-     * @dataProvider consoleCommandListenerDataProvider
-     */
-    public function testConsoleCommandListener(string $fixture, int $consoleCommandTagPriority, int $consoleTerminateTagPriority, int $consoleErrorTagPriority): void
+    public function testConsoleCommandListener(): void
     {
-        $container = $this->createContainerFromFixture($fixture);
+        $container = $this->createContainerFromFixture('full');
         $definition = $container->getDefinition(ConsoleCommandListener::class);
 
-        $this->assertSame($consoleCommandTagPriority, $container->getParameter('sentry.listener_priorities.console'));
-        $this->assertSame($consoleTerminateTagPriority, $container->getParameter('sentry.listener_priorities.console_terminate'));
-        $this->assertSame($consoleErrorTagPriority, $container->getParameter('sentry.listener_priorities.console_error'));
         $this->assertSame(ConsoleCommandListener::class, $definition->getClass());
         $this->assertSame([
             'kernel.event_listener' => [
                 [
                     'event' => ConsoleEvents::COMMAND,
                     'method' => 'handleConsoleCommandEvent',
-                    'priority' => '%sentry.listener_priorities.console%',
+                    'priority' => 128,
                 ],
                 [
                     'event' => ConsoleEvents::TERMINATE,
                     'method' => 'handleConsoleTerminateEvent',
-                    'priority' => '%sentry.listener_priorities.console_terminate%',
+                    'priority' => -64,
                 ],
                 [
                     'event' => ConsoleEvents::ERROR,
                     'method' => 'handleConsoleErrorEvent',
-                    'priority' => '%sentry.listener_priorities.console_error%',
+                    'priority' => -64,
                 ],
             ],
         ], $definition->getTags());
     }
 
-    /**
-     * @return \Generator<mixed>
-     */
-    public function consoleCommandListenerDataProvider(): \Generator
-    {
-        yield [
-            'full',
-            128,
-            -64,
-            -64,
-        ];
-
-        yield [
-            'console_command_listener_overridden_priority',
-            -128,
-            64,
-            64,
-        ];
-    }
-
-    /**
-     * @dataProvider messengerListenerDataProvider
-     */
-    public function testMessengerListener(string $fixture, int $tagPriority): void
+    public function testMessengerListener(): void
     {
         if (!interface_exists(MessageBusInterface::class)) {
             $this->markTestSkipped('This test requires the "symfony/messenger" Composer package to be installed.');
         }
 
-        $container = $this->createContainerFromFixture($fixture);
+        $container = $this->createContainerFromFixture('full');
         $definition = $container->getDefinition(MessengerListener::class);
 
-        $this->assertSame($tagPriority, $container->getParameter('sentry.listener_priorities.worker_error'));
         $this->assertSame(MessengerListener::class, $definition->getClass());
         $this->assertSame([
             'kernel.event_listener' => [
                 [
                     'event' => WorkerMessageFailedEvent::class,
                     'method' => 'handleWorkerMessageFailedEvent',
-                    'priority' => '%sentry.listener_priorities.worker_error%',
+                    'priority' => 50,
                 ],
                 [
                     'event' => WorkerMessageHandledEvent::class,
                     'method' => 'handleWorkerMessageHandledEvent',
-                    'priority' => '%sentry.listener_priorities.worker_error%',
+                    'priority' => 50,
                 ],
             ],
         ], $definition->getTags());
-    }
-
-    /**
-     * @return \Generator<mixed>
-     */
-    public function messengerListenerDataProvider(): \Generator
-    {
-        yield [
-            'full',
-            50,
-        ];
-
-        yield [
-            'messenger_listener_overridden_priority',
-            -50,
-        ];
     }
 
     public function testMessengerListenerIsRemovedWhenDisabled(): void
@@ -180,88 +114,48 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertFalse($container->hasDefinition(MessengerListener::class));
     }
 
-    /**
-     * @dataProvider requestListenerDataProvider
-     */
-    public function testRequestListener(string $fixture, int $tagPriority): void
+    public function testRequestListener(): void
     {
-        $container = $this->createContainerFromFixture($fixture);
+        $container = $this->createContainerFromFixture('full');
         $definition = $container->getDefinition(RequestListener::class);
 
-        $this->assertSame($tagPriority, $container->getParameter('sentry.listener_priorities.request'));
         $this->assertSame(RequestListener::class, $definition->getClass());
         $this->assertSame([
             'kernel.event_listener' => [
                 [
                     'event' => KernelEvents::REQUEST,
                     'method' => 'handleKernelRequestEvent',
-                    'priority' => '%sentry.listener_priorities.request%',
+                    'priority' => 1,
                 ],
                 [
                     'event' => KernelEvents::CONTROLLER,
                     'method' => 'handleKernelControllerEvent',
-                    'priority' => '%sentry.listener_priorities.request%',
+                    'priority' => 1,
                 ],
             ],
         ], $definition->getTags());
     }
 
-    /**
-     * @return \Generator<mixed>
-     */
-    public function requestListenerDataProvider(): \Generator
+    public function testSubRequestListener(): void
     {
-        yield [
-            'full',
-            1,
-        ];
-
-        yield [
-            'request_listener_overridden_priority',
-            -1,
-        ];
-    }
-
-    /**
-     * @dataProvider subRequestListenerDataProvider
-     */
-    public function testSubRequestListener(string $fixture, int $tagPriority): void
-    {
-        $container = $this->createContainerFromFixture($fixture);
+        $container = $this->createContainerFromFixture('full');
         $definition = $container->getDefinition(SubRequestListener::class);
 
-        $this->assertSame($tagPriority, $container->getParameter('sentry.listener_priorities.sub_request'));
         $this->assertSame(SubRequestListener::class, $definition->getClass());
         $this->assertSame([
             'kernel.event_listener' => [
                 [
                     'event' => KernelEvents::REQUEST,
                     'method' => 'handleKernelRequestEvent',
-                    'priority' => '%sentry.listener_priorities.sub_request%',
+                    'priority' => 1,
                 ],
                 [
                     'event' => KernelEvents::FINISH_REQUEST,
                     'method' => 'handleKernelFinishRequestEvent',
-                    'priority' => '%sentry.listener_priorities.sub_request%',
+                    'priority' => 1,
                 ],
             ],
         ], $definition->getTags());
-    }
-
-    /**
-     * @return \Generator<mixed>
-     */
-    public function subRequestListenerDataProvider(): \Generator
-    {
-        yield [
-            'full',
-            1,
-        ];
-
-        yield [
-            'sub_request_listener_overridden_priority',
-            -1,
-        ];
     }
 
     public function testClentIsCreatedFromOptions(): void

@@ -1,5 +1,0 @@
-sentry:
-    listener_priorities:
-        console: -128
-        console_terminate: 64
-        console_error: 64
