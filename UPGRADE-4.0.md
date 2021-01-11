@@ -12,6 +12,41 @@
 - Renamed the `SubRequestListener::onKernelFinishRequest` method to `SubRequestListener::handleKernelFinishRequestEvent`.
 - Removed the `Sentry\FlushableClientInterface` service alias.
 - Removed the `sentry.listener_priorities` configuration option.
+
+  Before:
+
+  ```yaml
+  sentry:
+      listener_priorities:
+          request: 10
+  ```
+
+  After:
+
+  ```php
+  use Sentry\SentryBundle\EventListener\RequestListener;
+  use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+  use Symfony\Component\DependencyInjection\ContainerBuilder;
+  use Symfony\Component\HttpKernel\KernelEvents;
+
+  final class ChangeSentryListenerPriorityPass implements CompilerPassInterface
+  {
+      public function process(ContainerBuilder $container)
+      {
+          $definition = $container->getDefinition(RequestListener::class);
+          $definitionTags = $definition->getTags();
+
+          foreach ($definitionTags['kernel.event_listener'] as &$tags) {
+              if (KernelEvents::REQUEST === $tags['event']) {
+                  $tags['priority'] = 10;
+              }
+          }
+
+          $definition->setTags($definitionTags);
+      }
+  }
+  ```
+
 - Removed the `sentry.options.excluded_exceptions` configuration option.
 
   Before:

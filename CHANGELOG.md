@@ -14,7 +14,7 @@
 - Retrieve the request from the `RequestStack` when using the `RequestIntegration` integration (#361)
 - Reorganize the folder structure and change CS standard (#405)
 - [BC BREAK] Remove the `monolog` configuration option. Instead, register the service manually (#406)
-- [BC BREAK] Remove the `listener_priorities` configuration option. Instead, use a compiler pass to change the priority of the listeners (#)
+- [BC BREAK] Remove the `listener_priorities` configuration option. Instead, use a compiler pass to change the priority of the listeners (#407)
 
 ## 3.5.3 (2020-10-13)
 
