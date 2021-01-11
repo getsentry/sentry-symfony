@@ -219,7 +219,7 @@ final class RequestListenerTest extends TestCase
                     parent::__construct();
 
                     $this->setAuthenticated(true);
-                    $this->setUser(new class() {
+                    $this->setUser(new class() implements \Stringable {
                         public function __toString(): string
                         {
                             return 'foo_user';
@@ -381,7 +381,7 @@ final class RequestListenerTest extends TestCase
                     parent::__construct();
 
                     $this->setAuthenticated(true);
-                    $this->setUser(new class() {
+                    $this->setUser(new class() implements \Stringable {
                         public function __toString(): string
                         {
                             return 'foo_user';

@@ -36,6 +36,7 @@ final class Configuration implements ConfigurationInterface
                         ->thenUnset()
                     ->end()
                 ->end()
+                ->booleanNode('register_error_listener')->defaultTrue()->end()
                 ->arrayNode('options')
                     ->addDefaultsIfNotSet()
                     ->fixXmlConfig('integration')
@@ -127,7 +128,6 @@ final class Configuration implements ConfigurationInterface
         ;
 
         $this->addMessengerSection($rootNode);
-        $this->addListenerSection($rootNode);
 
         return $treeBuilder;
     }
@@ -140,26 +140,6 @@ final class Configuration implements ConfigurationInterface
                     ->{interface_exists(MessageBusInterface::class) ? 'canBeDisabled' : 'canBeEnabled'}()
                     ->children()
                         ->booleanNode('capture_soft_fails')->defaultTrue()->end()
-                    ->end()
-                ->end()
-            ->end();
-    }
-
-    private function addListenerSection(ArrayNodeDefinition $rootNode): void
-    {
-        $rootNode
-            ->children()
-                ->booleanNode('register_error_listener')->defaultTrue()->end()
-                ->arrayNode('listener_priorities')
-                    ->addDefaultsIfNotSet()
-                    ->children()
-                        ->scalarNode('request')->defaultValue(1)->end()
-                        ->scalarNode('sub_request')->defaultValue(1)->end()
-                        ->scalarNode('console')->defaultValue(128)->end()
-                        ->scalarNode('request_error')->defaultValue(128)->end()
-                        ->scalarNode('console_error')->defaultValue(-64)->end()
-                        ->scalarNode('console_terminate')->defaultValue(-64)->end()
-                        ->scalarNode('worker_error')->defaultValue(50)->end()
                     ->end()
                 ->end()
             ->end();

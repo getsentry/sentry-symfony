@@ -58,7 +58,7 @@ final class RequestListener
             $token = $this->tokenStorage->getToken();
         }
 
-        if (null !== $token && $token->isAuthenticated() && $token->getUser()) {
+        if (null !== $token && $token->isAuthenticated() && null !== $token->getUser()) {
             $userData->setUsername($this->getUsername($token->getUser()));
         }
 
@@ -91,7 +91,7 @@ final class RequestListener
     }
 
     /**
-     * @param UserInterface | object | string $user
+     * @param UserInterface|object|string $user
      */
     private function getUsername($user): ?string
     {

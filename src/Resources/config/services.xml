@@ -26,37 +26,37 @@
         <service id="Sentry\SentryBundle\EventListener\ConsoleCommandListener" class="Sentry\SentryBundle\EventListener\ConsoleCommandListener">
             <argument type="service" id="Sentry\State\HubInterface" />
 
-            <tag name="kernel.event_listener" event="console.command" method="handleConsoleCommandEvent" priority="%sentry.listener_priorities.console%" />
-            <tag name="kernel.event_listener" event="console.terminate" method="handleConsoleTerminateEvent" priority="%sentry.listener_priorities.console_terminate%" />
-            <tag name="kernel.event_listener" event="console.error" method="handleConsoleErrorEvent" priority="%sentry.listener_priorities.console_error%" />
+            <tag name="kernel.event_listener" event="console.command" method="handleConsoleCommandEvent" priority="128" />
+            <tag name="kernel.event_listener" event="console.terminate" method="handleConsoleTerminateEvent" priority="-64" />
+            <tag name="kernel.event_listener" event="console.error" method="handleConsoleErrorEvent" priority="-64" />
         </service>
 
         <service id="Sentry\SentryBundle\EventListener\ErrorListener" class="Sentry\SentryBundle\EventListener\ErrorListener">
             <argument type="service" id="Sentry\State\HubInterface" />
 
-            <tag name="kernel.event_listener" event="kernel.exception" method="handleExceptionEvent" priority="%sentry.listener_priorities.request_error%" />
+            <tag name="kernel.event_listener" event="kernel.exception" method="handleExceptionEvent" priority="128" />
         </service>
 
         <service id="Sentry\SentryBundle\EventListener\RequestListener" class="Sentry\SentryBundle\EventListener\RequestListener">
             <argument type="service" id="Sentry\State\HubInterface" />
             <argument type="service" id="security.token_storage" on-invalid="ignore" />
 
-            <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" priority="%sentry.listener_priorities.request%" />
-            <tag name="kernel.event_listener" event="kernel.controller" method="handleKernelControllerEvent" priority="%sentry.listener_priorities.request%" />
+            <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" priority="1" />
+            <tag name="kernel.event_listener" event="kernel.controller" method="handleKernelControllerEvent" priority="1" />
         </service>
 
         <service id="Sentry\SentryBundle\EventListener\SubRequestListener" class="Sentry\SentryBundle\EventListener\SubRequestListener">
             <argument type="service" id="Sentry\State\HubInterface" />
 
-            <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" priority="%sentry.listener_priorities.sub_request%" />
-            <tag name="kernel.event_listener" event="kernel.finish_request" method="handleKernelFinishRequestEvent" priority="%sentry.listener_priorities.sub_request%" />
+            <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" priority="1" />
+            <tag name="kernel.event_listener" event="kernel.finish_request" method="handleKernelFinishRequestEvent" priority="1" />
         </service>
 
         <service id="Sentry\SentryBundle\EventListener\MessengerListener" class="Sentry\SentryBundle\EventListener\MessengerListener">
             <argument type="service" id="Sentry\State\HubInterface" />
 
-            <tag name="kernel.event_listener" event="Symfony\Component\Messenger\Event\WorkerMessageFailedEvent" method="handleWorkerMessageFailedEvent" priority="%sentry.listener_priorities.worker_error%" />
-            <tag name="kernel.event_listener" event="Symfony\Component\Messenger\Event\WorkerMessageHandledEvent" method="handleWorkerMessageHandledEvent" priority="%sentry.listener_priorities.worker_error%" />
+            <tag name="kernel.event_listener" event="Symfony\Component\Messenger\Event\WorkerMessageFailedEvent" method="handleWorkerMessageFailedEvent" priority="50" />
+            <tag name="kernel.event_listener" event="Symfony\Component\Messenger\Event\WorkerMessageHandledEvent" method="handleWorkerMessageHandledEvent" priority="50" />
         </service>
 
         <service id="Sentry\SentryBundle\Command\SentryTestCommand" class="Sentry\SentryBundle\Command\SentryTestCommand">

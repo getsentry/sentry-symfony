@@ -3,18 +3,19 @@
 ## Unreleased
 
 - Enable back all error listeners from base SDK integration (#322)
-- Added `options.traces_sampler` and `options.traces_sample_rate` configuration options (#385)
-- [BC BREAK] Removed the `options.project_root` configuration option. Instead of setting it, use a combination of `options.in_app_include` and `options.in_app_exclude` (#385)
-- [BC BREAK] Removed the `options.excluded_exceptions` configuration option. Instead of setting it, configure the `IgnoreErrorsIntegration` integration (#385)
-- [BC BREAK] Refactorized the `ConsoleCommandListener`, `ErrorListener`, `RequestListener` and `SubRequestListener` event listeners (#387)
+- Add `options.traces_sampler` and `options.traces_sample_rate` configuration options (#385)
+- [BC BREAK] Remove the `options.project_root` configuration option. Instead of setting it, use a combination of `options.in_app_include` and `options.in_app_exclude` (#385)
+- [BC BREAK] Remove the `options.excluded_exceptions` configuration option. Instead of setting it, configure the `IgnoreErrorsIntegration` integration (#385)
+- [BC BREAK] Refactorize the `ConsoleCommandListener`, `ErrorListener`, `RequestListener` and `SubRequestListener` event listeners (#387)
 - Registered the CLI commands as lazy services (#373)
-- [BC BREAK] Refactorized the configuration tree and the definitions of some container services (#401)
+- [BC BREAK] Refactorize the configuration tree and the definitions of some container services (#401)
 - Support the XML format for the bundle configuration (#401)
 - PHP 8 support (#399, thanks to @Yozhef)
 - Retrieve the request from the `RequestStack` when using the `RequestIntegration` integration (#361)
 - Reorganize the folder structure and change CS standard (#405)
-- [BC BREAK] Removed the `monolog` configuration option. Instead, register the service manually (#406)
-  
+- [BC BREAK] Remove the `monolog` configuration option. Instead, register the service manually (#406)
+- [BC BREAK] Remove the `listener_priorities` configuration option. Instead, use a compiler pass to change the priority of the listeners (#407)
+
 ## 3.5.3 (2020-10-13)
 
 - Refactors and fixes class aliases for more robustness (#315 #359, thanks to @guilliamxavier)

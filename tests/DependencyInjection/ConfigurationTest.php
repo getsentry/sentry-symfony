@@ -16,6 +16,7 @@ final class ConfigurationTest extends TestCase
     public function testProcessConfigurationWithDefaultConfiguration(): void
     {
         $expectedBundleDefaultConfig = [
+            'register_error_listener' => true,
             'options' => [
                 'integrations' => [],
                 'prefixes' => [],
@@ -33,16 +34,6 @@ final class ConfigurationTest extends TestCase
             'messenger' => [
                 'enabled' => interface_exists(MessageBusInterface::class),
                 'capture_soft_fails' => true,
-            ],
-            'register_error_listener' => true,
-            'listener_priorities' => [
-                'request' => 1,
-                'sub_request' => 1,
-                'console' => 128,
-                'request_error' => 128,
-                'console_error' => -64,
-                'console_terminate' => -64,
-                'worker_error' => 50,
             ],
         ];
 

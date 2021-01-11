@@ -11,6 +11,42 @@
 - Renamed the `SubRequestListener::onKernelRequest` method to `SubRequestListener::handleKernelRequestEvent`.
 - Renamed the `SubRequestListener::onKernelFinishRequest` method to `SubRequestListener::handleKernelFinishRequestEvent`.
 - Removed the `Sentry\FlushableClientInterface` service alias.
+- Removed the `sentry.listener_priorities` configuration option.
+
+  Before:
+
+  ```yaml
+  sentry:
+      listener_priorities:
+          request: 10
+  ```
+
+  After:
+
+  ```php
+  use Sentry\SentryBundle\EventListener\RequestListener;
+  use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+  use Symfony\Component\DependencyInjection\ContainerBuilder;
+  use Symfony\Component\HttpKernel\KernelEvents;
+
+  final class ChangeSentryListenerPriorityPass implements CompilerPassInterface
+  {
+      public function process(ContainerBuilder $container)
+      {
+          $definition = $container->getDefinition(RequestListener::class);
+          $definitionTags = $definition->getTags();
+
+          foreach ($definitionTags['kernel.event_listener'] as &$tags) {
+              if (KernelEvents::REQUEST === $tags['event']) {
+                  $tags['priority'] = 10;
+              }
+          }
+
+          $definition->setTags($definitionTags);
+      }
+  }
+  ```
+
 - Removed the `sentry.options.excluded_exceptions` configuration option.
 
   Before:
@@ -38,9 +74,9 @@
                       - RuntimeException
   ```
 
-- Changed the default value of the `sentry.listener_priorities.console_error` configuration option to `-64`.
-- Changed the default value of the `sentry.listener_priorities.console` configuration option to `128`.
-- Changed the default value of the `sentry.listener_priorities.worker_error` configuration option to `50`.
+- Changed the priority of the `ConsoleCommandListener::handleConsoleErrorEvent` listener to `-64`.
+- Changed the priority of the `ConsoleCommandListener::::handleConsoleCommandEvent` listener to `128`.
+- Changed the priority of the `MessengerListener::handleWorkerMessageFailedEvent` listener to `50`.
 - Changed the type of the `sentry.options.before_send` configuration option from `scalar` to `string`. The value must always be the name of the container service to call without the `@` prefix.
 
   Before

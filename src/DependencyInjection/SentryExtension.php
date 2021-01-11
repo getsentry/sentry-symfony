@@ -52,10 +52,6 @@ final class SentryExtension extends ConfigurableExtension
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.xml');
 
-        foreach ($mergedConfig['listener_priorities'] as $key => $priority) {
-            $container->setParameter('sentry.listener_priorities.' . $key, $priority);
-        }
-
         $this->registerConfiguration($container, $mergedConfig);
         $this->registerErrorListenerConfiguration($container, $mergedConfig);
         $this->registerMessengerListenerConfiguration($container, $mergedConfig['messenger']);

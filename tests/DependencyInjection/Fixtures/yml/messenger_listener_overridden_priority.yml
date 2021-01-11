@@ -1,3 +1,0 @@
-sentry:
-    listener_priorities:
-        worker_error: -50

@@ -11,7 +11,6 @@
         <xsd:choice maxOccurs="unbounded">
             <xsd:element name="options" type="options" minOccurs="0" maxOccurs="1" />
             <xsd:element name="messenger" type="messenger" minOccurs="0" maxOccurs="1" />
-            <xsd:element name="listener-priorities" type="listeners-priorities" minOccurs="0" maxOccurs="1" />
         </xsd:choice>
 
         <xsd:attribute name="register-error-listener" type="xsd:boolean" />
@@ -78,15 +77,5 @@
 
     <xsd:complexType name="messenger">
         <xsd:attribute name="enabled" type="xsd:boolean" />
-    </xsd:complexType>
-
-    <xsd:complexType name="listeners-priorities">
-        <xsd:attribute name="request" type="xsd:integer" />
-        <xsd:attribute name="sub-request" type="xsd:integer" />
-        <xsd:attribute name="console" type="xsd:integer" />
-        <xsd:attribute name="request-error" type="xsd:integer" />
-        <xsd:attribute name="console-error" type="xsd:integer" />
-        <xsd:attribute name="console-terminate" type="xsd:integer" />
-        <xsd:attribute name="worker-error" type="xsd:integer" />
     </xsd:complexType>
 </xsd:schema>

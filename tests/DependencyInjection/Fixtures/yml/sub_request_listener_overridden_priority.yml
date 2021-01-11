@@ -1,3 +1,0 @@
-sentry:
-    listener_priorities:
-        sub_request: -1
