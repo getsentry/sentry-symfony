@@ -47,7 +47,8 @@
         "symfony/monolog-bundle": "^3.4",
         "symfony/phpunit-bridge": "^5.0",
         "symfony/polyfill-php80": "^1.22",
-        "symfony/yaml": "^3.4.43||^4.4.11||^5.0.11"
+        "symfony/yaml": "^3.4.43||^4.4.11||^5.0.11",
+        "vimeo/psalm": "^4.3"
     },
     "suggest": {
         "monolog/monolog": "Allow sending log messages to Sentry by using the included Monolog handler."
@@ -74,6 +75,9 @@
         ],
         "phpstan": [
             "vendor/bin/phpstan analyse"
+        ],
+        "psalm": [
+            "vendor/bin/psalm"
         ]
     },
     "extra": {

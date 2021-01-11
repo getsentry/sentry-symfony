@@ -46,6 +46,8 @@ final class SentryExtension extends ConfigurableExtension
 
     /**
      * @param array<string, mixed> $mergedConfig
+     *
+     * @psalm-suppress MoreSpecificImplementedParamType
      */
     protected function loadInternal(array $mergedConfig, ContainerBuilder $container): void
     {
