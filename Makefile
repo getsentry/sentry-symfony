@@ -17,6 +17,9 @@ cs-dry-run:
 phpstan:
 	vendor/bin/phpstan analyze
 
+psalm:
+    vendor/bin/psalm
+
 test:
 	vendor/bin/phpunit
 
