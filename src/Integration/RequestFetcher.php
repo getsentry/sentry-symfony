@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Integration;
 
+use Http\Discovery\Psr17FactoryDiscovery;
 use Psr\Http\Message\ServerRequestInterface;
 use Sentry\Integration\RequestFetcherInterface;
+use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -29,13 +31,18 @@ final class RequestFetcher implements RequestFetcherInterface
     /**
      * Class constructor.
      *
-     * @param RequestStack                $requestStack       The request stack
-     * @param HttpMessageFactoryInterface $httpMessageFactory The factory to convert Symfony requests to PSR-7 requests
+     * @param RequestStack                     $requestStack       The request stack
+     * @param HttpMessageFactoryInterface|null $httpMessageFactory The factory to convert Symfony requests to PSR-7 requests
      */
-    public function __construct(RequestStack $requestStack, HttpMessageFactoryInterface $httpMessageFactory)
+    public function __construct(RequestStack $requestStack, ?HttpMessageFactoryInterface $httpMessageFactory = null)
     {
         $this->requestStack = $requestStack;
-        $this->httpMessageFactory = $httpMessageFactory;
+        $this->httpMessageFactory = $httpMessageFactory ?? new PsrHttpFactory(
+            Psr17FactoryDiscovery::findServerRequestFactory(),
+            Psr17FactoryDiscovery::findStreamFactory(),
+            Psr17FactoryDiscovery::findUploadedFileFactory(),
+            Psr17FactoryDiscovery::findResponseFactory()
+        );
     }
 
     /**
