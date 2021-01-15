@@ -52,7 +52,7 @@ final class TransportFactory implements TransportFactoryInterface
                 $streamFactory,
                 $httpClient,
                 'sentry.php.symfony',
-                PrettyVersions::getRootPackageVersion()->getPrettyVersion()
+                PrettyVersions::getVersion('sentry/sentry-symfony')->getPrettyVersion()
             ),
             $logger
         );
