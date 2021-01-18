@@ -215,7 +215,7 @@
   services:
       Sentry\Monolog\Handler:
           arguments:
-              $hub: Sentry\State\HubInterface
+              $hub: '@Sentry\State\HubInterface'
               $level: !php/const Monolog\Logger::ERROR
               $bubble: false
   ```
