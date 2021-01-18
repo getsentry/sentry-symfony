@@ -182,7 +182,7 @@ abstract class SentryExtensionTest extends TestCase
             'server_name' => 'localhost',
             'before_send' => new Reference('App\\Sentry\\BeforeSendCallback'),
             'tags' => ['context' => 'development'],
-            'error_types' => E_ALL,
+            'error_types' => \E_ALL,
             'max_breadcrumbs' => 1,
             'before_breadcrumb' => new Reference('App\\Sentry\\BeforeBreadcrumbCallback'),
             'in_app_exclude' => [$container->getParameter('kernel.cache_dir')],
@@ -237,7 +237,7 @@ abstract class SentryExtensionTest extends TestCase
         $container = $this->createContainerFromFixture('error_types');
         $optionsDefinition = $container->getDefinition('sentry.client.options');
 
-        $this->assertSame(E_ALL & ~(E_NOTICE | E_STRICT | E_DEPRECATED), $optionsDefinition->getArgument(0)['error_types']);
+        $this->assertSame(\E_ALL & ~(\E_NOTICE | \E_STRICT | \E_DEPRECATED), $optionsDefinition->getArgument(0)['error_types']);
     }
 
     public function testIgnoreErrorsIntegrationIsNotAddedTwiceIfAlreadyConfigured(): void

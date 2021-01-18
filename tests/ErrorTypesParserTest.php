@@ -24,22 +24,22 @@ final class ErrorTypesParserTest extends TestCase
     {
         yield [
             'E_ALL',
-            E_ALL,
+            \E_ALL,
         ];
 
         yield [
             'E_ERROR | E_WARNING | E_PARSE',
-            E_ERROR | E_WARNING | E_PARSE,
+            \E_ERROR | \E_WARNING | \E_PARSE,
         ];
 
         yield [
             'E_ALL & ~E_DEPRECATED & ~E_NOTICE',
-            E_ALL & ~E_DEPRECATED & ~E_NOTICE,
+            \E_ALL & ~\E_DEPRECATED & ~\E_NOTICE,
         ];
 
         yield [
             'E_ALL & ~(E_DEPRECATED|E_NOTICE)',
-            E_ALL & ~(E_DEPRECATED | E_NOTICE),
+            \E_ALL & ~(\E_DEPRECATED | \E_NOTICE),
         ];
 
         yield [

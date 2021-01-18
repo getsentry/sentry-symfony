@@ -55,7 +55,7 @@ class MainController
 
     public function notice(): Response
     {
-        @trigger_error('This is an intentional notice', E_USER_NOTICE);
+        @trigger_error('This is an intentional notice', \E_USER_NOTICE);
 
         return new Response('Hello there');
     }

@@ -26,7 +26,7 @@ $container->loadFromExtension('sentry', [
         'tags' => [
             'context' => 'development',
         ],
-        'error_types' => E_ALL,
+        'error_types' => \E_ALL,
         'max_breadcrumbs' => 1,
         'before_breadcrumb' => 'App\Sentry\BeforeBreadcrumbCallback',
         'in_app_exclude' => ['%kernel.cache_dir%'],

@@ -34,8 +34,8 @@ class StubTransportFactory implements TransportFactoryInterface
 
                 file_put_contents(
                     End2EndTest::SENT_EVENTS_LOG,
-                    $event->getId() . ': ' . $message . PHP_EOL . StubTransportFactory::SEPARATOR . PHP_EOL,
-                    FILE_APPEND
+                    $event->getId() . ': ' . $message . \PHP_EOL . StubTransportFactory::SEPARATOR . \PHP_EOL,
+                    \FILE_APPEND
                 );
 
                 return new FulfilledPromise(new Response(ResponseStatus::success(), $event));
