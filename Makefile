@@ -1,12 +1,4 @@
-.PHONY: test
-
-develop: update-submodules
-	composer install --dev
-	make setup-git
-
-update-submodules:
-	git submodule init
-	git submodule update
+.PHONY: pre-commit-check
 
 cs:
 	vendor/bin/php-cs-fixer fix --verbose
@@ -18,7 +10,7 @@ phpstan:
 	vendor/bin/phpstan analyze
 
 psalm:
-    vendor/bin/psalm
+	vendor/bin/psalm
 
 test:
 	vendor/bin/phpunit
