@@ -41,15 +41,15 @@
             <argument type="service" id="Sentry\State\HubInterface" />
             <argument type="service" id="security.token_storage" on-invalid="ignore" />
 
-            <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" priority="1" />
-            <tag name="kernel.event_listener" event="kernel.controller" method="handleKernelControllerEvent" priority="1" />
+            <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" priority="5" />
+            <tag name="kernel.event_listener" event="kernel.controller" method="handleKernelControllerEvent" priority="10" />
         </service>
 
         <service id="Sentry\SentryBundle\EventListener\SubRequestListener" class="Sentry\SentryBundle\EventListener\SubRequestListener">
             <argument type="service" id="Sentry\State\HubInterface" />
 
-            <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" priority="1" />
-            <tag name="kernel.event_listener" event="kernel.finish_request" method="handleKernelFinishRequestEvent" priority="1" />
+            <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" priority="3" />
+            <tag name="kernel.event_listener" event="kernel.finish_request" method="handleKernelFinishRequestEvent" priority="5" />
         </service>
 
         <service id="Sentry\SentryBundle\EventListener\MessengerListener" class="Sentry\SentryBundle\EventListener\MessengerListener">

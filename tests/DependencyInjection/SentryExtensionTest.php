@@ -125,12 +125,12 @@ abstract class SentryExtensionTest extends TestCase
                 [
                     'event' => KernelEvents::REQUEST,
                     'method' => 'handleKernelRequestEvent',
-                    'priority' => 1,
+                    'priority' => 5,
                 ],
                 [
                     'event' => KernelEvents::CONTROLLER,
                     'method' => 'handleKernelControllerEvent',
-                    'priority' => 1,
+                    'priority' => 10,
                 ],
             ],
         ], $definition->getTags());
@@ -147,12 +147,12 @@ abstract class SentryExtensionTest extends TestCase
                 [
                     'event' => KernelEvents::REQUEST,
                     'method' => 'handleKernelRequestEvent',
-                    'priority' => 1,
+                    'priority' => 3,
                 ],
                 [
                     'event' => KernelEvents::FINISH_REQUEST,
                     'method' => 'handleKernelFinishRequestEvent',
-                    'priority' => 1,
+                    'priority' => 5,
                 ],
             ],
         ], $definition->getTags());

@@ -77,6 +77,10 @@
 - Changed the priority of the `ConsoleCommandListener::handleConsoleErrorEvent` listener to `-64`.
 - Changed the priority of the `ConsoleCommandListener::::handleConsoleCommandEvent` listener to `128`.
 - Changed the priority of the `MessengerListener::handleWorkerMessageFailedEvent` listener to `50`.
+- Changed the priority of the `RequestListener::handleKernelRequestEvent` listener to `5`.
+- Changed the priority of the `RequestListener::handleKernelControllerEvent` listener to `10`.
+- Changed the priority of the `SubRequestListener::handleKernelRequestEvent` listener to `3`.
+- Changed the priority of the `SubRequestListener::handleKernelFinishRequestEvent` listener to `5`.
 - Changed the type of the `sentry.options.before_send` configuration option from `scalar` to `string`. The value must always be the name of the container service to call without the `@` prefix.
 
   Before
