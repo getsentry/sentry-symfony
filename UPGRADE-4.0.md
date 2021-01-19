@@ -1,5 +1,7 @@
 # Upgrade 3.x to 4.0
 
+- Bumped the required version of `sentry/sentry` to `^3.0`: this version relies on the [envelope endpoint](https://develop.sentry.dev/sdk/envelopes/); if you are
+using an on-premise installation it requires Sentry version `>= v20.6.0` to work; if you are using [sentry.io](https://sentry.io) nothing will change and no action is needed. For further details read the [UPGRADE-3.0.md](https://github.com/getsentry/sentry-php/blob/master/UPGRADE-3.0.md) document of `sentry/sentry`.
 - Added the `$hub` argument to the constructor of the `SubRequestListener` class.
 - Renamed the `ConsoleListener` class to `ConsoleCommandListener`.
 - Renamed the `ConsoleListener::onConsoleCommand` method to `ConsoleCommandListener::handleConsoleCommandEvent`.
