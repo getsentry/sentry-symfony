@@ -66,7 +66,7 @@ using an on-premise installation it requires Sentry version `>= v20.6.0` to work
   sentry:
       options:
           integrations:
-              - '@Sentry\Integration\IgnoreErrorsIntegration'
+              - 'Sentry\Integration\IgnoreErrorsIntegration'
   
   services:
       Sentry\Integration\IgnoreErrorsIntegration:
