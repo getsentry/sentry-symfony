@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 4.0.0 (2021-01-19)
+
+**Breaking Change**: This version uses the [envelope endpoint](https://develop.sentry.dev/sdk/envelopes/). If you are
+using an on-premise installation it requires Sentry version `>= v20.6.0` to work. If you are using
+[sentry.io](https://sentry.io) nothing will change and no action is needed.
+
 - Enable back all error listeners from base SDK integration (#322)
 - Add `options.traces_sampler` and `options.traces_sample_rate` configuration options (#385)
 - [BC BREAK] Remove the `options.project_root` configuration option. Instead of setting it, use a combination of `options.in_app_include` and `options.in_app_exclude` (#385)
