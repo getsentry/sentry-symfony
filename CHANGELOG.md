@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added missing `capture-soft-fails` config schema option (#417)
+
 ## 4.0.0 (2021-01-19)
 
 **Breaking Change**: This version uses the [envelope endpoint](https://develop.sentry.dev/sdk/envelopes/). If you are
