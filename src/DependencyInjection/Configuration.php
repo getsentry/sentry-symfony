@@ -37,6 +37,7 @@ final class Configuration implements ConfigurationInterface
                     ->end()
                 ->end()
                 ->booleanNode('register_error_listener')->defaultTrue()->end()
+                ->booleanNode('register_dbal_listener')->defaultFalse()->end()
                 ->arrayNode('options')
                     ->addDefaultsIfNotSet()
                     ->fixXmlConfig('integration')

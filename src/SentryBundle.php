@@ -4,9 +4,18 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle;
 
+use Sentry\SentryBundle\DependencyInjection\Compiler\ConnectDbalQueryListenerPass;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 final class SentryBundle extends Bundle
 {
     public const SDK_IDENTIFIER = 'sentry.php.symfony';
+
+    public function build(ContainerBuilder $container): void
+    {
+        parent::build($container);
+
+        $container->addCompilerPass(new ConnectDbalQueryListenerPass());
+    }
 }
