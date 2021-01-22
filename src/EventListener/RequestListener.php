@@ -51,6 +51,12 @@ final class RequestListener
             return;
         }
 
+        $client = $this->hub->getClient();
+
+        if (null === $client || !$client->getOptions()->shouldSendDefaultPii()) {
+            return;
+        }
+
         $token = null;
         $userData = UserDataBag::createFromUserIpAddress($event->getRequest()->getClientIp());
 
