@@ -73,6 +73,11 @@
             <argument type="service" id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware" />
         </service>
 
+        <service id="Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension" class="Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension">
+            <argument type="service" id="Sentry\State\HubInterface" />
+            <tag name="twig.extension" />
+        </service>
+
         <service id="Sentry\Integration\RequestFetcherInterface" class="Sentry\SentryBundle\Integration\RequestFetcher">
             <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack" />
             <argument type="service" id="Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface" on-invalid="null" />

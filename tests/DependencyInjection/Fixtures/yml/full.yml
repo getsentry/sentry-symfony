@@ -42,3 +42,5 @@ sentry:
             enabled: false
             connections:
                 - enabled
+        twig:
+            enabled: false

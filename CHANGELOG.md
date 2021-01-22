@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add support for distributed tracing of Twig template rendering (#430)
 - Add support for distributed tracing of SQL queries while using Doctrine DBAL (#426)
 - Added missing `capture-soft-fails` config schema option (#417)
 - Deprecate the `Sentry\SentryBundle\EventListener\ConsoleCommandListener` class in favor of its parent class `Sentry\SentryBundle\EventListener\ConsoleListener` (#429)

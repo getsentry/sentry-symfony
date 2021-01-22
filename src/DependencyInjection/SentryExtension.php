@@ -19,6 +19,7 @@ use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
+use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
 use Sentry\Transport\TransportFactoryInterface;
@@ -62,6 +63,7 @@ final class SentryExtension extends ConfigurableExtension
         $this->registerErrorListenerConfiguration($container, $mergedConfig);
         $this->registerMessengerListenerConfiguration($container, $mergedConfig['messenger']);
         $this->registerTracingConfiguration($container, $mergedConfig['tracing']);
+        $this->registerTracingTwigExtensionConfiguration($container, $mergedConfig['tracing']);
     }
 
     /**
@@ -170,6 +172,18 @@ final class SentryExtension extends ConfigurableExtension
         if (!$isConfigEnabled) {
             $container->removeDefinition(ConnectionConfigurator::class);
             $container->removeDefinition(TracingDriverMiddleware::class);
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function registerTracingTwigExtensionConfiguration(ContainerBuilder $container, array $config): void
+    {
+        $isConfigEnabled = $this->isConfigEnabled($container, $config['twig']);
+
+        if (!$isConfigEnabled) {
+            $container->removeDefinition(TwigTracingExtension::class);
         }
     }
 

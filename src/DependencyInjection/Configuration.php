@@ -163,6 +163,9 @@ final class Configuration implements ConfigurationInterface
                                 ->end()
                             ->end()
                         ->end()
+                        ->arrayNode('twig')
+                            ->canBeEnabled()
+                        ->end()
                     ->end()
                 ->end()
             ->end();
