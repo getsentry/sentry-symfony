@@ -38,4 +38,8 @@ $container->loadFromExtension('sentry', [
         'max_request_body_size' => 'none',
         'class_serializers' => ['App\\FooClass' => 'App\\Sentry\\Serializer\\FooClassSerializer'],
     ],
+    'messenger' => [
+        'enabled' => true,
+        'capture_soft_fails' => false,
+    ],
 ]);

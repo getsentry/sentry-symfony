@@ -36,5 +36,6 @@
             <sentry:in-app-include>%kernel.project_dir%</sentry:in-app-include>
             <sentry:class-serializer class="App\FooClass">App\Sentry\Serializer\FooClassSerializer</sentry:class-serializer>
         </sentry:options>
+        <sentry:messenger enabled="true" capture-soft-fails="false" />
     </sentry:config>
 </container>

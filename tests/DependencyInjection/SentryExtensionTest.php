@@ -105,6 +105,8 @@ abstract class SentryExtensionTest extends TestCase
                 ],
             ],
         ], $definition->getTags());
+
+        $this->assertFalse($definition->getArgument(1));
     }
 
     public function testMessengerListenerIsRemovedWhenDisabled(): void
