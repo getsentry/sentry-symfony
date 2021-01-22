@@ -79,6 +79,16 @@ abstract class SentryExtensionTest extends TestCase
                 ],
             ],
         ], $definition->getTags());
+
+        $this->assertTrue($definition->getArgument(1));
+    }
+
+    public function testConsoleCommandListenerDoesNotCaptureErrorsWhenErrorListenerIsDisabled(): void
+    {
+        $container = $this->createContainerFromFixture('error_listener_disabled');
+        $definition = $container->getDefinition(ConsoleCommandListener::class);
+
+        $this->assertFalse($definition->getArgument(1));
     }
 
     public function testMessengerListener(): void

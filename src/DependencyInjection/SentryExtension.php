@@ -12,6 +12,7 @@ use Sentry\Integration\IntegrationInterface;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\Integration\RequestIntegration;
 use Sentry\Options;
+use Sentry\SentryBundle\EventListener\ConsoleCommandListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\SentryBundle;
@@ -133,6 +134,8 @@ final class SentryExtension extends ConfigurableExtension
         if (!$config['register_error_listener']) {
             $container->removeDefinition(ErrorListener::class);
         }
+
+        $container->getDefinition(ConsoleCommandListener::class)->setArgument(1, $config['register_error_listener']);
     }
 
     /**
