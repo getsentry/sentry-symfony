@@ -51,7 +51,8 @@
         "vimeo/psalm": "^4.3"
     },
     "suggest": {
-        "monolog/monolog": "Allow sending log messages to Sentry by using the included Monolog handler."
+        "monolog/monolog": "Allow sending log messages to Sentry by using the included Monolog handler.",
+        "doctrine/dbal": "Trace DBAL queries with Sentry Transactions by using the included DbalListener"
     },
     "autoload": {
         "files": [

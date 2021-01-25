@@ -17,6 +17,7 @@ final class ConfigurationTest extends TestCase
     {
         $expectedBundleDefaultConfig = [
             'register_error_listener' => true,
+            'register_dbal_listener' => false,
             'options' => [
                 'integrations' => [],
                 'prefixes' => [],
