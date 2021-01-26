@@ -58,6 +58,7 @@ jobs:
       - run: composer remove --dev symfony/messenger --no-update
         if: matrix.symfony_constraint == '3.4.*' || matrix.composer_option == '--prefer-lowest'
       - run: composer update --no-progress --ansi ${{ matrix.composer_option }}
+      - run: composer suggests sentry/sentry-symfony --list | xargs -i composer require {}
       - run: composer require sentry/sentry dev-develop
         if: matrix.sentry_constraint == 'dev-develop'
       - run: vendor/bin/phpunit --coverage-clover=coverage.xml

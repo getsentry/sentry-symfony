@@ -8,6 +8,7 @@ use Doctrine\DBAL\Logging\SQLLogger;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
+use Sentry\Tracing\Transaction;
 
 /**
  * Getting the logger, tied into dbal seems extremely hard. Cheating the system a bit by putting it in between the
@@ -40,7 +41,7 @@ final class DbalListener implements SQLLogger
     {
         $transaction = $this->hub->getTransaction();
 
-        if (!$transaction) {
+        if (!$transaction instanceof Transaction) {
             return;
         }
 
