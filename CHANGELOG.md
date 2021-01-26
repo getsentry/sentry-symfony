@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.0.1 (2021-01-26)
+
 - Add missing `capture-soft-fails` option to the XSD schema for the XML config (#417)
 - Fix regression that send PII even when the `send_default_pii` option is off (#425)
 - Fix capture of console errors when the `register_error_listener` option is disabled (#427)
