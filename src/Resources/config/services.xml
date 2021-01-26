@@ -23,7 +23,9 @@
             </call>
         </service>
 
-        <service id="Sentry\SentryBundle\EventListener\ConsoleCommandListener" class="Sentry\SentryBundle\EventListener\ConsoleCommandListener">
+        <service id="Sentry\SentryBundle\EventListener\ConsoleCommandListener" alias="Sentry\SentryBundle\EventListener\ConsoleListener" />
+
+        <service id="Sentry\SentryBundle\EventListener\ConsoleListener" class="Sentry\SentryBundle\EventListener\ConsoleListener">
             <argument type="service" id="Sentry\State\HubInterface" />
 
             <tag name="kernel.event_listener" event="console.command" method="handleConsoleCommandEvent" priority="128" />

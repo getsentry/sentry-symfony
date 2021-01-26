@@ -7,7 +7,7 @@ namespace Sentry\SentryBundle\Tests\EventListener;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sentry\Event;
-use Sentry\SentryBundle\EventListener\ConsoleCommandListener;
+use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\Console\Command\Command;
@@ -17,7 +17,7 @@ use Symfony\Component\Console\Event\ConsoleTerminateEvent;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final class ConsoleCommandListenerTest extends TestCase
+final class ConsoleListenerTest extends TestCase
 {
     /**
      * @var MockObject&HubInterface
@@ -25,14 +25,14 @@ final class ConsoleCommandListenerTest extends TestCase
     private $hub;
 
     /**
-     * @var ConsoleCommandListener
+     * @var ConsoleListener
      */
     private $listener;
 
     protected function setUp(): void
     {
         $this->hub = $this->createMock(HubInterface::class);
-        $this->listener = new ConsoleCommandListener($this->hub);
+        $this->listener = new ConsoleListener($this->hub);
     }
 
     /**
