@@ -23,9 +23,6 @@ jobs:
       - name: Install dependencies
         run: composer update --no-progress --no-interaction --prefer-dist
 
-      - name: Install suggested packages
-        run: composer suggests sentry/sentry-symfony --list | xargs -i composer require {}
-
       - name: Run script
         run: composer phpcs
 
@@ -42,9 +39,6 @@ jobs:
       - name: Install dependencies
         run: composer update --no-progress --no-interaction --prefer-dist
 
-      - name: Install suggested packages
-        run: composer suggests sentry/sentry-symfony --list | xargs -i composer require {}
-
       - name: Run script
         run: composer phpstan
 
@@ -60,9 +54,6 @@ jobs:
 
       - name: Install dependencies
         run: composer update --no-progress --no-interaction --prefer-dist
-
-      - name: Install suggested packages
-        run: composer suggests sentry/sentry-symfony --list | xargs -i composer require {}
 
       - name: Run script
         run: composer psalm

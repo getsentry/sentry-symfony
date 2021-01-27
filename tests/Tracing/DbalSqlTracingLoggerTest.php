@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Sentry\SentryBundle\Tests\EventListener\Tracing;
+namespace Sentry\SentryBundle\Tests\Tracing;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Sentry\SentryBundle\EventListener\Tracing\DbalListener;
+use Sentry\SentryBundle\Tracing\DbalSqlTracingLogger;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
 
-final class DbalListenerTest extends TestCase
+final class DbalSqlTracingLoggerTest extends TestCase
 {
     /**
      * @var MockObject&HubInterface
@@ -19,14 +19,14 @@ final class DbalListenerTest extends TestCase
     private $hub;
 
     /**
-     * @var DbalListener
+     * @var \Sentry\SentryBundle\Tracing\DbalSqlTracingLogger
      */
     private $listener;
 
     protected function setUp(): void
     {
         $this->hub = $this->createMock(HubInterface::class);
-        $this->listener = new DbalListener($this->hub);
+        $this->listener = new DbalSqlTracingLogger($this->hub);
     }
 
     public function testThatDbalStartQueryIgnoresTracingWhenTransactionIsNotStarted(): void

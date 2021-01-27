@@ -4,29 +4,26 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\DependencyInjection\Compiler;
 
-use Sentry\SentryBundle\EventListener\Tracing\DbalListener;
+use Sentry\SentryBundle\Tracing\DbalSqlTracingLogger;
 use Sentry\State\HubInterface;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 
-class ConnectDbalQueryListenerPass implements CompilerPassInterface
+final class ConnectDbalQueryListenerPass implements CompilerPassInterface
 {
-    /**
-     * @return void
-     */
-    public function process(ContainerBuilder $container)
+    public function process(ContainerBuilder $container): void
     {
         $config = $container->getExtensionConfig('sentry');
 
-        $registerDbalListener = isset($config[0]['register_dbal_listener'])
-            ? $config[0]['register_dbal_listener']
+        $dbalTracingEnabled = isset($config[0]['tracing']['dbal_tracing'])
+            ? $config[0]['tracing']['dbal_tracing']
             : false;
 
-        if ($registerDbalListener && $container->hasDefinition('doctrine.dbal.logger')) {
+        if ($dbalTracingEnabled && $container->hasDefinition('doctrine.dbal.logger')) {
             $container->setDefinition(
                 'doctrine.dbal.logger',
-                new Definition(DbalListener::class, [$container->getDefinition(HubInterface::class)])
+                new Definition(DbalSqlTracingLogger::class, [$container->getDefinition(HubInterface::class)])
             );
         }
     }

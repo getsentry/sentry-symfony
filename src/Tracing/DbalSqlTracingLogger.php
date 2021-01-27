@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sentry\SentryBundle\EventListener\Tracing;
+namespace Sentry\SentryBundle\Tracing;
 
 use Doctrine\DBAL\Logging\SQLLogger;
 use Sentry\State\HubInterface;
@@ -10,11 +10,7 @@ use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 use Sentry\Tracing\Transaction;
 
-/**
- * Getting the logger, tied into dbal seems extremely hard. Cheating the system a bit by putting it in between the
- * debug stack logger.
- */
-final class DbalListener implements SQLLogger
+final class DbalSqlTracingLogger implements SQLLogger
 {
     /**
      * @var HubInterface The current hub
@@ -22,9 +18,9 @@ final class DbalListener implements SQLLogger
     private $hub;
 
     /**
-     * @var Span
+     * @var Span The span tracing the execution of a query
      */
-    private $querySpan;
+    private $span;
 
     /**
      * @param HubInterface $hub The current hub
@@ -35,7 +31,7 @@ final class DbalListener implements SQLLogger
     }
 
     /**
-     * @param string $sql
+     * {@inheritdoc}
      */
     public function startQuery($sql, ?array $params = null, ?array $types = null)
     {
@@ -46,18 +42,24 @@ final class DbalListener implements SQLLogger
         }
 
         $spanContext = new SpanContext();
-        $spanContext->setOp('doctrine.query');
+        $spanContext->setOp('db.query');
         $spanContext->setDescription($sql);
+        $spanContext->setData([
+            'db.system' => 'doctrine',
+        ]);
 
-        $this->querySpan = $transaction->startChild($spanContext);
+        $this->span = $transaction->startChild($spanContext);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function stopQuery()
     {
-        if (!$this->querySpan instanceof Span) {
+        if (null === $this->span) {
             return;
         }
 
-        $this->querySpan->finish();
+        $this->span->finish();
     }
 }

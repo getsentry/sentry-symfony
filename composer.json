@@ -32,6 +32,7 @@
         "symfony/security-core": "^3.4.43||^4.4.11||^5.0.11"
     },
     "require-dev": {
+        "doctrine/dbal": "^2.0||^3.0",
         "friendsofphp/php-cs-fixer": "^2.17",
         "jangregor/phpstan-prophecy": "^0.8",
         "monolog/monolog": "^1.3||^2.0",
@@ -52,7 +53,7 @@
     },
     "suggest": {
         "monolog/monolog": "Allow sending log messages to Sentry by using the included Monolog handler.",
-        "doctrine/dbal": "Trace DBAL queries with Sentry Transactions by using the included DbalListener"
+        "doctrine/dbal": "Allow distributed tracing of SQL queries using Sentry."
     },
     "autoload": {
         "files": [
