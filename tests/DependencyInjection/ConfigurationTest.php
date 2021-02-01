@@ -6,7 +6,6 @@ namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
 use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
-use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
@@ -16,11 +15,13 @@ final class ConfigurationTest extends TestCase
 {
     public function testProcessConfigurationWithDefaultConfiguration(): void
     {
+        $defaultPrefixes = array_filter(explode(\PATH_SEPARATOR, get_include_path() ?: ''));
+
         $expectedBundleDefaultConfig = [
             'register_error_listener' => true,
             'options' => [
                 'integrations' => [],
-                'prefixes' => array_merge(['%kernel.project_dir%'], (new Options())->getPrefixes()),
+                'prefixes' => array_merge(['%kernel.project_dir%'], $defaultPrefixes),
                 'environment' => '%kernel.environment%',
                 'release' => PrettyVersions::getRootPackageVersion()->getPrettyVersion(),
                 'tags' => [],
