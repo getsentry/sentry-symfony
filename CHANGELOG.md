@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Added missing `capture-soft-fails` config schema option (#417)
+- Deprecate the `Sentry\SentryBundle\EventListener\ConsoleCommandListener` class in favor of its parent class `Sentry\SentryBundle\EventListener\ConsoleListener` (#429)
 
 ## 4.0.0 (2021-01-19)
 

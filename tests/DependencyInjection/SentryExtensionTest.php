@@ -10,7 +10,7 @@ use Sentry\ClientInterface;
 use Sentry\Integration\IgnoreErrorsIntegration;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
-use Sentry\SentryBundle\EventListener\ConsoleCommandListener;
+use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\EventListener\RequestListener;
@@ -57,9 +57,9 @@ abstract class SentryExtensionTest extends TestCase
     public function testConsoleCommandListener(): void
     {
         $container = $this->createContainerFromFixture('full');
-        $definition = $container->getDefinition(ConsoleCommandListener::class);
+        $definition = $container->findDefinition(ConsoleListener::class);
 
-        $this->assertSame(ConsoleCommandListener::class, $definition->getClass());
+        $this->assertSame(ConsoleListener::class, $definition->getClass());
         $this->assertSame([
             'kernel.event_listener' => [
                 [
