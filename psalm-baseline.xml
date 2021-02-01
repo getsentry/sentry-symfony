@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files psalm-version="4.4.1@9fd7a7d885b3a216cff8dec9d8c21a132f275224">
+  <file src="src/EventListener/ConsoleCommandListener.php">
+    <InvalidExtendClass occurrences="1">
+      <code>ConsoleListener</code>
+    </InvalidExtendClass>
+    <MethodSignatureMismatch occurrences="1">
+      <code>public function __construct(HubInterface $hub)</code>
+    </MethodSignatureMismatch>
+  </file>
+</files>

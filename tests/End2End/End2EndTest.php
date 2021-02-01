@@ -255,7 +255,7 @@ class End2EndTest extends WebTestCase
 
     private function skipIfMessengerIsMissing(): void
     {
-        if (!interface_exists(MessageBusInterface::class) || Kernel::VERSION_ID < 40300) {
+        if (!interface_exists(MessageBusInterface::class)) {
             $this->markTestSkipped('Messenger missing');
         }
     }
