@@ -50,6 +50,7 @@ final class Configuration implements ConfigurationInterface
                         ->booleanNode('default_integrations')->end()
                         ->integerNode('send_attempts')->min(0)->end()
                         ->arrayNode('prefixes')
+                            ->defaultValue(array_merge(['%kernel.project_dir%'], array_filter(explode(\PATH_SEPARATOR, get_include_path() ?: ''))))
                             ->scalarPrototype()->end()
                         ->end()
                         ->floatNode('sample_rate')

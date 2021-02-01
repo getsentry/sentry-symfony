@@ -15,11 +15,13 @@ final class ConfigurationTest extends TestCase
 {
     public function testProcessConfigurationWithDefaultConfiguration(): void
     {
+        $defaultPrefixes = array_filter(explode(\PATH_SEPARATOR, get_include_path() ?: ''));
+
         $expectedBundleDefaultConfig = [
             'register_error_listener' => true,
             'options' => [
                 'integrations' => [],
-                'prefixes' => [],
+                'prefixes' => array_merge(['%kernel.project_dir%'], $defaultPrefixes),
                 'environment' => '%kernel.environment%',
                 'release' => PrettyVersions::getRootPackageVersion()->getPrettyVersion(),
                 'tags' => [],

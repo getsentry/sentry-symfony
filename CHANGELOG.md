@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add `kernel.project_dir` to `prefixes` default value to trim paths to the project root (#434) 
+
 ## 4.0.1 (2021-01-26)
 
 - Add missing `capture-soft-fails` option to the XSD schema for the XML config (#417)

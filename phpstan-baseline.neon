@@ -36,11 +36,6 @@ parameters:
 			path: tests/End2End/End2EndTest.php
 
 		-
-			message: "#^Comparison operation \"\\<\" between 50201 and 40300 is always false\\.$#"
-			count: 1
-			path: tests/End2End/End2EndTest.php
-
-		-
 			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\ErrorListenerTest\\:\\:testHandleExceptionEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent\\.$#"
 			count: 1
 			path: tests/EventListener/ErrorListenerTest.php
