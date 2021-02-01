@@ -19,7 +19,9 @@ final class ConfigurationTest extends TestCase
             'register_error_listener' => true,
             'options' => [
                 'integrations' => [],
-                'prefixes' => [],
+                'prefixes' => [
+                    '%kernel.project_dir%',
+                ],
                 'environment' => '%kernel.environment%',
                 'release' => PrettyVersions::getRootPackageVersion()->getPrettyVersion(),
                 'tags' => [],
