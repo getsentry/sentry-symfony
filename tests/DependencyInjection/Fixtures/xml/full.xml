@@ -37,5 +37,8 @@
             <sentry:class-serializer class="App\FooClass">App\Sentry\Serializer\FooClassSerializer</sentry:class-serializer>
         </sentry:options>
         <sentry:messenger enabled="true" capture-soft-fails="false" />
+        <sentry:tracing>
+            <sentry:dbal enabled="true" />
+        </sentry:tracing>
     </sentry:config>
 </container>

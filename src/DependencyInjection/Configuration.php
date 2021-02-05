@@ -37,12 +37,6 @@ final class Configuration implements ConfigurationInterface
                     ->end()
                 ->end()
                 ->booleanNode('register_error_listener')->defaultTrue()->end()
-                ->arrayNode('tracing')
-                    ->addDefaultsIfNotSet()
-                    ->children()
-                        ->booleanNode('dbal_tracing')->defaultFalse()->end()
-                    ->end()
-                ->end()
                 ->arrayNode('options')
                     ->addDefaultsIfNotSet()
                     ->fixXmlConfig('integration')
@@ -130,10 +124,10 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
-            ->end()
-        ;
+            ->end();
 
         $this->addMessengerSection($rootNode);
+        $this->addDistributedTracingSection($rootNode);
 
         return $treeBuilder;
     }
@@ -146,6 +140,29 @@ final class Configuration implements ConfigurationInterface
                     ->{interface_exists(MessageBusInterface::class) ? 'canBeDisabled' : 'canBeEnabled'}()
                     ->children()
                         ->booleanNode('capture_soft_fails')->defaultTrue()->end()
+                    ->end()
+                ->end()
+            ->end();
+    }
+
+    private function addDistributedTracingSection(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('tracing')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->arrayNode('dbal')
+                            ->addDefaultsIfNotSet()
+                            ->fixXmlConfig('connection')
+                            ->canBeEnabled()
+                            ->children()
+                                ->arrayNode('connections')
+                                    ->scalarPrototype()->end()
+                                    ->defaultValue(['%doctrine.default_connection%'])
+                                ->end()
+                            ->end()
+                        ->end()
                     ->end()
                 ->end()
             ->end();

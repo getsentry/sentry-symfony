@@ -11,6 +11,7 @@
         <xsd:choice maxOccurs="unbounded">
             <xsd:element name="options" type="options" minOccurs="0" maxOccurs="1" />
             <xsd:element name="messenger" type="messenger" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="tracing" type="tracing" minOccurs="0" maxOccurs="1" />
         </xsd:choice>
 
         <xsd:attribute name="register-error-listener" type="xsd:boolean" />
@@ -78,5 +79,21 @@
     <xsd:complexType name="messenger">
         <xsd:attribute name="enabled" type="xsd:boolean" />
         <xsd:attribute name="capture-soft-fails" type="xsd:boolean" />
+    </xsd:complexType>
+
+    <xsd:complexType name="tracing">
+        <xsd:choice maxOccurs="unbounded">
+            <xsd:element name="dbal" type="tracing-dbal" minOccurs="0" maxOccurs="1" />
+        </xsd:choice>
+
+        <xsd:attribute name="dbal" type="xsd:boolean" />
+    </xsd:complexType>
+
+    <xsd:complexType name="tracing-dbal">
+        <xsd:sequence maxOccurs="unbounded">
+            <xsd:element name="connection" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+
+        <xsd:attribute name="enabled" type="xsd:boolean" />
     </xsd:complexType>
 </xsd:schema>

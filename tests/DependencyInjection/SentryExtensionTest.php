@@ -16,6 +16,7 @@ use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
 use Sentry\SentryBundle\SentryBundle;
+use Sentry\SentryBundle\Tracing\DbalSqlTracingLogger;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
 use Sentry\Transport\TransportFactoryInterface;
@@ -261,12 +262,28 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertSame(1, $ignoreErrorsIntegrationsCount);
     }
 
+    public function testDbalSqlLoggerIsConfiguredWhenDbalTracingIsEnable(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+
+        $this->assertTrue($container->hasDefinition(DbalSqlTracingLogger::class));
+    }
+
+    public function testDbalSqlLoggerIsRemovedWhenDbalTracingIsDisabled(): void
+    {
+        $container = $this->createContainerFromFixture('dbal_tracing_disabled');
+
+        $this->assertFalse($container->hasDefinition(DbalSqlTracingLogger::class));
+        $this->assertEmpty($container->getParameter('sentry.tracing.dbal.connections'));
+    }
+
     private function createContainerFromFixture(string $fixtureFile): ContainerBuilder
     {
         $container = new ContainerBuilder(new EnvPlaceholderParameterBag([
             'kernel.cache_dir' => __DIR__,
             'kernel.build_dir' => __DIR__,
             'kernel.project_dir' => __DIR__,
+            'doctrine.default_connection' => 'default',
         ]));
 
         $container->registerExtension(new SentryExtension());

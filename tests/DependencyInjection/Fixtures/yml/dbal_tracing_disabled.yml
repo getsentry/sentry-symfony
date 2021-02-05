@@ -1,0 +1,4 @@
+sentry:
+    tracing:
+        dbal:
+            enabled: false

@@ -17,9 +17,6 @@ final class ConfigurationTest extends TestCase
     {
         $expectedBundleDefaultConfig = [
             'register_error_listener' => true,
-            'tracing' => [
-                'dbal_tracing' => false,
-            ],
             'options' => [
                 'integrations' => [],
                 'prefixes' => [],
@@ -37,6 +34,12 @@ final class ConfigurationTest extends TestCase
             'messenger' => [
                 'enabled' => interface_exists(MessageBusInterface::class),
                 'capture_soft_fails' => true,
+            ],
+            'tracing' => [
+                'dbal' => [
+                    'enabled' => false,
+                    'connections' => ['%doctrine.default_connection%'],
+                ],
             ],
         ];
 

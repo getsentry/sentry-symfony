@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle;
 
-use Sentry\SentryBundle\DependencyInjection\Compiler\ConnectDbalQueryListenerPass;
+use Sentry\SentryBundle\DependencyInjection\Compiler\DbalSqlTracingLoggerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
@@ -16,6 +16,6 @@ final class SentryBundle extends Bundle
     {
         parent::build($container);
 
-        $container->addCompilerPass(new ConnectDbalQueryListenerPass());
+        $container->addCompilerPass(new DbalSqlTracingLoggerPass());
     }
 }

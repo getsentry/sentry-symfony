@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\DependencyInjection;
 
+use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use InvalidArgumentException;
 use Jean85\PrettyVersions;
+use LogicException;
 use Sentry\Client;
 use Sentry\ClientBuilder;
 use Sentry\Integration\IgnoreErrorsIntegration;
@@ -15,6 +18,7 @@ use Sentry\Options;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\SentryBundle;
+use Sentry\SentryBundle\Tracing\DbalSqlTracingLogger;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
 use Sentry\Transport\TransportFactoryInterface;
@@ -57,6 +61,7 @@ final class SentryExtension extends ConfigurableExtension
         $this->registerConfiguration($container, $mergedConfig);
         $this->registerErrorListenerConfiguration($container, $mergedConfig);
         $this->registerMessengerListenerConfiguration($container, $mergedConfig['messenger']);
+        $this->registerTracingConfiguration($container, $mergedConfig['tracing']);
     }
 
     /**
@@ -150,6 +155,22 @@ final class SentryExtension extends ConfigurableExtension
     }
 
     /**
+     * @param array<string, mixed> $config
+     */
+    private function registerTracingConfiguration(ContainerBuilder $container, array $config): void
+    {
+        if ($this->isConfigEnabled($container, $config['dbal']) && !class_exists(DoctrineBundle::class)) {
+            throw new LogicException('DBAL tracing support cannot be enabled as the DoctrineBundle bundle is not installed. Try running "composer require doctrine/doctrine-bundle".');
+        }
+
+        $container->setParameter('sentry.tracing.dbal.connections', $config['dbal']['enabled'] ? $config['dbal']['connections'] : []);
+
+        if (!$config['dbal']['enabled']) {
+            $container->removeDefinition(DbalSqlTracingLogger::class);
+        }
+    }
+
+    /**
      * @param string[]             $integrations
      * @param array<string, mixed> $config
      *
@@ -215,5 +236,14 @@ final class SentryExtension extends ConfigurableExtension
         }
 
         return false;
+    }
+
+    protected function isConfigEnabled(ContainerBuilder $container, array $config): bool
+    {
+        if (!isset($config['enabled'])) {
+            throw new InvalidArgumentException('The $config argument has no key named "enabled".');
+        }
+
+        return (bool) $container->getParameterBag()->resolveValue($config['enabled']);
     }
 }
