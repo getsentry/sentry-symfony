@@ -8,8 +8,10 @@ use Doctrine\DBAL\Logging\SQLLogger;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
-use Sentry\Tracing\Transaction;
 
+/**
+ * Simple SQL logger that records a trace of each query and sends it to Sentry.
+ */
 final class DbalSqlTracingLogger implements SQLLogger
 {
     /**
@@ -35,20 +37,17 @@ final class DbalSqlTracingLogger implements SQLLogger
      */
     public function startQuery($sql, ?array $params = null, ?array $types = null)
     {
-        $transaction = $this->hub->getTransaction();
+        $span = $this->hub->getSpan();
 
-        if (!$transaction instanceof Transaction) {
+        if (null === $span) {
             return;
         }
 
         $spanContext = new SpanContext();
         $spanContext->setOp('db.query');
         $spanContext->setDescription($sql);
-        $spanContext->setData([
-            'db.system' => 'doctrine',
-        ]);
 
-        $this->span = $transaction->startChild($spanContext);
+        $this->span = $span->startChild($spanContext);
     }
 
     /**
@@ -61,5 +60,6 @@ final class DbalSqlTracingLogger implements SQLLogger
         }
 
         $this->span->finish();
+        $this->span = null;
     }
 }

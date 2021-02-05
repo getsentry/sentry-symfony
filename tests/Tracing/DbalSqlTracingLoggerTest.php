@@ -19,67 +19,47 @@ final class DbalSqlTracingLoggerTest extends TestCase
     private $hub;
 
     /**
-     * @var \Sentry\SentryBundle\Tracing\DbalSqlTracingLogger
+     * @var DbalSqlTracingLogger
      */
-    private $listener;
+    private $logger;
 
     protected function setUp(): void
     {
         $this->hub = $this->createMock(HubInterface::class);
-        $this->listener = new DbalSqlTracingLogger($this->hub);
+        $this->logger = new DbalSqlTracingLogger($this->hub);
     }
 
-    public function testThatDbalStartQueryIgnoresTracingWhenTransactionIsNotStarted(): void
+    public function testStopQueryDoesNothingIfTransactionDidNotStartTheChildSpan(): void
     {
         $this->hub->expects($this->once())
-            ->method('getTransaction')
+            ->method('getSpan')
             ->willReturn(null);
 
-        $this->listener->startQuery('');
+        $this->logger->startQuery('SELECT * FROM orders');
+        $this->logger->stopQuery();
     }
 
-    public function testThatDbalStopQueryIgnoresTracingWhenChildSpanWasNotStarted(): void
-    {
-        $this->hub->expects($this->once())
-            ->method('getTransaction')
-            ->willReturn(null);
-
-        $this->listener->startQuery('');
-        $this->listener->stopQuery();
-    }
-
-    public function testThatDbalStartQueryAttachesAChildSpanWhenTransactionStarted(): void
+    public function testStopQueryFinishesTheChildSpan(): void
     {
         $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
         $this->hub->expects($this->once())
-            ->method('getTransaction')
+            ->method('getSpan')
             ->willReturn($transaction);
 
-        $this->listener->startQuery('');
+        $this->logger->startQuery('SELECT * FROM orders');
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
         $this->assertCount(2, $spans);
-        $this->assertNull($spans['1']->getEndTimestamp());
-    }
+        $this->assertNull($spans[1]->getEndTimestamp());
 
-    public function testThatDbalStopQueryFinishesTheChildSpanWhenChildSpanStarted(): void
-    {
-        $transaction = new Transaction(new TransactionContext());
-        $transaction->initSpanRecorder();
-
-        $this->hub->expects($this->once())
-            ->method('getTransaction')
-            ->willReturn($transaction);
-
-        $this->listener->startQuery('');
-        $this->listener->stopQuery();
+        $this->logger->stopQuery();
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
         $this->assertCount(2, $spans);
-        $this->assertNotNull($spans['1']->getEndTimestamp());
+        $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 }
