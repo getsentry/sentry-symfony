@@ -284,6 +284,7 @@ abstract class SentryExtensionTest extends TestCase
             'kernel.build_dir' => __DIR__,
             'kernel.project_dir' => __DIR__,
             'doctrine.default_connection' => 'default',
+            'doctrine.connections' => ['default'],
         ]));
 
         $container->registerExtension(new SentryExtension());

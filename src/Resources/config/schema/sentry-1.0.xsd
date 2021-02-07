@@ -85,8 +85,6 @@
         <xsd:choice maxOccurs="unbounded">
             <xsd:element name="dbal" type="tracing-dbal" minOccurs="0" maxOccurs="1" />
         </xsd:choice>
-
-        <xsd:attribute name="dbal" type="xsd:boolean" />
     </xsd:complexType>
 
     <xsd:complexType name="tracing-dbal">

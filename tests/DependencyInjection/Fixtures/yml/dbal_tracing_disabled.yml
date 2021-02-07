@@ -2,3 +2,5 @@ sentry:
     tracing:
         dbal:
             enabled: false
+            connections:
+                - default

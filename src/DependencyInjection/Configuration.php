@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\DependencyInjection;
 
+use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
 use Sentry\Options;
 use Sentry\SentryBundle\ErrorTypesParser;
@@ -158,8 +159,8 @@ final class Configuration implements ConfigurationInterface
                             ->canBeEnabled()
                             ->children()
                                 ->arrayNode('connections')
+                                    ->defaultValue(class_exists(DoctrineBundle::class) ? ['%doctrine.default_connection%'] : [])
                                     ->scalarPrototype()->end()
-                                    ->defaultValue(['%doctrine.default_connection%'])
                                 ->end()
                             ->end()
                         ->end()

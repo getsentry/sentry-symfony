@@ -238,6 +238,9 @@ final class SentryExtension extends ConfigurableExtension
         return false;
     }
 
+    /**
+     * @param array<string, mixed> $config
+     */
     protected function isConfigEnabled(ContainerBuilder $container, array $config): bool
     {
         if (!isset($config['enabled'])) {

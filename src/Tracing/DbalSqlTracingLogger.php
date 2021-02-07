@@ -20,7 +20,7 @@ final class DbalSqlTracingLogger implements SQLLogger
     private $hub;
 
     /**
-     * @var Span The span tracing the execution of a query
+     * @var Span|null The span tracing the execution of a query
      */
     private $span;
 

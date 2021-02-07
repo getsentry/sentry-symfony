@@ -22,7 +22,10 @@ final class DbalSqlTracingLoggerPass implements CompilerPassInterface
             return;
         }
 
+        /** @var string[] $connections */
         $connections = $container->getParameter('doctrine.connections');
+
+        /** @var string[] $connectionsToTrace */
         $connectionsToTrace = $container->getParameter('sentry.tracing.dbal.connections');
 
         foreach ($connectionsToTrace as $connectionName) {
@@ -45,6 +48,9 @@ final class DbalSqlTracingLoggerPass implements CompilerPassInterface
         }
     }
 
+    /**
+     * @return array{0: string, 1: mixed[]}|null
+     */
     private function getSetSQLLoggerMethodCall(Definition $definition): ?array
     {
         foreach ($definition->getMethodCalls() as $methodCall) {
