@@ -65,7 +65,7 @@
             <tag name="console.command" />
         </service>
 
-        <service id="Sentry\SentryBundle\Tracing\DbalSqlTracingLogger" class="Sentry\SentryBundle\Tracing\DbalSqlTracingLogger">
+        <service id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware" class="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware">
             <argument type="service" id="Sentry\State\HubInterface" />
         </service>
 

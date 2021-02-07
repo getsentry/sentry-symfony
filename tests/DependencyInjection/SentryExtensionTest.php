@@ -16,7 +16,7 @@ use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
 use Sentry\SentryBundle\SentryBundle;
-use Sentry\SentryBundle\Tracing\DbalSqlTracingLogger;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
 use Sentry\Transport\TransportFactoryInterface;
@@ -262,18 +262,18 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertSame(1, $ignoreErrorsIntegrationsCount);
     }
 
-    public function testDbalSqlLoggerIsConfiguredWhenDbalTracingIsEnable(): void
+    public function testTracingDriverMiddlewareIsConfiguredWhenDbalTracingIsEnable(): void
     {
         $container = $this->createContainerFromFixture('full');
 
-        $this->assertTrue($container->hasDefinition(DbalSqlTracingLogger::class));
+        $this->assertTrue($container->hasDefinition(TracingDriverMiddleware::class));
     }
 
-    public function testDbalSqlLoggerIsRemovedWhenDbalTracingIsDisabled(): void
+    public function testTracingDriverMiddlewareIsRemovedWhenDbalTracingIsDisabled(): void
     {
         $container = $this->createContainerFromFixture('dbal_tracing_disabled');
 
-        $this->assertFalse($container->hasDefinition(DbalSqlTracingLogger::class));
+        $this->assertFalse($container->hasDefinition(TracingDriverMiddleware::class));
         $this->assertEmpty($container->getParameter('sentry.tracing.dbal.connections'));
     }
 

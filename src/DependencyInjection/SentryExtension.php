@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
-use InvalidArgumentException;
 use Jean85\PrettyVersions;
 use LogicException;
 use Sentry\Client;
@@ -18,7 +17,7 @@ use Sentry\Options;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\SentryBundle;
-use Sentry\SentryBundle\Tracing\DbalSqlTracingLogger;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
 use Sentry\Transport\TransportFactoryInterface;
@@ -145,7 +144,7 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function registerMessengerListenerConfiguration(ContainerBuilder $container, array $config): void
     {
-        if (!$config['enabled']) {
+        if (!$this->isConfigEnabled($container, $config)) {
             $container->removeDefinition(MessengerListener::class);
 
             return;
@@ -159,14 +158,16 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function registerTracingConfiguration(ContainerBuilder $container, array $config): void
     {
-        if ($this->isConfigEnabled($container, $config['dbal']) && !class_exists(DoctrineBundle::class)) {
-            throw new LogicException('DBAL tracing support cannot be enabled as the DoctrineBundle bundle is not installed. Try running "composer require doctrine/doctrine-bundle".');
+        $isConfigEnabled = $this->isConfigEnabled($container, $config['dbal']);
+
+        if ($isConfigEnabled && !class_exists(DoctrineBundle::class)) {
+            throw new LogicException('DBAL tracing support cannot be enabled as the DoctrineBundle bundle is not installed.');
         }
 
-        $container->setParameter('sentry.tracing.dbal.connections', $config['dbal']['enabled'] ? $config['dbal']['connections'] : []);
+        $container->setParameter('sentry.tracing.dbal.connections', $isConfigEnabled ? $config['dbal']['connections'] : []);
 
-        if (!$config['dbal']['enabled']) {
-            $container->removeDefinition(DbalSqlTracingLogger::class);
+        if (!$isConfigEnabled) {
+            $container->removeDefinition(TracingDriverMiddleware::class);
         }
     }
 
@@ -236,17 +237,5 @@ final class SentryExtension extends ConfigurableExtension
         }
 
         return false;
-    }
-
-    /**
-     * @param array<string, mixed> $config
-     */
-    protected function isConfigEnabled(ContainerBuilder $container, array $config): bool
-    {
-        if (!isset($config['enabled'])) {
-            throw new InvalidArgumentException('The $config argument has no key named "enabled".');
-        }
-
-        return (bool) $container->getParameterBag()->resolveValue($config['enabled']);
     }
 }
