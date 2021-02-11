@@ -110,9 +110,9 @@ final class TracingDriverConnection implements DriverConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function quote($input, $type = ParameterType::STRING)
+    public function quote($value, $type = ParameterType::STRING)
     {
-        return $this->decoratedConnection->quote($input, $type);
+        return $this->decoratedConnection->quote($value, $type);
     }
 
     /**

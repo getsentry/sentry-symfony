@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Driver\ExceptionConverterDriver as BaseExceptionConverterDriverInterface;
+use Doctrine\DBAL\Driver\DriverException as LegacyDriverExceptionInterface;
+use Doctrine\DBAL\Driver\Exception as DriverExceptionInterface;
+use Doctrine\DBAL\Driver\ExceptionConverterDriver as LegacyExceptionConverterDriverInterface;
 use Doctrine\DBAL\Driver\Middleware as DoctrineMiddlewareInterface;
 use Doctrine\DBAL\Driver\Result;
 use Doctrine\DBAL\Driver\Statement;
-use Jean85\PrettyVersions;
 use Sentry\SentryBundle\EventListener\ErrorListenerExceptionEvent;
 use Sentry\SentryBundle\EventListener\RequestListenerControllerEvent;
 use Sentry\SentryBundle\EventListener\RequestListenerRequestEvent;
@@ -67,9 +68,7 @@ if (version_compare(Kernel::VERSION, '4.3.0', '>=')) {
 }
 
 if (class_exists(Connection::class)) {
-    $doctrineVersion = PrettyVersions::getVersion('doctrine/dbal')->getPrettyVersion();
-
-    if (version_compare($doctrineVersion, '3.0.0', '<') && !class_exists(Result::class, false)) {
+    if (!interface_exists(Result::class)) {
         /** @psalm-suppress UndefinedClass */
         class_alias(Statement::class, Result::class);
     }
@@ -79,8 +78,13 @@ if (class_exists(Connection::class)) {
         class_alias(MiddlewareInterface::class, DoctrineMiddlewareInterface::class);
     }
 
-    if (!interface_exists(BaseExceptionConverterDriverInterface::class, false)) {
+    if (!interface_exists(LegacyExceptionConverterDriverInterface::class)) {
         /** @psalm-suppress UndefinedClass */
-        class_alias(ExceptionConverterDriverInterface::class, BaseExceptionConverterDriverInterface::class);
+        class_alias(ExceptionConverterDriverInterface::class, LegacyExceptionConverterDriverInterface::class);
+    }
+
+    if (!interface_exists(LegacyDriverExceptionInterface::class)) {
+        /** @psalm-suppress UndefinedClass */
+        class_alias(DriverExceptionInterface::class, LegacyDriverExceptionInterface::class);
     }
 }

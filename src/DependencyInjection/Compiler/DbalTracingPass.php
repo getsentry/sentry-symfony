@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\DependencyInjection\Compiler;
 
-use Jean85\PrettyVersions;
+use Doctrine\DBAL\Driver\ResultStatement;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -46,7 +46,7 @@ final class DbalTracingPass implements CompilerPassInterface
                 continue;
             }
 
-            if (version_compare(PrettyVersions::getVersion('doctrine/dbal')->getPrettyVersion(), '3.0.0', '>=')) {
+            if (!interface_exists(ResultStatement::class)) {
                 $this->configureConnectionForDoctrineDBALVersion3($container, $connectionName);
             } else {
                 $this->configureConnectionForDoctrineDBALVersion2($container, $connectionName);

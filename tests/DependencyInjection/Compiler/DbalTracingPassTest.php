@@ -6,20 +6,19 @@ namespace Sentry\SentryBundle\Tests\DependencyInjection\Compiler;
 
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
-use Jean85\PrettyVersions;
-use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\Compiler\DbalTracingPass;
+use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
-final class DbalTracingPassTest extends TestCase
+final class DbalTracingPassTest extends DoctrineTestCase
 {
     public function testProcessWithDoctrineDBALVersionAtLeast30(): void
     {
-        if (version_compare(PrettyVersions::getVersion('doctrine/dbal')->getPrettyVersion(), '3.0.0', '<')) {
+        if (!$this->isDoctrineDBALVersion3Installed()) {
             $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.0.');
         }
 
@@ -85,7 +84,7 @@ final class DbalTracingPassTest extends TestCase
 
     public function testProcessWithDoctrineDBALVersionLowerThan30(): void
     {
-        if (version_compare(PrettyVersions::getVersion('doctrine/dbal')->getPrettyVersion(), '3.0.0', '>=')) {
+        if ($this->isDoctrineDBALVersion3Installed()) {
             $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be < 3.0.');
         }
 

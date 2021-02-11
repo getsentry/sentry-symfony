@@ -7,12 +7,12 @@ namespace Sentry\SentryBundle\Tracing\Doctrine\DBAL;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\API\ExceptionConverter;
 use Doctrine\DBAL\Driver as DriverInterface;
-use Doctrine\DBAL\Driver\DriverException;
+use Doctrine\DBAL\Driver\DriverException as LegacyDriverExceptionInterface;
 use Doctrine\DBAL\Driver\ExceptionConverterDriver as ExceptionConverterDriverInterface;
+use Doctrine\DBAL\Driver\ResultStatement;
 use Doctrine\DBAL\Exception\DriverException as DBALDriverException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\VersionAwarePlatformDriver as VersionAwarePlatformDriverInterface;
-use Jean85\PrettyVersions;
 use Sentry\State\HubInterface;
 
 /**
@@ -31,7 +31,7 @@ final class TracingDriver implements DriverInterface, VersionAwarePlatformDriver
     private $hub;
 
     /**
-     * @var DriverInterface The instance of the decorated driver
+     * @var DriverInterface|VersionAwarePlatformDriverInterface|ExceptionConverterDriverInterface The instance of the decorated driver
      */
     private $decoratedDriver;
 
@@ -91,7 +91,7 @@ final class TracingDriver implements DriverInterface, VersionAwarePlatformDriver
     /**
      * {@inheritdoc}
      */
-    public function getName()
+    public function getName(): string
     {
         if (method_exists($this->decoratedDriver, 'getName')) {
             return $this->decoratedDriver->getName();
@@ -117,7 +117,7 @@ final class TracingDriver implements DriverInterface, VersionAwarePlatformDriver
      */
     public function createDatabasePlatformForVersion($version): AbstractPlatform
     {
-        if ($this->decoratedDriver instanceof VersionAwarePlatformDriver) {
+        if ($this->decoratedDriver instanceof VersionAwarePlatformDriverInterface) {
             return $this->decoratedDriver->createDatabasePlatformForVersion($version);
         }
 
@@ -127,13 +127,13 @@ final class TracingDriver implements DriverInterface, VersionAwarePlatformDriver
     /**
      * {@inheritdoc}
      */
-    public function convertException($message, DriverException $exception)
+    public function convertException($message, LegacyDriverExceptionInterface $exception): DBALDriverException
     {
-        if (version_compare(PrettyVersions::getVersion('doctrine/dbal')->getPrettyVersion(), '3.0.0', '>=')) {
+        if (!interface_exists(ResultStatement::class)) {
             throw new \BadMethodCallException(sprintf('The %s() method is not supported on Doctrine DBAL 3.0.', __METHOD__));
         }
 
-        if ($this->decoratedDriver instanceof ExceptionConverterDriver) {
+        if ($this->decoratedDriver instanceof ExceptionConverterDriverInterface) {
             return $this->decoratedDriver->convertException($message, $exception);
         }
 
