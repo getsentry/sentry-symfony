@@ -40,12 +40,12 @@ final class TracingDriverConnection implements DriverConnectionInterface
     /**
      * @internal
      */
-    public const SPAN_OP_TRANSACTION_COMMIT = 'sql.begin_transaction.commit';
+    public const SPAN_OP_TRANSACTION_COMMIT = 'sql.transaction.commit';
 
     /**
      * @internal
      */
-    public const SPAN_OP_TRANSACTION_ROLLBACK = 'sql.begin_transaction.rollback';
+    public const SPAN_OP_TRANSACTION_ROLLBACK = 'sql.transaciton.rollback';
 
     /**
      * @var HubInterface The current hub
