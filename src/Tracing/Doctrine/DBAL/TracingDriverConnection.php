@@ -13,7 +13,7 @@ use Sentry\Tracing\SpanContext;
 
 /**
  * This implementation wraps a driver connection and adds distributed tracing
- * capabilities.
+ * capabilities to Doctrine DBAL.
  */
 final class TracingDriverConnection implements DriverConnectionInterface
 {
@@ -71,7 +71,7 @@ final class TracingDriverConnection implements DriverConnectionInterface
      * Constructor.
      *
      * @param HubInterface              $hub                 The current hub
-     * @param DriverConnectionInterface $decoratedConnection The connection to decorarte
+     * @param DriverConnectionInterface $decoratedConnection The connection to decorate
      * @param string                    $databasePlatform    The name of the database platform
      * @param array<string, mixed>      $params              The connection params
      */
@@ -90,7 +90,7 @@ final class TracingDriverConnection implements DriverConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function prepare(string $sql): Statement
+    public function prepare($sql): Statement
     {
         return $this->traceFunction(self::SPAN_OP_CONN_PREPARE, $sql, function () use ($sql): Statement {
             return $this->decoratedConnection->prepare($sql);
@@ -100,25 +100,25 @@ final class TracingDriverConnection implements DriverConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function query(string $sql): Result
+    public function query(?string $sql = null, ...$args): Result
     {
-        return $this->traceFunction(self::SPAN_OP_CONN_QUERY, $sql, function () use ($sql): Result {
-            return $this->decoratedConnection->query($sql);
+        return $this->traceFunction(self::SPAN_OP_CONN_QUERY, $sql, function () use ($sql, $args): Result {
+            return $this->decoratedConnection->query($sql, ...$args);
         });
     }
 
     /**
      * {@inheritdoc}
      */
-    public function quote($value, $type = ParameterType::STRING)
+    public function quote($input, $type = ParameterType::STRING)
     {
-        return $this->decoratedConnection->quote($value, $type);
+        return $this->decoratedConnection->quote($input, $type);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function exec(string $sql): int
+    public function exec($sql): int
     {
         return $this->traceFunction(self::SPAN_OP_CONN_EXEC, $sql, function () use ($sql): int {
             return $this->decoratedConnection->exec($sql);
@@ -161,6 +161,30 @@ final class TracingDriverConnection implements DriverConnectionInterface
         return $this->traceFunction(self::SPAN_OP_TRANSACTION_ROLLBACK, 'ROLLBACK', function (): bool {
             return $this->decoratedConnection->rollBack();
         });
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function errorCode()
+    {
+        if (!method_exists($this->decoratedConnection, 'errorInfo')) {
+            throw new \BadMethodCallException(sprintf('The %s() method is not supported on Doctrine DBAL 3.0.', __METHOD__));
+        }
+
+        return $this->decoratedConnection->errorCode();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function errorInfo()
+    {
+        if (!method_exists($this->decoratedConnection, 'errorInfo')) {
+            throw new \BadMethodCallException(sprintf('The %s() method is not supported on Doctrine DBAL 3.0.', __METHOD__));
+        }
+
+        return $this->decoratedConnection->errorInfo();
     }
 
     /**

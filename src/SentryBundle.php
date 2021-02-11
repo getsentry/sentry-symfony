@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle;
 
-use Sentry\SentryBundle\DependencyInjection\Compiler\DbalTracingDriverPass;
+use Sentry\SentryBundle\DependencyInjection\Compiler\DbalTracingPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
@@ -16,6 +16,6 @@ final class SentryBundle extends Bundle
     {
         parent::build($container);
 
-        $container->addCompilerPass(new DbalTracingDriverPass());
+        $container->addCompilerPass(new DbalTracingPass());
     }
 }

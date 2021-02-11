@@ -9,8 +9,8 @@ use Doctrine\DBAL\Driver\Middleware as MiddlewareInterface;
 use Sentry\State\HubInterface;
 
 /**
- * This middleware wraps a {@see Driver} instance into one that supports the
- * distributed tracing feature of Sentry.
+ * This middleware wraps a {@see DriverInterface} instance into one that
+ * supports the distributed tracing feature of Sentry.
  */
 final class TracingDriverMiddleware implements MiddlewareInterface
 {
