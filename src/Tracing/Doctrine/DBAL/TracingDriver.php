@@ -81,11 +81,11 @@ final class TracingDriver implements DriverInterface, VersionAwarePlatformDriver
      */
     public function getExceptionConverter(): ExceptionConverter
     {
-        if (!method_exists($this->decoratedDriver, 'getExceptionConverter')) {
-            throw new \BadMethodCallException(sprintf('The %s() method is not supported on Doctrine DBAL 2.x.', __METHOD__));
+        if (method_exists($this->decoratedDriver, 'getExceptionConverter')) {
+            return $this->decoratedDriver->getExceptionConverter();
         }
 
-        return $this->decoratedDriver->getExceptionConverter();
+        throw new \BadMethodCallException(sprintf('The %s() method is not supported on Doctrine DBAL 2.x.', __METHOD__));
     }
 
     /**

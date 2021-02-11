@@ -168,11 +168,11 @@ final class TracingDriverConnection implements DriverConnectionInterface
      */
     public function errorCode()
     {
-        if (!method_exists($this->decoratedConnection, 'errorInfo')) {
-            throw new \BadMethodCallException(sprintf('The %s() method is not supported on Doctrine DBAL 3.0.', __METHOD__));
+        if (method_exists($this->decoratedConnection, 'errorInfo')) {
+            return $this->decoratedConnection->errorCode();
         }
 
-        return $this->decoratedConnection->errorCode();
+        throw new \BadMethodCallException(sprintf('The %s() method is not supported on Doctrine DBAL 3.0.', __METHOD__));
     }
 
     /**
@@ -180,11 +180,11 @@ final class TracingDriverConnection implements DriverConnectionInterface
      */
     public function errorInfo()
     {
-        if (!method_exists($this->decoratedConnection, 'errorInfo')) {
-            throw new \BadMethodCallException(sprintf('The %s() method is not supported on Doctrine DBAL 3.0.', __METHOD__));
+        if (method_exists($this->decoratedConnection, 'errorInfo')) {
+            return $this->decoratedConnection->errorInfo();
         }
 
-        return $this->decoratedConnection->errorInfo();
+        throw new \BadMethodCallException(sprintf('The %s() method is not supported on Doctrine DBAL 3.0.', __METHOD__));
     }
 
     /**
