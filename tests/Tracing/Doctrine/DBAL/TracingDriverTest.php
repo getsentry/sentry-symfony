@@ -8,12 +8,12 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\API\ExceptionConverter;
 use Doctrine\DBAL\Driver as DriverInterface;
 use Doctrine\DBAL\Driver\Connection as DriverConnectionInterface;
-use Doctrine\DBAL\Driver\DriverException as LegacyDriverExceptionInterface;
-use Doctrine\DBAL\Driver\ExceptionConverterDriver;
+use Doctrine\DBAL\Driver\DriverException as DriverExceptionInterface;
+use Doctrine\DBAL\Driver\ExceptionConverterDriver as ExceptionConverterDriverInterface;
 use Doctrine\DBAL\Exception\DriverException as DBALDriverException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
-use Doctrine\DBAL\VersionAwarePlatformDriver;
+use Doctrine\DBAL\VersionAwarePlatformDriver as VersionAwarePlatformDriverInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriver;
@@ -30,6 +30,13 @@ final class TracingDriverTest extends DoctrineTestCase
     protected function setUp(): void
     {
         $this->hub = $this->createMock(HubInterface::class);
+    }
+
+    public static function setUpBeforeClass(): void
+    {
+        if (!self::isDoctrineBundlePackageInstalled()) {
+            self::markTestSkipped();
+        }
     }
 
     public function testConnect(): void
@@ -87,7 +94,7 @@ final class TracingDriverTest extends DoctrineTestCase
 
     public function testGetExceptionConverter(): void
     {
-        if (!$this->isDoctrineDBALVersion3Installed()) {
+        if (!self::isDoctrineDBALVersion3Installed()) {
             $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.0.');
         }
 
@@ -105,7 +112,7 @@ final class TracingDriverTest extends DoctrineTestCase
 
     public function testGetExceptionConverterThrowsIfDoctrineDBALVersionIsLowerThan30(): void
     {
-        if ($this->isDoctrineDBALVersion3Installed()) {
+        if (self::isDoctrineDBALVersion3Installed()) {
             $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be < 3.0.');
         }
 
@@ -120,7 +127,7 @@ final class TracingDriverTest extends DoctrineTestCase
 
     public function testGetNameIfDoctrineDBALVersionIsLowerThan30(): void
     {
-        if ($this->isDoctrineDBALVersion3Installed()) {
+        if (self::isDoctrineDBALVersion3Installed()) {
             $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be < 3.0.');
         }
 
@@ -136,7 +143,7 @@ final class TracingDriverTest extends DoctrineTestCase
 
     public function testGetNameThrowsIfDoctrineDBALVersionIsAtLeast30(): void
     {
-        if (!$this->isDoctrineDBALVersion3Installed()) {
+        if (!self::isDoctrineDBALVersion3Installed()) {
             $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.0.');
         }
 
@@ -149,7 +156,7 @@ final class TracingDriverTest extends DoctrineTestCase
 
     public function testGetDatabaseIfDoctrineDBALVersionIsLowerThan30(): void
     {
-        if ($this->isDoctrineDBALVersion3Installed()) {
+        if (self::isDoctrineDBALVersion3Installed()) {
             $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be < 3.0.');
         }
 
@@ -168,7 +175,7 @@ final class TracingDriverTest extends DoctrineTestCase
 
     public function testGetDatabaseThrowsIfDoctrineDBALVersionIsAtLeast30(): void
     {
-        if (!$this->isDoctrineDBALVersion3Installed()) {
+        if (!self::isDoctrineDBALVersion3Installed()) {
             $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.0.');
         }
 
@@ -183,7 +190,7 @@ final class TracingDriverTest extends DoctrineTestCase
     {
         $databasePlatform = $this->createMock(AbstractPlatform::class);
 
-        $decoratedDriver = $this->createMock(VersionAwarePlatformDriverInterface::class);
+        $decoratedDriver = $this->createMock(StubVersionAwarePlatformDriverInterface::class);
         $decoratedDriver->expects($this->once())
             ->method('createDatabasePlatformForVersion')
             ->with('5.7')
@@ -210,14 +217,14 @@ final class TracingDriverTest extends DoctrineTestCase
 
     public function testConvertException(): void
     {
-        if ($this->isDoctrineDBALVersion3Installed()) {
+        if (self::isDoctrineDBALVersion3Installed()) {
             $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be <= 3.0.');
         }
 
-        $exception = $this->createMock(LegacyDriverExceptionInterface::class);
+        $exception = $this->createMock(DriverExceptionInterface::class);
         $convertedException = new DBALDriverException('foo', $exception);
 
-        $decoratedDriver = $this->createMock(ExceptionConverterDriverInterface::class);
+        $decoratedDriver = $this->createMock(StubExceptionConverterDriverInterface::class);
         $decoratedDriver->expects($this->once())
             ->method('convertException')
             ->with('foo', $exception)
@@ -230,22 +237,30 @@ final class TracingDriverTest extends DoctrineTestCase
 
     public function testConvertExceptionThrowsIfDoctrineDBALVersionIsAtLeast30(): void
     {
-        if (!$this->isDoctrineDBALVersion3Installed()) {
+        if (!self::isDoctrineDBALVersion3Installed()) {
             $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.0.');
         }
 
         $this->expectException(\BadMethodCallException::class);
         $this->expectExceptionMessage('The Sentry\\SentryBundle\\Tracing\\Doctrine\\DBAL\\TracingDriver::convertException() method is not supported on Doctrine DBAL 3.0.');
 
-        $driver = new TracingDriver($this->hub, $this->createMock(ExceptionConverterDriverInterface::class));
-        $driver->convertException('foo', $this->createMock(LegacyDriverExceptionInterface::class));
+        $driver = new TracingDriver($this->hub, $this->createMock(StubExceptionConverterDriverInterface::class));
+        $driver->convertException('foo', $this->createMock(DriverExceptionInterface::class));
     }
 }
 
-interface ExceptionConverterDriverInterface extends DriverInterface, ExceptionConverterDriver
-{
+if (interface_exists(VersionAwarePlatformDriverInterface::class)) {
+    interface StubVersionAwarePlatformDriverInterface extends DriverInterface, VersionAwarePlatformDriverInterface
+    {
+    }
 }
 
-interface VersionAwarePlatformDriverInterface extends DriverInterface, VersionAwarePlatformDriver
-{
+if (interface_exists(ExceptionConverterDriverInterface::class)) {
+    interface StubExceptionConverterDriverInterface extends ExceptionConverterDriverInterface, DriverInterface
+    {
+    }
+} else {
+    interface StubExceptionConverterDriverInterface extends DriverInterface
+    {
+    }
 }

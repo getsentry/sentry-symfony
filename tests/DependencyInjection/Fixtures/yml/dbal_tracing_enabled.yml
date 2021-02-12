@@ -1,6 +1,6 @@
 sentry:
     tracing:
         dbal:
-            enabled: false
+            enabled: true
             connections:
                 - default

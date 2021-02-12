@@ -19,7 +19,7 @@ use Sentry\State\HubInterface;
  * This is a simple implementation of the {@see DriverInterface} interface that
  * decorates an existing driver to support distributed tracing capabilities.
  * This implementation IS and MUST be compatible with all versions of Doctrine
- * DBAL >= 2.11.
+ * DBAL >= 2.10.
  *
  * @internal
  */

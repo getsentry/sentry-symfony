@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
+use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
@@ -16,6 +17,7 @@ use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
 use Sentry\SentryBundle\SentryBundle;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
@@ -264,16 +266,23 @@ abstract class SentryExtensionTest extends TestCase
 
     public function testTracingDriverMiddlewareIsConfiguredWhenDbalTracingIsEnable(): void
     {
-        $container = $this->createContainerFromFixture('full');
+        if (!class_exists(DoctrineBundle::class)) {
+            $this->markTestSkipped('This test requires the "doctrine/doctrine-bundle" Composer package to be installed.');
+        }
+
+        $container = $this->createContainerFromFixture('dbal_tracing_enabled');
 
         $this->assertTrue($container->hasDefinition(TracingDriverMiddleware::class));
+        $this->assertTrue($container->hasDefinition(ConnectionConfigurator::class));
+        $this->assertNotEmpty($container->getParameter('sentry.tracing.dbal.connections'));
     }
 
     public function testTracingDriverMiddlewareIsRemovedWhenDbalTracingIsDisabled(): void
     {
-        $container = $this->createContainerFromFixture('dbal_tracing_disabled');
+        $container = $this->createContainerFromFixture('full');
 
         $this->assertFalse($container->hasDefinition(TracingDriverMiddleware::class));
+        $this->assertFalse($container->hasDefinition(ConnectionConfigurator::class));
         $this->assertEmpty($container->getParameter('sentry.tracing.dbal.connections'));
     }
 

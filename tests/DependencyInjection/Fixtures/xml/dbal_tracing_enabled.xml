@@ -8,7 +8,7 @@
 
     <sentry:config>
         <sentry:tracing>
-            <sentry:dbal enabled="false">
+            <sentry:dbal enabled="true">
                 <sentry:connection>default</sentry:connection>
             </sentry:dbal>
         </sentry:tracing>

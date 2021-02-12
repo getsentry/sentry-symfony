@@ -18,7 +18,7 @@ final class DbalTracingPassTest extends DoctrineTestCase
 {
     public function testProcessWithDoctrineDBALVersionAtLeast30(): void
     {
-        if (!$this->isDoctrineDBALVersion3Installed()) {
+        if (!self::isDoctrineDBALVersion3Installed()) {
             $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.0.');
         }
 
@@ -84,7 +84,7 @@ final class DbalTracingPassTest extends DoctrineTestCase
 
     public function testProcessWithDoctrineDBALVersionLowerThan30(): void
     {
-        if ($this->isDoctrineDBALVersion3Installed()) {
+        if (self::isDoctrineDBALVersion3Installed()) {
             $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be < 3.0.');
         }
 

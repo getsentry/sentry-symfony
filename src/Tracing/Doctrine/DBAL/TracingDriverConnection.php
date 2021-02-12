@@ -13,7 +13,8 @@ use Sentry\Tracing\SpanContext;
 
 /**
  * This implementation wraps a driver connection and adds distributed tracing
- * capabilities to Doctrine DBAL.
+ * capabilities to Doctrine DBAL. This implementation IS and MUST be compatible
+ * with all versions of Doctrine DBAL >= 2.10.
  */
 final class TracingDriverConnection implements DriverConnectionInterface
 {
@@ -45,7 +46,7 @@ final class TracingDriverConnection implements DriverConnectionInterface
     /**
      * @internal
      */
-    public const SPAN_OP_TRANSACTION_ROLLBACK = 'sql.transaciton.rollback';
+    public const SPAN_OP_TRANSACTION_ROLLBACK = 'sql.transaction.rollback';
 
     /**
      * @var HubInterface The current hub

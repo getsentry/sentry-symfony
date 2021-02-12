@@ -9,13 +9,13 @@ use Doctrine\DBAL\Driver\Result as DriverResultInterface;
 use Doctrine\DBAL\Driver\Statement as DriverStatementInterface;
 use Doctrine\DBAL\ParameterType;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
+use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnection;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
 
-final class TracingDriverConnectionTest extends TestCase
+final class TracingDriverConnectionTest extends DoctrineTestCase
 {
     /**
      * @var MockObject&HubInterface
@@ -31,6 +31,13 @@ final class TracingDriverConnectionTest extends TestCase
      * @var TracingDriverConnection
      */
     private $connection;
+
+    public static function setUpBeforeClass(): void
+    {
+        if (!self::isDoctrineBundlePackageInstalled()) {
+            self::markTestSkipped();
+        }
+    }
 
     protected function setUp(): void
     {

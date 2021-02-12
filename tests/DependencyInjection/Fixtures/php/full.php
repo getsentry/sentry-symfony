@@ -44,7 +44,8 @@ $container->loadFromExtension('sentry', [
     ],
     'tracing' => [
         'dbal' => [
-            'enabled' => true,
+            'enabled' => false,
+            'connections' => ['default'],
         ],
     ],
 ]);

@@ -8,7 +8,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 $container->loadFromExtension('sentry', [
     'tracing' => [
         'dbal' => [
-            'enabled' => false,
+            'enabled' => true,
             'connections' => ['default'],
         ],
     ],

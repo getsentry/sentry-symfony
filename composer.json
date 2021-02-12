@@ -54,7 +54,7 @@
     },
     "suggest": {
         "monolog/monolog": "Allow sending log messages to Sentry by using the included Monolog handler.",
-        "doctrine/dbal": "Allow distributed tracing of SQL queries using Sentry."
+        "doctrine/doctrine-bundle": "Allow distributed tracing of database queries using Sentry."
     },
     "autoload": {
         "files": [

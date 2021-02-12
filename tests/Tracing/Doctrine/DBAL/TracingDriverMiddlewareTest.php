@@ -6,12 +6,12 @@ namespace Sentry\SentryBundle\Tests\Tracing\Doctrine\DBAL;
 
 use Doctrine\DBAL\Driver as DriverInterface;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
+use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriver;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\State\HubInterface;
 
-final class TracingDriverMiddlewareTest extends TestCase
+final class TracingDriverMiddlewareTest extends DoctrineTestCase
 {
     /**
      * @var MockObject&HubInterface
@@ -22,6 +22,13 @@ final class TracingDriverMiddlewareTest extends TestCase
      * @var TracingDriverMiddleware
      */
     private $middleware;
+
+    public static function setUpBeforeClass(): void
+    {
+        if (!self::isDoctrineBundlePackageInstalled()) {
+            self::markTestSkipped();
+        }
+    }
 
     protected function setUp(): void
     {

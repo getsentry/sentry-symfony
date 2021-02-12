@@ -17,6 +17,7 @@ use Sentry\Options;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\SentryBundle;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
@@ -167,6 +168,7 @@ final class SentryExtension extends ConfigurableExtension
         $container->setParameter('sentry.tracing.dbal.connections', $isConfigEnabled ? $config['dbal']['connections'] : []);
 
         if (!$isConfigEnabled) {
+            $container->removeDefinition(ConnectionConfigurator::class);
             $container->removeDefinition(TracingDriverMiddleware::class);
         }
     }

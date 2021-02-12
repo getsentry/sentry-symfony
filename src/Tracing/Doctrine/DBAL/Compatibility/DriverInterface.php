@@ -7,6 +7,6 @@ namespace Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility;
 /**
  * @internal
  */
-interface ExceptionConverterDriverInterface
+interface DriverInterface
 {
 }

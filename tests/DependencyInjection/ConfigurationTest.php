@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
+use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
@@ -38,7 +39,7 @@ final class ConfigurationTest extends TestCase
             'tracing' => [
                 'dbal' => [
                     'enabled' => false,
-                    'connections' => ['%doctrine.default_connection%'],
+                    'connections' => class_exists(DoctrineBundle::class) ? ['%doctrine.default_connection%'] : [],
                 ],
             ],
         ];

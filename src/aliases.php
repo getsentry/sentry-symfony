@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle;
 
-use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver as DoctrineDriverInterface;
 use Doctrine\DBAL\Driver\DriverException as LegacyDriverExceptionInterface;
 use Doctrine\DBAL\Driver\Exception as DriverExceptionInterface;
 use Doctrine\DBAL\Driver\ExceptionConverterDriver as LegacyExceptionConverterDriverInterface;
@@ -15,6 +15,7 @@ use Sentry\SentryBundle\EventListener\ErrorListenerExceptionEvent;
 use Sentry\SentryBundle\EventListener\RequestListenerControllerEvent;
 use Sentry\SentryBundle\EventListener\RequestListenerRequestEvent;
 use Sentry\SentryBundle\EventListener\SubRequestListenerRequestEvent;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility\DriverInterface;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility\ExceptionConverterDriverInterface;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility\MiddlewareInterface;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
@@ -67,24 +68,27 @@ if (version_compare(Kernel::VERSION, '4.3.0', '>=')) {
     }
 }
 
-if (class_exists(Connection::class)) {
-    if (!interface_exists(Result::class)) {
-        /** @psalm-suppress UndefinedClass */
-        class_alias(Statement::class, Result::class);
-    }
+if (interface_exists(Statement::class) && !interface_exists(Result::class)) {
+    /** @psalm-suppress UndefinedClass */
+    class_alias(Statement::class, Result::class);
+}
 
-    if (!interface_exists(DoctrineMiddlewareInterface::class)) {
-        /** @psalm-suppress UndefinedClass */
-        class_alias(MiddlewareInterface::class, DoctrineMiddlewareInterface::class);
-    }
+if (interface_exists(DriverExceptionInterface::class) && !interface_exists(LegacyDriverExceptionInterface::class)) {
+    /** @psalm-suppress UndefinedClass */
+    class_alias(DriverExceptionInterface::class, LegacyDriverExceptionInterface::class);
+}
 
-    if (!interface_exists(LegacyExceptionConverterDriverInterface::class)) {
-        /** @psalm-suppress UndefinedClass */
-        class_alias(ExceptionConverterDriverInterface::class, LegacyExceptionConverterDriverInterface::class);
-    }
+if (!interface_exists(DoctrineMiddlewareInterface::class)) {
+    /** @psalm-suppress UndefinedClass */
+    class_alias(MiddlewareInterface::class, DoctrineMiddlewareInterface::class);
+}
 
-    if (!interface_exists(LegacyDriverExceptionInterface::class)) {
-        /** @psalm-suppress UndefinedClass */
-        class_alias(DriverExceptionInterface::class, LegacyDriverExceptionInterface::class);
-    }
+if (!interface_exists(DoctrineDriverInterface::class)) {
+    /** @psalm-suppress UndefinedClass */
+    class_alias(DriverInterface::class, DoctrineDriverInterface::class);
+}
+
+if (!interface_exists(LegacyExceptionConverterDriverInterface::class)) {
+    /** @psalm-suppress UndefinedClass */
+    class_alias(ExceptionConverterDriverInterface::class, LegacyExceptionConverterDriverInterface::class);
 }
