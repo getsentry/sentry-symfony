@@ -64,9 +64,9 @@ final class TracingDriverConnection implements DriverConnectionInterface
     private $databasePlatform;
 
     /**
-     * @var array<string, mixed> The connection params
+     * @var array<string, string> The tags to attach to the span
      */
-    private $params;
+    private $spanTags;
 
     /**
      * Constructor.
@@ -85,7 +85,7 @@ final class TracingDriverConnection implements DriverConnectionInterface
         $this->hub = $hub;
         $this->decoratedConnection = $decoratedConnection;
         $this->databasePlatform = $databasePlatform;
-        $this->params = $params;
+        $this->spanTags = $this->getSpanTags($params);
     }
 
     /**
@@ -203,7 +203,7 @@ final class TracingDriverConnection implements DriverConnectionInterface
             $spanContext = new SpanContext();
             $spanContext->setOp($spanOperation);
             $spanContext->setDescription($spanDescription);
-            $spanContext->setTags($this->getSpanTags());
+            $spanContext->setTags($this->spanTags);
 
             $span = $span->startChild($spanContext);
         }
@@ -218,37 +218,41 @@ final class TracingDriverConnection implements DriverConnectionInterface
     }
 
     /**
-     * @see https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
+     * Gets a map of key-value pairs that will be set as tags of the span.
+     *
+     * @param array<string, mixed> $params The connection params
      *
      * @return array<string, string>
+     *
+     * @see https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
      */
-    private function getSpanTags(): array
+    private function getSpanTags(array $params): array
     {
         $tags = ['db.system' => $this->databasePlatform];
 
-        if (isset($this->params['user'])) {
-            $tags['db.user'] = $this->params['user'];
+        if (isset($params['user'])) {
+            $tags['db.user'] = $params['user'];
         }
 
-        if (isset($this->params['dbname'])) {
-            $tags['db.name'] = $this->params['dbname'];
+        if (isset($params['dbname'])) {
+            $tags['db.name'] = $params['dbname'];
         }
 
-        if (isset($this->params['host']) && !empty($this->params['host']) && !isset($this->params['memory'])) {
-            if (false === filter_var($this->params['host'], \FILTER_VALIDATE_IP)) {
-                $tags['net.peer.name'] = $this->params['host'];
+        if (isset($params['host']) && !empty($params['host']) && !isset($params['memory'])) {
+            if (false === filter_var($params['host'], \FILTER_VALIDATE_IP)) {
+                $tags['net.peer.name'] = $params['host'];
             } else {
-                $tags['net.peer.ip'] = $this->params['host'];
+                $tags['net.peer.ip'] = $params['host'];
             }
         }
 
-        if (isset($this->params['port'])) {
-            $tags['net.peer.port'] = (string) $this->params['port'];
+        if (isset($params['port'])) {
+            $tags['net.peer.port'] = (string) $params['port'];
         }
 
-        if (isset($this->params['unix_socket'])) {
+        if (isset($params['unix_socket'])) {
             $tags['net.transport'] = 'Unix';
-        } elseif (isset($this->params['memory'])) {
+        } elseif (isset($params['memory'])) {
             $tags['net.transport'] = 'inproc';
         }
 
