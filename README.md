@@ -92,43 +92,6 @@ The parameter `options` allows to fine-tune exceptions. To discover more options
 [the Unified APIs](https://docs.sentry.io/development/sdk-dev/unified-api/#options) options and
 the [PHP specific](https://docs.sentry.io/platforms/php/#php-specific-options) ones.
 
-#### Optional: use monolog handler provided by `sentry/sentry` (available since 3.2.0)
-*Note: this step is optional*
-
-If you're using `monolog` for logging e.g. in-app errors, you
-can use this handler in order for them to show up in Sentry. 
-
-First, enable & configure the `Sentry\Monolog\Handler`; you'll also need
-to disable the `Sentry\SentryBundle\EventListener\ErrorListener` to
-avoid having duplicate events in Sentry:
-
-```yaml
-sentry:
-    register_error_listener: false # Disables the ErrorListener
-    monolog:
-        error_handler:
-            enabled: true
-            level: error
-```
-
-Then enable it in `monolog` config:
-
-```yaml
-monolog:
-    handlers:
-        sentry:
-            type: service
-            id: Sentry\Monolog\Handler
-```
-
-Additionally, you can register the `PsrLogMessageProcessor` to resolve PSR-3 placeholders in reported messages:
-
-```yaml
-services:
-    Monolog\Processor\PsrLogMessageProcessor:
-        tags: { name: monolog.processor, handler: sentry }
-```
-
 #### Optional: use custom HTTP factory/transport
 
 Since SDK 2.0 uses HTTPlug to remain transport-agnostic, you need to have installed two packages that provides 
