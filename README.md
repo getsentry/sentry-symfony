@@ -44,6 +44,18 @@ You can install this bundle using Composer:
 composer require sentry/sentry-symfony
 ```
 
+**Warning:** due to a bug in all versions lower than `6.0` of the [`SensioFrameworkExtra`](https://github.com/sensiolabs/SensioFrameworkExtraBundle) bundle,
+if you have it installed you will likely get an error during the execution of the command above in regards to the missing `Nyholm\Psr7\Factory\Psr17Factory`
+class. To workaround the issue, if you are not using the PSR-7 bridge, please change the configuration of that bundle as follows:
+
+```yaml
+sensio_framework_extra:
+   psr_message:
+      enabled: false
+```
+
+For more details about the issue see https://github.com/sensiolabs/SensioFrameworkExtraBundle/pull/710.
+
 ### Step 2: Enable the Bundle
 
 Then, enable the bundle by adding it to the list of registered bundles
