@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
+use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
@@ -34,6 +35,12 @@ final class ConfigurationTest extends TestCase
             'messenger' => [
                 'enabled' => interface_exists(MessageBusInterface::class),
                 'capture_soft_fails' => true,
+            ],
+            'tracing' => [
+                'dbal' => [
+                    'enabled' => false,
+                    'connections' => class_exists(DoctrineBundle::class) ? ['%doctrine.default_connection%'] : [],
+                ],
             ],
         ];
 

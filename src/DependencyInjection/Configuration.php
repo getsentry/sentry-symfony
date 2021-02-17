@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\DependencyInjection;
 
+use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
 use Sentry\Options;
 use Sentry\SentryBundle\ErrorTypesParser;
@@ -124,10 +125,10 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
-            ->end()
-        ;
+            ->end();
 
         $this->addMessengerSection($rootNode);
+        $this->addDistributedTracingSection($rootNode);
 
         return $treeBuilder;
     }
@@ -140,6 +141,28 @@ final class Configuration implements ConfigurationInterface
                     ->{interface_exists(MessageBusInterface::class) ? 'canBeDisabled' : 'canBeEnabled'}()
                     ->children()
                         ->booleanNode('capture_soft_fails')->defaultTrue()->end()
+                    ->end()
+                ->end()
+            ->end();
+    }
+
+    private function addDistributedTracingSection(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('tracing')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->arrayNode('dbal')
+                            ->canBeEnabled()
+                            ->fixXmlConfig('connection')
+                            ->children()
+                                ->arrayNode('connections')
+                                    ->defaultValue(class_exists(DoctrineBundle::class) ? ['%doctrine.default_connection%'] : [])
+                                    ->scalarPrototype()->end()
+                                ->end()
+                            ->end()
+                        ->end()
                     ->end()
                 ->end()
             ->end();

@@ -65,6 +65,14 @@
             <tag name="console.command" />
         </service>
 
+        <service id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware" class="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware">
+            <argument type="service" id="Sentry\State\HubInterface" />
+        </service>
+
+        <service id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator" class="Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator">
+            <argument type="service" id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware" />
+        </service>
+
         <service id="Sentry\Integration\RequestFetcherInterface" class="Sentry\SentryBundle\Integration\RequestFetcher">
             <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack" />
             <argument type="service" id="Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface" on-invalid="null" />

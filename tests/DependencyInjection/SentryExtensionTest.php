@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
+use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
@@ -16,6 +17,8 @@ use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
 use Sentry\SentryBundle\SentryBundle;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
 use Sentry\Transport\TransportFactoryInterface;
@@ -261,12 +264,36 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertSame(1, $ignoreErrorsIntegrationsCount);
     }
 
+    public function testTracingDriverMiddlewareIsConfiguredWhenDbalTracingIsEnable(): void
+    {
+        if (!class_exists(DoctrineBundle::class)) {
+            $this->markTestSkipped('This test requires the "doctrine/doctrine-bundle" Composer package to be installed.');
+        }
+
+        $container = $this->createContainerFromFixture('dbal_tracing_enabled');
+
+        $this->assertTrue($container->hasDefinition(TracingDriverMiddleware::class));
+        $this->assertTrue($container->hasDefinition(ConnectionConfigurator::class));
+        $this->assertNotEmpty($container->getParameter('sentry.tracing.dbal.connections'));
+    }
+
+    public function testTracingDriverMiddlewareIsRemovedWhenDbalTracingIsDisabled(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+
+        $this->assertFalse($container->hasDefinition(TracingDriverMiddleware::class));
+        $this->assertFalse($container->hasDefinition(ConnectionConfigurator::class));
+        $this->assertEmpty($container->getParameter('sentry.tracing.dbal.connections'));
+    }
+
     private function createContainerFromFixture(string $fixtureFile): ContainerBuilder
     {
         $container = new ContainerBuilder(new EnvPlaceholderParameterBag([
             'kernel.cache_dir' => __DIR__,
             'kernel.build_dir' => __DIR__,
             'kernel.project_dir' => __DIR__,
+            'doctrine.default_connection' => 'default',
+            'doctrine.connections' => ['default'],
         ]));
 
         $container->registerExtension(new SentryExtension());

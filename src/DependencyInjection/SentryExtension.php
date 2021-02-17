@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\DependencyInjection;
 
+use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
+use LogicException;
 use Sentry\Client;
 use Sentry\ClientBuilder;
 use Sentry\Integration\IgnoreErrorsIntegration;
@@ -15,6 +17,8 @@ use Sentry\Options;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\SentryBundle;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
 use Sentry\Transport\TransportFactoryInterface;
@@ -57,6 +61,7 @@ final class SentryExtension extends ConfigurableExtension
         $this->registerConfiguration($container, $mergedConfig);
         $this->registerErrorListenerConfiguration($container, $mergedConfig);
         $this->registerMessengerListenerConfiguration($container, $mergedConfig['messenger']);
+        $this->registerTracingConfiguration($container, $mergedConfig['tracing']);
     }
 
     /**
@@ -140,13 +145,32 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function registerMessengerListenerConfiguration(ContainerBuilder $container, array $config): void
     {
-        if (!$config['enabled']) {
+        if (!$this->isConfigEnabled($container, $config)) {
             $container->removeDefinition(MessengerListener::class);
 
             return;
         }
 
         $container->getDefinition(MessengerListener::class)->setArgument(1, $config['capture_soft_fails']);
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function registerTracingConfiguration(ContainerBuilder $container, array $config): void
+    {
+        $isConfigEnabled = $this->isConfigEnabled($container, $config['dbal']);
+
+        if ($isConfigEnabled && !class_exists(DoctrineBundle::class)) {
+            throw new LogicException('DBAL tracing support cannot be enabled as the DoctrineBundle bundle is not installed.');
+        }
+
+        $container->setParameter('sentry.tracing.dbal.connections', $isConfigEnabled ? $config['dbal']['connections'] : []);
+
+        if (!$isConfigEnabled) {
+            $container->removeDefinition(ConnectionConfigurator::class);
+            $container->removeDefinition(TracingDriverMiddleware::class);
+        }
     }
 
     /**

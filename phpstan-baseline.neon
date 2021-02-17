@@ -11,9 +11,89 @@ parameters:
 			path: src/DependencyInjection/Configuration.php
 
 		-
+			message: "#^Call to an undefined method Symfony\\\\Component\\\\Config\\\\Definition\\\\Builder\\\\NodeParentInterface\\:\\:end\\(\\)\\.$#"
+			count: 1
+			path: src/DependencyInjection/Configuration.php
+
+		-
 			message: "#^Else branch is unreachable because previous condition is always true\\.$#"
 			count: 1
 			path: src/EventListener/ErrorListener.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriver\\:\\:connect\\(\\) has parameter \\$driverOptions with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriver\\:\\:connect\\(\\) has parameter \\$password with no typehint specified\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriver\\:\\:connect\\(\\) has parameter \\$username with no typehint specified\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
+
+		-
+			message: "#^Call to an undefined method Doctrine\\\\DBAL\\\\Driver\\|Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\Compatibility\\\\ExceptionConverterDriverInterface\\:\\:connect\\(\\)\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
+
+		-
+			message: "#^Call to an undefined method Doctrine\\\\DBAL\\\\Driver\\|Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\Compatibility\\\\ExceptionConverterDriverInterface\\:\\:getDatabasePlatform\\(\\)\\.$#"
+			count: 2
+			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
+
+		-
+			message: "#^Call to an undefined method Doctrine\\\\DBAL\\\\Driver\\|Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\Compatibility\\\\ExceptionConverterDriverInterface\\:\\:getSchemaManager\\(\\)\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriver\\:\\:convertException\\(\\) has parameter \\$message with no typehint specified\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
+
+		-
+			message: "#^Call to an undefined method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\Compatibility\\\\ExceptionConverterDriverInterface\\:\\:convertException\\(\\)\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
+
+		-
+			message: "#^Parameter \\#2 \\$query of class Doctrine\\\\DBAL\\\\Exception\\\\DriverException constructor expects Doctrine\\\\DBAL\\\\Query\\|null, Doctrine\\\\DBAL\\\\Driver\\\\Exception given\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:prepare\\(\\) has parameter \\$sql with no typehint specified\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:query\\(\\) has parameter \\$args with no typehint specified\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:exec\\(\\) has parameter \\$sql with no typehint specified\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:errorCode\\(\\) has no return typehint specified\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
+
+		-
+			message: "#^Call to an undefined method Doctrine\\\\DBAL\\\\Driver\\\\Connection\\:\\:errorCode\\(\\)\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:errorInfo\\(\\) has no return typehint specified\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
 			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent not found\\.$#"
@@ -114,4 +194,29 @@ parameters:
 			message: "#^Instantiated class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent not found\\.$#"
 			count: 2
 			path: tests/EventListener/SubRequestListenerTest.php
+
+		-
+			message: "#^Trying to mock an undefined method getName\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
+
+		-
+			message: "#^Trying to mock an undefined method getDatabase\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$driverException of class Doctrine\\\\DBAL\\\\Exception\\\\DriverException constructor expects Doctrine\\\\DBAL\\\\Driver\\\\Exception, string given\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$query of class Doctrine\\\\DBAL\\\\Exception\\\\DriverException constructor expects Doctrine\\\\DBAL\\\\Query\\|null, Doctrine\\\\DBAL\\\\Driver\\\\Exception&PHPUnit\\\\Framework\\\\MockObject\\\\MockObject given\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
+
+		-
+			message: "#^Trying to mock an undefined method convertException\\(\\) on class Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\StubExceptionConverterDriverInterface\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
 

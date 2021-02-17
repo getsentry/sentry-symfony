@@ -37,3 +37,8 @@ sentry:
     messenger:
         enabled: true
         capture_soft_fails: false
+    tracing:
+        dbal:
+            enabled: false
+            connections:
+                - enabled
