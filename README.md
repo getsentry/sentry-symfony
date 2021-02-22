@@ -22,27 +22,25 @@ Use `sentry-symfony` for:
    - app path
    - excluded paths (cache and vendor)
 
-## Installation with Symfony Flex (Symfony 4 or newer):
-If you're using the [Symfony Flex](https://symfony.com/doc/current/setup/flex.html) Composer plugin, you can install this bundle in a single, easy step: 
-```bash
-composer require sentry/sentry-symfony
-```
-This could show a message similar to this:
-```
-   The recipe for this package comes from the "contrib" repository, which is open to community contributions.
-    Review the recipe at https://github.com/symfony/recipes-contrib/tree/master/sentry/sentry-symfony/3.0
+## Installation
 
-    Do you want to execute this recipe?
-```
-Press `y` and return to allow the installation.
-
-## Installation without Symfony Flex:
-### Step 1: Download the Bundle
-You can install this bundle using Composer: 
+To install the SDK you will need to be using [Composer]([https://getcomposer.org/)
+in your project. To install it please see the [docs](https://getcomposer.org/download/).
 
 ```bash
 composer require sentry/sentry-symfony
 ```
+
+If you're using the [Symfony Flex](https://symfony.com/doc/current/setup/flex.html) Composer plugin, it could show a message similar to this:
+
+```
+The recipe for this package comes from the "contrib" repository, which is open to community contributions.
+Review the recipe at https://github.com/symfony/recipes-contrib/tree/master/sentry/sentry-symfony/3.0
+
+Do you want to execute this recipe?
+```
+
+Just type `y`, press return, and the procedure will continue.
 
 **Warning:** due to a bug in all versions lower than `6.0` of the [`SensioFrameworkExtra`](https://github.com/sensiolabs/SensioFrameworkExtraBundle) bundle,
 if you have it installed you will likely get an error during the execution of the command above in regards to the missing `Nyholm\Psr7\Factory\Psr17Factory`
@@ -58,29 +56,24 @@ For more details about the issue see https://github.com/sensiolabs/SensioFramewo
 
 ### Step 2: Enable the Bundle
 
-Then, enable the bundle by adding it to the list of registered bundles
-in the `app/AppKernel.php` file of your project:
+If you installed the package using the Flex recipe, the bundle will be automatically enabled. Otherwise, enable it by adding it to the list
+of registered bundles in the `Kernel.php` file of your project:
 
 ```php
-<?php
-// app/AppKernel.php
-
-// ...
-class AppKernel extends Kernel
+class AppKernel extends \Symfony\Component\HttpKernel\Kernel
 {
-    public function registerBundles()
+    public function registerBundles(): array
     {
-        $bundles = [
+        return [
             // ...
             new \Sentry\SentryBundle\SentryBundle(),
         ];
-
-        // ...
     }
-
+    
     // ...
 }
 ```
+
 Note that, unlike before in version 3, the bundle will be enabled in all environments; event reporting, instead, is enabled
 only when providing a DSN (see the next step).
 
