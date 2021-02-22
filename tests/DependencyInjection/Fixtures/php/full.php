@@ -47,5 +47,8 @@ $container->loadFromExtension('sentry', [
             'enabled' => false,
             'connections' => ['default'],
         ],
+        'twig' => [
+            'enabled' => false,
+        ],
     ],
 ]);

@@ -219,4 +219,3 @@ parameters:
 			message: "#^Trying to mock an undefined method convertException\\(\\) on class Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\StubExceptionConverterDriverInterface\\.$#"
 			count: 1
 			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
-

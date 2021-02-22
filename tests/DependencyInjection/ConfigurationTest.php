@@ -41,6 +41,9 @@ final class ConfigurationTest extends TestCase
                     'enabled' => false,
                     'connections' => class_exists(DoctrineBundle::class) ? ['%doctrine.default_connection%'] : [],
                 ],
+                'twig' => [
+                    'enabled' => false,
+                ],
             ],
         ];
 

@@ -19,6 +19,7 @@ use Sentry\SentryBundle\EventListener\SubRequestListener;
 use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
+use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
 use Sentry\Transport\TransportFactoryInterface;
@@ -284,6 +285,20 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertFalse($container->hasDefinition(TracingDriverMiddleware::class));
         $this->assertFalse($container->hasDefinition(ConnectionConfigurator::class));
         $this->assertEmpty($container->getParameter('sentry.tracing.dbal.connections'));
+    }
+
+    public function testTwigTracingExtensionIsConfiguredWhenTwigTracingIsEnabled(): void
+    {
+        $container = $this->createContainerFromFixture('twig_tracing_enabled');
+
+        $this->assertTrue($container->hasDefinition(TwigTracingExtension::class));
+    }
+
+    public function testTwigTracingExtensionIsRemovedWhenTwigTracingIsDisabled(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+
+        $this->assertFalse($container->hasDefinition(TwigTracingExtension::class));
     }
 
     private function createContainerFromFixture(string $fixtureFile): ContainerBuilder
