@@ -15,7 +15,7 @@ psalm:
 test:
 	vendor/bin/phpunit
 
-pre-commit-check: cs phpstan test
+pre-commit-check: cs phpstan psalm test
 
 setup-git:
 	git config branch.autosetuprebase always
