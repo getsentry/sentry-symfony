@@ -75,6 +75,7 @@
 
         <service id="Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension" class="Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension">
             <argument type="service" id="Sentry\State\HubInterface" />
+
             <tag name="twig.extension" />
         </service>
 

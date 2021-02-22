@@ -23,13 +23,13 @@
         "jean85/pretty-package-versions": "^1.5 || ^2.0",
         "php-http/discovery": "^1.11",
         "sentry/sdk": "^3.1",
-        "symfony/config": "^3.4.44||^4.4.11||^5.0.11",
-        "symfony/console": "^3.4.44||^4.4.11||^5.0.11",
-        "symfony/dependency-injection": "^3.4.44||^4.4.11||^5.0.11",
-        "symfony/event-dispatcher": "^3.4.44||^4.4.11||^5.0.11",
-        "symfony/http-kernel": "^3.4.44||^4.4.11||^5.0.11",
+        "symfony/config": "^3.4.44||^4.4.12||^5.0.11",
+        "symfony/console": "^3.4.44||^4.4.12||^5.0.11",
+        "symfony/dependency-injection": "^3.4.44||^4.4.12||^5.0.11",
+        "symfony/event-dispatcher": "^3.4.44||^4.4.12||^5.0.11",
+        "symfony/http-kernel": "^3.4.44||^4.4.12||^5.0.11",
         "symfony/psr-http-message-bridge": "^2.0",
-        "symfony/security-core": "^3.4.44||^4.4.11||^5.0.11"
+        "symfony/security-core": "^3.4.44||^4.4.12||^5.0.11"
     },
     "require-dev": {
         "doctrine/dbal": "^2.10||^3.0",
@@ -46,18 +46,18 @@
         "symfony/browser-kit": "^3.4.44||^4.4.12||^5.0.11",
         "symfony/dom-crawler": "^3.4.44||^4.4.12||^5.0.11",
         "symfony/framework-bundle": "^3.4.44||^4.4.12||^5.0.11",
-        "symfony/messenger": "^4.4.11||^5.0.11",
+        "symfony/messenger": "^4.4.12||^5.0.11",
         "symfony/monolog-bundle": "^3.4",
         "symfony/phpunit-bridge": "^5.0",
         "symfony/polyfill-php80": "^1.22",
         "symfony/twig-bundle": "^3.4.44||^4.4.12||^5.0.11",
-        "symfony/yaml": "^3.4.44||^4.4.11||^5.0.11",
+        "symfony/yaml": "^3.4.44||^4.4.12||^5.0.11",
         "vimeo/psalm": "^4.3"
     },
     "suggest": {
         "monolog/monolog": "Allow sending log messages to Sentry by using the included Monolog handler.",
         "doctrine/doctrine-bundle": "Allow distributed tracing of database queries using Sentry.",
-        "symfony/twig-bundle": "Allow distributed tracing of twig template rendering using Sentry."
+        "symfony/twig-bundle": "Allow distributed tracing of Twig template rendering using Sentry."
     },
     "autoload": {
         "files": [
