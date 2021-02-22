@@ -10,6 +10,7 @@ use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
+use Symfony\Bundle\TwigBundle\TwigBundle;
 use Twig\Profiler\Profile;
 
 final class TwigTracingExtensionTest extends TestCase
@@ -23,6 +24,13 @@ final class TwigTracingExtensionTest extends TestCase
      * @var TwigTracingExtension
      */
     private $listener;
+
+    public static function setUpBeforeClass(): void
+    {
+        if (!self::isTwigBundlePackageInstalled()) {
+            self::markTestSkipped('This test requires the "symfony/twig-bundle" Composer package to be installed.');
+        }
+    }
 
     protected function setUp(): void
     {
@@ -112,5 +120,10 @@ final class TwigTracingExtensionTest extends TestCase
         $this->expectNotToPerformAssertions();
 
         $this->listener->leave(new Profile('main', Profile::TEMPLATE));
+    }
+
+    private static function isTwigBundlePackageInstalled(): bool
+    {
+        return class_exists(TwigBundle::class);
     }
 }
