@@ -96,16 +96,6 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Twig\\\\TwigTracingExtension\\:\\:enter\\(\\) has parameter \\$profile with no value type specified in iterable type Twig\\\\Profiler\\\\Profile\\.$#"
-			count: 1
-			path: src/Tracing/Twig/TwigTracingExtension.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Twig\\\\TwigTracingExtension\\:\\:leave\\(\\) has parameter \\$profile with no value type specified in iterable type Twig\\\\Profiler\\\\Profile\\.$#"
-			count: 1
-			path: src/Tracing/Twig/TwigTracingExtension.php
-
-		-
 			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent not found\\.$#"
 			count: 1
 			path: src/aliases.php
