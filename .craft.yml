@@ -1,9 +1,9 @@
-minVersion: '0.9.0'
+minVersion: 0.9.0
 github:
   owner: getsentry
   repo: sentry-symfony
 changelogPolicy: simple
-statusProvider: 
+statusProvider:
   name: github
 artifactProvider:
   name: none
