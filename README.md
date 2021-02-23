@@ -43,7 +43,7 @@ Do you want to execute this recipe?
 Just type `y`, press return, and the procedure will continue.
 
 **Warning:** due to a bug in all versions lower than `6.0` of the [`SensioFrameworkExtra`](https://github.com/sensiolabs/SensioFrameworkExtraBundle) bundle,
-if you have it installed you will likely get an error during the execution of the command above in regards to the missing `Nyholm\Psr7\Factory\Psr17Factory`
+if you have it installed you will likely get an error during the execution of the commands above in regards to the missing `Nyholm\Psr7\Factory\Psr17Factory`
 class. To workaround the issue, if you are not using the PSR-7 bridge, please change the configuration of that bundle as follows:
 
 ```yaml
@@ -69,7 +69,7 @@ class AppKernel extends \Symfony\Component\HttpKernel\Kernel
             new \Sentry\SentryBundle\SentryBundle(),
         ];
     }
-    
+
     // ...
 }
 ```
