@@ -61,17 +61,17 @@
             <tag name="kernel.event_listener" event="Symfony\Component\Messenger\Event\WorkerMessageHandledEvent" method="handleWorkerMessageHandledEvent" priority="50" />
         </service>
 
-        <service id="Sentry\SentryBundle\EventListener\Tracing\RequestListener" class="Sentry\SentryBundle\EventListener\Tracing\RequestListener">
+        <service id="Sentry\SentryBundle\Command\SentryTestCommand" class="Sentry\SentryBundle\Command\SentryTestCommand">
+            <tag name="console.command" />
+        </service>
+
+        <service id="Sentry\SentryBundle\Tracing\Symfony\RequestEventsListener" class="Sentry\SentryBundle\Tracing\Symfony\RequestEventsListener">
             <argument type="service" id="Sentry\State\HubInterface" />
 
             <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" priority="4" />
             <tag name="kernel.event_listener" event="kernel.controller" method="handleKernelControllerEvent" priority="11" />
             <tag name="kernel.event_listener" event="kernel.response" method="handleKernelResponseEvent" priority="15" />
             <tag name="kernel.event_listener" event="kernel.terminate" method="handleKernelTerminateEvent" priority="20" />
-        </service>
-
-        <service id="Sentry\SentryBundle\Command\SentryTestCommand" class="Sentry\SentryBundle\Command\SentryTestCommand">
-            <tag name="console.command" />
         </service>
 
         <service id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware" class="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware">

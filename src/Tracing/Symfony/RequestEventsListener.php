@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sentry\SentryBundle\EventListener\Tracing;
+namespace Sentry\SentryBundle\Tracing\Symfony;
 
 use Sentry\SentryBundle\EventListener\RequestListenerControllerEvent;
 use Sentry\SentryBundle\EventListener\RequestListenerRequestEvent;
@@ -15,7 +15,7 @@ use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
 use Symfony\Component\HttpFoundation\Request;
 
-final class RequestListener
+final class RequestEventsListener
 {
     /**
      * @var HubInterface The current hub

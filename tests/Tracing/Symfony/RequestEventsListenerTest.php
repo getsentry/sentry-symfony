@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Sentry\SentryBundle\Tests\EventListener\Tracing;
+namespace Sentry\SentryBundle\Tests\Tracing\Symfony;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Sentry\SentryBundle\EventListener\Tracing\RequestListener;
+use Sentry\SentryBundle\Tracing\Symfony\RequestEventsListener;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
@@ -23,7 +23,7 @@ use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\Kernel;
 
-final class RequestListenerTest extends TestCase
+final class RequestEventsListenerTest extends TestCase
 {
     /**
      * @var MockObject&HubInterface
@@ -31,14 +31,14 @@ final class RequestListenerTest extends TestCase
     private $hub;
 
     /**
-     * @var RequestListener
+     * @var \Sentry\SentryBundle\Tracing\Symfony\RequestEventsListener
      */
     private $listener;
 
     protected function setUp(): void
     {
         $this->hub = $this->createMock(HubInterface::class);
-        $this->listener = new RequestListener($this->hub);
+        $this->listener = new RequestEventsListener($this->hub);
     }
 
     /**
