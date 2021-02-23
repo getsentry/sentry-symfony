@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add support for distributed tracing of Symfony request events (#423)
 - Add support for distributed tracing of Twig template rendering (#430)
 - Add support for distributed tracing of SQL queries while using Doctrine DBAL (#426)
 - Added missing `capture-soft-fails` config schema option (#417)
