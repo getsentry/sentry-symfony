@@ -8,7 +8,6 @@ parameters:
         - tests
     excludes_analyse:
         - tests/End2End/App
-        - tests/Tracing/Symfony/RequestEventsListenerTest.php
     dynamicConstantNames:
         - Symfony\Component\HttpKernel\Kernel::VERSION
         - Doctrine\DBAL\Version::VERSION

@@ -28,6 +28,7 @@
         "symfony/dependency-injection": "^3.4.44||^4.4.12||^5.0.11",
         "symfony/event-dispatcher": "^3.4.44||^4.4.12||^5.0.11",
         "symfony/http-kernel": "^3.4.44||^4.4.12||^5.0.11",
+        "symfony/polyfill-php80": "^1.22",
         "symfony/psr-http-message-bridge": "^2.0",
         "symfony/security-core": "^3.4.44||^4.4.12||^5.0.11"
     },
@@ -49,7 +50,6 @@
         "symfony/messenger": "^4.4.12||^5.0.11",
         "symfony/monolog-bundle": "^3.4",
         "symfony/phpunit-bridge": "^5.0",
-        "symfony/polyfill-php80": "^1.22",
         "symfony/twig-bundle": "^3.4.44||^4.4.12||^5.0.11",
         "symfony/yaml": "^3.4.44||^4.4.12||^5.0.11",
         "vimeo/psalm": "^4.3"
