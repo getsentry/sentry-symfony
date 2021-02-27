@@ -83,9 +83,14 @@
 
     <xsd:complexType name="tracing">
         <xsd:choice maxOccurs="unbounded">
+            <xsd:element name="request" type="tracing-request" minOccurs="0" maxOccurs="1" />
             <xsd:element name="dbal" type="tracing-dbal" minOccurs="0" maxOccurs="1" />
             <xsd:element name="twig" type="tracing-twig" minOccurs="0" maxOccurs="1" />
         </xsd:choice>
+    </xsd:complexType>
+
+    <xsd:complexType name="tracing-request">
+        <xsd:attribute name="enabled" type="xsd:boolean" />
     </xsd:complexType>
 
     <xsd:complexType name="tracing-dbal">

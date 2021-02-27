@@ -37,6 +37,9 @@ final class ConfigurationTest extends TestCase
                 'capture_soft_fails' => true,
             ],
             'tracing' => [
+                'request' => [
+                    'enabled' => false,
+                ],
                 'dbal' => [
                     'enabled' => false,
                     'connections' => class_exists(DoctrineBundle::class) ? ['%doctrine.default_connection%'] : [],
