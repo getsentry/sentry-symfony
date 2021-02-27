@@ -9,9 +9,18 @@ use Sentry\Tracing\TransactionContext;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 
+/**
+ * This event listener acts on the master requests and starts a transaction
+ * to report performance data to Sentry. It gathers useful data like the
+ * HTTP status code of the response or the name of the route that handles
+ * the request and add them as tags.
+ */
 final class TracingRequestListener extends AbstractTracingRequestListener
 {
     /**
+     * This method is called for each subrequest handled by the framework and
+     * starts a new {@see Transaction}.
+     *
      * @param RequestListenerRequestEvent $event The event
      */
     public function handleKernelRequestEvent(RequestListenerRequestEvent $event): void
@@ -24,7 +33,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
         $request = $event->getRequest();
         $requestStartTime = $request->server->get('REQUEST_TIME_FLOAT', microtime(true));
 
-        $context = new TransactionContext();
+        $context = TransactionContext::fromSentryTrace($request->headers->get('sentry-trace', ''));
         $context->setOp('http.server');
         $context->setName(sprintf('%s %s%s%s', $request->getMethod(), $request->getSchemeAndHttpHost(), $request->getBaseUrl(), $request->getPathInfo()));
         $context->setStartTimestamp($requestStartTime);

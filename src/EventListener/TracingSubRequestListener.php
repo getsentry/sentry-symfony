@@ -8,6 +8,10 @@ use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 
+/**
+ * This event listener acts on the sub requests and starts a child span of the
+ * current transaction to gather performance data for each of them.
+ */
 final class TracingSubRequestListener extends AbstractTracingRequestListener
 {
     /**

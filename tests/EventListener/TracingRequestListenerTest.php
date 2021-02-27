@@ -12,7 +12,9 @@ use Sentry\SentryBundle\EventListener\RequestListenerRequestEvent;
 use Sentry\SentryBundle\EventListener\RequestListenerResponseEvent;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
 use Sentry\State\HubInterface;
+use Sentry\Tracing\SpanId;
 use Sentry\Tracing\SpanStatus;
+use Sentry\Tracing\TraceId;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
 use Symfony\Bridge\PhpUnit\ClockMock;
@@ -82,6 +84,35 @@ final class TracingRequestListenerTest extends TestCase
      */
     public function handleKernelRequestEventDataProvider(): \Generator
     {
+        $transactionContext = new TransactionContext();
+        $transactionContext->setTraceId(new TraceId('566e3688a61d4bc888951642d6f14a19'));
+        $transactionContext->setParentSpanId(new SpanId('566e3688a61d4bc8'));
+        $transactionContext->setParentSampled(true);
+        $transactionContext->setName('GET http://www.example.com/');
+        $transactionContext->setOp('http.server');
+        $transactionContext->setStartTimestamp(1613493597.010275);
+        $transactionContext->setTags([
+            'net.host.port' => '80',
+            'http.method' => 'GET',
+            'http.url' => 'http://www.example.com/',
+            'http.flavor' => '1.1',
+            'route' => '<unknown>',
+            'net.host.name' => 'www.example.com',
+        ]);
+
+        yield 'request.server.sentry-trace EXISTS' => [
+            new Options(['send_default_pii' => false]),
+            Request::create(
+                'http://www.example.com',
+                'GET',
+                [],
+                [],
+                [],
+                ['HTTP_sentry-trace' => '566e3688a61d4bc888951642d6f14a19-566e3688a61d4bc8-1']
+            ),
+            $transactionContext,
+        ];
+
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/');
         $transactionContext->setOp('http.server');
