@@ -16,6 +16,7 @@ use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
+use Sentry\SentryBundle\EventListener\TracingConsoleListener;
 use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
@@ -336,6 +337,20 @@ abstract class SentryExtensionTest extends TestCase
         $container = $this->createContainerFromFixture('full');
 
         $this->assertFalse($container->hasDefinition(TwigTracingExtension::class));
+    }
+
+    public function testTracingConsoleListenerIsConfiguredWhenTracingIsEnabled(): void
+    {
+        $container = $this->createContainerFromFixture('tracing_enabled');
+
+        $this->assertTrue($container->hasDefinition(TracingConsoleListener::class));
+    }
+
+    public function testTracingConsoleListenerIsRemovedWhenTracingIsDisabled(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+
+        $this->assertFalse($container->hasDefinition(TracingConsoleListener::class));
     }
 
     private function createContainerFromFixture(string $fixtureFile): ContainerBuilder
