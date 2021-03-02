@@ -16,8 +16,6 @@ use Sentry\Integration\RequestIntegration;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
-use Sentry\SentryBundle\EventListener\TracingRequestListener;
-use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
 use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
@@ -64,7 +62,6 @@ final class SentryExtension extends ConfigurableExtension
         $this->registerConfiguration($container, $mergedConfig);
         $this->registerErrorListenerConfiguration($container, $mergedConfig);
         $this->registerMessengerListenerConfiguration($container, $mergedConfig['messenger']);
-        $this->registerRequestTracingConfigurtion($container, $mergedConfig['tracing']);
         $this->registerDbalTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerTwigTracingConfiguration($container, $mergedConfig['tracing']);
     }
@@ -157,19 +154,6 @@ final class SentryExtension extends ConfigurableExtension
         }
 
         $container->getDefinition(MessengerListener::class)->setArgument(1, $config['capture_soft_fails']);
-    }
-
-    /**
-     * @param array<string, mixed> $config
-     */
-    private function registerRequestTracingConfigurtion(ContainerBuilder $container, array $config): void
-    {
-        $isConfigEnabled = $this->isConfigEnabled($container, $config['request']);
-
-        if (!$isConfigEnabled) {
-            $container->removeDefinition(TracingRequestListener::class);
-            $container->removeDefinition(TracingSubRequestListener::class);
-        }
     }
 
     /**

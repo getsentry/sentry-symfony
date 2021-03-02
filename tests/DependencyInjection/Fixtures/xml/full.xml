@@ -38,7 +38,6 @@
         </sentry:options>
         <sentry:messenger enabled="true" capture-soft-fails="false" />
         <sentry:tracing>
-            <sentry:request enabled="false" />
             <sentry:dbal enabled="false">
                 <sentry:connection>default</sentry:connection>
             </sentry:dbal>

@@ -1,4 +1,0 @@
-sentry:
-    tracing:
-        request:
-            enabled: true
