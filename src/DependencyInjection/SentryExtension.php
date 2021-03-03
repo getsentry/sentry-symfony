@@ -67,7 +67,7 @@ final class SentryExtension extends ConfigurableExtension
     {
         $options = $config['options'];
 
-        if (isset($config['dsn'])) {
+        if (\array_key_exists('dsn', $config)) {
             $options['dsn'] = $config['dsn'];
         }
 
