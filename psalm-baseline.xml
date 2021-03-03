@@ -1,19 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.3.0@6f916553a8de3c5c2483162b6cc01b21b24e4d1d">
+<files psalm-version="4.6.1@e93e532e4eaad6d68c4d7b606853800eaceccc72">
   <file src="src/EventListener/ConsoleCommandListener.php">
     <InvalidExtendClass occurrences="1">
       <code>ConsoleListener</code>
     </InvalidExtendClass>
-    <MethodSignatureMismatch occurrences="1">
-      <code>public function __construct(HubInterface $hub)</code>
-    </MethodSignatureMismatch>
-  </file>
-  <file src="src/Tracing/Doctrine/DBAL/TracingDriver.php">
-    <TooManyArguments occurrences="1">
-      <code>getSchemaManager</code>
-    </TooManyArguments>
-    <UndefinedClass occurrences="1">
-      <code>ExceptionConverter</code>
-    </UndefinedClass>
+    <MethodSignatureMismatch occurrences="1"/>
   </file>
 </files>

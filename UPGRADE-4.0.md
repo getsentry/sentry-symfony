@@ -140,7 +140,7 @@ using an on-premise installation it requires Sentry version `>= v20.6.0` to work
   ```yaml
   sentry:
       options:
-          before_send: 'app.sentry.before_breadcrumb'
+          before_breadcrumb: 'app.sentry.before_breadcrumb'
   ```
 
 - Changed the type of the `sentry.options.class_serializers` configuration option from an array of `scalar` values to an array of `string` values. The value must always be the name of the container service to call without the `@` prefix.

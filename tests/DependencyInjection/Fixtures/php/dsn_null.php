@@ -6,5 +6,5 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /** @var ContainerBuilder $container */
 $container->loadFromExtension('sentry', [
-    'dsn' => ' ',
+    'dsn' => null,
 ]);

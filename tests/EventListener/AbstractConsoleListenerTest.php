@@ -24,17 +24,9 @@ abstract class AbstractConsoleListenerTest extends TestCase
      */
     private $hub;
 
-    /**
-     * @var ConsoleListener
-     */
-    private $listener;
-
     protected function setUp(): void
     {
-        $listenerClass = static::getListenerClass();
-
         $this->hub = $this->createMock(HubInterface::class);
-        $this->listener = new $listenerClass($this->hub);
     }
 
     /**
@@ -44,13 +36,15 @@ abstract class AbstractConsoleListenerTest extends TestCase
      */
     public function testHandleConsoleCommandEvent(ConsoleCommandEvent $consoleEvent, array $expectedTags): void
     {
+        $listenerClass = static::getListenerClass();
         $scope = new Scope();
+        $listener = new $listenerClass($this->hub);
 
         $this->hub->expects($this->once())
             ->method('pushScope')
             ->willReturn($scope);
 
-        $this->listener->handleConsoleCommandEvent($consoleEvent);
+        $listener->handleConsoleCommandEvent($consoleEvent);
 
         $event = $scope->applyToEvent(Event::createEvent());
 
@@ -80,16 +74,24 @@ abstract class AbstractConsoleListenerTest extends TestCase
 
     public function testHandleConsoleTerminateEvent(): void
     {
+        $listenerClass = static::getListenerClass();
+        $listener = new $listenerClass($this->hub);
+
         $this->hub->expects($this->once())
             ->method('popScope');
 
-        $this->listener->handleConsoleTerminateEvent(new ConsoleTerminateEvent(new Command(), $this->createMock(InputInterface::class), $this->createMock(OutputInterface::class), 0));
+        $listener->handleConsoleTerminateEvent(new ConsoleTerminateEvent(new Command(), $this->createMock(InputInterface::class), $this->createMock(OutputInterface::class), 0));
     }
 
-    public function testHandleConsoleErrorEvent(): void
+    /**
+     * @dataProvider handleConsoleErrorEventDataProvider
+     */
+    public function testHandleConsoleErrorEvent(bool $captureErrors): void
     {
         $scope = new Scope();
         $consoleEvent = new ConsoleErrorEvent($this->createMock(InputInterface::class), $this->createMock(OutputInterface::class), new \Exception());
+        $listenerClass = static::getListenerClass();
+        $listener = new $listenerClass($this->hub, $captureErrors);
 
         $this->hub->expects($this->once())
             ->method('configureScope')
@@ -97,15 +99,24 @@ abstract class AbstractConsoleListenerTest extends TestCase
                 $callback($scope);
             });
 
-        $this->hub->expects($this->once())
+        $this->hub->expects($captureErrors ? $this->once() : $this->never())
             ->method('captureException')
             ->with($consoleEvent->getError());
 
-        $this->listener->handleConsoleErrorEvent($consoleEvent);
+        $listener->handleConsoleErrorEvent($consoleEvent);
 
         $event = $scope->applyToEvent(Event::createEvent());
 
         $this->assertSame(['console.command.exit_code' => '1'], $event->getTags());
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function handleConsoleErrorEventDataProvider(): \Generator
+    {
+        yield [true];
+        yield [false];
     }
 
     /**

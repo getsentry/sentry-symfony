@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - master
+      - develop
       - 3.5.x
 
 jobs:
@@ -44,6 +45,8 @@ jobs:
     name: PHP ${{ matrix.php }} tests (${{ matrix.description }})
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
       - uses: actions/cache@v2
         with:
           path: ~/.composer/cache/files

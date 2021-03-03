@@ -8,6 +8,20 @@
 - Added missing `capture-soft-fails` config schema option (#417)
 - Deprecate the `Sentry\SentryBundle\EventListener\ConsoleCommandListener` class in favor of its parent class `Sentry\SentryBundle\EventListener\ConsoleListener` (#429)
 
+## 4.0.3 (2021-03-03)
+- Fix regression from #454 for `null` value on DSN not disabling Sentry (#457)
+
+## 4.0.2 (2021-03-03)
+
+- Add `kernel.project_dir` to `prefixes` default value to trim paths to the project root (#434)
+- Fix `null`, `false` or empty value not disabling Sentry (#454)
+
+## 4.0.1 (2021-01-26)
+
+- Add missing `capture-soft-fails` option to the XSD schema for the XML config (#417)
+- Fix regression that send PII even when the `send_default_pii` option is off (#425)
+- Fix capture of console errors when the `register_error_listener` option is disabled (#427)
+
 ## 4.0.0 (2021-01-19)
 
 **Breaking Change**: This version uses the [envelope endpoint](https://develop.sentry.dev/sdk/envelopes/). If you are
@@ -38,7 +52,7 @@ using an on-premise installation it requires Sentry version `>= v20.6.0` to work
 
 - Use `jean85/pretty-package-versions` `^1.5` to leverage the new `getRootPackageVersion` method (c8799ac)
 - Fix support for PHP preloading (#354, thanks to @annuh)
-- Fix `capture_soft_fails: false` option for the Messenger (#353) 
+- Fix `capture_soft_fails: false` option for the Messenger (#353)
 
 ## 3.5.1 (2020-05-07)
 

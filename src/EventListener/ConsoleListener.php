@@ -24,13 +24,20 @@ class ConsoleListener
     private $hub;
 
     /**
+     * @var bool Whether to capture console errors
+     */
+    private $captureErrors;
+
+    /**
      * Constructor.
      *
-     * @param HubInterface $hub The current hub
+     * @param HubInterface $hub           The current hub
+     * @param bool         $captureErrors Whether to capture console errors
      */
-    public function __construct(HubInterface $hub)
+    public function __construct(HubInterface $hub, bool $captureErrors = true)
     {
         $this->hub = $hub;
+        $this->captureErrors = $captureErrors;
     }
 
     /**
@@ -68,7 +75,9 @@ class ConsoleListener
         $this->hub->configureScope(function (Scope $scope) use ($event): void {
             $scope->setTag('console.command.exit_code', (string) $event->getExitCode());
 
-            $this->hub->captureException($event->getError());
+            if ($this->captureErrors) {
+                $this->hub->captureException($event->getError());
+            }
         });
     }
 }

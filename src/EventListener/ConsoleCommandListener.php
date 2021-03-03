@@ -11,9 +11,9 @@ use Sentry\State\HubInterface;
  */
 final class ConsoleCommandListener extends ConsoleListener
 {
-    public function __construct(HubInterface $hub)
+    public function __construct(HubInterface $hub, bool $captureErrors = true)
     {
-        parent::__construct($hub);
+        parent::__construct($hub, $captureErrors);
 
         @trigger_error(sprintf('The "%s" class is deprecated since version 4.1 and will be removed in 5.0. Use "%s" instead.', self::class, ConsoleListener::class), \E_USER_DEPRECATED);
     }

@@ -6,7 +6,9 @@ namespace Sentry\SentryBundle\Tests\EventListener;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Sentry\ClientInterface;
 use Sentry\Event;
+use Sentry\Options;
 use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
@@ -53,15 +55,19 @@ final class RequestListenerTest extends TestCase
      *
      * @param GetResponseEvent|RequestEvent $requestEvent
      */
-    public function testHandleKernelRequestEvent($requestEvent, ?TokenInterface $token, UserDataBag $expectedUser): void
+    public function testHandleKernelRequestEvent($requestEvent, ?ClientInterface $client, ?TokenInterface $token, ?UserDataBag $expectedUser): void
     {
         $scope = new Scope();
 
-        $this->tokenStorage->expects($this->once())
+        $this->hub->expects($this->any())
+            ->method('getClient')
+            ->willReturn($client);
+
+        $this->tokenStorage->expects($this->any())
             ->method('getToken')
             ->willReturn($token);
 
-        $this->hub->expects($this->once())
+        $this->hub->expects($this->any())
             ->method('configureScope')
             ->willReturnCallback(static function (callable $callback) use ($scope): void {
                 $callback($scope);
@@ -83,12 +89,35 @@ final class RequestListenerTest extends TestCase
             return;
         }
 
+        yield 'event.requestType != MASTER_REQUEST' => [
+            new GetResponseEvent(
+                $this->createMock(HttpKernelInterface::class),
+                new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
+                HttpKernelInterface::SUB_REQUEST
+            ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
+            null,
+            null,
+        ];
+
+        yield 'options.send_default_pii = FALSE' => [
+            new GetResponseEvent(
+                $this->createMock(HttpKernelInterface::class),
+                new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
+                HttpKernelInterface::MASTER_REQUEST
+            ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => false])),
+            null,
+            null,
+        ];
+
         yield 'token IS NULL' => [
             new GetResponseEvent(
                 $this->createMock(HttpKernelInterface::class),
                 new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
                 HttpKernelInterface::MASTER_REQUEST
             ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
             null,
             UserDataBag::createFromUserIpAddress('127.0.0.1'),
         ];
@@ -99,6 +128,7 @@ final class RequestListenerTest extends TestCase
                 new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
                 HttpKernelInterface::MASTER_REQUEST
             ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
             new class() extends AbstractToken {
                 public function __construct()
                 {
@@ -121,6 +151,7 @@ final class RequestListenerTest extends TestCase
                 new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
                 HttpKernelInterface::MASTER_REQUEST
             ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
             new class() extends AbstractToken {
                 public function __construct()
                 {
@@ -143,6 +174,7 @@ final class RequestListenerTest extends TestCase
                 new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
                 HttpKernelInterface::MASTER_REQUEST
             ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
             new class() extends AbstractToken {
                 public function __construct()
                 {
@@ -166,6 +198,7 @@ final class RequestListenerTest extends TestCase
                 new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
                 HttpKernelInterface::MASTER_REQUEST
             ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
             new class() extends AbstractToken {
                 public function __construct()
                 {
@@ -213,6 +246,7 @@ final class RequestListenerTest extends TestCase
                 new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
                 HttpKernelInterface::MASTER_REQUEST
             ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
             new class() extends AbstractToken {
                 public function __construct()
                 {
@@ -245,12 +279,35 @@ final class RequestListenerTest extends TestCase
             return;
         }
 
+        yield 'event.requestType != MASTER_REQUEST' => [
+            new RequestEvent(
+                $this->createMock(HttpKernelInterface::class),
+                new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
+                HttpKernelInterface::SUB_REQUEST
+            ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
+            null,
+            null,
+        ];
+
+        yield 'options.send_default_pii = FALSE' => [
+            new RequestEvent(
+                $this->createMock(HttpKernelInterface::class),
+                new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
+                HttpKernelInterface::MASTER_REQUEST
+            ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => false])),
+            null,
+            null,
+        ];
+
         yield 'token IS NULL' => [
             new RequestEvent(
                 $this->createMock(HttpKernelInterface::class),
                 new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
                 HttpKernelInterface::MASTER_REQUEST
             ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
             null,
             UserDataBag::createFromUserIpAddress('127.0.0.1'),
         ];
@@ -261,6 +318,7 @@ final class RequestListenerTest extends TestCase
                 new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
                 HttpKernelInterface::MASTER_REQUEST
             ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
             new class() extends AbstractToken {
                 public function __construct()
                 {
@@ -283,6 +341,7 @@ final class RequestListenerTest extends TestCase
                 new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
                 HttpKernelInterface::MASTER_REQUEST
             ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
             new class() extends AbstractToken {
                 public function __construct()
                 {
@@ -305,6 +364,7 @@ final class RequestListenerTest extends TestCase
                 new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
                 HttpKernelInterface::MASTER_REQUEST
             ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
             new class() extends AbstractToken {
                 public function __construct()
                 {
@@ -328,6 +388,7 @@ final class RequestListenerTest extends TestCase
                 new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
                 HttpKernelInterface::MASTER_REQUEST
             ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
             new class() extends AbstractToken {
                 public function __construct()
                 {
@@ -375,6 +436,7 @@ final class RequestListenerTest extends TestCase
                 new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
                 HttpKernelInterface::MASTER_REQUEST
             ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
             new class() extends AbstractToken {
                 public function __construct()
                 {
@@ -510,5 +572,15 @@ final class RequestListenerTest extends TestCase
                 'route' => 'homepage',
             ],
         ];
+    }
+
+    private function getMockedClientWithOptions(Options $options): ClientInterface
+    {
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->any())
+            ->method('getOptions')
+            ->willReturn($options);
+
+        return $client;
     }
 }

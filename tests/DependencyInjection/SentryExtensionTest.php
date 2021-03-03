@@ -83,6 +83,16 @@ abstract class SentryExtensionTest extends TestCase
                 ],
             ],
         ], $definition->getTags());
+
+        $this->assertTrue($definition->getArgument(1));
+    }
+
+    public function testConsoleCommandListenerDoesNotCaptureErrorsWhenErrorListenerIsDisabled(): void
+    {
+        $container = $this->createContainerFromFixture('error_listener_disabled');
+        $definition = $container->getDefinition(ConsoleListener::class);
+
+        $this->assertFalse($definition->getArgument(1));
     }
 
     public function testMessengerListener(): void
@@ -230,14 +240,6 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertEquals($methodCalls[4][1][0]->getArgument(0), new Reference('sentry.client.options'));
     }
 
-    public function testEmptyDsnIsTreatedAsIfItWasUnset(): void
-    {
-        $container = $this->createContainerFromFixture('empty_dsn');
-        $optionsDefinition = $container->getDefinition('sentry.client.options');
-
-        $this->assertArrayNotHasKey('dsn', $optionsDefinition->getArgument(0));
-    }
-
     public function testErrorTypesOptionIsParsedFromStringToIntegerValue(): void
     {
         $container = $this->createContainerFromFixture('error_types');
@@ -263,6 +265,41 @@ abstract class SentryExtensionTest extends TestCase
         }
 
         $this->assertSame(1, $ignoreErrorsIntegrationsCount);
+    }
+
+    /**
+     * @dataProvider dsnOptionIsSetOnClientOptionsDataProvider
+     *
+     * @param mixed $expectedResult
+     */
+    public function testDsnOptionIsSetOnClientOptions(string $fixtureFile, $expectedResult): void
+    {
+        $container = $this->createContainerFromFixture($fixtureFile);
+        $optionsDefinition = $container->getDefinition('sentry.client.options');
+
+        $this->assertSame(Options::class, $optionsDefinition->getClass());
+        $this->assertSame($expectedResult, $optionsDefinition->getArgument(0)['dsn']);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function dsnOptionIsSetOnClientOptionsDataProvider(): \Generator
+    {
+        yield [
+            'dsn_empty_string',
+            '',
+        ];
+
+        yield [
+            'dsn_false',
+            false,
+        ];
+
+        yield [
+            'dsn_null',
+            null,
+        ];
     }
 
     public function testTracingDriverMiddlewareIsConfiguredWhenDbalTracingIsEnable(): void
