@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## 4.0.3 (2021-03-03)
+- Fix regression from #454 for `null` value on DSN not disabling Sentry (#457)
+
 ## 4.0.2 (2021-03-03)
 
 - Add `kernel.project_dir` to `prefixes` default value to trim paths to the project root (#434)
