@@ -236,14 +236,6 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertEquals($methodCalls[4][1][0]->getArgument(0), new Reference('sentry.client.options'));
     }
 
-    public function testEmptyDsnIsTreatedAsIfItWasUnset(): void
-    {
-        $container = $this->createContainerFromFixture('empty_dsn');
-        $optionsDefinition = $container->getDefinition('sentry.client.options');
-
-        $this->assertArrayNotHasKey('dsn', $optionsDefinition->getArgument(0));
-    }
-
     public function testErrorTypesOptionIsParsedFromStringToIntegerValue(): void
     {
         $container = $this->createContainerFromFixture('error_types');
