@@ -263,6 +263,21 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertSame(1, $ignoreErrorsIntegrationsCount);
     }
 
+    public function testEmptyDsnIsPropagatedToOptions(): void
+    {
+        $this->assertDsnPropagation('dsn_empty_string', '');
+    }
+
+    public function testFalseDsnIsPropagatedToOptions(): void
+    {
+        $this->assertDsnPropagation('dsn_false', false);
+    }
+
+    public function testNullDsnIsPropagatedToOptions(): void
+    {
+        $this->assertDsnPropagation('dsn_null', null);
+    }
+
     private function createContainerFromFixture(string $fixtureFile): ContainerBuilder
     {
         $container = new ContainerBuilder(new EnvPlaceholderParameterBag([
@@ -291,5 +306,18 @@ abstract class SentryExtensionTest extends TestCase
     {
         $this->assertSame($method, $methodCall[0]);
         $this->assertEquals($arguments, $methodCall[1]);
+    }
+
+    /**
+     * @param mixed $result
+     */
+    private function assertDsnPropagation(string $fixtureFile, $result): void
+    {
+        $container = $this->createContainerFromFixture($fixtureFile);
+        $optionsDefinition = $container->getDefinition('sentry.client.options');
+
+        $this->assertSame(Options::class, $optionsDefinition->getClass());
+        $this->assertTrue(\array_key_exists('dsn', $optionsDefinition->getArgument(0)));
+        $this->assertSame($result, $optionsDefinition->getArgument(0)['dsn']);
     }
 }
