@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.0.2 (2021-03-03)
+
 - Add `kernel.project_dir` to `prefixes` default value to trim paths to the project root (#434)
 - Fix `null`, `false` or empty value not disabling Sentry (#454)
 
