@@ -62,8 +62,8 @@ final class SentryExtension extends ConfigurableExtension
         $this->registerConfiguration($container, $mergedConfig);
         $this->registerErrorListenerConfiguration($container, $mergedConfig);
         $this->registerMessengerListenerConfiguration($container, $mergedConfig['messenger']);
-        $this->registerTracingConfiguration($container, $mergedConfig['tracing']);
-        $this->registerTracingTwigExtensionConfiguration($container, $mergedConfig['tracing']);
+        $this->registerDbalTracingConfiguration($container, $mergedConfig['tracing']);
+        $this->registerTwigTracingConfiguration($container, $mergedConfig['tracing']);
     }
 
     /**
@@ -159,7 +159,7 @@ final class SentryExtension extends ConfigurableExtension
     /**
      * @param array<string, mixed> $config
      */
-    private function registerTracingConfiguration(ContainerBuilder $container, array $config): void
+    private function registerDbalTracingConfiguration(ContainerBuilder $container, array $config): void
     {
         $isConfigEnabled = $this->isConfigEnabled($container, $config['dbal']);
 
@@ -178,7 +178,7 @@ final class SentryExtension extends ConfigurableExtension
     /**
      * @param array<string, mixed> $config
      */
-    private function registerTracingTwigExtensionConfiguration(ContainerBuilder $container, array $config): void
+    private function registerTwigTracingConfiguration(ContainerBuilder $container, array $config): void
     {
         $isConfigEnabled = $this->isConfigEnabled($container, $config['twig']);
 

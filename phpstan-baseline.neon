@@ -106,6 +106,16 @@ parameters:
 			path: src/aliases.php
 
 		-
+			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterResponseEvent not found\\.$#"
+			count: 1
+			path: src/aliases.php
+
+		-
+			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\PostResponseEvent not found\\.$#"
+			count: 1
+			path: src/aliases.php
+
+		-
 			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent not found\\.$#"
 			count: 1
 			path: src/aliases.php

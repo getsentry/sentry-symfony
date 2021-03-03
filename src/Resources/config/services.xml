@@ -54,6 +54,22 @@
             <tag name="kernel.event_listener" event="kernel.finish_request" method="handleKernelFinishRequestEvent" priority="5" />
         </service>
 
+        <service id="Sentry\SentryBundle\EventListener\TracingRequestListener" class="Sentry\SentryBundle\EventListener\TracingRequestListener">
+            <argument type="service" id="Sentry\State\HubInterface" />
+
+            <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" priority="4" />
+            <tag name="kernel.event_listener" event="kernel.finish_request" method="handleKernelFinishRequestEvent" priority="5" />
+            <tag name="kernel.event_listener" event="kernel.response" method="handleKernelResponseEvent" priority="15" />
+        </service>
+
+        <service id="Sentry\SentryBundle\EventListener\TracingSubRequestListener" class="Sentry\SentryBundle\EventListener\TracingSubRequestListener">
+            <argument type="service" id="Sentry\State\HubInterface" />
+
+            <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" priority="2" />
+            <tag name="kernel.event_listener" event="kernel.finish_request" method="handleKernelFinishRequestEvent" priority="10" />
+            <tag name="kernel.event_listener" event="kernel.response" method="handleKernelResponseEvent" priority="15" />
+        </service>
+
         <service id="Sentry\SentryBundle\EventListener\MessengerListener" class="Sentry\SentryBundle\EventListener\MessengerListener">
             <argument type="service" id="Sentry\State\HubInterface" />
 

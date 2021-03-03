@@ -41,6 +41,6 @@ sentry:
         dbal:
             enabled: false
             connections:
-                - enabled
+                - default
         twig:
             enabled: false
