@@ -25,6 +25,7 @@ final class DbalTracingPassTest extends DoctrineTestCase
         $container = $this->createContainerBuilder();
         $container->setParameter('doctrine.connections', ['doctrine.dbal.foo_connection', 'doctrine.dbal.bar_connection', 'doctrine.dbal.baz_connection']);
         $container->setParameter('sentry.tracing.dbal.connections', ['foo', 'bar', 'baz', 'qux']);
+        $container->setParameter('sentry.tracing.dbal.enabled', true);
 
         $container
             ->register('foo.service', \stdClass::class)
@@ -102,18 +103,33 @@ final class DbalTracingPassTest extends DoctrineTestCase
         $this->assertNull($connection2->getConfigurator());
     }
 
-    public function testProcessDoesNothingIfDoctrineConnectionsParamIsMissing(): void
+    /**
+     * @dataProvider testProcessDoesNothingIfConditionsForEnablingTracingAreMissingDataProvider
+     */
+    public function testProcessDoesNothingIfConditionsForEnablingTracingAreMissing(ContainerBuilder $container): void
     {
-        $container = $this->createContainerBuilder();
-        $container->setParameter('sentry.tracing.dbal.connections', ['foo']);
+        $connectionConfigDefinition = new Definition();
+        $connectionConfigDefinition->setClass(Configuration::class);
+        $connectionConfigDefinition->setPublic(true);
 
-        $container
-            ->register('doctrine.dbal.foo_connection.configuration', Configuration::class)
-            ->setPublic(true);
-
+        $container->setDefinition('doctrine.dbal.foo_connection.configuration', $connectionConfigDefinition);
         $container->compile();
 
-        $this->assertEmpty($container->getDefinition('doctrine.dbal.foo_connection.configuration')->getMethodCalls());
+        $this->assertEmpty($connectionConfigDefinition->getMethodCalls());
+    }
+
+    public function testProcessDoesNothingIfConditionsForEnablingTracingAreMissingDataProvider(): \Generator
+    {
+        $container = $this->createContainerBuilder();
+        $container->setParameter('sentry.tracing.dbal.enabled', true);
+
+        yield [$container];
+
+        $container = $this->createContainerBuilder();
+        $container->setParameter('doctrine.connections', []);
+        $container->setParameter('sentry.tracing.dbal.enabled', false);
+
+        yield [$container];
     }
 
     private function createContainerBuilder(): ContainerBuilder

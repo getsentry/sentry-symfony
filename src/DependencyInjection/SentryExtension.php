@@ -24,6 +24,7 @@ use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
 use Sentry\Transport\TransportFactoryInterface;
+use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -52,8 +53,6 @@ final class SentryExtension extends ConfigurableExtension
 
     /**
      * @param array<string, mixed> $mergedConfig
-     *
-     * @psalm-suppress MoreSpecificImplementedParamType
      */
     protected function loadInternal(array $mergedConfig, ContainerBuilder $container): void
     {
@@ -167,9 +166,10 @@ final class SentryExtension extends ConfigurableExtension
         $isConfigEnabled = $this->isConfigEnabled($container, $config['dbal']);
 
         if ($isConfigEnabled && !class_exists(DoctrineBundle::class)) {
-            throw new LogicException('DBAL tracing support cannot be enabled as the DoctrineBundle bundle is not installed.');
+            throw new LogicException('DBAL tracing support cannot be enabled because the doctrine/doctrine-bundle Composer package is not installed.');
         }
 
+        $container->setParameter('sentry.tracing.dbal.enabled', $isConfigEnabled);
         $container->setParameter('sentry.tracing.dbal.connections', $isConfigEnabled ? $config['dbal']['connections'] : []);
 
         if (!$isConfigEnabled) {
@@ -184,6 +184,10 @@ final class SentryExtension extends ConfigurableExtension
     private function registerTwigTracingConfiguration(ContainerBuilder $container, array $config): void
     {
         $isConfigEnabled = $this->isConfigEnabled($container, $config['twig']);
+
+        if ($isConfigEnabled && !class_exists(TwigBundle::class)) {
+            throw new LogicException('Twig tracing support cannot be enabled because the symfony/twig-bundle Composer package is not installed.');
+        }
 
         if (!$isConfigEnabled) {
             $container->removeDefinition(TwigTracingExtension::class);

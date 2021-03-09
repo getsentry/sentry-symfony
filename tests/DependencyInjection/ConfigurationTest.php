@@ -8,6 +8,7 @@ use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
+use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -16,13 +17,11 @@ final class ConfigurationTest extends TestCase
 {
     public function testProcessConfigurationWithDefaultConfiguration(): void
     {
-        $defaultPrefixes = array_filter(explode(\PATH_SEPARATOR, get_include_path() ?: ''));
-
         $expectedBundleDefaultConfig = [
             'register_error_listener' => true,
             'options' => [
                 'integrations' => [],
-                'prefixes' => array_merge(['%kernel.project_dir%'], $defaultPrefixes),
+                'prefixes' => array_merge(['%kernel.project_dir%'], array_filter(explode(\PATH_SEPARATOR, get_include_path() ?: ''))),
                 'environment' => '%kernel.environment%',
                 'release' => PrettyVersions::getRootPackageVersion()->getPrettyVersion(),
                 'tags' => [],
@@ -40,11 +39,11 @@ final class ConfigurationTest extends TestCase
             ],
             'tracing' => [
                 'dbal' => [
-                    'enabled' => false,
-                    'connections' => class_exists(DoctrineBundle::class) ? ['%doctrine.default_connection%'] : [],
+                    'enabled' => class_exists(DoctrineBundle::class),
+                    'connections' => [],
                 ],
                 'twig' => [
-                    'enabled' => false,
+                    'enabled' => class_exists(TwigBundle::class),
                 ],
             ],
         ];
