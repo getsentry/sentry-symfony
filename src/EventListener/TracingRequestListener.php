@@ -7,7 +7,7 @@ namespace Sentry\SentryBundle\EventListener;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
+use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
 /**
  * This event listener acts on the master requests and starts a transaction
@@ -44,11 +44,11 @@ final class TracingRequestListener extends AbstractTracingRequestListener
 
     /**
      * This method is called for each request handled by the framework and
-     * ends the tracing.
+     * ends the tracing on terminate after the client received the response.
      *
-     * @param FinishRequestEvent $event The event
+     * @param TerminateEvent $event The event
      */
-    public function handleKernelFinishRequestEvent(FinishRequestEvent $event): void
+    public function handleKernelTerminateEvent(TerminateEvent $event): void
     {
         if (!$event->isMasterRequest()) {
             return;
