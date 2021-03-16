@@ -17,6 +17,8 @@ use Sentry\Options;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
+use Sentry\SentryBundle\EventListener\TracingRequestListener;
+use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
 use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
@@ -63,6 +65,7 @@ final class SentryExtension extends ConfigurableExtension
         $this->registerConfiguration($container, $mergedConfig);
         $this->registerErrorListenerConfiguration($container, $mergedConfig);
         $this->registerMessengerListenerConfiguration($container, $mergedConfig['messenger']);
+        $this->registerTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerDbalTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerTwigTracingConfiguration($container, $mergedConfig['tracing']);
     }
@@ -162,9 +165,21 @@ final class SentryExtension extends ConfigurableExtension
     /**
      * @param array<string, mixed> $config
      */
+    private function registerTracingConfiguration(ContainerBuilder $container, $config): void
+    {
+        if (!$this->isConfigEnabled($container, $config)) {
+            $container->removeDefinition(TracingRequestListener::class);
+            $container->removeDefinition(TracingSubRequestListener::class);
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
     private function registerDbalTracingConfiguration(ContainerBuilder $container, array $config): void
     {
-        $isConfigEnabled = $this->isConfigEnabled($container, $config['dbal']);
+        $isConfigEnabled = $this->isConfigEnabled($container, $config)
+            && $this->isConfigEnabled($container, $config['dbal']);
 
         if ($isConfigEnabled && !class_exists(DoctrineBundle::class)) {
             throw new LogicException('DBAL tracing support cannot be enabled as the DoctrineBundle bundle is not installed.');
@@ -183,7 +198,8 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function registerTwigTracingConfiguration(ContainerBuilder $container, array $config): void
     {
-        $isConfigEnabled = $this->isConfigEnabled($container, $config['twig']);
+        $isConfigEnabled = $this->isConfigEnabled($container, $config)
+            && $this->isConfigEnabled($container, $config['twig']);
 
         if (!$isConfigEnabled) {
             $container->removeDefinition(TwigTracingExtension::class);
