@@ -100,15 +100,18 @@ final class TracingRequestListenerTest extends TestCase
             'net.host.name' => 'www.example.com',
         ]);
 
-        yield 'request.server.sentry-trace EXISTS' => [
-            new Options(['send_default_pii' => false]),
+        yield 'request.headers.sentry-trace EXISTS' => [
+            new Options(),
             Request::create(
                 'http://www.example.com',
                 'GET',
                 [],
                 [],
                 [],
-                ['HTTP_sentry-trace' => '566e3688a61d4bc888951642d6f14a19-566e3688a61d4bc8-1']
+                [
+                    'REQUEST_TIME_FLOAT' => 1613493597.010275,
+                    'HTTP_sentry-trace' => '566e3688a61d4bc888951642d6f14a19-566e3688a61d4bc8-1',
+                ]
             ),
             $transactionContext,
         ];
@@ -126,35 +129,12 @@ final class TracingRequestListenerTest extends TestCase
             'net.host.name' => 'www.example.com',
         ]);
 
+        $request = Request::create('http://www.example.com');
+        $request->server->remove('REQUEST_TIME_FLOAT');
+
         yield 'request.server.REQUEST_TIME_FLOAT NOT EXISTS' => [
-            new Options(['send_default_pii' => false]),
-            Request::create('http://www.example.com'),
-            $transactionContext,
-        ];
-
-        $transactionContext = new TransactionContext();
-        $transactionContext->setName('GET http://www.example.com/');
-        $transactionContext->setOp('http.server');
-        $transactionContext->setStartTimestamp(1613493597.010819);
-        $transactionContext->setTags([
-            'net.host.port' => '80',
-            'http.method' => 'GET',
-            'http.url' => 'http://www.example.com/',
-            'http.flavor' => '1.1',
-            'route' => '<unknown>',
-            'net.host.name' => 'www.example.com',
-        ]);
-
-        yield 'request.server.REQUEST_TIME_FLOAT EXISTS' => [
-            new Options(['send_default_pii' => false]),
-            Request::create(
-                'http://www.example.com',
-                'GET',
-                [],
-                [],
-                [],
-                ['REQUEST_TIME_FLOAT' => 1613493597.010819]
-            ),
+            new Options(),
+            $request,
             $transactionContext,
         ];
 
@@ -172,12 +152,20 @@ final class TracingRequestListenerTest extends TestCase
         ]);
 
         yield 'request.server.HOST IS IPV4' => [
-            new Options(['send_default_pii' => false]),
-            Request::create('http://127.0.0.1'),
+            new Options(),
+            Request::create(
+                'http://127.0.0.1',
+                'GET',
+                [],
+                [],
+                [],
+                ['REQUEST_TIME_FLOAT' => 1613493597.010275]
+            ),
             $transactionContext,
         ];
 
         $request = Request::create('http://www.example.com/path');
+        $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
         $request->attributes->set('_route', 'app_homepage');
 
         $transactionContext = new TransactionContext();
@@ -194,12 +182,13 @@ final class TracingRequestListenerTest extends TestCase
         ]);
 
         yield 'request.attributes.route IS STRING' => [
-            new Options(['send_default_pii' => false]),
+            new Options(),
             $request,
             $transactionContext,
         ];
 
         $request = Request::create('http://www.example.com/path');
+        $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
         $request->attributes->set('_route', new Route('/path'));
 
         $transactionContext = new TransactionContext();
@@ -216,12 +205,13 @@ final class TracingRequestListenerTest extends TestCase
         ]);
 
         yield 'request.attributes.route IS INSTANCEOF Symfony\Component\Routing\Route' => [
-            new Options(['send_default_pii' => false]),
+            new Options(),
             $request,
             $transactionContext,
         ];
 
         $request = Request::create('http://www.example.com/');
+        $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
         $request->attributes->set('_controller', 'App\\Controller::indexAction');
 
         $transactionContext = new TransactionContext();
@@ -237,13 +227,14 @@ final class TracingRequestListenerTest extends TestCase
             'net.host.name' => 'www.example.com',
         ]);
 
-        yield 'request.attributes.controller IS STRING' => [
-            new Options(['send_default_pii' => false]),
+        yield 'request.attributes._controller IS STRING' => [
+            new Options(),
             $request,
             $transactionContext,
         ];
 
         $request = Request::create('http://www.example.com/');
+        $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
         $request->attributes->set('_controller', ['App\\Controller', 'indexAction']);
 
         $transactionContext = new TransactionContext();
@@ -259,13 +250,14 @@ final class TracingRequestListenerTest extends TestCase
             'net.host.name' => 'www.example.com',
         ]);
 
-        yield 'request.attributes.controller IS CALLABLE (1)' => [
-            new Options(['send_default_pii' => false]),
+        yield 'request.attributes._controller IS CALLABLE (1)' => [
+            new Options(),
             $request,
             $transactionContext,
         ];
 
         $request = Request::create('http://www.example.com/');
+        $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
         $request->attributes->set('_controller', [new class() {}, 'indexAction']);
 
         $transactionContext = new TransactionContext();
@@ -281,13 +273,14 @@ final class TracingRequestListenerTest extends TestCase
             'net.host.name' => 'www.example.com',
         ]);
 
-        yield 'request.attributes.controller IS CALLABLE (2)' => [
-            new Options(['send_default_pii' => false]),
+        yield 'request.attributes._controller IS CALLABLE (2)' => [
+            new Options(),
             $request,
             $transactionContext,
         ];
 
         $request = Request::create('http://www.example.com/');
+        $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
         $request->attributes->set('_controller', [10]);
 
         $transactionContext = new TransactionContext();
@@ -303,13 +296,14 @@ final class TracingRequestListenerTest extends TestCase
             'net.host.name' => 'www.example.com',
         ]);
 
-        yield 'request.attributes.controller IS ARRAY and NOT VALID CALLABLE' => [
-            new Options(['send_default_pii' => false]),
+        yield 'request.attributes._controller IS ARRAY and NOT VALID CALLABLE' => [
+            new Options(),
             $request,
             $transactionContext,
         ];
 
         $request = Request::create('http://www.example.com/');
+        $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
         $request->attributes->set('_controller', [10]);
 
         $transactionContext = new TransactionContext();
