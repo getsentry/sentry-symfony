@@ -6,7 +6,7 @@
 - Add support for distributed tracing of Twig template rendering (#430)
 - Add support for distributed tracing of SQL queries while using Doctrine DBAL (#426)
 - Add support for distributed tracing when running a console command (#455)
-- Added missing `capture-soft-fails` config schema option (#417)
+- Add support for distributed tracing of cache pools (#)
 - Deprecate the `Sentry\SentryBundle\EventListener\ConsoleCommandListener` class in favor of its parent class `Sentry\SentryBundle\EventListener\ConsoleListener` (#429)
 - Lower the required version of `symfony/psr-http-message-bridge` to allow installing it on a project that uses Symfony `3.4.x` components only (#480)
 

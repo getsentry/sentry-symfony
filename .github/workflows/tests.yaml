@@ -108,7 +108,7 @@ jobs:
           restore-keys: ${{ runner.os }}-${{ matrix.php }}-composer-${{ matrix.dependencies }}-
 
       - name: Remove optional packages
-        run: composer remove doctrine/dbal doctrine/doctrine-bundle symfony/messenger symfony/twig-bundle --dev --no-update
+        run: composer remove doctrine/dbal doctrine/doctrine-bundle symfony/messenger symfony/twig-bundle symfony/cache --dev --no-update
 
       - name: Install highest dependencies
         run: composer update --no-progress --no-interaction --prefer-dist

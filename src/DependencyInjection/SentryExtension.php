@@ -35,6 +35,7 @@ use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\ErrorHandler\Error\FatalError;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
+use Symfony\Contracts\Cache\CacheInterface;
 
 final class SentryExtension extends ConfigurableExtension
 {
@@ -68,6 +69,7 @@ final class SentryExtension extends ConfigurableExtension
         $this->registerTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerDbalTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerTwigTracingConfiguration($container, $mergedConfig['tracing']);
+        $this->registerCacheTracingConfiguration($container, $mergedConfig['tracing']);
     }
 
     /**
@@ -212,6 +214,21 @@ final class SentryExtension extends ConfigurableExtension
         if (!$isConfigEnabled) {
             $container->removeDefinition(TwigTracingExtension::class);
         }
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function registerCacheTracingConfiguration(ContainerBuilder $container, array $config): void
+    {
+        $isConfigEnabled = $this->isConfigEnabled($container, $config)
+            && $this->isConfigEnabled($container, $config['cache']);
+
+        if ($isConfigEnabled && !interface_exists(CacheInterface::class)) {
+            throw new LogicException('Cache tracing support cannot be enabled because the symfony/cache Composer package is not installed.');
+        }
+
+        $container->setParameter('sentry.tracing.cache.enabled', $isConfigEnabled);
     }
 
     /**

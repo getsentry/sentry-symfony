@@ -12,6 +12,7 @@ use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Contracts\Cache\CacheInterface;
 
 final class ConfigurationTest extends TestCase
 {
@@ -45,6 +46,9 @@ final class ConfigurationTest extends TestCase
                 ],
                 'twig' => [
                     'enabled' => class_exists(TwigBundle::class),
+                ],
+                'cache' => [
+                    'enabled' => interface_exists(CacheInterface::class),
                 ],
             ],
         ];
