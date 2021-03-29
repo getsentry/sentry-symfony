@@ -16,6 +16,7 @@ use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
+use Sentry\SentryBundle\EventListener\TracingConsoleListener;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
 use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
 use Sentry\SentryBundle\SentryBundle;
@@ -310,6 +311,7 @@ abstract class SentryExtensionTest extends TestCase
 
         $this->assertFalse($container->hasDefinition(TracingRequestListener::class));
         $this->assertFalse($container->hasDefinition(TracingSubRequestListener::class));
+        $this->assertFalse($container->hasDefinition(TracingConsoleListener::class));
         $this->assertFalse($container->hasDefinition(TracingDriverMiddleware::class));
         $this->assertFalse($container->hasDefinition(ConnectionConfigurator::class));
         $this->assertEmpty($container->getParameter('sentry.tracing.dbal.connections'));

@@ -17,6 +17,7 @@ use Sentry\Options;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
+use Sentry\SentryBundle\EventListener\TracingConsoleListener;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
 use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
 use Sentry\SentryBundle\SentryBundle;
@@ -170,6 +171,7 @@ final class SentryExtension extends ConfigurableExtension
         if (!$this->isConfigEnabled($container, $config)) {
             $container->removeDefinition(TracingRequestListener::class);
             $container->removeDefinition(TracingSubRequestListener::class);
+            $container->removeDefinition(TracingConsoleListener::class);
         }
     }
 
