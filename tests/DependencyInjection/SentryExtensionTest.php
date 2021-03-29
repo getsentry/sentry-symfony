@@ -305,7 +305,7 @@ abstract class SentryExtensionTest extends TestCase
         ];
     }
 
-    public function testAllIntegrationsAreRemovedWhenTracingIsDisabled(): void
+    public function testInstrumentationIsDisabledWhenTracingIsDisabled(): void
     {
         $container = $this->createContainerFromFixture('tracing_disabled');
 
@@ -314,8 +314,8 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertFalse($container->hasDefinition(TracingConsoleListener::class));
         $this->assertFalse($container->hasDefinition(TracingDriverMiddleware::class));
         $this->assertFalse($container->hasDefinition(ConnectionConfigurator::class));
-        $this->assertEmpty($container->getParameter('sentry.tracing.dbal.connections'));
         $this->assertFalse($container->hasDefinition(TwigTracingExtension::class));
+        $this->assertEmpty($container->getParameter('sentry.tracing.dbal.connections'));
     }
 
     public function testTracingDriverMiddlewareIsConfiguredWhenDbalTracingIsEnabled(): void

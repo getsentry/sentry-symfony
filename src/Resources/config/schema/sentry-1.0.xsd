@@ -86,6 +86,7 @@
             <xsd:element name="dbal" type="tracing-dbal" minOccurs="0" maxOccurs="1" />
             <xsd:element name="twig" type="tracing-twig" minOccurs="0" maxOccurs="1" />
         </xsd:choice>
+
         <xsd:attribute name="enabled" type="xsd:boolean" default="true"/>
     </xsd:complexType>
 
