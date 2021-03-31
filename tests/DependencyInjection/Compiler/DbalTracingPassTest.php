@@ -23,9 +23,7 @@ final class DbalTracingPassTest extends DoctrineTestCase
         }
 
         $container = $this->createContainerBuilder();
-        $container->setParameter('doctrine.connections', ['doctrine.dbal.foo_connection', 'doctrine.dbal.bar_connection', 'doctrine.dbal.baz_connection']);
         $container->setParameter('sentry.tracing.dbal.connections', ['foo', 'bar', 'baz', 'qux']);
-        $container->setParameter('sentry.tracing.dbal.enabled', true);
 
         $container
             ->register('foo.service', \stdClass::class)
@@ -91,15 +89,17 @@ final class DbalTracingPassTest extends DoctrineTestCase
 
         $connection1 = (new Definition(Connection::class))->setPublic(true);
         $connection2 = (new Definition(Connection::class))->setPublic(true);
+        $connection3 = (new Definition(Connection::class))->setPublic(true);
 
         $container = $this->createContainerBuilder();
-        $container->setParameter('doctrine.connections', ['doctrine.dbal.foo_connection', 'doctrine.dbal.bar_connection']);
         $container->setParameter('sentry.tracing.dbal.connections', ['foo', 'baz']);
         $container->setDefinition('doctrine.dbal.foo_connection', $connection1);
         $container->setDefinition('doctrine.dbal.bar_connection', $connection2);
+        $container->setDefinition('doctrine.dbal.baz_connection', $connection3);
         $container->compile();
 
         $this->assertEquals([new Reference(ConnectionConfigurator::class), 'configure'], $connection1->getConfigurator());
+        $this->assertEquals([new Reference(ConnectionConfigurator::class), 'configure'], $connection3->getConfigurator());
         $this->assertNull($connection2->getConfigurator());
     }
 
@@ -124,12 +124,16 @@ final class DbalTracingPassTest extends DoctrineTestCase
     public function processDoesNothingIfConditionsForEnablingTracingAreMissingDataProvider(): \Generator
     {
         $container = $this->createContainerBuilder();
-        $container->setParameter('sentry.tracing.dbal.enabled', true);
+        $container->setParameter('sentry.tracing.dbal.enabled', false);
 
         yield [$container];
 
         $container = $this->createContainerBuilder();
         $container->setParameter('doctrine.connections', []);
+
+        yield [$container];
+
+        $container = $this->createContainerBuilder();
         $container->setParameter('sentry.tracing.dbal.enabled', false);
 
         yield [$container];
@@ -147,6 +151,16 @@ final class DbalTracingPassTest extends DoctrineTestCase
         $container
             ->register(ConnectionConfigurator::class, ConnectionConfigurator::class)
             ->setPublic(true);
+
+        $container->setParameter('sentry.tracing.enabled', true);
+        $container->setParameter('sentry.tracing.dbal.enabled', true);
+        $container->setParameter('sentry.tracing.dbal.enabled', true);
+        $container->setParameter('sentry.tracing.dbal.connections', []);
+        $container->setParameter('doctrine.connections', [
+            'doctrine.dbal.foo_connection',
+            'doctrine.dbal.bar_connection',
+            'doctrine.dbal.baz_connection',
+        ]);
 
         return $container;
     }

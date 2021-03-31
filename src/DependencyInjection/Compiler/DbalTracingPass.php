@@ -31,7 +31,11 @@ final class DbalTracingPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container): void
     {
-        if (!$container->hasParameter('doctrine.connections') || !$container->getParameter('sentry.tracing.dbal.enabled')) {
+        if (
+            !$container->hasParameter('doctrine.connections')
+            || !$container->getParameter('sentry.tracing.enabled')
+            || !$container->getParameter('sentry.tracing.dbal.enabled')
+        ) {
             return;
         }
 
