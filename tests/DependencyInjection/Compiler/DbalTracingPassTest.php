@@ -104,7 +104,7 @@ final class DbalTracingPassTest extends DoctrineTestCase
     }
 
     /**
-     * @dataProvider testProcessDoesNothingIfConditionsForEnablingTracingAreMissingDataProvider
+     * @dataProvider processDoesNothingIfConditionsForEnablingTracingAreMissingDataProvider
      */
     public function testProcessDoesNothingIfConditionsForEnablingTracingAreMissing(ContainerBuilder $container): void
     {
@@ -118,7 +118,10 @@ final class DbalTracingPassTest extends DoctrineTestCase
         $this->assertEmpty($connectionConfigDefinition->getMethodCalls());
     }
 
-    public function testProcessDoesNothingIfConditionsForEnablingTracingAreMissingDataProvider(): \Generator
+    /**
+     * @return \Generator<array{ContainerBuilder}>
+     */
+    public function processDoesNothingIfConditionsForEnablingTracingAreMissingDataProvider(): \Generator
     {
         $container = $this->createContainerBuilder();
         $container->setParameter('sentry.tracing.dbal.enabled', true);
