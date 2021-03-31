@@ -322,7 +322,8 @@ abstract class SentryExtensionTest extends TestCase
     public function testTracingDriverMiddlewareIsConfiguredWhenDbalTracingIsEnabled(): void
     {
         if (!class_exists(DoctrineBundle::class)) {
-            $this->markTestSkipped('This test requires the "doctrine/doctrine-bundle" Composer package to be installed.');
+            $this->expectException(\LogicException::class);
+            $this->expectExceptionMessage('DBAL tracing support cannot be enabled because the doctrine/doctrine-bundle Composer package is not installed.');
         }
 
         $container = $this->createContainerFromFixture('dbal_tracing_enabled');
