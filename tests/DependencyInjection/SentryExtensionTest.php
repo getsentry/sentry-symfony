@@ -26,6 +26,7 @@ use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
 use Sentry\Transport\TransportFactoryInterface;
+use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -342,6 +343,11 @@ abstract class SentryExtensionTest extends TestCase
 
     public function testTwigTracingExtensionIsConfiguredWhenTwigTracingIsEnabled(): void
     {
+        if (! class_exists(TwigBundle::class)) {
+            $this->expectException(\LogicException::class);
+            $this->expectExceptionMessage('Twig tracing support cannot be enabled because the symfony/twig-bundle Composer package is not installed.');
+        }
+
         $container = $this->createContainerFromFixture('twig_tracing_enabled');
 
         $this->assertTrue($container->hasDefinition(TwigTracingExtension::class));
