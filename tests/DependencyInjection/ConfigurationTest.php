@@ -41,11 +41,11 @@ final class ConfigurationTest extends TestCase
             'tracing' => [
                 'enabled' => true,
                 'dbal' => [
-                    'enabled' => false,
+                    'enabled' => true,
                     'connections' => class_exists(DoctrineBundle::class) ? ['%doctrine.default_connection%'] : [],
                 ],
                 'twig' => [
-                    'enabled' => false,
+                    'enabled' => true,
                 ],
             ],
         ];
