@@ -344,7 +344,7 @@ abstract class SentryExtensionTest extends TestCase
 
     public function testTwigTracingExtensionIsConfiguredWhenTwigTracingIsEnabled(): void
     {
-        if (! class_exists(TwigBundle::class)) {
+        if (!class_exists(TwigBundle::class)) {
             $this->expectException(\LogicException::class);
             $this->expectExceptionMessage('Twig tracing support cannot be enabled because the symfony/twig-bundle Composer package is not installed.');
         }
