@@ -54,8 +54,21 @@ final class RequestFetcherTest extends TestCase
         $this->assertSame($expectedRequest, $this->requestFetcher->fetchRequest());
     }
 
+    public function testFetchRequestFailsSilently(): void
+    {
+        $this->requestStack->expects($this->once())
+            ->method('getCurrentRequest')
+            ->willReturn(new Request());
+
+        $this->httpMessageFactory->expects($this->once())
+            ->method('createRequest')
+            ->willThrowException(new \Exception());
+
+        $this->assertNull($this->requestFetcher->fetchRequest());
+    }
+
     /**
-     * @return \Generator<mixed>
+     * @return \Generator<array{Request|null,ServerRequest|null}>
      */
     public function fetchRequestDataProvider(): \Generator
     {

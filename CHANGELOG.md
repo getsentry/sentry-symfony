@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Avoid failures when the `RequestFetcher` fails to translate the `Request` (#472)
 
 ## 4.0.3 (2021-03-03)
 - Fix regression from #454 for `null` value on DSN not disabling Sentry (#457)
@@ -46,7 +47,7 @@ using an on-premise installation it requires Sentry version `>= v20.6.0` to work
 
 - Use `jean85/pretty-package-versions` `^1.5` to leverage the new `getRootPackageVersion` method (c8799ac)
 - Fix support for PHP preloading (#354, thanks to @annuh)
-- Fix `capture_soft_fails: false` option for the Messenger (#353) 
+- Fix `capture_soft_fails: false` option for the Messenger (#353)
 
 ## 3.5.1 (2020-05-07)
 

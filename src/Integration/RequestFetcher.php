@@ -56,6 +56,10 @@ final class RequestFetcher implements RequestFetcherInterface
             return null;
         }
 
-        return $this->httpMessageFactory->createRequest($request);
+        try {
+            return $this->httpMessageFactory->createRequest($request);
+        } catch (\Throwable $exception) {
+            return null;
+        }
     }
 }
