@@ -239,7 +239,7 @@ class End2EndTest extends WebTestCase
         $response = $client->getResponse();
 
         $this->assertInstanceOf(Response::class, $response);
-        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame(500, $response->getStatusCode());
 
         $this->assertLastEventIdIsNull($client);
     }

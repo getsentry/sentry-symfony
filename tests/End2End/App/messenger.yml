@@ -26,8 +26,8 @@ framework:
         retry_strategy:
           max_retries: 1
     routing:
-      '\Sentry\SentryBundle\Tests\End2End\App\Messenger\FooMessage': async
-      '\Sentry\SentryBundle\Tests\End2End\App\Messenger\SyncMessage': sync
+      Sentry\SentryBundle\Tests\End2End\App\Messenger\FooMessage: async
+      Sentry\SentryBundle\Tests\End2End\App\Messenger\SyncMessage: sync
 
 sentry:
   messenger:
