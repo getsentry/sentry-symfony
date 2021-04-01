@@ -8,6 +8,7 @@ use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
 use Sentry\Options;
 use Sentry\SentryBundle\ErrorTypesParser;
+use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -147,20 +148,20 @@ final class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->arrayNode('tracing')
+                    ->canBeDisabled()
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->arrayNode('dbal')
-                            ->canBeEnabled()
+                            ->{class_exists(DoctrineBundle::class) ? 'canBeDisabled' : 'canBeEnabled'}()
                             ->fixXmlConfig('connection')
                             ->children()
                                 ->arrayNode('connections')
-                                    ->defaultValue(class_exists(DoctrineBundle::class) ? ['%doctrine.default_connection%'] : [])
                                     ->scalarPrototype()->end()
                                 ->end()
                             ->end()
                         ->end()
                         ->arrayNode('twig')
-                            ->canBeEnabled()
+                            ->{class_exists(TwigBundle::class) ? 'canBeDisabled' : 'canBeEnabled'}()
                         ->end()
                     ->end()
                 ->end()

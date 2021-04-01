@@ -1,0 +1,3 @@
+sentry:
+    tracing:
+        enabled: false

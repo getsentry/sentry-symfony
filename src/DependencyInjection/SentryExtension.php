@@ -17,6 +17,9 @@ use Sentry\Options;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
+use Sentry\SentryBundle\EventListener\TracingConsoleListener;
+use Sentry\SentryBundle\EventListener\TracingRequestListener;
+use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
 use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
@@ -24,6 +27,7 @@ use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
 use Sentry\Transport\TransportFactoryInterface;
+use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -51,9 +55,7 @@ final class SentryExtension extends ConfigurableExtension
     }
 
     /**
-     * @param array<string, mixed> $mergedConfig
-     *
-     * @psalm-suppress MoreSpecificImplementedParamType
+     * @param mixed[] $mergedConfig
      */
     protected function loadInternal(array $mergedConfig, ContainerBuilder $container): void
     {
@@ -63,6 +65,7 @@ final class SentryExtension extends ConfigurableExtension
         $this->registerConfiguration($container, $mergedConfig);
         $this->registerErrorListenerConfiguration($container, $mergedConfig);
         $this->registerMessengerListenerConfiguration($container, $mergedConfig['messenger']);
+        $this->registerTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerDbalTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerTwigTracingConfiguration($container, $mergedConfig['tracing']);
     }
@@ -162,14 +165,28 @@ final class SentryExtension extends ConfigurableExtension
     /**
      * @param array<string, mixed> $config
      */
+    private function registerTracingConfiguration(ContainerBuilder $container, $config): void
+    {
+        if (!$this->isConfigEnabled($container, $config)) {
+            $container->removeDefinition(TracingRequestListener::class);
+            $container->removeDefinition(TracingSubRequestListener::class);
+            $container->removeDefinition(TracingConsoleListener::class);
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
     private function registerDbalTracingConfiguration(ContainerBuilder $container, array $config): void
     {
-        $isConfigEnabled = $this->isConfigEnabled($container, $config['dbal']);
+        $isConfigEnabled = $this->isConfigEnabled($container, $config)
+            && $this->isConfigEnabled($container, $config['dbal']);
 
         if ($isConfigEnabled && !class_exists(DoctrineBundle::class)) {
-            throw new LogicException('DBAL tracing support cannot be enabled as the DoctrineBundle bundle is not installed.');
+            throw new LogicException('DBAL tracing support cannot be enabled because the doctrine/doctrine-bundle Composer package is not installed.');
         }
 
+        $container->setParameter('sentry.tracing.dbal.enabled', $isConfigEnabled);
         $container->setParameter('sentry.tracing.dbal.connections', $isConfigEnabled ? $config['dbal']['connections'] : []);
 
         if (!$isConfigEnabled) {
@@ -183,7 +200,12 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function registerTwigTracingConfiguration(ContainerBuilder $container, array $config): void
     {
-        $isConfigEnabled = $this->isConfigEnabled($container, $config['twig']);
+        $isConfigEnabled = $this->isConfigEnabled($container, $config)
+            && $this->isConfigEnabled($container, $config['twig']);
+
+        if ($isConfigEnabled && !class_exists(TwigBundle::class)) {
+            throw new LogicException('Twig tracing support cannot be enabled because the symfony/twig-bundle Composer package is not installed.');
+        }
 
         if (!$isConfigEnabled) {
             $container->removeDefinition(TwigTracingExtension::class);

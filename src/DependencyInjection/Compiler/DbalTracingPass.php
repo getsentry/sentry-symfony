@@ -31,19 +31,27 @@ final class DbalTracingPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container): void
     {
-        if (!$container->hasParameter('doctrine.connections')) {
+        if (
+            !$container->hasParameter('doctrine.connections')
+            || !$container->getParameter('sentry.tracing.enabled')
+            || !$container->getParameter('sentry.tracing.dbal.enabled')
+        ) {
             return;
         }
-
-        /** @var string[] $connections */
-        $connections = $container->getParameter('doctrine.connections');
 
         /** @var string[] $connectionsToTrace */
         $connectionsToTrace = $container->getParameter('sentry.tracing.dbal.connections');
 
+        /** @var array<string, string> $connections */
+        $connections = $container->getParameter('doctrine.connections');
+
+        if (empty($connectionsToTrace)) {
+            $connectionsToTrace = array_keys($connections);
+        }
+
         foreach ($connectionsToTrace as $connectionName) {
             if (!\in_array(sprintf(self::CONNECTION_SERVICE_NAME_FORMAT, $connectionName), $connections, true)) {
-                continue;
+                throw new \InvalidArgumentException(sprintf('The Doctrine connection "%s" does not exists and cannot be instrumented.', $connectionName));
             }
 
             if (!interface_exists(ResultStatement::class)) {

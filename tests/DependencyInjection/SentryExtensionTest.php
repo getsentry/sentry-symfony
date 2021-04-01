@@ -16,6 +16,9 @@ use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
+use Sentry\SentryBundle\EventListener\TracingConsoleListener;
+use Sentry\SentryBundle\EventListener\TracingRequestListener;
+use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
 use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
@@ -23,6 +26,7 @@ use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
 use Sentry\Transport\TransportFactoryInterface;
+use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -302,10 +306,24 @@ abstract class SentryExtensionTest extends TestCase
         ];
     }
 
-    public function testTracingDriverMiddlewareIsConfiguredWhenDbalTracingIsEnable(): void
+    public function testInstrumentationIsDisabledWhenTracingIsDisabled(): void
+    {
+        $container = $this->createContainerFromFixture('tracing_disabled');
+
+        $this->assertFalse($container->hasDefinition(TracingRequestListener::class));
+        $this->assertFalse($container->hasDefinition(TracingSubRequestListener::class));
+        $this->assertFalse($container->hasDefinition(TracingConsoleListener::class));
+        $this->assertFalse($container->hasDefinition(TracingDriverMiddleware::class));
+        $this->assertFalse($container->hasDefinition(ConnectionConfigurator::class));
+        $this->assertFalse($container->hasDefinition(TwigTracingExtension::class));
+        $this->assertEmpty($container->getParameter('sentry.tracing.dbal.connections'));
+    }
+
+    public function testTracingDriverMiddlewareIsConfiguredWhenDbalTracingIsEnabled(): void
     {
         if (!class_exists(DoctrineBundle::class)) {
-            $this->markTestSkipped('This test requires the "doctrine/doctrine-bundle" Composer package to be installed.');
+            $this->expectException(\LogicException::class);
+            $this->expectExceptionMessage('DBAL tracing support cannot be enabled because the doctrine/doctrine-bundle Composer package is not installed.');
         }
 
         $container = $this->createContainerFromFixture('dbal_tracing_enabled');
@@ -326,6 +344,11 @@ abstract class SentryExtensionTest extends TestCase
 
     public function testTwigTracingExtensionIsConfiguredWhenTwigTracingIsEnabled(): void
     {
+        if (!class_exists(TwigBundle::class)) {
+            $this->expectException(\LogicException::class);
+            $this->expectExceptionMessage('Twig tracing support cannot be enabled because the symfony/twig-bundle Composer package is not installed.');
+        }
+
         $container = $this->createContainerFromFixture('twig_tracing_enabled');
 
         $this->assertTrue($container->hasDefinition(TwigTracingExtension::class));
