@@ -145,7 +145,7 @@ final class DbalTracingPassTest extends DoctrineTestCase
         $container->setParameter('sentry.tracing.dbal.connections', ['missing']);
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unable instrument a missing DBAL connection: missing');
+        $this->expectExceptionMessage('The Doctrine connection "missing" does not exists and cannot be instrumented.');
 
         $container->compile();
     }
