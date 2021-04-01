@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Fix the CacheItem detection for tracing (#501)
+- Unwrap Messenger failures (`HandlerFailedException`) when using sync transport (#475)
 
 ## 4.1.1 (2021-05-10)
 
