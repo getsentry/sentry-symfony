@@ -6,7 +6,7 @@ namespace Sentry\SentryBundle\Tests\End2End\App\Messenger;
 
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 
-class SyncMessageHandler implements MessageHandlerInterface
+final class SyncMessageHandler implements MessageHandlerInterface
 {
     public function __invoke(SyncMessage $message): void
     {

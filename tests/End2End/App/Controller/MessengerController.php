@@ -37,7 +37,7 @@ class MessengerController
 
     public function dispatchUnrecoverableSyncMessage(): Response
     {
-        $this->messenger->dispatch(new SyncMessage(false));
+        $this->messenger->dispatch(new SyncMessage());
 
         return new Response('Success');
     }
