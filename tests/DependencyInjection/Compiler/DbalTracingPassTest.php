@@ -23,7 +23,7 @@ final class DbalTracingPassTest extends DoctrineTestCase
         }
 
         $container = $this->createContainerBuilder();
-        $container->setParameter('sentry.tracing.dbal.connections', ['foo', 'bar', 'baz', 'qux']);
+        $container->setParameter('sentry.tracing.dbal.connections', ['foo', 'bar', 'baz']);
 
         $container
             ->register('foo.service', \stdClass::class)
@@ -137,6 +137,17 @@ final class DbalTracingPassTest extends DoctrineTestCase
         $container->setParameter('sentry.tracing.dbal.enabled', false);
 
         yield [$container];
+    }
+
+    public function testContainerCompilationFailsIfConnectionDoesntExist(): void
+    {
+        $container = $this->createContainerBuilder();
+        $container->setParameter('sentry.tracing.dbal.connections', ['missing']);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unable instrument a missing DBAL connection: missing');
+
+        $container->compile();
     }
 
     private function createContainerBuilder(): ContainerBuilder

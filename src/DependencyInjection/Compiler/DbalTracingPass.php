@@ -51,7 +51,7 @@ final class DbalTracingPass implements CompilerPassInterface
 
         foreach ($connectionsToTrace as $connectionName) {
             if (!\in_array(sprintf(self::CONNECTION_SERVICE_NAME_FORMAT, $connectionName), $connections, true)) {
-                continue;
+                throw new \InvalidArgumentException('Unable instrument a missing DBAL connection: ' . $connectionName);
             }
 
             if (!interface_exists(ResultStatement::class)) {
