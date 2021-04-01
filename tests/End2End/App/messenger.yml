@@ -8,6 +8,9 @@ services:
   Sentry\SentryBundle\Tests\End2End\App\Messenger\FooMessageHandler:
     class: \Sentry\SentryBundle\Tests\End2End\App\Messenger\FooMessageHandler
 
+  Sentry\SentryBundle\Tests\End2End\App\Messenger\SyncMessageHandler:
+    class: \Sentry\SentryBundle\Tests\End2End\App\Messenger\SyncMessageHandler
+
   Sentry\SentryBundle\Tests\End2End\App\Controller\MessengerController:
     autowire: true
     tags:
@@ -16,12 +19,15 @@ services:
 framework:
   messenger:
     transports:
+      sync:
+        dsn: 'sync://'
       async:
         dsn: 'static://'
         retry_strategy:
           max_retries: 1
     routing:
-      '*': async
+      '\Sentry\SentryBundle\Tests\End2End\App\Messenger\FooMessage': async
+      '\Sentry\SentryBundle\Tests\End2End\App\Messenger\SyncMessage': sync
 
 sentry:
   messenger:

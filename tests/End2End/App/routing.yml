@@ -29,3 +29,7 @@ dispatch:
 dispatch_unrecoverable:
   path: /dispatch-unrecoverable-message
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MessengerController::dispatchUnrecoverableMessage' }
+
+dispatch_unrecoverable_sync:
+  path: /dispatch-unrecoverable-sync-message
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MessengerController::dispatchUnrecoverableSyncMessage' }

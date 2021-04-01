@@ -228,6 +228,22 @@ class End2EndTest extends WebTestCase
         $this->assertLastEventIdIsNull($client);
     }
 
+    public function testMessengerSyncDispatchUnwrapsErrors(): void
+    {
+        $this->skipIfMessengerIsMissing();
+
+        $client = static::createClient();
+
+        $client->request('GET', '/dispatch-unrecoverable-sync-message');
+
+        $response = $client->getResponse();
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
+
+        $this->assertLastEventIdIsNull($client);
+    }
+
     private function consumeOneMessage(KernelInterface $kernel): void
     {
         $application = new Application($kernel);
