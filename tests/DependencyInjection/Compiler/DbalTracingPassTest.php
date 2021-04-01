@@ -119,12 +119,12 @@ final class DbalTracingPassTest extends DoctrineTestCase
     }
 
     /**
-     * @return \Generator<array{ContainerBuilder}>
+     * @return \Generator<array<mixed>>
      */
     public function processDoesNothingIfConditionsForEnablingTracingAreMissingDataProvider(): \Generator
     {
         $container = $this->createContainerBuilder();
-        $container->setParameter('sentry.tracing.dbal.enabled', false);
+        $container->setParameter('sentry.tracing.enabled', false);
 
         yield [$container];
 
@@ -153,7 +153,6 @@ final class DbalTracingPassTest extends DoctrineTestCase
             ->setPublic(true);
 
         $container->setParameter('sentry.tracing.enabled', true);
-        $container->setParameter('sentry.tracing.dbal.enabled', true);
         $container->setParameter('sentry.tracing.dbal.enabled', true);
         $container->setParameter('sentry.tracing.dbal.connections', []);
         $container->setParameter('doctrine.connections', [
