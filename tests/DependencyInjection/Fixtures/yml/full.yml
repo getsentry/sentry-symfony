@@ -44,3 +44,5 @@ sentry:
                 - default
         twig:
             enabled: false
+        cache:
+            enabled: false

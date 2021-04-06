@@ -42,6 +42,7 @@
                 <sentry:connection>default</sentry:connection>
             </sentry:dbal>
             <sentry:twig enabled="false" />
+            <sentry:cache enabled="false" />
         </sentry:tracing>
     </sentry:config>
 </container>
