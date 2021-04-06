@@ -165,8 +165,10 @@ final class SentryExtension extends ConfigurableExtension
     /**
      * @param array<string, mixed> $config
      */
-    private function registerTracingConfiguration(ContainerBuilder $container, $config): void
+    private function registerTracingConfiguration(ContainerBuilder $container, array $config): void
     {
+        $container->setParameter('sentry.tracing.enabled', $config['enabled']);
+
         if (!$this->isConfigEnabled($container, $config)) {
             $container->removeDefinition(TracingRequestListener::class);
             $container->removeDefinition(TracingSubRequestListener::class);

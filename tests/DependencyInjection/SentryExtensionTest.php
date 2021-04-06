@@ -316,6 +316,7 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertFalse($container->hasDefinition(TracingDriverMiddleware::class));
         $this->assertFalse($container->hasDefinition(ConnectionConfigurator::class));
         $this->assertFalse($container->hasDefinition(TwigTracingExtension::class));
+        $this->assertFalse($container->getParameter('sentry.tracing.enabled'));
         $this->assertEmpty($container->getParameter('sentry.tracing.dbal.connections'));
     }
 
