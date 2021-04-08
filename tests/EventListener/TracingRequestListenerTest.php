@@ -10,6 +10,7 @@ use Sentry\ClientInterface;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\RequestListenerRequestEvent;
 use Sentry\SentryBundle\EventListener\RequestListenerResponseEvent;
+use Sentry\SentryBundle\EventListener\RequestListenerTerminateEvent;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\SpanId;
@@ -368,6 +369,39 @@ final class TracingRequestListenerTest extends TestCase
             $this->createMock(HttpKernelInterface::class),
             new Request(),
             HttpKernelInterface::MASTER_REQUEST,
+            new Response()
+        ));
+    }
+
+    /**
+     * @group time-sensitive
+     */
+    public function testHandleKernelTerminateEvent(): void
+    {
+        $transaction = new Transaction(new TransactionContext());
+
+        $this->hub->expects($this->once())
+            ->method('getTransaction')
+            ->willReturn($transaction);
+
+        $this->listener->handleKernelTerminateEvent(new RequestListenerTerminateEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            new Response()
+        ));
+
+        $this->assertSame(microtime(true), $transaction->getEndTimestamp());
+    }
+
+    public function testHandleKernelTerminateEventDoesNothingIfNoTransactionIsSetOnHub(): void
+    {
+        $this->hub->expects($this->once())
+            ->method('getTransaction')
+            ->willReturn(null);
+
+        $this->listener->handleKernelTerminateEvent(new RequestListenerTerminateEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
             new Response()
         ));
     }
