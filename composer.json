@@ -58,7 +58,8 @@
     "suggest": {
         "monolog/monolog": "Allow sending log messages to Sentry by using the included Monolog handler.",
         "doctrine/doctrine-bundle": "Allow distributed tracing of database queries using Sentry.",
-        "symfony/twig-bundle": "Allow distributed tracing of Twig template rendering using Sentry."
+        "symfony/twig-bundle": "Allow distributed tracing of Twig template rendering using Sentry.",
+        "symfony/cache": "Allow distributed tracing of cache pools using Sentry."
     },
     "autoload": {
         "files": [
