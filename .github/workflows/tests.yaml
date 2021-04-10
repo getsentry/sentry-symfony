@@ -28,15 +28,20 @@ jobs:
         symfony_constraint: ['']
         experimental: [false]
         include:
-#          - description: 'sentry/sentry dev-develop'
-#            php: '7.4'
-#            sentry_constraint: 'dev-develop'
-#            experimental: true
           - description: 'DBAL 2'
             php: '7.4'
             dbal_constraint: '^2.13'
+          - description: 'Symfony 5.0'
+            php: '8.0'
+            symfony_constraint: 5.0.*
+          - description: 'Symfony 5.0'
+            php: '7.4'
+            symfony_constraint: 5.0.*
           - description: 'Symfony 4.4'
-            php: '7.3'
+            php: '8.0'
+            symfony_constraint: 4.4.*
+          - description: 'Symfony 4.4'
+            php: '7.4'
             symfony_constraint: 4.4.*
           - description: 'Symfony 3.4'
             php: '7.2'
@@ -52,28 +57,45 @@ jobs:
 
     name: PHP ${{ matrix.php }} tests (${{ matrix.description }})
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
         with:
           fetch-depth: 2
-      - uses: actions/cache@v2
+
+      - name: Cache
+        uses: actions/cache@v2
         with:
           path: ~/.composer/cache/files
           key: ${{ matrix.php }}-${{ matrix.symfony_constraint }}-${{ matrix.composer_option }}
-      - uses: shivammathur/setup-php@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           coverage: xdebug
+
       - name: Install Symfony Flex
         run: composer global require --no-progress --no-scripts --no-plugins symfony/flex
-      - run: composer remove --dev symfony/messenger --no-update
+
+      - name: Remove Symfony Messenger
+        run: composer remove --dev symfony/messenger --no-update
         if: matrix.symfony_constraint == '3.4.*' || matrix.composer_option == '--prefer-lowest'
+
       - run: composer require --dev doctrine/dbal ${{ matrix.dbal_constraint }} --no-update
         if: matrix.dbal_constraint
-      - run: composer update --no-progress --ansi ${{ matrix.composer_option }}
-      - run: composer require sentry/sentry dev-develop
+
+      - name: Install dependencies
+        run: composer update --no-progress --ansi ${{ matrix.composer_option }}
+
+      - name: Install Sentry
+        run: composer require sentry/sentry dev-develop
         if: matrix.sentry_constraint == 'dev-develop'
-      - run: vendor/bin/phpunit --coverage-clover=coverage.xml
-      - uses: codecov/codecov-action@v1
+
+      - name: Run PHPUnit tests
+        run: vendor/bin/phpunit --coverage-clover=coverage.xml
+
+      - name: Run codecov
+        uses: codecov/codecov-action@v1
         with:
           file: './coverage.xml'
           fail_ci_if_error: true
