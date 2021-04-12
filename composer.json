@@ -45,6 +45,7 @@
         "phpstan/phpstan-phpunit": "^0.12",
         "phpunit/phpunit": "^8.5||^9.0",
         "symfony/browser-kit": "^3.4.44||^4.4.20||^5.0.11",
+        "symfony/cache": "^3.4.44||^4.4.20||^5.0.11",
         "symfony/dom-crawler": "^3.4.44||^4.4.20||^5.0.11",
         "symfony/framework-bundle": "^3.4.44||^4.4.20||^5.0.11",
         "symfony/messenger": "^4.4.20||^5.0.11",
@@ -57,7 +58,8 @@
     "suggest": {
         "monolog/monolog": "Allow sending log messages to Sentry by using the included Monolog handler.",
         "doctrine/doctrine-bundle": "Allow distributed tracing of database queries using Sentry.",
-        "symfony/twig-bundle": "Allow distributed tracing of Twig template rendering using Sentry."
+        "symfony/twig-bundle": "Allow distributed tracing of Twig template rendering using Sentry.",
+        "symfony/cache": "Allow distributed tracing of cache pools using Sentry."
     },
     "autoload": {
         "files": [

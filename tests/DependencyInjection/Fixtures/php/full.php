@@ -50,5 +50,8 @@ $container->loadFromExtension('sentry', [
         'twig' => [
             'enabled' => false,
         ],
+        'cache' => [
+            'enabled' => false,
+        ],
     ],
 ]);
