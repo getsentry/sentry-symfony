@@ -23,6 +23,9 @@ services:
     tags:
       - controller.service_arguments
 
+  Sentry\SentryBundle\Tests\End2End\App\Command\MainCommand:
+    tags: [{ name: 'console.command', command: 'main-command' }]
+
 monolog:
   handlers:
     main:

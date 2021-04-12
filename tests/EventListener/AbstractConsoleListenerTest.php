@@ -14,6 +14,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\Console\Event\ConsoleTerminateEvent;
+use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -33,8 +34,9 @@ abstract class AbstractConsoleListenerTest extends TestCase
      * @dataProvider handleConsoleCommmandEventDataProvider
      *
      * @param array<string, string> $expectedTags
+     * @param array<string, string> $expectedExtra
      */
-    public function testHandleConsoleCommandEvent(ConsoleCommandEvent $consoleEvent, array $expectedTags): void
+    public function testHandleConsoleCommandEvent(ConsoleCommandEvent $consoleEvent, array $expectedTags, array $expectedExtra): void
     {
         $listenerClass = static::getListenerClass();
         $scope = new Scope();
@@ -49,6 +51,7 @@ abstract class AbstractConsoleListenerTest extends TestCase
         $event = $scope->applyToEvent(Event::createEvent());
 
         $this->assertSame($expectedTags, $event->getTags());
+        $this->assertSame($expectedExtra, $event->getExtra());
     }
 
     /**
@@ -59,16 +62,25 @@ abstract class AbstractConsoleListenerTest extends TestCase
         yield [
             new ConsoleCommandEvent(null, $this->createMock(InputInterface::class), $this->createMock(OutputInterface::class)),
             [],
+            [],
         ];
 
         yield [
             new ConsoleCommandEvent(new Command(), $this->createMock(InputInterface::class), $this->createMock(OutputInterface::class)),
+            [],
             [],
         ];
 
         yield [
             new ConsoleCommandEvent(new Command('foo:bar'), $this->createMock(InputInterface::class), $this->createMock(OutputInterface::class)),
             ['console.command' => 'foo:bar'],
+            [],
+        ];
+
+        yield [
+            new ConsoleCommandEvent(new Command('foo:bar'), new ArgvInput(['bin/console', 'foo:bar', '--foo=bar']), $this->createMock(OutputInterface::class)),
+            ['console.command' => 'foo:bar'],
+            ['Full command' => "'foo:bar' --foo=bar"],
         ];
     }
 

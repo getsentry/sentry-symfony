@@ -10,6 +10,8 @@ use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -169,6 +171,25 @@ class End2EndTest extends WebTestCase
 
         $this->assertLastEventIdIsNotNull($client);
         $this->assertEventCount(1);
+    }
+
+    public function testCommand(): void
+    {
+        self::bootKernel();
+        $application = new Application(self::$kernel);
+
+        try {
+            $application->doRun(new ArgvInput(['bin/console', 'main-command', '--option1', '--option2=foo', 'bar']), new NullOutput());
+        } catch (\RuntimeException $e) {
+            $this->assertSame('This is an intentional error', $e->getMessage());
+        }
+
+        $this->assertEventCount(1);
+        $this->assertCount(1, StubTransportFactory::$events);
+        $this->assertSame(
+            ['Full command' => 'main-command --option1 --option2=foo bar'],
+            StubTransportFactory::$events[0]->getExtra()
+        );
     }
 
     public function testMessengerCaptureHardFailure(): void
