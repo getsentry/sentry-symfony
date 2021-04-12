@@ -12,6 +12,8 @@ jobs:
   Tests:
     runs-on: ubuntu-latest
     continue-on-error: ${{ matrix.experimental == true }}
+    env:
+      SYMFONY_REQUIRE: ${{matrix.symfony_constraint}}
     strategy:
       fail-fast: false
       matrix:
@@ -21,7 +23,7 @@ jobs:
           - '7.3'
           - '7.2'
         sentry_constraint: [false]
-        symfony_constraint: [false]
+        symfony_constraint: ['']
         experimental: [false]
         include:
 #          - description: 'sentry/sentry dev-develop'
@@ -55,9 +57,8 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: xdebug
-      - run: |
-          sed -ri '/symfony\/(monolog-bundle|phpunit-bridge|messenger|psr-http-message-bridge|polyfill-php80)/! s/"symfony\/(.+)": "(.+)"/"symfony\/\1": "'${{ matrix.symfony_constraint }}'"/' composer.json;
-        if: matrix.symfony_constraint
+      - name: Install Symfony Flex
+        run: composer global require --no-progress --no-scripts --no-plugins symfony/flex
       - run: composer remove --dev symfony/messenger --no-update
         if: matrix.symfony_constraint == '3.4.*' || matrix.composer_option == '--prefer-lowest'
       - run: composer update --no-progress --ansi ${{ matrix.composer_option }}

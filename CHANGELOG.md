@@ -8,6 +8,7 @@
 - Add support for distributed tracing when running a console command (#455)
 - Added missing `capture-soft-fails` config schema option (#417)
 - Deprecate the `Sentry\SentryBundle\EventListener\ConsoleCommandListener` class in favor of its parent class `Sentry\SentryBundle\EventListener\ConsoleListener` (#429)
+- Lower the required version of `symfony/psr-http-message-bridge` to allow installing it on a project that uses Symfony `3.4.x` components only (#480)
 
 ## 4.0.3 (2021-03-03)
 - Fix regression from #454 for `null` value on DSN not disabling Sentry (#457)
