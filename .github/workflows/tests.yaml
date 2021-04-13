@@ -26,7 +26,7 @@ jobs:
         symfony-version:
           - 3.4.*
           - 4.4.*
-          - 5.2.*
+          - 5.*
         dependencies:
           - lowest
           - highest
@@ -46,31 +46,18 @@ jobs:
       - name: Setup Problem Matchers for PHPUnit
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
-      - name: Determine Composer cache directory
-        id: composer-cache
-        run: echo "::set-output name=directory::$(composer config cache-dir)"
-
-      - name: Cache Composer dependencies
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.composer-cache.outputs.directory }}
-          key: ${{ runner.os }}-${{ matrix.php }}-composer-${{ matrix.dependencies }}-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-${{ matrix.php }}-${{ matrix.dependencies }}-composer-
-
       - name: Remove Symfony Messenger
         run: composer remove --dev symfony/messenger --no-update
-        if: matrix.symfony-version == '3.4.*' || matrix.composer_option == '--prefer-lowest'
+        if: matrix.symfony-version == '3.4.*'
 
       - name: Install Symfony Flex
         run: composer global require --no-progress --no-scripts --no-plugins symfony/flex
 
-      - name: Install highest dependencies
-        run: composer update --no-progress --no-interaction --prefer-dist
-        if: ${{ matrix.dependencies == 'highest' }}
-
-      - name: Install lowest dependencies
-        run: composer update --no-progress --no-interaction --prefer-dist --prefer-lowest
-        if: ${{ matrix.dependencies == 'lowest' }}
+      - name: Install dependencies
+        uses: ramsey/composer-install@v1
+        with:
+          dependency-versions: ${{ matrix.dependencies }}
+          composer-options: --prefer-dist
 
       - name: Run tests
         run: vendor/bin/phpunit --coverage-clover=build/coverage-report.xml
@@ -106,27 +93,14 @@ jobs:
       - name: Setup Problem Matchers for PHPUnit
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
-      - name: Determine Composer cache directory
-        id: composer-cache
-        run: echo "::set-output name=directory::$(composer config cache-dir)"
-
-      - name: Cache Composer dependencies
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.composer-cache.outputs.directory }}
-          key: ${{ runner.os }}-${{ matrix.php }}-composer-${{ matrix.dependencies }}-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-${{ matrix.php }}-composer-${{ matrix.dependencies }}-
-
       - name: Remove optional packages
         run: composer remove doctrine/dbal doctrine/doctrine-bundle symfony/messenger symfony/twig-bundle symfony/cache --dev --no-update
 
-      - name: Install highest dependencies
-        run: composer update --no-progress --no-interaction --prefer-dist
-        if: ${{ matrix.dependencies == 'highest' }}
-
-      - name: Install lowest dependencies
-        run: composer update --no-progress --no-interaction --prefer-dist --prefer-lowest
-        if: ${{ matrix.dependencies == 'lowest' }}
+      - name: Install dependencies
+        uses: ramsey/composer-install@v1
+        with:
+          dependency-versions: ${{ matrix.dependencies }}
+          composer-options: --prefer-dist
 
       - name: Run tests
         run: vendor/bin/phpunit --coverage-clover=build/coverage-report.xml
