@@ -1,8 +1,10 @@
 # Changelog
 
 ## Unreleased
-- Avoid failures when the `RequestFetcher` fails to translate the `Request` (#472)
 
+## 4.1.0 (2021-04-19)
+
+- Avoid failures when the `RequestFetcher` fails to translate the `Request` (#472)
 - Add support for distributed tracing of Symfony request events (#423)
 - Add support for distributed tracing of Twig template rendering (#430)
 - Add support for distributed tracing of SQL queries while using Doctrine DBAL (#426)
@@ -13,6 +15,7 @@
 - Lower the required version of `symfony/psr-http-message-bridge` to allow installing it on a project that uses Symfony `3.4.x` components only (#480)
 
 ## 4.0.3 (2021-03-03)
+
 - Fix regression from #454 for `null` value on DSN not disabling Sentry (#457)
 
 ## 4.0.2 (2021-03-03)
