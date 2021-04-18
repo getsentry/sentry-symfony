@@ -10,3 +10,6 @@ parameters:
         - tests/End2End/App
     dynamicConstantNames:
         - Symfony\Component\HttpKernel\Kernel::VERSION
+        - Doctrine\DBAL\Version::VERSION
+    stubFiles:
+        - tests/Stubs/Profile.phpstub

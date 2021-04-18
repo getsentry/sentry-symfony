@@ -1,0 +1,6 @@
+sentry:
+    tracing:
+        dbal:
+            enabled: true
+            connections:
+                - default

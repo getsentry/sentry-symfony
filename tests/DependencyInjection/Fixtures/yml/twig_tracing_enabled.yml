@@ -1,0 +1,4 @@
+sentry:
+    tracing:
+        twig:
+            enabled: true

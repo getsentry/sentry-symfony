@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\DependencyInjection;
 
+use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
 use Sentry\Options;
 use Sentry\SentryBundle\ErrorTypesParser;
+use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Contracts\Cache\CacheInterface;
 
 final class Configuration implements ConfigurationInterface
 {
@@ -120,10 +123,10 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
-            ->end()
-        ;
+            ->end();
 
         $this->addMessengerSection($rootNode);
+        $this->addDistributedTracingSection($rootNode);
 
         return $treeBuilder;
     }
@@ -136,6 +139,34 @@ final class Configuration implements ConfigurationInterface
                     ->{interface_exists(MessageBusInterface::class) ? 'canBeDisabled' : 'canBeEnabled'}()
                     ->children()
                         ->booleanNode('capture_soft_fails')->defaultTrue()->end()
+                    ->end()
+                ->end()
+            ->end();
+    }
+
+    private function addDistributedTracingSection(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('tracing')
+                    ->canBeDisabled()
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->arrayNode('dbal')
+                            ->{class_exists(DoctrineBundle::class) ? 'canBeDisabled' : 'canBeEnabled'}()
+                            ->fixXmlConfig('connection')
+                            ->children()
+                                ->arrayNode('connections')
+                                    ->scalarPrototype()->end()
+                                ->end()
+                            ->end()
+                        ->end()
+                        ->arrayNode('twig')
+                            ->{class_exists(TwigBundle::class) ? 'canBeDisabled' : 'canBeEnabled'}()
+                        ->end()
+                        ->arrayNode('cache')
+                            ->{interface_exists(CacheInterface::class) ? 'canBeDisabled' : 'canBeEnabled'}()
+                        ->end()
                     ->end()
                 ->end()
             ->end();

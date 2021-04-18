@@ -4,21 +4,29 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
+use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
 use Sentry\Integration\IgnoreErrorsIntegration;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
-use Sentry\SentryBundle\EventListener\ConsoleCommandListener;
+use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
+use Sentry\SentryBundle\EventListener\TracingConsoleListener;
+use Sentry\SentryBundle\EventListener\TracingRequestListener;
+use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
 use Sentry\SentryBundle\SentryBundle;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
+use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
 use Sentry\Transport\TransportFactoryInterface;
+use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -57,9 +65,9 @@ abstract class SentryExtensionTest extends TestCase
     public function testConsoleCommandListener(): void
     {
         $container = $this->createContainerFromFixture('full');
-        $definition = $container->getDefinition(ConsoleCommandListener::class);
+        $definition = $container->findDefinition(ConsoleListener::class);
 
-        $this->assertSame(ConsoleCommandListener::class, $definition->getClass());
+        $this->assertSame(ConsoleListener::class, $definition->getClass());
         $this->assertSame([
             'kernel.event_listener' => [
                 [
@@ -86,7 +94,7 @@ abstract class SentryExtensionTest extends TestCase
     public function testConsoleCommandListenerDoesNotCaptureErrorsWhenErrorListenerIsDisabled(): void
     {
         $container = $this->createContainerFromFixture('error_listener_disabled');
-        $definition = $container->getDefinition(ConsoleCommandListener::class);
+        $definition = $container->getDefinition(ConsoleListener::class);
 
         $this->assertFalse($definition->getArgument(1));
     }
@@ -298,12 +306,70 @@ abstract class SentryExtensionTest extends TestCase
         ];
     }
 
+    public function testInstrumentationIsDisabledWhenTracingIsDisabled(): void
+    {
+        $container = $this->createContainerFromFixture('tracing_disabled');
+
+        $this->assertFalse($container->hasDefinition(TracingRequestListener::class));
+        $this->assertFalse($container->hasDefinition(TracingSubRequestListener::class));
+        $this->assertFalse($container->hasDefinition(TracingConsoleListener::class));
+        $this->assertFalse($container->hasDefinition(TracingDriverMiddleware::class));
+        $this->assertFalse($container->hasDefinition(ConnectionConfigurator::class));
+        $this->assertFalse($container->hasDefinition(TwigTracingExtension::class));
+        $this->assertFalse($container->getParameter('sentry.tracing.enabled'));
+        $this->assertEmpty($container->getParameter('sentry.tracing.dbal.connections'));
+    }
+
+    public function testTracingDriverMiddlewareIsConfiguredWhenDbalTracingIsEnabled(): void
+    {
+        if (!class_exists(DoctrineBundle::class)) {
+            $this->expectException(\LogicException::class);
+            $this->expectExceptionMessage('DBAL tracing support cannot be enabled because the doctrine/doctrine-bundle Composer package is not installed.');
+        }
+
+        $container = $this->createContainerFromFixture('dbal_tracing_enabled');
+
+        $this->assertTrue($container->hasDefinition(TracingDriverMiddleware::class));
+        $this->assertTrue($container->hasDefinition(ConnectionConfigurator::class));
+        $this->assertNotEmpty($container->getParameter('sentry.tracing.dbal.connections'));
+    }
+
+    public function testTracingDriverMiddlewareIsRemovedWhenDbalTracingIsDisabled(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+
+        $this->assertFalse($container->hasDefinition(TracingDriverMiddleware::class));
+        $this->assertFalse($container->hasDefinition(ConnectionConfigurator::class));
+        $this->assertEmpty($container->getParameter('sentry.tracing.dbal.connections'));
+    }
+
+    public function testTwigTracingExtensionIsConfiguredWhenTwigTracingIsEnabled(): void
+    {
+        if (!class_exists(TwigBundle::class)) {
+            $this->expectException(\LogicException::class);
+            $this->expectExceptionMessage('Twig tracing support cannot be enabled because the symfony/twig-bundle Composer package is not installed.');
+        }
+
+        $container = $this->createContainerFromFixture('twig_tracing_enabled');
+
+        $this->assertTrue($container->hasDefinition(TwigTracingExtension::class));
+    }
+
+    public function testTwigTracingExtensionIsRemovedWhenTwigTracingIsDisabled(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+
+        $this->assertFalse($container->hasDefinition(TwigTracingExtension::class));
+    }
+
     private function createContainerFromFixture(string $fixtureFile): ContainerBuilder
     {
         $container = new ContainerBuilder(new EnvPlaceholderParameterBag([
             'kernel.cache_dir' => __DIR__,
             'kernel.build_dir' => __DIR__,
             'kernel.project_dir' => __DIR__,
+            'doctrine.default_connection' => 'default',
+            'doctrine.connections' => ['default'],
         ]));
 
         $container->registerExtension(new SentryExtension());

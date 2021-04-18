@@ -23,7 +23,9 @@
             </call>
         </service>
 
-        <service id="Sentry\SentryBundle\EventListener\ConsoleCommandListener" class="Sentry\SentryBundle\EventListener\ConsoleCommandListener">
+        <service id="Sentry\SentryBundle\EventListener\ConsoleCommandListener" alias="Sentry\SentryBundle\EventListener\ConsoleListener" />
+
+        <service id="Sentry\SentryBundle\EventListener\ConsoleListener" class="Sentry\SentryBundle\EventListener\ConsoleListener">
             <argument type="service" id="Sentry\State\HubInterface" />
 
             <tag name="kernel.event_listener" event="console.command" method="handleConsoleCommandEvent" priority="128" />
@@ -52,6 +54,29 @@
             <tag name="kernel.event_listener" event="kernel.finish_request" method="handleKernelFinishRequestEvent" priority="5" />
         </service>
 
+        <service id="Sentry\SentryBundle\EventListener\TracingRequestListener" class="Sentry\SentryBundle\EventListener\TracingRequestListener">
+            <argument type="service" id="Sentry\State\HubInterface" />
+
+            <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" priority="4" />
+            <tag name="kernel.event_listener" event="kernel.response" method="handleKernelResponseEvent" priority="15" />
+            <tag name="kernel.event_listener" event="kernel.terminate" method="handleKernelTerminateEvent" priority="5" />
+        </service>
+
+        <service id="Sentry\SentryBundle\EventListener\TracingSubRequestListener" class="Sentry\SentryBundle\EventListener\TracingSubRequestListener">
+            <argument type="service" id="Sentry\State\HubInterface" />
+
+            <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" priority="2" />
+            <tag name="kernel.event_listener" event="kernel.finish_request" method="handleKernelFinishRequestEvent" priority="10" />
+            <tag name="kernel.event_listener" event="kernel.response" method="handleKernelResponseEvent" priority="15" />
+        </service>
+
+        <service id="Sentry\SentryBundle\EventListener\TracingConsoleListener" class="Sentry\SentryBundle\EventListener\TracingConsoleListener">
+            <argument type="service" id="Sentry\State\HubInterface" />
+
+            <tag name="kernel.event_listener" event="console.command" method="handleConsoleCommandEvent" priority="118" />
+            <tag name="kernel.event_listener" event="console.terminate" method="handleConsoleTerminateEvent" priority="-54" />
+        </service>
+
         <service id="Sentry\SentryBundle\EventListener\MessengerListener" class="Sentry\SentryBundle\EventListener\MessengerListener">
             <argument type="service" id="Sentry\State\HubInterface" />
 
@@ -61,6 +86,30 @@
 
         <service id="Sentry\SentryBundle\Command\SentryTestCommand" class="Sentry\SentryBundle\Command\SentryTestCommand">
             <tag name="console.command" />
+        </service>
+
+        <service id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware" class="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware">
+            <argument type="service" id="Sentry\State\HubInterface" />
+        </service>
+
+        <service id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator" class="Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator">
+            <argument type="service" id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware" />
+        </service>
+
+        <service id="Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension" class="Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension">
+            <argument type="service" id="Sentry\State\HubInterface" />
+
+            <tag name="twig.extension" />
+        </service>
+
+        <service id="sentry.tracing.traceable_cache_adapter" class="Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapter" abstract="true">
+            <argument type="service" id="Sentry\State\HubInterface" />
+            <argument /> <!-- $decoratedAdapter -->
+        </service>
+
+        <service id="sentry.tracing.traceable_tag_aware_cache_adapter" class="Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapter" abstract="true">
+            <argument type="service" id="Sentry\State\HubInterface" />
+            <argument /> <!-- $decoratedAdapter -->
         </service>
 
         <service id="Sentry\Integration\RequestFetcherInterface" class="Sentry\SentryBundle\Integration\RequestFetcher">

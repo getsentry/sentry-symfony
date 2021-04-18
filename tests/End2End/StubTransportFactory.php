@@ -17,11 +17,17 @@ class StubTransportFactory implements TransportFactoryInterface
 {
     public const SEPARATOR = '###';
 
+    /**
+     * @var Event[]
+     */
+    public static $events = [];
+
     public function create(Options $options): TransportInterface
     {
         return new class() implements TransportInterface {
             public function send(Event $event): PromiseInterface
             {
+                StubTransportFactory::$events[] = $event;
                 touch(End2EndTest::SENT_EVENTS_LOG);
 
                 if ($event->getMessage()) {

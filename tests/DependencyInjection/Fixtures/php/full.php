@@ -42,4 +42,16 @@ $container->loadFromExtension('sentry', [
         'enabled' => true,
         'capture_soft_fails' => false,
     ],
+    'tracing' => [
+        'dbal' => [
+            'enabled' => false,
+            'connections' => ['default'],
+        ],
+        'twig' => [
+            'enabled' => false,
+        ],
+        'cache' => [
+            'enabled' => false,
+        ],
+    ],
 ]);

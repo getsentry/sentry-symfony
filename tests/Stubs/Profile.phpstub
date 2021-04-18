@@ -1,0 +1,10 @@
+<?php
+
+namespace Twig\Profiler;
+
+/**
+ * @template-implements \IteratorAggregate<Profile, Profile>
+ */
+final class Profile implements \IteratorAggregate, \Serializable
+{
+}
