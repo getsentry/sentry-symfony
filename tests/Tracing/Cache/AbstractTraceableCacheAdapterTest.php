@@ -146,6 +146,16 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
+    public function testGetThrowsExceptionIfDecoratedAdapterDoesNotImplementTheCacheInterface(): void
+    {
+        $adapter = $this->createCacheAdapter($this->createMock(static::getAdapterClassFqcn()));
+
+        $this->expectException(\BadMethodCallException::class);
+        $this->expectExceptionMessage(sprintf('The %s::get() method is not supported because the decorated adapter does not implement the "Symfony\\Contracts\\Cache\\CacheInterface" interface.', \get_class($adapter)));
+
+        $adapter->get('foo', static function () {});
+    }
+
     public function testDelete(): void
     {
         $transaction = new Transaction(new TransactionContext(), $this->hub);
@@ -170,6 +180,16 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $this->assertCount(2, $spans);
         $this->assertSame('cache.delete_item', $spans[1]->getOp());
         $this->assertNotNull($spans[1]->getEndTimestamp());
+    }
+
+    public function testDeleteThrowsExceptionIfDecoratedAdapterDoesNotImplementTheCacheInterface(): void
+    {
+        $adapter = $this->createCacheAdapter($this->createMock(static::getAdapterClassFqcn()));
+
+        $this->expectException(\BadMethodCallException::class);
+        $this->expectExceptionMessage(sprintf('The %s::delete() method is not supported because the decorated adapter does not implement the "Symfony\\Contracts\\Cache\\CacheInterface" interface.', \get_class($adapter)));
+
+        $adapter->delete('foo');
     }
 
     public function testHasItem(): void
@@ -354,6 +374,16 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
+    public function testPruneThrowsExceptionIfDecoratedAdapterIsNotPruneable(): void
+    {
+        $adapter = $this->createCacheAdapter($this->createMock(static::getAdapterClassFqcn()));
+
+        $this->expectException(\BadMethodCallException::class);
+        $this->expectExceptionMessage(sprintf('The %s::prune() method is not supported because the decorated adapter does not implement the "Symfony\\Component\\Cache\\PruneableInterface" interface.', \get_class($adapter)));
+
+        $adapter->prune();
+    }
+
     public function testReset(): void
     {
         $decoratedAdapter = $this->createMock(ResettableCacheAdapterInterface::class);
@@ -361,6 +391,16 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
             ->method('reset');
 
         $adapter = $this->createCacheAdapter($decoratedAdapter);
+        $adapter->reset();
+    }
+
+    public function testResetThrowsExceptionIfDecoratedAdapterIsNotResettable(): void
+    {
+        $adapter = $this->createCacheAdapter($this->createMock(static::getAdapterClassFqcn()));
+
+        $this->expectException(\BadMethodCallException::class);
+        $this->expectExceptionMessage(sprintf('The %s::reset() method is not supported because the decorated adapter does not implement the "Symfony\\Component\\Cache\\ResettableInterface" interface.', \get_class($adapter)));
+
         $adapter->reset();
     }
 

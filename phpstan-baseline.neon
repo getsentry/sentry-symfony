@@ -202,22 +202,22 @@ parameters:
 
 		-
 			message: "#^Call to an undefined method TCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface\\:\\:delete\\(\\)\\.$#"
-			count: 1
+			count: 2
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
 
 		-
 			message: "#^Call to an undefined method TCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface\\:\\:get\\(\\)\\.$#"
-			count: 1
+			count: 2
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
 
 		-
 			message: "#^Call to an undefined method TCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface\\:\\:prune\\(\\)\\.$#"
-			count: 1
+			count: 2
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
 
 		-
 			message: "#^Call to an undefined method TCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface\\:\\:reset\\(\\)\\.$#"
-			count: 1
+			count: 2
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
 
 		-
