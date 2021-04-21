@@ -9,11 +9,11 @@ use Jean85\PrettyVersions;
 use Sentry\Options;
 use Sentry\SentryBundle\ErrorTypesParser;
 use Symfony\Bundle\TwigBundle\TwigBundle;
+use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Contracts\Cache\CacheInterface;
 
 final class Configuration implements ConfigurationInterface
 {
@@ -165,7 +165,7 @@ final class Configuration implements ConfigurationInterface
                             ->{class_exists(TwigBundle::class) ? 'canBeDisabled' : 'canBeEnabled'}()
                         ->end()
                         ->arrayNode('cache')
-                            ->{interface_exists(CacheInterface::class) ? 'canBeDisabled' : 'canBeEnabled'}()
+                            ->{interface_exists(CacheItem::class) ? 'canBeDisabled' : 'canBeEnabled'}()
                         ->end()
                     ->end()
                 ->end()

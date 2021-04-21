@@ -28,6 +28,7 @@ use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
 use Sentry\Transport\TransportFactoryInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
+use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -35,7 +36,6 @@ use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\ErrorHandler\Error\FatalError;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
-use Symfony\Contracts\Cache\CacheInterface;
 
 final class SentryExtension extends ConfigurableExtension
 {
@@ -224,7 +224,7 @@ final class SentryExtension extends ConfigurableExtension
         $isConfigEnabled = $this->isConfigEnabled($container, $config)
             && $this->isConfigEnabled($container, $config['cache']);
 
-        if ($isConfigEnabled && !interface_exists(CacheInterface::class)) {
+        if ($isConfigEnabled && !interface_exists(CacheItem::class)) {
             throw new LogicException('Cache tracing support cannot be enabled because the symfony/cache Composer package is not installed.');
         }
 
