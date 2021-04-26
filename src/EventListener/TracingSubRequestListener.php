@@ -22,7 +22,7 @@ final class TracingSubRequestListener extends AbstractTracingRequestListener
      */
     public function handleKernelRequestEvent(SubRequestListenerRequestEvent $event): void
     {
-        if ($event->isMasterRequest()) {
+        if ($this->isMainRequest($event)) {
             return;
         }
 
@@ -53,7 +53,7 @@ final class TracingSubRequestListener extends AbstractTracingRequestListener
      */
     public function handleKernelFinishRequestEvent(FinishRequestEvent $event): void
     {
-        if ($event->isMasterRequest()) {
+        if ($this->isMainRequest($event)) {
             return;
         }
 

@@ -181,17 +181,17 @@ parameters:
 			path: tests/EventListener/RequestListenerTest.php
 
 		-
-			message: "#^Call to method isMasterRequest\\(\\) on an unknown class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\.$#"
-			count: 1
-			path: tests/EventListener/SubRequestListenerTest.php
-
-		-
 			message: "#^Instantiated class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent not found\\.$#"
 			count: 2
 			path: tests/EventListener/SubRequestListenerTest.php
 
 		-
 			message: "#^Parameter \\#1 \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\SubRequestListener\\:\\:handleKernelRequestEvent\\(\\) expects Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\RequestEvent, Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\|Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\RequestEvent given\\.$#"
+			count: 1
+			path: tests/EventListener/SubRequestListenerTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$event of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\SubRequestListenerTest\\:\\:isMainRequest\\(\\) expects Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent, Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\|Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\RequestEvent given\\.$#"
 			count: 1
 			path: tests/EventListener/SubRequestListenerTest.php
 

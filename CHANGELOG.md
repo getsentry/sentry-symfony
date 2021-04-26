@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Fix the conditions to automatically enable the cache instrumentation when possible (#487)
+- Fix deprecations triggered by Symfony 5.3 (#489)
 
 ## 4.1.0 (2021-04-19)
 
