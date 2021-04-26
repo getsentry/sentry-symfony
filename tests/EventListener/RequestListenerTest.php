@@ -221,7 +221,12 @@ final class RequestListenerTest extends TestCase
                             return null;
                         }
 
-                        public function getUsername()
+                        public function getUsername(): string
+                        {
+                            return $this->getUserIdentifier();
+                        }
+
+                        public function getUserIdentifier(): string
                         {
                             return 'foo_user';
                         }
@@ -411,7 +416,12 @@ final class RequestListenerTest extends TestCase
                             return null;
                         }
 
-                        public function getUsername()
+                        public function getUsername(): string
+                        {
+                            return $this->getUserIdentifier();
+                        }
+
+                        public function getUserIdentifier(): string
                         {
                             return 'foo_user';
                         }

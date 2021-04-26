@@ -24,7 +24,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      */
     public function handleKernelRequestEvent(RequestListenerRequestEvent $event): void
     {
-        if (!$event->isMasterRequest()) {
+        if (!$this->isMainRequest($event)) {
             return;
         }
 

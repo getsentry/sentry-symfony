@@ -6,6 +6,7 @@ namespace Sentry\SentryBundle\Tests\EventListener;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Sentry\SentryBundle\EventListener\KernelEventForwardCompatibilityTrait;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
@@ -18,6 +19,8 @@ use Symfony\Component\HttpKernel\Kernel;
 
 class SubRequestListenerTest extends TestCase
 {
+    use KernelEventForwardCompatibilityTrait;
+
     /**
      * @var MockObject&HubInterface
      */
@@ -42,7 +45,7 @@ class SubRequestListenerTest extends TestCase
      */
     public function testHandleKernelRequestEvent($event): void
     {
-        $this->hub->expects($event->isMasterRequest() ? $this->never() : $this->once())
+        $this->hub->expects($this->isMainRequest($event) ? $this->never() : $this->once())
             ->method('pushScope')
             ->willReturn(new Scope());
 
@@ -92,7 +95,7 @@ class SubRequestListenerTest extends TestCase
      */
     public function testHandleKernelFinishRequestEvent($event): void
     {
-        $this->hub->expects($event->isMasterRequest() ? $this->never() : $this->once())
+        $this->hub->expects($this->isMainRequest($event) ? $this->never() : $this->once())
             ->method('popScope');
 
         $this->listener->handleKernelFinishRequestEvent($event);
