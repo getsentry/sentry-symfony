@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
- - ...
+ - Fix deprecations triggered by Symfony 5.3 (#490)
 
 ## 3.5.4
  - CLI commands registration policy changed to lazy load (#373, thanks to @kefzce)

@@ -353,7 +353,12 @@ class UserWithInterface implements UserInterface
         return null;
     }
 
-    public function getUsername()
+    public function getUsername(): string
+    {
+        return $this->getUserIdentifier();
+    }
+
+    public function getUserIdentifier(): string
     {
         return $this->username;
     }
