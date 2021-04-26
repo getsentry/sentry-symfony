@@ -20,6 +20,8 @@ if (Kernel::MAJOR_VERSION >= 5) {
 
 final class SubRequestListener
 {
+    use KernelEventForwardCompatibilityTrait;
+
     /**
      * Pushes a new {@see Scope} for each SubRequest
      *
@@ -27,7 +29,7 @@ final class SubRequestListener
      */
     public function onKernelRequest(SubRequestListenerRequestEvent $event): void
     {
-        if ($event->isMasterRequest()) {
+        if ($this->isMainRequest($event)) {
             return;
         }
 
@@ -41,7 +43,7 @@ final class SubRequestListener
      */
     public function onKernelFinishRequest(FinishRequestEvent $event): void
     {
-        if ($event->isMasterRequest()) {
+        if ($this->isMainRequest($event)) {
             return;
         }
 
