@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Attach bus, receiver and message class name as extra's
 
 ## 4.1.0 (2021-04-19)
 

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\Event;
+use Sentry\EventHint;
+use Sentry\Severity;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\Messenger\Envelope;
@@ -11,9 +14,6 @@ use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
-use Throwable;
-
-use function get_class;
 
 final class MessengerListener
 {
@@ -52,17 +52,16 @@ final class MessengerListener
         }
 
         $error = $event->getThrowable();
-
         if ($error instanceof HandlerFailedException) {
             foreach ($error->getNestedExceptions() as $nestedException) {
-                $this->captureExceptionWithScope(
+                $this->captureException(
                     $nestedException,
                     $event->getEnvelope(),
                     $event->getReceiverName()
                 );
             }
         } else {
-            $this->captureExceptionWithScope(
+            $this->captureException(
                 $error,
                 $event->getEnvelope(),
                 $event->getReceiverName()
@@ -93,23 +92,33 @@ final class MessengerListener
         }
     }
 
-    private function captureExceptionWithScope(
-        Throwable $exception,
+    private function captureException(
+        \Throwable $exception,
         Envelope $envelope,
         string $receiverName
     ): void {
-        $this->hub->withScope(function(Scope $scope) use ($receiverName, $envelope) {
-            if ($messageBusStamp = $envelope->last(BusNameStamp::class)) {
-                assert($messageBusStamp instanceof BusNameStamp);
-                $scope->setTag('messenger.message_bus', $messageBusStamp->getBusName());
+        $event = Event::createEvent();
+        $event->setLevel(Severity::error());
+        $exceptionHint = EventHint::fromArray([
+            'exception' => $exception,
+        ]);
+
+        $this->hub->withScope(function (Scope $scope) use ($receiverName, $envelope, $event, $exceptionHint) {
+            $tags = [
+                'messenger.receiver_name' => $receiverName,
+                'messenger.message_class' => \get_class($envelope->getMessage()),
+            ];
+
+            /**
+             * @var BusNameStamp|null $messageBusStamp
+             */
+            $messageBusStamp = $envelope->last(BusNameStamp::class);
+            if (null !== $messageBusStamp) {
+                $tags['messenger.message_bus'] = $messageBusStamp->getBusName();
             }
 
-            $scope->setTags([
-                'messenger.receiver_name' => $receiverName,
-                'messenger.message_class' => get_class($envelope->getMessage())
-            ]);
+            $scope->setTags($tags);
+            $this->hub->captureEvent($event, $exceptionHint);
         });
-
-        $this->hub->captureException($exception);
     }
 }

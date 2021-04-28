@@ -10,6 +10,7 @@ use Sentry\ClientInterface;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\Tests\End2End\App\Kernel;
 use Sentry\State\HubInterface;
+use Sentry\State\Scope;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
@@ -47,7 +48,7 @@ final class MessengerListenerTest extends TestCase
         }
 
         $this->hub->expects($this->exactly(\count($exceptions)))
-            ->method('captureException')
+            ->method('captureEvent')
             ->withConsecutive(...array_map(static function (\Throwable $exception): array {
                 return [$exception];
             }, $exceptions));
@@ -55,9 +56,6 @@ final class MessengerListenerTest extends TestCase
         $this->hub->expects($this->once())
             ->method('getClient')
             ->willReturn($this->client);
-
-        $this->hub->expects($this->exactly(\count($exceptions)))
-            ->method('withScope');
 
         $listener = new MessengerListener($this->hub);
         $listener->handleWorkerMessageFailedEvent($event);
@@ -72,8 +70,72 @@ final class MessengerListenerTest extends TestCase
             return;
         }
 
+        $envelope = Envelope::wrap((object) []);
+        $exceptions = [
+            new \Exception(),
+            new \Exception(),
+        ];
+
+        yield [
+            $exceptions,
+            $this->getMessageFailedEvent($envelope, 'receiver', new HandlerFailedException($envelope, $exceptions), false),
+        ];
+
+        $exceptions = [
+            new \Exception(),
+        ];
+
+        yield [
+            $exceptions,
+            $this->getMessageFailedEvent($envelope, 'receiver', $exceptions[0], false),
+        ];
+    }
+
+    /**
+     * @dataProvider handleWorkerMessageFailedEventWithStampsDataProvider
+     *
+     * @param \Throwable[] $exceptions
+     */
+    public function testHandleWorkerMessageFailedEventWithStamps(array $exceptions, WorkerMessageFailedEvent $event): void
+    {
+        if (!$this->supportsMessenger()) {
+            $this->markTestSkipped('Messenger not supported in this environment.');
+        }
+
+        $scope = new Scope();
+        $this->hub->expects($this->exactly(\count($exceptions)))
+            ->method('withScope')
+            ->willReturnCallback(function (callable $callback) use ($scope): void {
+                $callback($scope);
+
+                // $scope has no tags getters, should make assertions against this
+                // 'messenger.receiver_name => 'receiver',
+                // 'messenger.message_class' => 'stdClass',
+                // 'messenger.message_bus' => 'commandBus',
+            });
+
+        $this->hub->expects($this->exactly(\count($exceptions)))
+            ->method('captureEvent');
+
+        $this->hub->expects($this->once())
+            ->method('getClient')
+            ->willReturn($this->client);
+
+        $listener = new MessengerListener($this->hub);
+        $listener->handleWorkerMessageFailedEvent($event);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function handleWorkerMessageFailedEventWithStampsDataProvider(): \Generator
+    {
+        if (!$this->supportsMessenger()) {
+            return;
+        }
+
         $envelope = Envelope::wrap((object) [], [
-            new BusNameStamp('commandBus')
+            new BusNameStamp('commandBus'),
         ]);
         $exceptions = [
             new \Exception(),
@@ -104,9 +166,7 @@ final class MessengerListenerTest extends TestCase
             $this->markTestSkipped('Messenger not supported in this environment.');
         }
 
-        $envelope = Envelope::wrap((object) [], [
-            new BusNameStamp('commandBus')
-        ]);
+        $envelope = Envelope::wrap((object) []);
         $event = $this->getMessageFailedEvent($envelope, 'receiver', new \Exception(), $retry);
 
         $this->hub->expects($this->any())
@@ -165,7 +225,7 @@ final class MessengerListenerTest extends TestCase
 
         $event = new WorkerMessageHandledEvent(
             Envelope::wrap((object) [], [
-                new BusNameStamp('commandBus')
+                new BusNameStamp('commandBus'),
             ]),
             'receiver'
         );
