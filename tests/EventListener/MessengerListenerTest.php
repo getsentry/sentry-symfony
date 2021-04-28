@@ -15,6 +15,7 @@ use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\BusNameStamp;
 
 final class MessengerListenerTest extends TestCase
 {
@@ -55,6 +56,9 @@ final class MessengerListenerTest extends TestCase
             ->method('getClient')
             ->willReturn($this->client);
 
+        $this->hub->expects($this->exactly(\count($exceptions)))
+            ->method('withScope');
+
         $listener = new MessengerListener($this->hub);
         $listener->handleWorkerMessageFailedEvent($event);
     }
@@ -68,7 +72,9 @@ final class MessengerListenerTest extends TestCase
             return;
         }
 
-        $envelope = Envelope::wrap((object) []);
+        $envelope = Envelope::wrap((object) [], [
+            new BusNameStamp('commandBus')
+        ]);
         $exceptions = [
             new \Exception(),
             new \Exception(),
@@ -98,7 +104,9 @@ final class MessengerListenerTest extends TestCase
             $this->markTestSkipped('Messenger not supported in this environment.');
         }
 
-        $envelope = Envelope::wrap((object) []);
+        $envelope = Envelope::wrap((object) [], [
+            new BusNameStamp('commandBus')
+        ]);
         $event = $this->getMessageFailedEvent($envelope, 'receiver', new \Exception(), $retry);
 
         $this->hub->expects($this->any())
@@ -155,8 +163,14 @@ final class MessengerListenerTest extends TestCase
         $this->client->expects($this->once())
             ->method('flush');
 
+        $event = new WorkerMessageHandledEvent(
+            Envelope::wrap((object) [], [
+                new BusNameStamp('commandBus')
+            ]),
+            'receiver'
+        );
         $listener = new MessengerListener($this->hub);
-        $listener->handleWorkerMessageHandledEvent(new WorkerMessageHandledEvent(Envelope::wrap((object) []), 'receiver'));
+        $listener->handleWorkerMessageHandledEvent($event);
     }
 
     private function getMessageFailedEvent(Envelope $envelope, string $receiverName, \Throwable $error, bool $retry): WorkerMessageFailedEvent
