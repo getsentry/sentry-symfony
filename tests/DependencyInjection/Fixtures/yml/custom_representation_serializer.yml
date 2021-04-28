@@ -1,0 +1,2 @@
+sentry:
+    representation_serializer: custom_representation_serializer

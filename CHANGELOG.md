@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Add option to provide custom `Serializer` and `RepresentationSerializer` via configuration (#491)
 
 - Make the transport factory configurable in the bundle's config (#504)
 

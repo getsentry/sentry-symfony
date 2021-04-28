@@ -1,0 +1,2 @@
+sentry:
+    serializer: custom_serializer

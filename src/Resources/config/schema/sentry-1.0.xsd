@@ -12,6 +12,8 @@
             <xsd:element name="options" type="options" minOccurs="0" maxOccurs="1" />
             <xsd:element name="messenger" type="messenger" minOccurs="0" maxOccurs="1" />
             <xsd:element name="tracing" type="tracing" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="serializer" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="representation_serializer" type="xsd:string" minOccurs="0" maxOccurs="1"/>
         </xsd:choice>
 
         <xsd:attribute name="register-error-listener" type="xsd:boolean" />

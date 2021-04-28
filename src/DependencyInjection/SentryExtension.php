@@ -115,20 +115,28 @@ final class SentryExtension extends ConfigurableExtension
             ->setPublic(false)
             ->setArgument(0, $options);
 
-        $serializer = (new Definition(Serializer::class))
-            ->setPublic(false)
-            ->setArgument(0, new Reference('sentry.client.options'));
+        if (null !== $config['serializer']) {
+            $serializerDefinition = new Reference($config['serializer']);
+        } else {
+            $serializerDefinition = (new Definition(Serializer::class))
+                ->setPublic(false)
+                ->setArgument(0, new Reference('sentry.client.options'));
+        }
 
-        $representationSerializerDefinition = (new Definition(RepresentationSerializer::class))
-            ->setPublic(false)
-            ->setArgument(0, new Reference('sentry.client.options'));
+        if (null !== $config['representation_serializer']) {
+            $representationSerializerDefinition = new Reference($config['representation_serializer']);
+        } else {
+            $representationSerializerDefinition = (new Definition(RepresentationSerializer::class))
+                ->setPublic(false)
+                ->setArgument(0, new Reference('sentry.client.options'));
+        }
 
         $clientBuilderDefinition = (new Definition(ClientBuilder::class))
             ->setArgument(0, new Reference('sentry.client.options'))
             ->addMethodCall('setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER])
             ->addMethodCall('setSdkVersion', [PrettyVersions::getVersion('sentry/sentry-symfony')->getPrettyVersion()])
             ->addMethodCall('setTransportFactory', [new Reference($config['transport_factory'])])
-            ->addMethodCall('setSerializer', [$serializer])
+            ->addMethodCall('setSerializer', [$serializerDefinition])
             ->addMethodCall('setRepresentationSerializer', [$representationSerializerDefinition]);
 
         $container
