@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Attach bus, receiver and message class name as extra's
 
 - Make the transport factory configurable in the bundle's config (#504)
 - Add the `sentry_trace_meta()` Twig function to print the `sentry-trace` HTML meta tag (#510)
