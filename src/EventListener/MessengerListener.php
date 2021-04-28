@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\State\HubInterface;
+use Sentry\State\Scope;
+use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
+use Symfony\Component\Messenger\Stamp\BusNameStamp;
+use Throwable;
+
+use function get_class;
 
 final class MessengerListener
 {
@@ -49,10 +55,18 @@ final class MessengerListener
 
         if ($error instanceof HandlerFailedException) {
             foreach ($error->getNestedExceptions() as $nestedException) {
-                $this->hub->captureException($nestedException);
+                $this->captureExceptionWithScope(
+                    $nestedException,
+                    $event->getEnvelope(),
+                    $event->getReceiverName()
+                );
             }
         } else {
-            $this->hub->captureException($error);
+            $this->captureExceptionWithScope(
+                $error,
+                $event->getEnvelope(),
+                $event->getReceiverName()
+            );
         }
 
         $this->flushClient();
@@ -77,5 +91,25 @@ final class MessengerListener
         if (null !== $client) {
             $client->flush();
         }
+    }
+
+    private function captureExceptionWithScope(
+        Throwable $exception,
+        Envelope $envelope,
+        string $receiverName
+    ): void {
+        $this->hub->withScope(function(Scope $scope) use ($receiverName, $envelope) {
+            if ($messageBusStamp = $envelope->last(BusNameStamp::class)) {
+                assert($messageBusStamp instanceof BusNameStamp);
+                $scope->setTag('messenger.message_bus', $messageBusStamp->getBusName());
+            }
+
+            $scope->setTags([
+                'messenger.receiver_name' => $receiverName,
+                'messenger.message_class' => get_class($envelope->getMessage())
+            ]);
+        });
+
+        $this->hub->captureException($exception);
     }
 }
