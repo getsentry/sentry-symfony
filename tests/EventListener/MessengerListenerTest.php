@@ -47,11 +47,20 @@ final class MessengerListenerTest extends TestCase
             $this->markTestSkipped('Messenger not supported in this environment.');
         }
 
+        $scope = new Scope();
         $this->hub->expects($this->exactly(\count($exceptions)))
-            ->method('captureEvent')
-            ->withConsecutive(...array_map(static function (\Throwable $exception): array {
-                return [$exception];
-            }, $exceptions));
+            ->method('withScope')
+            ->willReturnCallback(function (callable $callback) use ($scope): void {
+                $callback($scope);
+
+                // $scope has no tags getters, should make assertions against this
+                // 'messenger.receiver_name => 'receiver',
+                // 'messenger.message_class' => 'stdClass',
+                // 'messenger.message_bus' => 'commandBus',
+            });
+
+        $this->hub->expects($this->exactly(\count($exceptions)))
+            ->method('captureEvent');
 
         $this->hub->expects($this->once())
             ->method('getClient')
