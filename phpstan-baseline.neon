@@ -16,6 +16,11 @@ parameters:
 			path: src/EventListener/ErrorListener.php
 
 		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\EventListener\\\\TracingRequestListener\\:\\:getHttpFlavor\\(\\) never returns null so it can be removed from the return typehint\\.$#"
+			count: 1
+			path: src/EventListener/TracingRequestListener.php
+
+		-
 			message: "#^Call to an undefined method Doctrine\\\\DBAL\\\\Driver\\|Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\Compatibility\\\\ExceptionConverterDriverInterface\\:\\:connect\\(\\)\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
