@@ -4,6 +4,7 @@
 
 - Fix the conditions to automatically enable the cache instrumentation when possible (#487)
 - Fix deprecations triggered by Symfony 5.3 (#489)
+- Fix fatal error when the `SERVER_PROTOCOL` header is missing (#495)
 
 ## 4.1.0 (2021-04-19)
 
@@ -13,7 +14,7 @@
 - Add support for distributed tracing of SQL queries while using Doctrine DBAL (#426)
 - Add support for distributed tracing when running a console command (#455)
 - Add support for distributed tracing of cache pools (#477)
-- Add `Full command` to extras for CLI commands, which includes command with all arguments
+- Add the full CLI command string to the extra context (#352)
 - Deprecate the `Sentry\SentryBundle\EventListener\ConsoleCommandListener` class in favor of its parent class `Sentry\SentryBundle\EventListener\ConsoleListener` (#429)
 - Lower the required version of `symfony/psr-http-message-bridge` to allow installing it on a project that uses Symfony `3.4.x` components only (#480)
 
