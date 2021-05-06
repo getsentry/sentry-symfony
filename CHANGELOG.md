@@ -2,8 +2,10 @@
 
 ## Unreleased
 
+## 4.1.1 (2021-05-10)
+
 - Fix the conditions to automatically enable the cache instrumentation when possible (#487)
-- Fix deprecations triggered by Symfony 5.3 (#489)
+- Fix deprecations triggered by Symfony `5.3` (#489)
 - Fix fatal error when the `SERVER_PROTOCOL` header is missing (#495)
 
 ## 4.1.0 (2021-04-19)
