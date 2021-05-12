@@ -224,7 +224,7 @@ final class SentryExtension extends ConfigurableExtension
         $isConfigEnabled = $this->isConfigEnabled($container, $config)
             && $this->isConfigEnabled($container, $config['cache']);
 
-        if ($isConfigEnabled && !interface_exists(CacheItem::class)) {
+        if ($isConfigEnabled && !class_exists(CacheItem::class)) {
             throw new LogicException('Cache tracing support cannot be enabled because the symfony/cache Composer package is not installed.');
         }
 

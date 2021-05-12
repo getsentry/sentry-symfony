@@ -48,7 +48,7 @@ final class ConfigurationTest extends TestCase
                     'enabled' => class_exists(TwigBundle::class),
                 ],
                 'cache' => [
-                    'enabled' => interface_exists(CacheItem::class),
+                    'enabled' => class_exists(CacheItem::class),
                 ],
             ],
         ];

@@ -165,7 +165,7 @@ final class Configuration implements ConfigurationInterface
                             ->{class_exists(TwigBundle::class) ? 'canBeDisabled' : 'canBeEnabled'}()
                         ->end()
                         ->arrayNode('cache')
-                            ->{interface_exists(CacheItem::class) ? 'canBeDisabled' : 'canBeEnabled'}()
+                            ->{class_exists(CacheItem::class) ? 'canBeDisabled' : 'canBeEnabled'}()
                         ->end()
                     ->end()
                 ->end()

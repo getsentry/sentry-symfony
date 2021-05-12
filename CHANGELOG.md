@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix the CacheItem detection for tracing (#501)
+
 ## 4.1.1 (2021-05-10)
 
 - Fix the conditions to automatically enable the cache instrumentation when possible (#487)
