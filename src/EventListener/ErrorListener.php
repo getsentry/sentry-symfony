@@ -6,6 +6,7 @@ namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\State\HubInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\Messenger\Exception\HandlerFailedException;
 
 /**
  * This listener listens for error events and logs them to Sentry.
@@ -36,9 +37,17 @@ final class ErrorListener
     {
         /** @psalm-suppress RedundantCondition */
         if ($event instanceof ExceptionEvent) {
-            $this->hub->captureException($event->getThrowable());
+            $error = $event->getThrowable();
         } else {
-            $this->hub->captureException($event->getException());
+            $error = $event->getException();
+        }
+
+        if ($error instanceof HandlerFailedException) {
+            foreach ($error->getNestedExceptions() as $nestedException) {
+                $this->hub->captureException($nestedException);
+            }
+        } else {
+            $this->hub->captureException($error);
         }
     }
 }
