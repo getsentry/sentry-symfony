@@ -25,7 +25,6 @@ use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
-use Sentry\Transport\TransportFactoryInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -231,7 +230,7 @@ abstract class SentryExtensionTest extends TestCase
 
         $this->assertDefinitionMethodCallAt($methodCalls[0], 'setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER]);
         $this->assertDefinitionMethodCallAt($methodCalls[1], 'setSdkVersion', [PrettyVersions::getVersion('sentry/sentry-symfony')->getPrettyVersion()]);
-        $this->assertDefinitionMethodCallAt($methodCalls[2], 'setTransportFactory', [new Reference(TransportFactoryInterface::class)]);
+        $this->assertDefinitionMethodCallAt($methodCalls[2], 'setTransportFactory', [new Reference('App\\Sentry\\Transport\\TransportFactory')]);
 
         $this->assertSame('setSerializer', $methodCalls[3][0]);
         $this->assertInstanceOf(Definition::class, $methodCalls[3][1][0]);
