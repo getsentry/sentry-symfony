@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- Fix the CacheItem detection for tracing (#501)
+## 4.1.2 (2021-05-17)
+
+- Fix the check of the existence of the `CacheItem` class while attempting to enable the cache instrumentation (#501)
 
 ## 4.1.1 (2021-05-10)
 
