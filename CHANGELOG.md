@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Make the transport factory configurable in the bundle's config (#504)
+
 ## 4.1.0 (2021-04-19)
 
 - Avoid failures when the `RequestFetcher` fails to translate the `Request` (#472)

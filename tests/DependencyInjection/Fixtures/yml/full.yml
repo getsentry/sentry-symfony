@@ -1,5 +1,6 @@
 sentry:
     dsn: https://examplePublicKey@o0.ingest.sentry.io/0
+    transport_factory: App\Sentry\Transport\TransportFactory
     options:
         integrations:
             - App\Sentry\Integration\FooIntegration

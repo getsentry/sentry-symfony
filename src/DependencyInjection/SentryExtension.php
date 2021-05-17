@@ -26,7 +26,6 @@ use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
-use Sentry\Transport\TransportFactoryInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -128,7 +127,7 @@ final class SentryExtension extends ConfigurableExtension
             ->setArgument(0, new Reference('sentry.client.options'))
             ->addMethodCall('setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER])
             ->addMethodCall('setSdkVersion', [PrettyVersions::getVersion('sentry/sentry-symfony')->getPrettyVersion()])
-            ->addMethodCall('setTransportFactory', [new Reference(TransportFactoryInterface::class)])
+            ->addMethodCall('setTransportFactory', [new Reference($config['transport_factory'])])
             ->addMethodCall('setSerializer', [$serializer])
             ->addMethodCall('setRepresentationSerializer', [$representationSerializerDefinition]);
 

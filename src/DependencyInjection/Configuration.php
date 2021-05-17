@@ -8,6 +8,7 @@ use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
 use Sentry\Options;
 use Sentry\SentryBundle\ErrorTypesParser;
+use Sentry\Transport\TransportFactoryInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -35,6 +36,10 @@ final class Configuration implements ConfigurationInterface
                     ->info('If this value is not provided, the SDK will try to read it from the SENTRY_DSN environment variable. If that variable also does not exist, the SDK will just not send any events.')
                 ->end()
                 ->booleanNode('register_error_listener')->defaultTrue()->end()
+                ->scalarNode('transport_factory')
+                    ->info('The service ID of the transport factory used by the default SDK client.')
+                    ->defaultValue(TransportFactoryInterface::class)
+                ->end()
                 ->arrayNode('options')
                     ->addDefaultsIfNotSet()
                     ->fixXmlConfig('integration')

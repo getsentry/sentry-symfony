@@ -7,6 +7,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 /** @var ContainerBuilder $container */
 $container->loadFromExtension('sentry', [
     'dsn' => 'https://examplePublicKey@o0.ingest.sentry.io/0',
+    'transport_factory' => 'App\\Sentry\\Transport\\TransportFactory',
     'options' => [
         'integrations' => ['App\\Sentry\\Integration\\FooIntegration'],
         'default_integrations' => false,
@@ -28,7 +29,7 @@ $container->loadFromExtension('sentry', [
         ],
         'error_types' => \E_ALL,
         'max_breadcrumbs' => 1,
-        'before_breadcrumb' => 'App\Sentry\BeforeBreadcrumbCallback',
+        'before_breadcrumb' => 'App\\Sentry\\BeforeBreadcrumbCallback',
         'in_app_exclude' => ['%kernel.cache_dir%'],
         'in_app_include' => ['%kernel.project_dir%'],
         'send_default_pii' => true,

@@ -6,7 +6,10 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services https://symfony.com/schema/dic/services/services-1.0.xsd
                                https://sentry.io/schema/dic/sentry-symfony https://sentry.io/schema/dic/sentry-symfony/sentry-1.0.xsd">
 
-    <sentry:config dsn="https://examplePublicKey@o0.ingest.sentry.io/0">
+    <sentry:config
+        dsn="https://examplePublicKey@o0.ingest.sentry.io/0"
+        transport-factory="App\Sentry\Transport\TransportFactory"
+    >
         <sentry:options default-integrations="false"
                         send-attempts="1"
                         sample-rate="1"
