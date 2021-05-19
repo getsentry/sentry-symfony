@@ -116,5 +116,11 @@
             <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack" />
             <argument type="service" id="Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface" on-invalid="null" />
         </service>
+
+        <service id="Sentry\SentryBundle\Twig\SentryExtension" class="Sentry\SentryBundle\Twig\SentryExtension">
+            <argument type="service" id="Sentry\State\HubInterface" />
+
+            <tag name="twig.extension" />
+        </service>
     </services>
 </container>
