@@ -85,7 +85,7 @@ Keep in mind that leaving the `dsn` value empty (or undeclared) in other environ
 ```yaml
 sentry:
     dsn: "https://public:secret@sentry.example.com/1"
-    messenger: 
+    messenger:
         enabled: true # flushes Sentry messages at the end of each message handling
         capture_soft_fails: true # captures exceptions marked for retry too
     options:
@@ -99,7 +99,7 @@ the [PHP specific](https://docs.sentry.io/platforms/php/#php-specific-options) o
 
 #### Optional: use custom HTTP factory/transport
 
-Since SDK 2.0 uses HTTPlug to remain transport-agnostic, you need to have installed two packages that provides 
+Since SDK 2.0 uses HTTPlug to remain transport-agnostic, you need to have installed two packages that provides
 [`php-http/async-client-implementation`](https://packagist.org/providers/php-http/async-client-implementation)
 and [`http-message-implementation`](https://packagist.org/providers/psr/http-message-implementation).
 
@@ -114,7 +114,7 @@ If instead you want to use a different HTTP client or message factory, you can o
 ```
 This will prevent the installation of ``sentry/sdk`` package and will allow you to install through Composer the HTTP client or message factory of your choice.
 
-For example for using Guzzle's components: 
+For example for using Guzzle's components:
 
 ```bash
 composer require php-http/guzzle6-adapter guzzlehttp/psr7
@@ -131,14 +131,14 @@ composer require pugx/sentry-sdk
  * 4.x is actively maintained and developed on the master branch, and uses Sentry SDK 3.0;
  * 3.x is supported only for fixes and uses Sentry SDK 2.0;
  * 2.x is no longer maintained; from this version onwards it requires Symfony 3+ and PHP 7.1+;
- * 1.x is no longer maintained; you can use it for Symfony < 2.8 and PHP 5.6/7.0; 
+ * 1.x is no longer maintained; you can use it for Symfony < 2.8 and PHP 5.6/7.0;
  * 0.8.x is no longer maintained.
 
 ### Upgrading to 4.0
 
 The 4.0 version of the bundle uses the newest version (3.x) of the underlying Sentry SDK. If you need to migrate from previous versions, please check the `UPGRADE-4.0.md` document.
 
-#### Custom serializers
+#### Custom class serializers
 
 The option class_serializers can be used to send customized objects serialization.
 ```yml
@@ -161,6 +161,15 @@ final class ValueObjectSerializer
         ];
     }
 }
+```
+
+#### Custom serializer
+
+The option `serializer` and `representation_serializer` can be used to provide your own serializer service.
+```yml
+sentry:
+    serializer: App\CustomSerializer # must implement Sentry\Serializer\SerializerInterface
+    representation_serializer: App\CustomRepresentationSerializer # must implement Sentry\Serializer\RepresentationSerializerInterface
 ```
 
 [Last stable image]: https://poser.pugx.org/sentry/sentry-symfony/version.svg

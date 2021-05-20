@@ -21,6 +21,8 @@ final class ConfigurationTest extends TestCase
         $expectedBundleDefaultConfig = [
             'register_error_listener' => true,
             'transport_factory' => 'Sentry\\Transport\\TransportFactoryInterface',
+            'representation_serializer' => null,
+            'serializer' => null,
             'options' => [
                 'integrations' => [],
                 'prefixes' => array_merge(['%kernel.project_dir%'], array_filter(explode(\PATH_SEPARATOR, get_include_path() ?: ''))),

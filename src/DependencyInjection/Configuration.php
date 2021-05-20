@@ -40,6 +40,8 @@ final class Configuration implements ConfigurationInterface
                     ->info('The service ID of the transport factory used by the default SDK client.')
                     ->defaultValue(TransportFactoryInterface::class)
                 ->end()
+                ->scalarNode('representation_serializer')->defaultNull()->end()
+                ->scalarNode('serializer')->defaultNull()->end()
                 ->arrayNode('options')
                     ->addDefaultsIfNotSet()
                     ->fixXmlConfig('integration')

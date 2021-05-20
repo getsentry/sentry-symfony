@@ -361,6 +361,24 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertFalse($container->hasDefinition(TwigTracingExtension::class));
     }
 
+    public function testRepresentationSerializerOption(): void
+    {
+        $container = $this->createContainerFromFixture('custom_representation_serializer');
+        $factory = $container->findDefinition('sentry.client')->getFactory();
+
+        $methodCalls = $factory[0]->getMethodCalls();
+        $this->assertDefinitionMethodCallAt($methodCalls[4], 'setRepresentationSerializer', [new Reference('custom_representation_serializer')]);
+    }
+
+    public function testSerializerOption(): void
+    {
+        $container = $this->createContainerFromFixture('custom_serializer');
+        $factory = $container->findDefinition('sentry.client')->getFactory();
+
+        $methodCalls = $factory[0]->getMethodCalls();
+        $this->assertDefinitionMethodCallAt($methodCalls[3], 'setSerializer', [new Reference('custom_serializer')]);
+    }
+
     private function createContainerFromFixture(string $fixtureFile): ContainerBuilder
     {
         $container = new ContainerBuilder(new EnvPlaceholderParameterBag([

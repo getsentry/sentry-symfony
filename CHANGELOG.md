@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Add option to provide custom `Serializer` and `RepresentationSerializer` via configuration (#491)
 
 - Make the transport factory configurable in the bundle's config (#504)
 - Add the `sentry_trace_meta()` Twig function to print the `sentry-trace` HTML meta tag (#510)
