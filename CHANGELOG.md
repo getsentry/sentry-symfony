@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Make the transport factory configurable in the bundle's config (#504)
+- Add the `sentry_trace_meta()` Twig function to print the `sentry-trace` HTML meta tag (#510)
 
 ## 4.1.0 (2021-04-19)
 
