@@ -245,13 +245,3 @@ parameters:
 			count: 1
 			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
 
-		-
-			message: "#^Trying to mock an undefined method getDatabase\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
-
-		-
-			message: "#^Trying to mock an undefined method getName\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
-

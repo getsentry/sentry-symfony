@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tracing\Doctrine\DBAL;
 
-use Doctrine\DBAL\Driver as DriverInterface;
-use Doctrine\DBAL\Driver\Middleware as MiddlewareInterface;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility\DriverInterface;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility\MiddlewareInterface;
 use Sentry\State\HubInterface;
 
 /**
- * This middleware wraps a {@see DriverInterface} instance into one that
+ * This middleware wraps a {@see \Doctrine\DBAL\Driver} instance into one that
  * supports the distributed tracing feature of Sentry.
  */
 final class TracingDriverMiddleware implements MiddlewareInterface

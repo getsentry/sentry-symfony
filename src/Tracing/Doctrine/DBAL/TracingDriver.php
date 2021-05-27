@@ -6,13 +6,13 @@ namespace Sentry\SentryBundle\Tracing\Doctrine\DBAL;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\API\ExceptionConverter;
-use Doctrine\DBAL\Driver as DriverInterface;
 use Doctrine\DBAL\Driver\DriverException as LegacyDriverExceptionInterface;
 use Doctrine\DBAL\Driver\ExceptionConverterDriver as ExceptionConverterDriverInterface;
 use Doctrine\DBAL\Driver\ResultStatement;
 use Doctrine\DBAL\Exception\DriverException as DBALDriverException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\VersionAwarePlatformDriver as VersionAwarePlatformDriverInterface;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility\DriverInterface;
 use Sentry\State\HubInterface;
 
 /**

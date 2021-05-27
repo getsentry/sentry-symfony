@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\Tracing\Doctrine\DBAL;
 
-use Doctrine\DBAL\Driver as DriverInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility\DriverInterface;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriver;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\State\HubInterface;
