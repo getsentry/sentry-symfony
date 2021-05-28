@@ -51,6 +51,9 @@ final class ConfigurationTest extends TestCase
                 'cache' => [
                     'enabled' => interface_exists(CacheInterface::class),
                 ],
+                'console' => [
+                    'excluded_commands' => ['messenger:consume'],
+                ],
             ],
         ];
 

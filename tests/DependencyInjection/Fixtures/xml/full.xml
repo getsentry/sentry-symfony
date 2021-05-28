@@ -46,6 +46,9 @@
             </sentry:dbal>
             <sentry:twig enabled="false" />
             <sentry:cache enabled="false" />
+            <sentry:console>
+                <sentry:excluded-command>app:command</sentry:excluded-command>
+            </sentry:console>
         </sentry:tracing>
     </sentry:config>
 </container>

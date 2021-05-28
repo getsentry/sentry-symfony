@@ -54,5 +54,8 @@ $container->loadFromExtension('sentry', [
         'cache' => [
             'enabled' => false,
         ],
+        'console' => [
+            'excluded_commands' => ['app:command'],
+        ],
     ],
 ]);

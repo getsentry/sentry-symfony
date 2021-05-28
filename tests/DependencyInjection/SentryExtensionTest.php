@@ -361,6 +361,14 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertFalse($container->hasDefinition(TwigTracingExtension::class));
     }
 
+    public function testConsoleTracingListenerIsConfiguredWhenTracingIsEnabled(): void
+    {
+        $container = $this->createContainerFromFixture('console_tracing_enabled');
+
+        $this->assertTrue($container->hasDefinition(TracingConsoleListener::class));
+        $this->assertSame(['foo:bar', 'bar:foo'], $container->getDefinition(TracingConsoleListener::class)->getArgument(1));
+    }
+
     private function createContainerFromFixture(string $fixtureFile): ContainerBuilder
     {
         $container = new ContainerBuilder(new EnvPlaceholderParameterBag([

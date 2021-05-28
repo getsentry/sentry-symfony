@@ -47,3 +47,6 @@ sentry:
             enabled: false
         cache:
             enabled: false
+        console:
+            excluded_commands:
+              - app:command
