@@ -107,7 +107,7 @@ This bundle depends on `sentry/sdk`, which is a metapackage that already solves 
 packages: the Curl client and Guzzle's message factories.
 
 If instead you want to use a different HTTP client or message factory, you can override the ``sentry/sdk`` package adding the following to your ``composer.json`` after the ``require`` section:
-```yaml
+```json
     "replace": {
         "sentry/sdk": "*"
     }
