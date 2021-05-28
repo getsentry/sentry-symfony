@@ -101,7 +101,7 @@ the [PHP specific](https://docs.sentry.io/platforms/php/#php-specific-options) o
 
 Since SDK 2.0 uses HTTPlug to remain transport-agnostic, you need to have installed two packages that provides 
 [`php-http/async-client-implementation`](https://packagist.org/providers/php-http/async-client-implementation)
-and [`http-message-implementation`](https://packagist.org/providers/psr/http-message-implementation).
+and [`psr/http-message-implementation`](https://packagist.org/providers/psr/http-message-implementation).
 
 This bundle depends on `sentry/sdk`, which is a metapackage that already solves this need, requiring our suggested HTTP
 packages: the Curl client and Guzzle's message factories.
