@@ -52,7 +52,7 @@ final class TracingRequestListenerTest extends TestCase
         $transaction = new Transaction(new TransactionContext());
 
         $client = $this->createMock(ClientInterface::class);
-        $client->expects($this->once())
+        $client->expects($this->any())
             ->method('getOptions')
             ->willReturn($options);
 
@@ -63,7 +63,7 @@ final class TracingRequestListenerTest extends TestCase
         $this->hub->expects($this->once())
             ->method('startTransaction')
             ->with($this->callback(function (TransactionContext $context) use ($expectedTransactionContext): bool {
-                $this->assertEquals($context, $expectedTransactionContext);
+                $this->assertEquals($expectedTransactionContext, $context);
 
                 return true;
             }))
@@ -323,6 +323,27 @@ final class TracingRequestListenerTest extends TestCase
 
         yield 'request.server.REMOTE_ADDR EXISTS and client.options.send_default_pii = TRUE' => [
             new Options(['send_default_pii' => true]),
+            $request,
+            $transactionContext,
+        ];
+
+        $request = Request::createFromGlobals();
+        $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setName('GET http://:/');
+        $transactionContext->setOp('http.server');
+        $transactionContext->setStartTimestamp(1613493597.010275);
+        $transactionContext->setTags([
+            'net.host.port' => '',
+            'http.method' => 'GET',
+            'http.url' => 'http://:/',
+            'route' => '<unknown>',
+            'net.host.name' => '',
+        ]);
+
+        yield 'request.server.SERVER_PROTOCOL NOT EXISTS' => [
+            new Options(),
             $request,
             $transactionContext,
         ];

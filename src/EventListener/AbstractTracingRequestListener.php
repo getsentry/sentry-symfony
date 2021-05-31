@@ -11,6 +11,8 @@ use Symfony\Component\Routing\Route;
 
 abstract class AbstractTracingRequestListener
 {
+    use KernelEventForwardCompatibilityTrait;
+
     /**
      * @var HubInterface The current hub
      */

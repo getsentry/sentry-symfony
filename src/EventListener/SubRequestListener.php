@@ -13,6 +13,8 @@ use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
  */
 final class SubRequestListener
 {
+    use KernelEventForwardCompatibilityTrait;
+
     /**
      * @var HubInterface The current hub
      */
@@ -36,7 +38,7 @@ final class SubRequestListener
      */
     public function handleKernelRequestEvent(SubRequestListenerRequestEvent $event): void
     {
-        if ($event->isMasterRequest()) {
+        if ($this->isMainRequest($event)) {
             return;
         }
 
@@ -51,7 +53,7 @@ final class SubRequestListener
      */
     public function handleKernelFinishRequestEvent(FinishRequestEvent $event): void
     {
-        if ($event->isMasterRequest()) {
+        if ($this->isMainRequest($event)) {
             return;
         }
 

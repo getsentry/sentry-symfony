@@ -14,7 +14,6 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Contracts\Cache\CacheInterface;
 
 final class CacheTracingPassTest extends TestCase
 {
@@ -32,7 +31,7 @@ final class CacheTracingPassTest extends TestCase
             ->setPublic(true)
             ->addTag('cache.pool');
 
-        $container->register('app.cache.baz', CacheInterface::class)
+        $container->register('app.cache.baz')
             ->setPublic(true)
             ->setAbstract(true)
             ->addTag('cache.pool');
@@ -57,7 +56,7 @@ final class CacheTracingPassTest extends TestCase
     public function testProcessDoesNothingIfConditionsForEnablingTracingAreMissing(): void
     {
         $container = $this->createContainerBuilder(false);
-        $container->register('app.cache', CacheInterface::class);
+        $container->register('app.cache', AdapterInterface::class);
         $container->compile();
 
         $this->assertFalse($container->hasDefinition('app.cache.traceable.inner'));

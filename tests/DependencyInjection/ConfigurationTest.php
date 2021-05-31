@@ -9,10 +9,10 @@ use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
 use Symfony\Bundle\TwigBundle\TwigBundle;
+use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Contracts\Cache\CacheInterface;
 
 final class ConfigurationTest extends TestCase
 {
@@ -49,7 +49,7 @@ final class ConfigurationTest extends TestCase
                     'enabled' => class_exists(TwigBundle::class),
                 ],
                 'cache' => [
-                    'enabled' => interface_exists(CacheInterface::class),
+                    'enabled' => class_exists(CacheItem::class),
                 ],
             ],
         ];

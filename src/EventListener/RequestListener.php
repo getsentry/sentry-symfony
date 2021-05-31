@@ -17,6 +17,8 @@ use Symfony\Component\Security\Core\User\UserInterface;
  */
 final class RequestListener
 {
+    use KernelEventForwardCompatibilityTrait;
+
     /**
      * @var HubInterface The current hub
      */
@@ -47,7 +49,7 @@ final class RequestListener
      */
     public function handleKernelRequestEvent(RequestListenerRequestEvent $event): void
     {
-        if (!$event->isMasterRequest()) {
+        if (!$this->isMainRequest($event)) {
             return;
         }
 
@@ -81,7 +83,7 @@ final class RequestListener
      */
     public function handleKernelControllerEvent(RequestListenerControllerEvent $event): void
     {
-        if (!$event->isMasterRequest()) {
+        if (!$this->isMainRequest($event)) {
             return;
         }
 
@@ -102,7 +104,7 @@ final class RequestListener
     private function getUsername($user): ?string
     {
         if ($user instanceof UserInterface) {
-            return $user->getUsername();
+            return method_exists($user, 'getUserIdentifier') ? $user->getUserIdentifier() : $user->getUsername();
         }
 
         if (\is_string($user)) {

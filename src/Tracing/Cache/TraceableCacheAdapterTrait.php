@@ -71,7 +71,7 @@ trait TraceableCacheAdapterTrait
     {
         return $this->traceFunction('cache.get_item', function () use ($key, $callback, $beta, &$metadata) {
             if (!$this->decoratedAdapter instanceof CacheInterface) {
-                throw new \BadMethodCallException(sprintf('The %s() method is not supported on an adapter that does not implement the "%s" interface.', __FUNCTION__, CacheInterface::class));
+                throw new \BadMethodCallException(sprintf('The %s::get() method is not supported because the decorated adapter does not implement the "%s" interface.', self::class, CacheInterface::class));
             }
 
             return $this->decoratedAdapter->get($key, $callback, $beta, $metadata);
@@ -85,7 +85,7 @@ trait TraceableCacheAdapterTrait
     {
         return $this->traceFunction('cache.delete_item', function () use ($key) {
             if (!$this->decoratedAdapter instanceof CacheInterface) {
-                throw new \BadMethodCallException(sprintf('The %s() method is not supported on an adapter that does not implement the "%s" interface.', __FUNCTION__, CacheInterface::class));
+                throw new \BadMethodCallException(sprintf('The %s::delete() method is not supported because the decorated adapter does not implement the "%s" interface.', self::class, CacheInterface::class));
             }
 
             return $this->decoratedAdapter->delete($key);
@@ -159,7 +159,7 @@ trait TraceableCacheAdapterTrait
     {
         return $this->traceFunction('cache.prune', function (): bool {
             if (!$this->decoratedAdapter instanceof PruneableInterface) {
-                throw new \BadMethodCallException(sprintf('The %s() method is not supported on an adapter that does not implement the "%s" interface.', __FUNCTION__, PruneableInterface::class));
+                throw new \BadMethodCallException(sprintf('The %s::prune() method is not supported because the decorated adapter does not implement the "%s" interface.', self::class, PruneableInterface::class));
             }
 
             return $this->decoratedAdapter->prune();
@@ -172,7 +172,7 @@ trait TraceableCacheAdapterTrait
     public function reset(): void
     {
         if (!$this->decoratedAdapter instanceof ResettableInterface) {
-            throw new \BadMethodCallException(sprintf('The %s() method is not supported on an adapter that does not implement the "%s" interface.', __FUNCTION__, ResettableInterface::class));
+            throw new \BadMethodCallException(sprintf('The %s::reset() method is not supported because the decorated adapter does not implement the "%s" interface.', self::class, ResettableInterface::class));
         }
 
         $this->decoratedAdapter->reset();

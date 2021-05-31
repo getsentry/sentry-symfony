@@ -24,7 +24,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      */
     public function handleKernelRequestEvent(RequestListenerRequestEvent $event): void
     {
-        if (!$event->isMasterRequest()) {
+        if (!$this->isMainRequest($event)) {
             return;
         }
 
@@ -68,13 +68,17 @@ final class TracingRequestListener extends AbstractTracingRequestListener
     private function getTags(Request $request): array
     {
         $client = $this->hub->getClient();
+        $httpFlavor = $this->getHttpFlavor($request);
         $tags = [
             'net.host.port' => (string) $request->getPort(),
             'http.method' => $request->getMethod(),
             'http.url' => $request->getUri(),
-            'http.flavor' => $this->getHttpFlavor($request),
             'route' => $this->getRouteName($request),
         ];
+
+        if (null !== $httpFlavor) {
+            $tags['http.flavor'] = $httpFlavor;
+        }
 
         if (false !== filter_var($request->getHost(), \FILTER_VALIDATE_IP)) {
             $tags['net.host.ip'] = $request->getHost();
@@ -94,11 +98,11 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      *
      * @param Request $request The HTTP request
      */
-    protected function getHttpFlavor(Request $request): string
+    private function getHttpFlavor(Request $request): ?string
     {
         $protocolVersion = $request->getProtocolVersion();
 
-        if (str_starts_with($protocolVersion, 'HTTP/')) {
+        if (null !== $protocolVersion && str_starts_with($protocolVersion, 'HTTP/')) {
             return substr($protocolVersion, \strlen('HTTP/'));
         }
 
