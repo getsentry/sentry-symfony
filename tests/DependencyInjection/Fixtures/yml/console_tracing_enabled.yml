@@ -1,0 +1,6 @@
+sentry:
+    tracing:
+        console:
+            excluded_commands:
+                - foo:bar
+                - bar:foo

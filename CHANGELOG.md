@@ -4,6 +4,7 @@
 
 - Make the transport factory configurable in the bundle's config (#504)
 - Add the `sentry_trace_meta()` Twig function to print the `sentry-trace` HTML meta tag (#510)
+- Make the list of commands for which distributed tracing is active configurable (#515)
 
 ## 4.1.3 (2021-05-31)
 

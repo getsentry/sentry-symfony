@@ -174,7 +174,11 @@ final class SentryExtension extends ConfigurableExtension
             $container->removeDefinition(TracingRequestListener::class);
             $container->removeDefinition(TracingSubRequestListener::class);
             $container->removeDefinition(TracingConsoleListener::class);
+
+            return;
         }
+
+        $container->getDefinition(TracingConsoleListener::class)->replaceArgument(1, $config['console']['excluded_commands']);
     }
 
     /**
