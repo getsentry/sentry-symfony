@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 4.1.3 (2021-05-31)
+
+-  Fix missing require of the `symfony/cache-contracts` package (#506)
+
 ## 4.1.2 (2021-05-17)
 
 - Fix the check of the existence of the `CacheItem` class while attempting to enable the cache instrumentation (#501)
