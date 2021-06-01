@@ -6,8 +6,8 @@ namespace Sentry\SentryBundle\Tracing\Doctrine\DBAL;
 
 use Doctrine\DBAL\Driver\Connection as DriverConnectionInterface;
 use Doctrine\DBAL\Driver\Result;
-use Doctrine\DBAL\Driver\Statement;
 use Doctrine\DBAL\ParameterType;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility\StatementInterface;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\SpanContext;
 
@@ -91,9 +91,9 @@ final class TracingDriverConnection implements DriverConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function prepare($sql): Statement
+    public function prepare($sql): StatementInterface
     {
-        return $this->traceFunction(self::SPAN_OP_CONN_PREPARE, $sql, function () use ($sql): Statement {
+        return $this->traceFunction(self::SPAN_OP_CONN_PREPARE, $sql, function () use ($sql): StatementInterface {
             return $this->decoratedConnection->prepare($sql);
         });
     }

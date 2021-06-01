@@ -6,10 +6,10 @@ namespace Sentry\SentryBundle\Tests\Tracing\Doctrine\DBAL;
 
 use Doctrine\DBAL\Driver\Connection as DriverConnectionInterface;
 use Doctrine\DBAL\Driver\Result as DriverResultInterface;
-use Doctrine\DBAL\Driver\Statement as DriverStatementInterface;
 use Doctrine\DBAL\ParameterType;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility\StatementInterface as DriverStatementInterface;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnection;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\Transaction;
