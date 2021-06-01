@@ -6,6 +6,7 @@ namespace Sentry\SentryBundle\Tests\Tracing\Doctrine\DBAL;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\API\ExceptionConverter;
+use Doctrine\DBAL\Driver as DriverInterface;
 use Doctrine\DBAL\Driver\Connection as DriverConnectionInterface;
 use Doctrine\DBAL\Driver\DriverException as DriverExceptionInterface;
 use Doctrine\DBAL\Driver\ExceptionConverterDriver as ExceptionConverterDriverInterface;
@@ -13,10 +14,8 @@ use Doctrine\DBAL\Exception\DriverException as DBALDriverException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\VersionAwarePlatformDriver as VersionAwarePlatformDriverInterface;
-use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
-use Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility\DriverInterface;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriver;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnection;
 use Sentry\State\HubInterface;
@@ -132,9 +131,14 @@ final class TracingDriverTest extends DoctrineTestCase
             $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be < 3.0.');
         }
 
-        $driver = new TracingDriver($this->hub, new MockDriver());
+        $decoratedDriver = $this->createMock(DriverInterface::class);
+        $decoratedDriver->expects($this->once())
+            ->method('getName')
+            ->willReturn('foo');
 
-        $this->assertSame('driverName', $driver->getName());
+        $driver = new TracingDriver($this->hub, $decoratedDriver);
+
+        $this->assertSame('foo', $driver->getName());
     }
 
     public function testGetNameThrowsIfDoctrineDBALVersionIsAtLeast30(): void
@@ -158,7 +162,13 @@ final class TracingDriverTest extends DoctrineTestCase
 
         $connection = $this->createMock(Connection::class);
 
-        $driver = new TracingDriver($this->hub, new MockDriver($connection));
+        $decoratedDriver = $this->createMock(DriverInterface::class);
+        $decoratedDriver->expects($this->once())
+            ->method('getDatabase')
+            ->with($connection)
+            ->willReturn('foo');
+
+        $driver = new TracingDriver($this->hub, $decoratedDriver);
 
         $this->assertSame('foo', $driver->getDatabase($connection));
     }
@@ -252,50 +262,5 @@ if (interface_exists(ExceptionConverterDriverInterface::class)) {
 } else {
     interface StubExceptionConverterDriverInterface extends DriverInterface
     {
-    }
-}
-
-class MockDriver implements DriverInterface
-{
-    /**
-     * @var Connection|null
-     */
-    private $connection;
-
-    public function __construct(Connection $expectedConnection = null)
-    {
-        $this->connection = $expectedConnection;
-    }
-
-    public function getName(): string
-    {
-        return 'driverName';
-    }
-
-    public function getDatabase(Connection $connection): string
-    {
-        Assert::assertSame($this->connection, $connection, 'Wrong argument passed to ' . __METHOD__);
-
-        return 'foo';
-    }
-
-    public function connect(array $params)
-    {
-        throw new \RuntimeException('This is a mock!');
-    }
-
-    public function getDatabasePlatform()
-    {
-        throw new \RuntimeException('This is a mock!');
-    }
-
-    public function getSchemaManager(Connection $conn, AbstractPlatform $platform)
-    {
-        throw new \RuntimeException('This is a mock!');
-    }
-
-    public function getExceptionConverter(): ExceptionConverter
-    {
-        throw new \RuntimeException('This is a mock!');
     }
 }
