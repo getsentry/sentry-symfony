@@ -394,51 +394,27 @@ final class RequestListenerTest extends TestCase
                 HttpKernelInterface::MASTER_REQUEST
             ),
             $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-            new class() extends AbstractToken {
-                public function __construct()
+            new MockToken(new class() extends MockUser {
+                public function getUsername(): string
                 {
-                    parent::__construct();
-
-                    $this->setAuthenticated(true);
-                    $this->setUser(new class() implements UserInterface {
-                        public function getRoles()
-                        {
-                            return [];
-                        }
-
-                        public function getPassword()
-                        {
-                            return null;
-                        }
-
-                        public function getSalt()
-                        {
-                            return null;
-                        }
-
-                        public function getUsername(): string
-                        {
-                            return $this->getUserIdentifier();
-                        }
-
-                        public function getUserIdentifier(): string
-                        {
-                            return 'foo_user';
-                        }
-
-                        public function eraseCredentials(): void
-                        {
-                        }
-                    });
+                    return $this->getUserIdentifier();
                 }
-
-                public function getCredentials()
-                {
-                    return null;
-                }
-            },
+            }),
             new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
         ];
+
+        if (Kernel::VERSION_ID >= 503000) {
+            yield 'token.authenticated = TRUE && token.user INSTANCEOF UserInterface WITHOUT getUsername' => [
+                new RequestEvent(
+                    $this->createMock(HttpKernelInterface::class),
+                    new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
+                    HttpKernelInterface::MASTER_REQUEST
+                ),
+                $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
+                new MockToken(new class() extends MockUser {}),
+                new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
+            ];
+        }
 
         yield 'token.authenticated = TRUE && token.user INSTANCEOF object && __toString() method EXISTS' => [
             new RequestEvent(
@@ -592,5 +568,48 @@ final class RequestListenerTest extends TestCase
             ->willReturn($options);
 
         return $client;
+    }
+}
+
+class MockToken extends AbstractToken
+{
+    public function __construct(UserInterface $user)
+    {
+        parent::__construct();
+
+        $this->setAuthenticated(true);
+        $this->setUser($user);
+    }
+
+    public function getCredentials(): ?string
+    {
+        return null;
+    }
+}
+
+abstract class MockUser implements UserInterface
+{
+    public function getUserIdentifier(): string
+    {
+        return 'foo_user';
+    }
+
+    public function getRoles()
+    {
+        return [];
+    }
+
+    public function getPassword()
+    {
+        return 'fake-pw';
+    }
+
+    public function getSalt()
+    {
+        return 'fake-salt';
+    }
+
+    public function eraseCredentials(): void
+    {
     }
 }

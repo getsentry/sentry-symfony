@@ -2,9 +2,11 @@
 
 ## Unreleased
 
+- Fix extraction of the username of the logged-in user in Symfony 5.3 (#518)
+
 ## 4.1.3 (2021-05-31)
 
--  Fix missing require of the `symfony/cache-contracts` package (#506)
+- Fix missing require of the `symfony/cache-contracts` package (#506)
 
 ## 4.1.2 (2021-05-17)
 
