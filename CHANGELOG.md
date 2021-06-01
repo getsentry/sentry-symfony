@@ -2,9 +2,11 @@
 
 ## Unreleased
 
+- Check for the presence of the `getUsername()` method when extracting the name of the logged-in user since `UserInterface::getUsername` got removed in Symfony 5.3 (#518)
+
 ## 4.1.3 (2021-05-31)
 
--  Fix missing require of the `symfony/cache-contracts` package (#506)
+- Fix missing require of the `symfony/cache-contracts` package (#506)
 
 ## 4.1.2 (2021-05-17)
 
