@@ -1,0 +1,12 @@
+sentry:
+  tracing:
+    enabled: true
+  options:
+    traces_sample_rate: 1
+
+services:
+  Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController:
+    arguments:
+      - '@doctrine.dbal.default_connection'
+    tags:
+      - controller.service_arguments
