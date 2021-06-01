@@ -10,18 +10,20 @@ use Symfony\Component\HttpFoundation\Response;
 class TracingController
 {
     /**
-     * @var Connection
+     * @var Connection|null
      */
     private $connection;
 
-    public function __construct(Connection $connection)
+    public function __construct(Connection $connection = null)
     {
         $this->connection = $connection;
     }
 
     public function pingDatabase(): Response
     {
-        $this->connection->executeQuery('SELECT 1');
+        if ($this->connection) {
+            $this->connection->executeQuery('SELECT 1');
+        }
 
         return new Response('Success');
     }
