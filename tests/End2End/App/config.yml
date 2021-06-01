@@ -4,7 +4,9 @@ sentry:
     error_types: E_ALL & ~E_USER_DEPRECATED
 
 framework:
-  router: { resource: "%routing_config_dir%/routing.yml" }
+  router:
+    utf8: true # avoid deprecation
+    resource: "%routing_config_dir%/routing.yml"
   secret: secret
   test: ~
 
