@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle;
 
-use Doctrine\DBAL\Driver\DriverException as LegacyDriverExceptionInterface;
-use Doctrine\DBAL\Driver\Exception as DriverExceptionInterface;
 use Doctrine\DBAL\Driver\ExceptionConverterDriver as LegacyExceptionConverterDriverInterface;
 use Sentry\SentryBundle\EventListener\ErrorListenerExceptionEvent;
 use Sentry\SentryBundle\EventListener\RequestListenerControllerEvent;
@@ -86,11 +84,6 @@ if (version_compare(Kernel::VERSION, '4.3.0', '>=')) {
         /** @psalm-suppress UndefinedClass */
         class_alias(GetResponseEvent::class, SubRequestListenerRequestEvent::class);
     }
-}
-
-if (interface_exists(DriverExceptionInterface::class) && !interface_exists(LegacyDriverExceptionInterface::class)) {
-    /** @psalm-suppress UndefinedClass */
-    class_alias(DriverExceptionInterface::class, LegacyDriverExceptionInterface::class);
 }
 
 if (!interface_exists(LegacyExceptionConverterDriverInterface::class)) {

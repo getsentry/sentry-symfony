@@ -7,7 +7,6 @@ namespace Sentry\SentryBundle\Tests\Tracing\Doctrine\DBAL;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\API\ExceptionConverter;
 use Doctrine\DBAL\Driver\Connection as DriverConnectionInterface;
-use Doctrine\DBAL\Driver\DriverException as DriverExceptionInterface;
 use Doctrine\DBAL\Driver\ExceptionConverterDriver as ExceptionConverterDriverInterface;
 use Doctrine\DBAL\Exception\DriverException as DBALDriverException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
@@ -16,6 +15,7 @@ use Doctrine\DBAL\VersionAwarePlatformDriver as VersionAwarePlatformDriverInterf
 use PHPUnit\Framework\MockObject\MockObject;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility\DriverInterface;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility\LegacyDriverExceptionInterface;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriver;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnection;
 use Sentry\State\HubInterface;
@@ -221,7 +221,7 @@ final class TracingDriverTest extends DoctrineTestCase
             $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be <= 3.0.');
         }
 
-        $exception = $this->createMock(DriverExceptionInterface::class);
+        $exception = $this->createMock(LegacyDriverExceptionInterface::class);
         $convertedException = new DBALDriverException('foo', $exception);
 
         $decoratedDriver = $this->createMock(StubExceptionConverterDriverInterface::class);
@@ -245,7 +245,7 @@ final class TracingDriverTest extends DoctrineTestCase
         $this->expectExceptionMessage('The Sentry\\SentryBundle\\Tracing\\Doctrine\\DBAL\\TracingDriver::convertException() method is not supported on Doctrine DBAL 3.0.');
 
         $driver = new TracingDriver($this->hub, $this->createMock(StubExceptionConverterDriverInterface::class));
-        $driver->convertException('foo', $this->createMock(DriverExceptionInterface::class));
+        $driver->convertException('foo', $this->createMock(LegacyDriverExceptionInterface::class));
     }
 }
 
