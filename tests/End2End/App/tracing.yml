@@ -6,8 +6,8 @@ sentry:
 
 services:
   Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController:
-    autowire: true
     arguments:
+      $hub: '@Sentry\State\HubInterface'
       $connection: '@?doctrine.dbal.default_connection'
     tags:
       - controller.service_arguments
