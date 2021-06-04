@@ -205,34 +205,10 @@ final class RequestListenerTest extends TestCase
                     parent::__construct();
 
                     $this->setAuthenticated(true);
-                    $this->setUser(new class() implements UserInterface {
-                        public function getRoles()
-                        {
-                            return [];
-                        }
-
-                        public function getPassword()
-                        {
-                            return null;
-                        }
-
-                        public function getSalt()
-                        {
-                            return null;
-                        }
-
-                        public function getUsername(): string
-                        {
-                            return $this->getUserIdentifier();
-                        }
-
+                    $this->setUser(new class() extends UserStub {
                         public function getUserIdentifier(): string
                         {
-                            return 'foo_user';
-                        }
-
-                        public function eraseCredentials(): void
-                        {
+                            return $this->getUsername();
                         }
                     });
                 }
@@ -387,31 +363,31 @@ final class RequestListenerTest extends TestCase
             new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
         ];
 
-        yield 'token.authenticated = TRUE && token.user INSTANCEOF UserInterface' => [
+        yield 'token.authenticated = TRUE && token.user INSTANCEOF UserInterface && getUserIdentifier() method DOES NOT EXISTS' => [
             new RequestEvent(
                 $this->createMock(HttpKernelInterface::class),
                 new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
                 HttpKernelInterface::MASTER_REQUEST
             ),
             $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-            new MockToken(new class() extends MockUser {
-                public function getUsername(): string
-                {
-                    return $this->getUserIdentifier();
-                }
-            }),
+            new TokenStub(new class() extends UserStub {}),
             new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
         ];
 
         if (Kernel::VERSION_ID >= 503000) {
-            yield 'token.authenticated = TRUE && token.user INSTANCEOF UserInterface WITHOUT getUsername' => [
+            yield 'token.authenticated = TRUE && token.user INSTANCEOF UserInterface && getUserIdentifier() method EXISTS' => [
                 new RequestEvent(
                     $this->createMock(HttpKernelInterface::class),
                     new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
                     HttpKernelInterface::MASTER_REQUEST
                 ),
                 $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-                new MockToken(new class() extends MockUser {}),
+                new TokenStub(new class() extends UserStub {
+                    public function getUserIdentifier(): string
+                    {
+                        return $this->getUsername();
+                    }
+                }),
                 new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
             ];
         }
@@ -571,7 +547,7 @@ final class RequestListenerTest extends TestCase
     }
 }
 
-class MockToken extends AbstractToken
+final class TokenStub extends AbstractToken
 {
     public function __construct(UserInterface $user)
     {
@@ -587,26 +563,26 @@ class MockToken extends AbstractToken
     }
 }
 
-abstract class MockUser implements UserInterface
+abstract class UserStub implements UserInterface
 {
-    public function getUserIdentifier(): string
+    public function getUsername(): string
     {
         return 'foo_user';
     }
 
-    public function getRoles()
+    public function getRoles(): array
     {
         return [];
     }
 
-    public function getPassword()
+    public function getPassword(): ?string
     {
-        return 'fake-pw';
+        return null;
     }
 
-    public function getSalt()
+    public function getSalt(): ?string
     {
-        return 'fake-salt';
+        return null;
     }
 
     public function eraseCredentials(): void
