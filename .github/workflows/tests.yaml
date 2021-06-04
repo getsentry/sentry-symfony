@@ -41,6 +41,7 @@ jobs:
           - description: 'prefer lowest'
             php: '7.2'
             composer_option: '--prefer-lowest'
+            symfony_constraint: ^3.4.44
             env:
               SYMFONY_DEPRECATIONS_HELPER: disabled
 
