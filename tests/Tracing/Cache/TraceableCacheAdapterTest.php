@@ -8,14 +8,14 @@ use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapter;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 
 /**
- * @phpstan-extends AbstractTraceableCacheAdapterTest<TraceableCacheAdapter>
+ * @phpstan-extends AbstractTraceableCacheAdapterTest<TraceableCacheAdapter, AdapterInterface>
  */
 final class TraceableCacheAdapterTest extends AbstractTraceableCacheAdapterTest
 {
     /**
      * {@inheritdoc}
      */
-    protected function createCacheAdapter(AdapterInterface $decoratedAdapter): AdapterInterface
+    protected function createCacheAdapter(AdapterInterface $decoratedAdapter): TraceableCacheAdapter
     {
         return new TraceableCacheAdapter($this->hub, $decoratedAdapter);
     }

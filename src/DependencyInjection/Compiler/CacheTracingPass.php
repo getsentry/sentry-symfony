@@ -8,6 +8,7 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
 final class CacheTracingPass implements CompilerPassInterface
@@ -28,7 +29,13 @@ final class CacheTracingPass implements CompilerPassInterface
                 continue;
             }
 
-            if (is_subclass_of($cachePoolDefinition->getClass(), TagAwareAdapterInterface::class)) {
+            $definitionClass = $this->resolveDefinitionClass($container, $cachePoolDefinition);
+
+            if (null === $definitionClass) {
+                continue;
+            }
+
+            if (is_subclass_of($definitionClass, TagAwareAdapterInterface::class)) {
                 $traceableCachePoolDefinition = new ChildDefinition('sentry.tracing.traceable_tag_aware_cache_adapter');
             } else {
                 $traceableCachePoolDefinition = new ChildDefinition('sentry.tracing.traceable_cache_adapter');
@@ -39,5 +46,17 @@ final class CacheTracingPass implements CompilerPassInterface
 
             $container->setDefinition($serviceId . '.traceable', $traceableCachePoolDefinition);
         }
+    }
+
+    private function resolveDefinitionClass(ContainerBuilder $container, Definition $definition): ?string
+    {
+        $class = $definition->getClass();
+
+        while ($definition instanceof ChildDefinition) {
+            $definition = $container->findDefinition($definition->getParent());
+            $class = $class ?: $definition->getClass();
+        }
+
+        return $class;
     }
 }

@@ -11,46 +11,95 @@ use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapter;
 use Sentry\State\HubInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
+use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
 final class CacheTracingPassTest extends TestCase
 {
-    public function testProcess(): void
+    /**
+     * @dataProvider processDataProvider
+     *
+     * @param array<string, Definition> $definitions
+     */
+    public function testProcess(array $definitions, string $expectedDefinitionClass, string $expectedInnerDefinitionClass): void
+    {
+        $container = $this->createContainerBuilder(true);
+        $container->addDefinitions($definitions);
+        $container->compile();
+
+        $cacheTraceableDefinition = $container->findDefinition('app.cache');
+
+        $this->assertSame($expectedDefinitionClass, $cacheTraceableDefinition->getClass());
+        $this->assertInstanceOf(Definition::class, $cacheTraceableDefinition->getArgument(1));
+        $this->assertSame($expectedInnerDefinitionClass, $cacheTraceableDefinition->getArgument(1)->getClass());
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function processDataProvider(): \Generator
     {
         $cacheAdapter = $this->createMock(AdapterInterface::class);
         $tagAwareCacheAdapter = $this->createMock(TagAwareAdapterInterface::class);
+
+        yield 'Cache pool adapter service' => [
+            [
+                'app.cache' => (new Definition(\get_class($cacheAdapter)))
+                    ->setPublic(true)
+                    ->addTag('cache.pool'),
+            ],
+            TraceableCacheAdapter::class,
+            \get_class($cacheAdapter),
+        ];
+
+        yield 'Tag-aware cache adapter service' => [
+            [
+                'app.cache' => (new Definition(\get_class($tagAwareCacheAdapter)))
+                    ->setPublic(true)
+                    ->addTag('cache.pool'),
+            ],
+            TraceableTagAwareCacheAdapter::class,
+            \get_class($tagAwareCacheAdapter),
+        ];
+
+        yield 'Cache pool adapter service inheriting parent service' => [
+            [
+                'app.cache.parent' => (new Definition(\get_class($cacheAdapter))),
+                'app.cache' => (new ChildDefinition('app.cache.parent'))
+                    ->setPublic(true)
+                    ->addTag('cache.pool'),
+            ],
+            TraceableCacheAdapter::class,
+            \get_class($cacheAdapter),
+        ];
+
+        yield 'Tag-aware cache pool adapter service inheriting parent service' => [
+            [
+                'app.cache.parent' => (new Definition(\get_class($tagAwareCacheAdapter))),
+                'app.cache' => (new ChildDefinition('app.cache.parent'))
+                    ->setPublic(true)
+                    ->addTag('cache.pool'),
+            ],
+            TraceableTagAwareCacheAdapter::class,
+            \get_class($tagAwareCacheAdapter),
+        ];
+    }
+
+    public function testProcessDoesNothingIfCachePoolServiceDefinitionIsAbstract(): void
+    {
+        $cacheAdapter = $this->createMock(AdapterInterface::class);
         $container = $this->createContainerBuilder(true);
 
-        $container->register('app.cache.foo', \get_class($tagAwareCacheAdapter))
-            ->setPublic(true)
-            ->addTag('cache.pool');
-
-        $container->register('app.cache.bar', \get_class($cacheAdapter))
-            ->setPublic(true)
-            ->addTag('cache.pool');
-
-        $container->register('app.cache.baz')
+        $container->register('app.cache', \get_class($cacheAdapter))
             ->setPublic(true)
             ->setAbstract(true)
             ->addTag('cache.pool');
 
         $container->compile();
 
-        $cacheTraceableDefinition = $container->findDefinition('app.cache.foo');
-
-        $this->assertSame(TraceableTagAwareCacheAdapter::class, $cacheTraceableDefinition->getClass());
-        $this->assertInstanceOf(Definition::class, $cacheTraceableDefinition->getArgument(1));
-        $this->assertSame(\get_class($tagAwareCacheAdapter), $cacheTraceableDefinition->getArgument(1)->getClass());
-
-        $cacheTraceableDefinition = $container->findDefinition('app.cache.bar');
-
-        $this->assertSame(TraceableCacheAdapter::class, $cacheTraceableDefinition->getClass());
-        $this->assertInstanceOf(Definition::class, $cacheTraceableDefinition->getArgument(1));
-        $this->assertSame(\get_class($cacheAdapter), $cacheTraceableDefinition->getArgument(1)->getClass());
-
-        $this->assertFalse($container->hasDefinition('app.cache.baz'));
+        $this->assertFalse($container->hasDefinition('app.cache'));
     }
 
     public function testProcessDoesNothingIfConditionsForEnablingTracingAreMissing(): void

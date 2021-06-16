@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fix decoration of cache adapters inheriting parent service (#525)
 - Fix extraction of the username of the logged-in user in Symfony 5.3 (#518)
 
 ## 4.1.3 (2021-05-31)
