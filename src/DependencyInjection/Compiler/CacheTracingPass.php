@@ -52,9 +52,9 @@ final class CacheTracingPass implements CompilerPassInterface
     {
         $class = $definition->getClass();
 
-        while ($definition instanceof ChildDefinition) {
+        while (null === $class && $definition instanceof ChildDefinition) {
             $definition = $container->findDefinition($definition->getParent());
-            $class = $class ?: $definition->getClass();
+            $class = $definition->getClass();
         }
 
         return $class;

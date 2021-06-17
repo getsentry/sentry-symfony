@@ -66,7 +66,7 @@ final class CacheTracingPassTest extends TestCase
 
         yield 'Cache pool adapter service inheriting parent service' => [
             [
-                'app.cache.parent' => (new Definition(\get_class($cacheAdapter))),
+                'app.cache.parent' => new Definition(\get_class($cacheAdapter)),
                 'app.cache' => (new ChildDefinition('app.cache.parent'))
                     ->setPublic(true)
                     ->addTag('cache.pool'),
@@ -75,9 +75,34 @@ final class CacheTracingPassTest extends TestCase
             \get_class($cacheAdapter),
         ];
 
+        yield 'Tag-aware cache pool adapter service inheriting parent service and overriding class' => [
+            [
+                'app.cache.parent' => new Definition(\get_class($cacheAdapter)),
+                'app.cache' => (new ChildDefinition('app.cache.parent'))
+                    ->setClass(\get_class($tagAwareCacheAdapter))
+                    ->setPublic(true)
+                    ->addTag('cache.pool'),
+            ],
+            TraceableTagAwareCacheAdapter::class,
+            \get_class($tagAwareCacheAdapter),
+        ];
+
+        yield 'Tag-aware cache pool adapter service inheriting multiple parent services' => [
+            [
+                'app.cache.parent_1' => new Definition(\get_class($cacheAdapter)),
+                'app.cache.parent_2' => (new ChildDefinition('app.cache.parent_1'))
+                    ->setClass(\get_class($tagAwareCacheAdapter)),
+                'app.cache' => (new ChildDefinition('app.cache.parent_2'))
+                    ->setPublic(true)
+                    ->addTag('cache.pool'),
+            ],
+            TraceableTagAwareCacheAdapter::class,
+            \get_class($tagAwareCacheAdapter),
+        ];
+
         yield 'Tag-aware cache pool adapter service inheriting parent service' => [
             [
-                'app.cache.parent' => (new Definition(\get_class($tagAwareCacheAdapter))),
+                'app.cache.parent' => new Definition(\get_class($tagAwareCacheAdapter)),
                 'app.cache' => (new ChildDefinition('app.cache.parent'))
                     ->setPublic(true)
                     ->addTag('cache.pool'),
