@@ -18,6 +18,7 @@ use Symfony\Contracts\Cache\CacheInterface as BaseCacheInterface;
 
 /**
  * @phpstan-template TCacheAdapter of AdapterInterface
+ * @phpstan-template TDecoratedCacheAdapter of AdapterInterface
  */
 abstract class AbstractTraceableCacheAdapterTest extends TestCase
 {
@@ -410,12 +411,14 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
     }
 
     /**
+     * @phpstan-param TDecoratedCacheAdapter $decoratedAdapter
+     *
      * @phpstan-return TCacheAdapter
      */
-    abstract protected function createCacheAdapter(AdapterInterface $decoratedAdapter): AdapterInterface;
+    abstract protected function createCacheAdapter(AdapterInterface $decoratedAdapter);
 
     /**
-     * @return class-string<AdapterInterface>
+     * @return class-string<TDecoratedCacheAdapter>
      */
     abstract protected static function getAdapterClassFqcn(): string;
 }
