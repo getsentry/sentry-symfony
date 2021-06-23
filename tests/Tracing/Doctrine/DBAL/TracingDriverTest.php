@@ -250,22 +250,24 @@ final class TracingDriverTest extends DoctrineTestCase
     }
 }
 
-if (interface_exists(VersionAwarePlatformDriverInterface::class)) {
-    interface StubVersionAwarePlatformDriverInterface extends DriverInterface, VersionAwarePlatformDriverInterface
-    {
+if (interface_exists(DriverInterface::class)) {
+    if (interface_exists(VersionAwarePlatformDriverInterface::class)) {
+        interface StubVersionAwarePlatformDriverInterface extends DriverInterface, VersionAwarePlatformDriverInterface
+        {
+        }
     }
-}
 
-if (interface_exists(ExceptionConverterDriverInterface::class)) {
-    interface StubExceptionConverterDriverInterface extends ExceptionConverterDriverInterface, DriverInterface
-    {
+    if (interface_exists(ExceptionConverterDriverInterface::class)) {
+        interface StubExceptionConverterDriverInterface extends ExceptionConverterDriverInterface, DriverInterface
+        {
+        }
+    } else {
+        interface StubExceptionConverterDriverInterface extends DriverInterface
+        {
+        }
     }
-} else {
-    interface StubExceptionConverterDriverInterface extends DriverInterface
-    {
-    }
-}
 
-if (!class_exists(DriverExceptionInterface::class)) {
-    class_alias(Exception::class, DriverExceptionInterface::class);
+    if (!class_exists(DriverExceptionInterface::class)) {
+        class_alias(Exception::class, DriverExceptionInterface::class);
+    }
 }
