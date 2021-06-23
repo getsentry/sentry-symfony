@@ -10,6 +10,7 @@ use Doctrine\DBAL\Driver as DriverInterface;
 use Doctrine\DBAL\Driver\Connection as DriverConnectionInterface;
 use Doctrine\DBAL\Driver\DriverException as DriverExceptionInterface;
 use Doctrine\DBAL\Driver\ExceptionConverterDriver as ExceptionConverterDriverInterface;
+use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Exception\DriverException as DBALDriverException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
@@ -263,4 +264,8 @@ if (interface_exists(ExceptionConverterDriverInterface::class)) {
     interface StubExceptionConverterDriverInterface extends DriverInterface
     {
     }
+}
+
+if (!class_exists(DriverExceptionInterface::class)) {
+    class_alias(Exception::class, DriverExceptionInterface::class);
 }
