@@ -16,6 +16,12 @@ abstract class DoctrineTestCase extends TestCase
         return interface_exists(Driver::class);
     }
 
+    protected static function isDoctrineDBALVersion2Installed(): bool
+    {
+        return self::isDoctrineDBALInstalled()
+            && ! self::isDoctrineDBALVersion3Installed();
+    }
+
     protected static function isDoctrineDBALVersion3Installed(): bool
     {
         return interface_exists(Middleware::class);
