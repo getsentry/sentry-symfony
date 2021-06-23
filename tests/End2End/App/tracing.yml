@@ -6,7 +6,6 @@ sentry:
 
 services:
   Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController:
-    public: true
     arguments:
       $hub: '@Sentry\State\HubInterface'
       $connection: '@?doctrine.dbal.default_connection'

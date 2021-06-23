@@ -16,9 +16,6 @@ if (!class_exists(KernelBrowser::class)) {
     class_alias(Client::class, KernelBrowser::class);
 }
 
-/**
- * @runTestsInSeparateProcesses
- */
 class TracingEnd2EndTest extends WebTestCase
 {
     public const SENT_EVENTS_LOG = '/tmp/sentry_e2e_test_sent_events.log';

@@ -13,6 +13,9 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 class Kernel extends SymfonyKernel
 {
+    /** @var string */
+    private static $cacheDir = null;
+
     /**
      * @return BundleInterface[]
      */
@@ -53,5 +56,14 @@ class Kernel extends SymfonyKernel
         $container->setParameter('routing_config_dir', __DIR__);
 
         parent::build($container);
+    }
+
+    public function getCacheDir()
+    {
+        if (self::$cacheDir === null) {
+            self::$cacheDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('sentry-symfony-');
+        }
+
+        return self::$cacheDir;
     }
 }
