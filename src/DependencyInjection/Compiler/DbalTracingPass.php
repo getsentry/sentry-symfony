@@ -41,7 +41,7 @@ final class DbalTracingPass implements CompilerPassInterface
         }
 
         if (!interface_exists(Driver::class)) {
-            throw new \InvalidArgumentException(sprintf('The Doctrine "%s" interface is missing, DBAL connection cannot be instrumented; check that you have DBAL 2.13+ installed', Driver::class));
+            throw new \RuntimeException(sprintf('The Doctrine "%s" interface is missing, DBAL connection cannot be instrumented; check that you have DBAL 2.13+ installed', Driver::class));
         }
 
         /** @var string[] $connectionsToTrace */
