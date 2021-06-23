@@ -104,7 +104,13 @@ final class RequestListener
     private function getUsername($user): ?string
     {
         if ($user instanceof UserInterface) {
-            return method_exists($user, 'getUserIdentifier') ? $user->getUserIdentifier() : $user->getUsername();
+            if (method_exists($user, 'getUserIdentifier')) {
+                return $user->getUserIdentifier();
+            }
+
+            if (method_exists($user, 'getUsername')) {
+                return $user->getUsername();
+            }
         }
 
         if (\is_string($user)) {

@@ -19,6 +19,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 if (!class_exists(KernelBrowser::class)) {
+    /** @phpstan-ignore-next-line */
     class_alias(Client::class, KernelBrowser::class);
 }
 

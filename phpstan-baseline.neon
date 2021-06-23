@@ -106,11 +106,6 @@ parameters:
 			path: src/aliases.php
 
 		-
-			message: "#^Class Symfony\\\\Bundle\\\\FrameworkBundle\\\\Client not found\\.$#"
-			count: 1
-			path: tests/End2End/End2EndTest.php
-
-		-
 			message: "#^Call to method getException\\(\\) on an unknown class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent\\.$#"
 			count: 1
 			path: tests/EventListener/ErrorListenerTest.php
