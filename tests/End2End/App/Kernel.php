@@ -58,7 +58,7 @@ class Kernel extends SymfonyKernel
         parent::build($container);
     }
 
-    public function getCacheDir()
+    public function getCacheDir(): string
     {
         if (self::$cacheDir === null) {
             self::$cacheDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('sentry-symfony-');
