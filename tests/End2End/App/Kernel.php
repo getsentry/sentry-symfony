@@ -13,7 +13,9 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 class Kernel extends SymfonyKernel
 {
-    /** @var string */
+    /**
+     * @var string
+     */
     private static $cacheDir = null;
 
     /**
@@ -60,8 +62,8 @@ class Kernel extends SymfonyKernel
 
     public function getCacheDir(): string
     {
-        if (self::$cacheDir === null) {
-            self::$cacheDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('sentry-symfony-');
+        if (null === self::$cacheDir) {
+            self::$cacheDir = sys_get_temp_dir() . \DIRECTORY_SEPARATOR . uniqid('sentry-symfony-');
         }
 
         return self::$cacheDir;
