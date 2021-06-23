@@ -19,7 +19,7 @@ abstract class DoctrineTestCase extends TestCase
     protected static function isDoctrineDBALVersion2Installed(): bool
     {
         return self::isDoctrineDBALInstalled()
-            && ! self::isDoctrineDBALVersion3Installed();
+            && !self::isDoctrineDBALVersion3Installed();
     }
 
     protected static function isDoctrineDBALVersion3Installed(): bool
