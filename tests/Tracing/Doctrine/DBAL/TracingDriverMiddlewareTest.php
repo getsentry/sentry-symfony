@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\Tracing\Doctrine\DBAL;
 
 use Doctrine\DBAL\Driver as DriverInterface;
+use Doctrine\DBAL\Driver\Middleware;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriver;
@@ -25,7 +26,7 @@ final class TracingDriverMiddlewareTest extends DoctrineTestCase
 
     public static function setUpBeforeClass(): void
     {
-        if (!self::isDoctrineBundlePackageInstalled()) {
+        if (!class_exists(Middleware::class)) {
             self::markTestSkipped();
         }
     }
