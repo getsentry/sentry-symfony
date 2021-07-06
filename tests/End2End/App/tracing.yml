@@ -10,4 +10,4 @@ services:
       $hub: '@Sentry\State\HubInterface'
       $connection: '@?doctrine.dbal.default_connection'
     tags:
-      - controller.service_arguments
+      - { name: controller.service_arguments }
