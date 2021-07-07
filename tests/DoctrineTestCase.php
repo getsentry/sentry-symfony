@@ -6,7 +6,6 @@ namespace Sentry\SentryBundle\Tests;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Doctrine\DBAL\Driver;
-use Doctrine\DBAL\Driver\Middleware;
 use PHPUnit\Framework\TestCase;
 
 abstract class DoctrineTestCase extends TestCase
@@ -24,7 +23,8 @@ abstract class DoctrineTestCase extends TestCase
 
     protected static function isDoctrineDBALVersion3Installed(): bool
     {
-        return interface_exists(Middleware::class);
+        return self::isDoctrineDBALInstalled()
+            && !class_exists(Driver\ResultStatement::class);
     }
 
     protected static function isDoctrineBundlePackageInstalled(): bool

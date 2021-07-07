@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle;
 
 use Doctrine\DBAL\Driver\ExceptionConverterDriver as LegacyExceptionConverterDriverInterface;
+use Doctrine\DBAL\Driver\Middleware as DoctrineMiddlewareInterface;
 use Sentry\SentryBundle\EventListener\ErrorListenerExceptionEvent;
 use Sentry\SentryBundle\EventListener\RequestListenerControllerEvent;
 use Sentry\SentryBundle\EventListener\RequestListenerRequestEvent;
@@ -12,6 +13,7 @@ use Sentry\SentryBundle\EventListener\RequestListenerResponseEvent;
 use Sentry\SentryBundle\EventListener\RequestListenerTerminateEvent;
 use Sentry\SentryBundle\EventListener\SubRequestListenerRequestEvent;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility\ExceptionConverterDriverInterface;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility\MiddlewareInterface;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
@@ -84,6 +86,11 @@ if (version_compare(Kernel::VERSION, '4.3.0', '>=')) {
         /** @psalm-suppress UndefinedClass */
         class_alias(GetResponseEvent::class, SubRequestListenerRequestEvent::class);
     }
+}
+
+if (!interface_exists(DoctrineMiddlewareInterface::class)) {
+    /** @psalm-suppress UndefinedClass */
+    class_alias(MiddlewareInterface::class, DoctrineMiddlewareInterface::class);
 }
 
 if (!interface_exists(LegacyExceptionConverterDriverInterface::class)) {
