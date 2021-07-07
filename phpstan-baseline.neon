@@ -116,11 +116,6 @@ parameters:
 			path: src/aliases.php
 
 		-
-			message: "#^Class Symfony\\\\Bundle\\\\FrameworkBundle\\\\Client not found\\.$#"
-			count: 1
-			path: tests/End2End/End2EndTest.php
-
-		-
 			message: "#^Call to method getException\\(\\) on an unknown class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent\\.$#"
 			count: 1
 			path: tests/EventListener/ErrorListenerTest.php
@@ -226,9 +221,19 @@ parameters:
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
 
 		-
-			message: "#^Parameter \\#2 \\$decoratedAdapter of class Sentry\\\\SentryBundle\\\\Tracing\\\\Cache\\\\TraceableTagAwareCacheAdapter constructor expects Symfony\\\\Component\\\\Cache\\\\Adapter\\\\TagAwareAdapterInterface, Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface given\\.$#"
+			message: "#^Parameter \\#1 \\$decoratedAdapter of method Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Cache\\\\AbstractTraceableCacheAdapterTest\\<TCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface,TDecoratedCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface\\>\\:\\:createCacheAdapter\\(\\) expects TDecoratedCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface, PHPUnit\\\\Framework\\\\MockObject\\\\MockObject&Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Cache\\\\CacheInterface given\\.$#"
+			count: 2
+			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$decoratedAdapter of method Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Cache\\\\AbstractTraceableCacheAdapterTest\\<TCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface,TDecoratedCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface\\>\\:\\:createCacheAdapter\\(\\) expects TDecoratedCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface, PHPUnit\\\\Framework\\\\MockObject\\\\MockObject&Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Cache\\\\PruneableCacheAdapterInterface given\\.$#"
 			count: 1
-			path: tests/Tracing/Cache/TraceableTagAwareCacheAdapterTest.php
+			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$decoratedAdapter of method Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Cache\\\\AbstractTraceableCacheAdapterTest\\<TCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface,TDecoratedCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface\\>\\:\\:createCacheAdapter\\(\\) expects TDecoratedCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface, PHPUnit\\\\Framework\\\\MockObject\\\\MockObject&Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Cache\\\\ResettableCacheAdapterInterface given\\.$#"
+			count: 1
+			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
 
 		-
 			message: "#^Parameter \\#1 \\$driverException of class Doctrine\\\\DBAL\\\\Exception\\\\DriverException constructor expects Doctrine\\\\DBAL\\\\Driver\\\\Exception, string given\\.$#"

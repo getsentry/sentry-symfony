@@ -6,9 +6,14 @@
 - Add the `sentry_trace_meta()` Twig function to print the `sentry-trace` HTML meta tag (#510)
 - Make the list of commands for which distributed tracing is active configurable (#515)
 
+## 4.1.4 (2021-06-18)
+
+- Fix decoration of cache adapters inheriting parent service (#525)
+- Fix extraction of the username of the logged-in user in Symfony `5.3` (#518)
+
 ## 4.1.3 (2021-05-31)
 
--  Fix missing require of the `symfony/cache-contracts` package (#506)
+- Fix missing require of the `symfony/cache-contracts` package (#506)
 
 ## 4.1.2 (2021-05-17)
 

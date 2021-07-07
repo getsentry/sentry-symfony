@@ -17,6 +17,14 @@ use Symfony\Component\Console\Tester\CommandTester;
 
 class SentryTestCommandTest extends BaseTestCase
 {
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        // reset current Hub to avoid leaking the mock outside of this tests
+        SentrySdk::init();
+    }
+
     public function testExecuteSuccessfully(): void
     {
         $options = new Options(['dsn' => 'http://public:secret@example.com/sentry/1']);
