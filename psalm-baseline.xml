@@ -8,18 +8,4 @@
       <code>public function __construct(HubInterface $hub, bool $captureErrors = true)</code>
     </MethodSignatureMismatch>
   </file>
-  <file src="src/Tracing/Doctrine/DBAL/TracingDriver.php">
-    <UndefinedClass occurrences="1">
-      <code>ExceptionConverter</code>
-    </UndefinedClass>
-  </file>
-  <file src="src/Tracing/Doctrine/DBAL/TracingDriverConnection.php">
-    <InvalidReturnStatement occurrences="2">
-      <code>$this-&gt;decoratedConnection-&gt;query($sql, ...$args)</code>
-    </InvalidReturnStatement>
-    <InvalidReturnType occurrences="2">
-      <code>Result</code>
-      <code>Result</code>
-    </InvalidReturnType>
-  </file>
 </files>
