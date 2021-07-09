@@ -34,7 +34,7 @@
         "symfony/security-core": "^3.4.44||^4.4.20||^5.0.11"
     },
     "require-dev": {
-        "doctrine/dbal": "^2.13||^3.0",
+        "doctrine/dbal": "^2.13",
         "doctrine/doctrine-bundle": "^1.12||^2.0",
         "friendsofphp/php-cs-fixer": "^2.18",
         "jangregor/phpstan-prophecy": "^0.8",

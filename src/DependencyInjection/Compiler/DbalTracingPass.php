@@ -40,7 +40,7 @@ final class DbalTracingPass implements CompilerPassInterface
             return;
         }
 
-        if (!class_exists(Result::class)) {
+        if (!interface_exists(Result::class)) {
             throw new \RuntimeException(sprintf('The Doctrine "%s" class is missing, DBAL connection cannot be instrumented; check that you have DBAL 2.13+ installed', Result::class));
         }
 
