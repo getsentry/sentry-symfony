@@ -113,7 +113,7 @@ final class DbalTracingPassTest extends DoctrineTestCase
         $container->setParameter('sentry.tracing.dbal.connections', ['foo', 'baz']);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('DBAL connection cannot be instrumented; check that you have DBAL 2.13+ installed');
+        $this->expectExceptionMessage('DBAL connection cannot be instrumented; check that you have DBAL');
 
         $container->compile();
     }
