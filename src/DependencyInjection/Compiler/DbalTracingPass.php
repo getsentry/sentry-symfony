@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\DependencyInjection\Compiler;
 
+use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\ResultStatement;
 use Doctrine\DBAL\Result;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
@@ -40,9 +41,7 @@ final class DbalTracingPass implements CompilerPassInterface
             return;
         }
 
-        if (!interface_exists(Result::class)) {
-            throw new \RuntimeException(sprintf('The Doctrine "%s" class is missing, DBAL connection cannot be instrumented; check that you have DBAL 2.13+ installed', Result::class));
-        }
+        $this->checkDbalVersion();
 
         /** @var string[] $connectionsToTrace */
         $connectionsToTrace = $container->getParameter('sentry.tracing.dbal.connections');
@@ -96,5 +95,27 @@ final class DbalTracingPass implements CompilerPassInterface
         }
 
         return [];
+    }
+
+    /**
+     * @throws \RuntimeException
+     */
+    private function checkDbalVersion(): void
+    {
+        if (!interface_exists(Driver::class)) {
+            throw new \RuntimeException(sprintf('The Doctrine "%s" interface is missing, DBAL connection cannot be instrumented; check that you have DBAL installed', Driver::class));
+        }
+
+        if (interface_exists(Result::class)) {
+            // DBAL ^2.13
+            return;
+        }
+
+        if (class_exists(Result::class)) {
+            // DBAL ^3
+            return;
+        }
+
+        throw new \RuntimeException(sprintf('The Doctrine "%s" class/interface is missing, DBAL connection cannot be instrumented; check that you have DBAL 2.13+ installed', Result::class));
     }
 }
