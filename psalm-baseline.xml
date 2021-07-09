@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.7.0@d4377c0baf3ffbf0b1ec6998e8d1be2a40971005">
+<files psalm-version="4.8.1@f73f2299dbc59a3e6c4d66cff4605176e728ee69">
   <file src="src/EventListener/ConsoleCommandListener.php">
     <InvalidExtendClass occurrences="1">
       <code>ConsoleListener</code>
@@ -8,9 +8,18 @@
       <code>public function __construct(HubInterface $hub, bool $captureErrors = true)</code>
     </MethodSignatureMismatch>
   </file>
-  <file src="src/Tracing/Cache/TraceableCacheAdapterTrait.php">
-    <InvalidReturnType occurrences="1">
-      <code>getItems</code>
+  <file src="src/Tracing/Doctrine/DBAL/TracingDriver.php">
+    <UndefinedClass occurrences="1">
+      <code>ExceptionConverter</code>
+    </UndefinedClass>
+  </file>
+  <file src="src/Tracing/Doctrine/DBAL/TracingDriverConnection.php">
+    <InvalidReturnStatement occurrences="2">
+      <code>$this-&gt;decoratedConnection-&gt;query($sql, ...$args)</code>
+    </InvalidReturnStatement>
+    <InvalidReturnType occurrences="2">
+      <code>Result</code>
+      <code>Result</code>
     </InvalidReturnType>
   </file>
 </files>
