@@ -12,7 +12,6 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
 if (!class_exists(KernelBrowser::class)) {
-    /** @phpstan-ignore-next-line */
     class_alias(Client::class, KernelBrowser::class);
 }
 

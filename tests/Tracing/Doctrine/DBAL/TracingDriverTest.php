@@ -10,6 +10,7 @@ use Doctrine\DBAL\Driver as DriverInterface;
 use Doctrine\DBAL\Driver\Connection as DriverConnectionInterface;
 use Doctrine\DBAL\Driver\DriverException as DriverExceptionInterface;
 use Doctrine\DBAL\Driver\ExceptionConverterDriver as ExceptionConverterDriverInterface;
+use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Exception\DriverException as DBALDriverException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
@@ -217,8 +218,8 @@ final class TracingDriverTest extends DoctrineTestCase
 
     public function testConvertException(): void
     {
-        if (self::isDoctrineDBALVersion3Installed()) {
-            $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be <= 3.0.');
+        if (!self::isDoctrineDBALVersion2Installed()) {
+            $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be ^2.13.');
         }
 
         $exception = $this->createMock(DriverExceptionInterface::class);
@@ -249,18 +250,24 @@ final class TracingDriverTest extends DoctrineTestCase
     }
 }
 
-if (interface_exists(VersionAwarePlatformDriverInterface::class)) {
-    interface StubVersionAwarePlatformDriverInterface extends DriverInterface, VersionAwarePlatformDriverInterface
-    {
+if (interface_exists(DriverInterface::class)) {
+    if (interface_exists(VersionAwarePlatformDriverInterface::class)) {
+        interface StubVersionAwarePlatformDriverInterface extends DriverInterface, VersionAwarePlatformDriverInterface
+        {
+        }
     }
-}
 
-if (interface_exists(ExceptionConverterDriverInterface::class)) {
-    interface StubExceptionConverterDriverInterface extends ExceptionConverterDriverInterface, DriverInterface
-    {
+    if (interface_exists(ExceptionConverterDriverInterface::class)) {
+        interface StubExceptionConverterDriverInterface extends ExceptionConverterDriverInterface, DriverInterface
+        {
+        }
+    } else {
+        interface StubExceptionConverterDriverInterface extends DriverInterface
+        {
+        }
     }
-} else {
-    interface StubExceptionConverterDriverInterface extends DriverInterface
-    {
+
+    if (!interface_exists(DriverExceptionInterface::class)) {
+        class_alias(Exception::class, DriverExceptionInterface::class);
     }
 }

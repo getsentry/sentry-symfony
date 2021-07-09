@@ -25,7 +25,7 @@ final class TracingDriverMiddlewareTest extends DoctrineTestCase
 
     public static function setUpBeforeClass(): void
     {
-        if (!self::isDoctrineBundlePackageInstalled()) {
+        if (!self::isDoctrineDBALVersion3Installed()) {
             self::markTestSkipped();
         }
     }
