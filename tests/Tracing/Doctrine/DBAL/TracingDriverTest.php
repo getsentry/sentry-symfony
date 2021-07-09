@@ -246,7 +246,6 @@ final class TracingDriverTest extends DoctrineTestCase
         $this->expectExceptionMessage('The Sentry\\SentryBundle\\Tracing\\Doctrine\\DBAL\\TracingDriver::convertException() method is not supported on Doctrine DBAL 3.0.');
 
         $driver = new TracingDriver($this->hub, $this->createMock(StubExceptionConverterDriverInterface::class));
-        /** @phpstan-ignore-next-line */
         $driver->convertException('foo', $this->createMock(DriverExceptionInterface::class));
     }
 }
@@ -269,7 +268,6 @@ if (interface_exists(DriverInterface::class)) {
     }
 
     if (!interface_exists(DriverExceptionInterface::class)) {
-        /** @phpstan-ignore-next-line */
         class_alias(Exception::class, DriverExceptionInterface::class);
     }
 }

@@ -6,7 +6,7 @@ namespace Sentry\SentryBundle\Tracing\Doctrine\DBAL;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\API\ExceptionConverter;
-use Doctrine\DBAL\Driver as DBALDriver;
+use Doctrine\DBAL\Driver as DriverInterface;
 use Doctrine\DBAL\Driver\DriverException as LegacyDriverExceptionInterface;
 use Doctrine\DBAL\Driver\ExceptionConverterDriver as ExceptionConverterDriverInterface;
 use Doctrine\DBAL\Driver\ResultStatement;
@@ -16,14 +16,14 @@ use Doctrine\DBAL\VersionAwarePlatformDriver as VersionAwarePlatformDriverInterf
 use Sentry\State\HubInterface;
 
 /**
- * This is a simple implementation of the {@see DBALDriver} interface that
+ * This is a simple implementation of the {@see DriverInterface} interface that
  * decorates an existing driver to support distributed tracing capabilities.
- * This implementation IS cross-compatible with both DBAL 2 and 3 thanks to
- * the FC layer provided since DBAL 2.13.
+ * This implementation IS and MUST be compatible with all versions of Doctrine
+ * DBAL >= 2.13.
  *
  * @internal
  */
-final class TracingDriver implements DBALDriver, VersionAwarePlatformDriverInterface, ExceptionConverterDriverInterface
+final class TracingDriver implements DriverInterface, VersionAwarePlatformDriverInterface, ExceptionConverterDriverInterface
 {
     /**
      * @var HubInterface The current hub
@@ -31,15 +31,15 @@ final class TracingDriver implements DBALDriver, VersionAwarePlatformDriverInter
     private $hub;
 
     /**
-     * @var DBALDriver|VersionAwarePlatformDriverInterface|ExceptionConverterDriverInterface The instance of the decorated driver
+     * @var DriverInterface|VersionAwarePlatformDriverInterface|ExceptionConverterDriverInterface The instance of the decorated driver
      */
     private $decoratedDriver;
 
     /**
-     * @param HubInterface $hub             The current hub
-     * @param DBALDriver   $decoratedDriver The instance of the driver to decorate
+     * @param HubInterface    $hub             The current hub
+     * @param DriverInterface $decoratedDriver The instance of the driver to decorate
      */
-    public function __construct(HubInterface $hub, DBALDriver $decoratedDriver)
+    public function __construct(HubInterface $hub, DriverInterface $decoratedDriver)
     {
         $this->hub = $hub;
         $this->decoratedDriver = $decoratedDriver;
