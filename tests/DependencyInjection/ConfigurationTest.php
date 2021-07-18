@@ -20,6 +20,7 @@ final class ConfigurationTest extends TestCase
     {
         $expectedBundleDefaultConfig = [
             'register_error_listener' => true,
+            'logger' => null,
             'transport_factory' => 'Sentry\\Transport\\TransportFactoryInterface',
             'options' => [
                 'integrations' => [],

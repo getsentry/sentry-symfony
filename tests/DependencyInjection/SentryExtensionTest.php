@@ -7,6 +7,7 @@ namespace Sentry\SentryBundle\Tests\DependencyInjection;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
 use Sentry\Integration\IgnoreErrorsIntegration;
 use Sentry\Options;
@@ -231,6 +232,7 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertDefinitionMethodCallAt($methodCalls[0], 'setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER]);
         $this->assertDefinitionMethodCallAt($methodCalls[1], 'setSdkVersion', [PrettyVersions::getVersion('sentry/sentry-symfony')->getPrettyVersion()]);
         $this->assertDefinitionMethodCallAt($methodCalls[2], 'setTransportFactory', [new Reference('App\\Sentry\\Transport\\TransportFactory')]);
+        $this->assertDefinitionMethodCallAt($methodCalls[5], 'setLogger', [new Reference('app.logger')]);
 
         $this->assertSame('setSerializer', $methodCalls[3][0]);
         $this->assertInstanceOf(Definition::class, $methodCalls[3][1][0]);
@@ -367,6 +369,16 @@ abstract class SentryExtensionTest extends TestCase
 
         $this->assertTrue($container->hasDefinition(TracingConsoleListener::class));
         $this->assertSame(['foo:bar', 'bar:foo'], $container->getDefinition(TracingConsoleListener::class)->getArgument(1));
+    }
+
+    public function testLoggerOptionFallbackToNullLoggerIfNotSet(): void
+    {
+        $container = $this->createContainerFromFixture('logger_service_not_set');
+        $clientDefinition = $container->findDefinition(ClientInterface::class);
+        $factory = $clientDefinition->getFactory();
+        $methodCalls = $factory[0]->getMethodCalls();
+
+        $this->assertDefinitionMethodCallAt($methodCalls[5], 'setLogger', [new Reference(NullLogger::class, ContainerBuilder::IGNORE_ON_INVALID_REFERENCE)]);
     }
 
     private function createContainerFromFixture(string $fixtureFile): ContainerBuilder

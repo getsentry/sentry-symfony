@@ -9,6 +9,7 @@
     <sentry:config
         dsn="https://examplePublicKey@o0.ingest.sentry.io/0"
         transport-factory="App\Sentry\Transport\TransportFactory"
+        logger="app.logger"
     >
         <sentry:options default-integrations="false"
                         send-attempts="1"
