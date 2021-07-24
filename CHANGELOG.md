@@ -1,8 +1,8 @@
 # Changelog
 
 ## Unreleased
-- Attach bus, receiver and message class name as extra's
 
+- Log the bus name, receiver name and message class name as event tags when using Symfony Messenger (#492)
 - Make the transport factory configurable in the bundle's config (#504)
 - Add the `sentry_trace_meta()` Twig function to print the `sentry-trace` HTML meta tag (#510)
 - Make the list of commands for which distributed tracing is active configurable (#515)

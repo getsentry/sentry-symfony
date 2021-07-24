@@ -5,11 +5,8 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\Event;
-use Sentry\EventHint;
-use Sentry\Severity;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
-use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
@@ -51,22 +48,28 @@ final class MessengerListener
             return;
         }
 
-        $error = $event->getThrowable();
-        if ($error instanceof HandlerFailedException) {
-            foreach ($error->getNestedExceptions() as $nestedException) {
-                $this->captureException(
-                    $nestedException,
-                    $event->getEnvelope(),
-                    $event->getReceiverName()
-                );
+        $this->hub->withScope(function (Scope $scope) use ($event): void {
+            $envelope = $event->getEnvelope();
+            $exception = $event->getThrowable();
+
+            $scope->setTag('messenger.receiver_name', $event->getReceiverName());
+            $scope->setTag('messenger.message_class', \get_class($envelope->getMessage()));
+
+            /** @var BusNameStamp|null $messageBusStamp */
+            $messageBusStamp = $envelope->last(BusNameStamp::class);
+
+            if (null !== $messageBusStamp) {
+                $scope->setTag('messenger.message_bus', $messageBusStamp->getBusName());
             }
-        } else {
-            $this->captureException(
-                $error,
-                $event->getEnvelope(),
-                $event->getReceiverName()
-            );
-        }
+
+            if ($exception instanceof HandlerFailedException) {
+                foreach ($exception->getNestedExceptions() as $nestedException) {
+                    $this->hub->captureException($nestedException);
+                }
+            } else {
+                $this->hub->captureException($exception);
+            }
+        });
 
         $this->flushClient();
     }
@@ -90,35 +93,5 @@ final class MessengerListener
         if (null !== $client) {
             $client->flush();
         }
-    }
-
-    private function captureException(
-        \Throwable $exception,
-        Envelope $envelope,
-        string $receiverName
-    ): void {
-        $event = Event::createEvent();
-        $event->setLevel(Severity::error());
-        $exceptionHint = EventHint::fromArray([
-            'exception' => $exception,
-        ]);
-
-        $this->hub->withScope(function (Scope $scope) use ($receiverName, $envelope, $event, $exceptionHint) {
-            $tags = [
-                'messenger.receiver_name' => $receiverName,
-                'messenger.message_class' => \get_class($envelope->getMessage()),
-            ];
-
-            /**
-             * @var BusNameStamp|null $messageBusStamp
-             */
-            $messageBusStamp = $envelope->last(BusNameStamp::class);
-            if (null !== $messageBusStamp) {
-                $tags['messenger.message_bus'] = $messageBusStamp->getBusName();
-            }
-
-            $scope->setTags($tags);
-            $this->hub->captureEvent($event, $exceptionHint);
-        });
     }
 }

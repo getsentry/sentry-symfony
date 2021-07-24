@@ -7,6 +7,7 @@ namespace Sentry\SentryBundle\Tests\EventListener;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
+use Sentry\Event;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\Tests\End2End\App\Kernel;
 use Sentry\State\HubInterface;
@@ -39,28 +40,28 @@ final class MessengerListenerTest extends TestCase
     /**
      * @dataProvider handleWorkerMessageFailedEventDataProvider
      *
-     * @param \Throwable[] $exceptions
+     * @param \Throwable[]          $exceptions
+     * @param array<string, string> $expectedTags
      */
-    public function testHandleWorkerMessageFailedEvent(array $exceptions, WorkerMessageFailedEvent $event): void
+    public function testHandleWorkerMessageFailedEvent(array $exceptions, WorkerMessageFailedEvent $event, array $expectedTags): void
     {
         if (!$this->supportsMessenger()) {
             $this->markTestSkipped('Messenger not supported in this environment.');
         }
 
         $scope = new Scope();
-        $this->hub->expects($this->exactly(\count($exceptions)))
+
+        $this->hub->expects($this->once())
             ->method('withScope')
             ->willReturnCallback(function (callable $callback) use ($scope): void {
                 $callback($scope);
-
-                // $scope has no tags getters, should make assertions against this
-                // 'messenger.receiver_name => 'receiver',
-                // 'messenger.message_class' => 'stdClass',
-                // 'messenger.message_bus' => 'commandBus',
             });
 
         $this->hub->expects($this->exactly(\count($exceptions)))
-            ->method('captureEvent');
+            ->method('captureException')
+            ->withConsecutive(...array_map(static function (\Throwable $exception): array {
+                return [$exception];
+            }, $exceptions));
 
         $this->hub->expects($this->once())
             ->method('getClient')
@@ -68,6 +69,10 @@ final class MessengerListenerTest extends TestCase
 
         $listener = new MessengerListener($this->hub);
         $listener->handleWorkerMessageFailedEvent($event);
+
+        $sentryEvent = $scope->applyToEvent(Event::createEvent());
+
+        $this->assertSame($expectedTags, $sentryEvent->getTags());
     }
 
     /**
@@ -85,84 +90,34 @@ final class MessengerListenerTest extends TestCase
             new \Exception(),
         ];
 
-        yield [
+        yield 'envelope.throwable INSTANCEOF HandlerFailedException' => [
             $exceptions,
             $this->getMessageFailedEvent($envelope, 'receiver', new HandlerFailedException($envelope, $exceptions), false),
+            [
+                'messenger.receiver_name' => 'receiver',
+                'messenger.message_class' => \get_class($envelope->getMessage()),
+            ],
         ];
 
-        $exceptions = [
-            new \Exception(),
-        ];
-
-        yield [
-            $exceptions,
+        yield 'envelope.throwable INSTANCEOF Exception' => [
+            [$exceptions[0]],
             $this->getMessageFailedEvent($envelope, 'receiver', $exceptions[0], false),
-        ];
-    }
-
-    /**
-     * @dataProvider handleWorkerMessageFailedEventWithStampsDataProvider
-     *
-     * @param \Throwable[] $exceptions
-     */
-    public function testHandleWorkerMessageFailedEventWithStamps(array $exceptions, WorkerMessageFailedEvent $event): void
-    {
-        if (!$this->supportsMessenger()) {
-            $this->markTestSkipped('Messenger not supported in this environment.');
-        }
-
-        $scope = new Scope();
-        $this->hub->expects($this->exactly(\count($exceptions)))
-            ->method('withScope')
-            ->willReturnCallback(function (callable $callback) use ($scope): void {
-                $callback($scope);
-
-                // $scope has no tags getters, should make assertions against this
-                // 'messenger.receiver_name => 'receiver',
-                // 'messenger.message_class' => 'stdClass',
-                // 'messenger.message_bus' => 'commandBus',
-            });
-
-        $this->hub->expects($this->exactly(\count($exceptions)))
-            ->method('captureEvent');
-
-        $this->hub->expects($this->once())
-            ->method('getClient')
-            ->willReturn($this->client);
-
-        $listener = new MessengerListener($this->hub);
-        $listener->handleWorkerMessageFailedEvent($event);
-    }
-
-    /**
-     * @return \Generator<mixed>
-     */
-    public function handleWorkerMessageFailedEventWithStampsDataProvider(): \Generator
-    {
-        if (!$this->supportsMessenger()) {
-            return;
-        }
-
-        $envelope = Envelope::wrap((object) [], [
-            new BusNameStamp('commandBus'),
-        ]);
-        $exceptions = [
-            new \Exception(),
-            new \Exception(),
+            [
+                'messenger.receiver_name' => 'receiver',
+                'messenger.message_class' => \get_class($envelope->getMessage()),
+            ],
         ];
 
-        yield [
-            $exceptions,
-            $this->getMessageFailedEvent($envelope, 'receiver', new HandlerFailedException($envelope, $exceptions), false),
-        ];
+        $envelope = new Envelope((object) [], [new BusNameStamp('bus.foo')]);
 
-        $exceptions = [
-            new \Exception(),
-        ];
-
-        yield [
-            $exceptions,
+        yield 'envelope.stamps CONTAINS BusNameStamp' => [
+            [$exceptions[0]],
             $this->getMessageFailedEvent($envelope, 'receiver', $exceptions[0], false),
+            [
+                'messenger.receiver_name' => 'receiver',
+                'messenger.message_class' => \get_class($envelope->getMessage()),
+                'messenger.message_bus' => 'bus.foo',
+            ],
         ];
     }
 
@@ -232,14 +187,8 @@ final class MessengerListenerTest extends TestCase
         $this->client->expects($this->once())
             ->method('flush');
 
-        $event = new WorkerMessageHandledEvent(
-            Envelope::wrap((object) [], [
-                new BusNameStamp('commandBus'),
-            ]),
-            'receiver'
-        );
         $listener = new MessengerListener($this->hub);
-        $listener->handleWorkerMessageHandledEvent($event);
+        $listener->handleWorkerMessageHandledEvent(new WorkerMessageHandledEvent(Envelope::wrap((object) []), 'receiver'));
     }
 
     private function getMessageFailedEvent(Envelope $envelope, string $receiverName, \Throwable $error, bool $retry): WorkerMessageFailedEvent
