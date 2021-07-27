@@ -41,7 +41,7 @@ final class DbalTracingPass implements CompilerPassInterface
             return;
         }
 
-        $this->checkDbalVersion();
+        $this->assertRequiredDbalVersion();
 
         /** @var string[] $connectionsToTrace */
         $connectionsToTrace = $container->getParameter('sentry.tracing.dbal.connections');
@@ -100,22 +100,20 @@ final class DbalTracingPass implements CompilerPassInterface
     /**
      * @throws \RuntimeException
      */
-    private function checkDbalVersion(): void
+    private function assertRequiredDbalVersion(): void
     {
-        if (!interface_exists(Driver::class)) {
-            throw new \RuntimeException(sprintf('The Doctrine "%s" interface is missing, DBAL connection cannot be instrumented; check that you have DBAL installed', Driver::class));
+        if (interface_exists(Driver::class)) {
+            if (interface_exists(Result::class)) {
+                // DBAL ^2.13
+                return;
+            }
+
+            if (class_exists(Result::class)) {
+                // DBAL ^3
+                return;
+            }
         }
 
-        if (interface_exists(Result::class)) {
-            // DBAL ^2.13
-            return;
-        }
-
-        if (class_exists(Result::class)) {
-            // DBAL ^3
-            return;
-        }
-
-        throw new \RuntimeException(sprintf('The Doctrine "%s" class/interface is missing, DBAL connection cannot be instrumented; check that you have DBAL 2.13+ installed', Result::class));
+        throw new \LogicException('Tracing support cannot be enabled as the Doctrine DBAL 2.13+ package is not installed. Try running "composer require doctrine/dbal:^2.13".');
     }
 }

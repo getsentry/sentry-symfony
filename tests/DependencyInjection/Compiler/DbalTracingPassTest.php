@@ -103,10 +103,10 @@ final class DbalTracingPassTest extends DoctrineTestCase
         $this->assertNull($connection2->getConfigurator());
     }
 
-    public function testProcessWithDoctrineDBALVersionLowerThan213OrMissing(): void
+    public function testProcessWithDoctrineDBALMissing(): void
     {
         if (self::isDoctrineDBALInstalled()) {
-            $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be < 2.13 or missing.');
+            $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be missing.');
         }
 
         $container = $this->createContainerBuilder();
