@@ -112,8 +112,8 @@ final class DbalTracingPassTest extends DoctrineTestCase
         $container = $this->createContainerBuilder();
         $container->setParameter('sentry.tracing.dbal.connections', ['foo', 'baz']);
 
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('DBAL connection cannot be instrumented; check that you have DBAL');
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Tracing support cannot be enabled as the Doctrine DBAL 2.13+ package is not installed. Try running "composer require doctrine/dbal:^2.13".');
 
         $container->compile();
     }
