@@ -7,6 +7,7 @@ namespace Sentry\SentryBundle\DependencyInjection;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
 use LogicException;
+use Psr\Log\NullLogger;
 use Sentry\Client;
 use Sentry\ClientBuilder;
 use Sentry\Integration\IgnoreErrorsIntegration;
@@ -129,7 +130,8 @@ final class SentryExtension extends ConfigurableExtension
             ->addMethodCall('setSdkVersion', [PrettyVersions::getVersion('sentry/sentry-symfony')->getPrettyVersion()])
             ->addMethodCall('setTransportFactory', [new Reference($config['transport_factory'])])
             ->addMethodCall('setSerializer', [$serializer])
-            ->addMethodCall('setRepresentationSerializer', [$representationSerializerDefinition]);
+            ->addMethodCall('setRepresentationSerializer', [$representationSerializerDefinition])
+            ->addMethodCall('setLogger', [null !== $config['logger'] ? new Reference($config['logger']) : new Reference(NullLogger::class, ContainerBuilder::IGNORE_ON_INVALID_REFERENCE)]);
 
         $container
             ->setDefinition('sentry.client', new Definition(Client::class))
