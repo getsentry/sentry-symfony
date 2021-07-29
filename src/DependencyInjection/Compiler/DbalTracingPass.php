@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\DependencyInjection\Compiler;
 
 use Doctrine\DBAL\Driver\ResultStatement;
+use Doctrine\DBAL\Result;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -38,6 +39,8 @@ final class DbalTracingPass implements CompilerPassInterface
         ) {
             return;
         }
+
+        $this->assertRequiredDbalVersion();
 
         /** @var string[] $connectionsToTrace */
         $connectionsToTrace = $container->getParameter('sentry.tracing.dbal.connections');
@@ -91,5 +94,20 @@ final class DbalTracingPass implements CompilerPassInterface
         }
 
         return [];
+    }
+
+    private function assertRequiredDbalVersion(): void
+    {
+        if (interface_exists(Result::class)) {
+            // DBAL ^2.13
+            return;
+        }
+
+        if (class_exists(Result::class)) {
+            // DBAL ^3
+            return;
+        }
+
+        throw new \LogicException('Tracing support cannot be enabled as the Doctrine DBAL 2.13+ package is not installed. Try running "composer require doctrine/dbal:^2.13".');
     }
 }

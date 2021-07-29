@@ -83,8 +83,8 @@ final class DbalTracingPassTest extends DoctrineTestCase
 
     public function testProcessWithDoctrineDBALVersionLowerThan30(): void
     {
-        if (self::isDoctrineDBALVersion3Installed()) {
-            $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be < 3.0.');
+        if (!self::isDoctrineDBALVersion2Installed()) {
+            $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be ^2.13.');
         }
 
         $connection1 = (new Definition(Connection::class))->setPublic(true);
@@ -103,11 +103,30 @@ final class DbalTracingPassTest extends DoctrineTestCase
         $this->assertNull($connection2->getConfigurator());
     }
 
+    public function testProcessWithDoctrineDBALMissing(): void
+    {
+        if (self::isDoctrineDBALInstalled()) {
+            $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be missing.');
+        }
+
+        $container = $this->createContainerBuilder();
+        $container->setParameter('sentry.tracing.dbal.connections', ['foo', 'baz']);
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Tracing support cannot be enabled as the Doctrine DBAL 2.13+ package is not installed. Try running "composer require doctrine/dbal:^2.13".');
+
+        $container->compile();
+    }
+
     /**
      * @dataProvider processDoesNothingIfConditionsForEnablingTracingAreMissingDataProvider
      */
     public function testProcessDoesNothingIfConditionsForEnablingTracingAreMissing(ContainerBuilder $container): void
     {
+        if (!self::isDoctrineDBALInstalled()) {
+            $this->markTestSkipped('This test requires the "doctrine/dbal" Composer package.');
+        }
+
         $connectionConfigDefinition = new Definition();
         $connectionConfigDefinition->setClass(Configuration::class);
         $connectionConfigDefinition->setPublic(true);
@@ -141,6 +160,10 @@ final class DbalTracingPassTest extends DoctrineTestCase
 
     public function testContainerCompilationFailsIfConnectionDoesntExist(): void
     {
+        if (!self::isDoctrineDBALInstalled()) {
+            $this->markTestSkipped('This test requires the "doctrine/dbal" Composer package.');
+        }
+
         $container = $this->createContainerBuilder();
         $container->setParameter('sentry.tracing.dbal.connections', ['missing']);
 

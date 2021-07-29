@@ -8,6 +8,7 @@
 - Make the list of commands for which distributed tracing is active configurable (#515)
 - Introduce `TracingDriverConnection::getWrappedConnection()` (#536)
 - Add the `logger` config option to ease setting a PSR-3 logger to debug the SDK (#538)
+- Bump requirement for DBAL tracing to `^2.13|^3`; simplify the DBAL tracing feature (#527)
 
 ## 4.1.4 (2021-06-18)
 

@@ -56,7 +56,12 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
 
 		-
-			message: "#^Parameter \\#2 \\$query of class Doctrine\\\\DBAL\\\\Exception\\\\DriverException constructor expects Doctrine\\\\DBAL\\\\Query\\|null, Doctrine\\\\DBAL\\\\Driver\\\\Exception given\\.$#"
+			message: "#^Parameter \\#2 \\$query of class Doctrine\\\\DBAL\\\\Exception\\\\DriverException constructor expects Doctrine\\\\DBAL\\\\Query\\|null, Doctrine\\\\DBAL\\\\Driver\\\\DriverException given\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
+
+		-
+			message: "#^Parameter \\$exception of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriver\\:\\:convertException\\(\\) has invalid typehint type Doctrine\\\\DBAL\\\\Driver\\\\DriverException\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
 
@@ -114,6 +119,11 @@ parameters:
 			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\PostResponseEvent not found\\.$#"
 			count: 1
 			path: src/aliases.php
+
+		-
+			message: "#^Class Symfony\\\\Bundle\\\\FrameworkBundle\\\\Client not found\\.$#"
+			count: 1
+			path: tests/End2End/TracingEnd2EndTest.php
 
 		-
 			message: "#^Call to method getException\\(\\) on an unknown class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent\\.$#"
@@ -236,12 +246,22 @@ parameters:
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
 
 		-
+			message: "#^Class Doctrine\\\\DBAL\\\\Driver\\\\DriverException not found\\.$#"
+			count: 3
+			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
+
+		-
 			message: "#^Parameter \\#1 \\$driverException of class Doctrine\\\\DBAL\\\\Exception\\\\DriverException constructor expects Doctrine\\\\DBAL\\\\Driver\\\\Exception, string given\\.$#"
 			count: 1
 			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
 
 		-
-			message: "#^Parameter \\#2 \\$query of class Doctrine\\\\DBAL\\\\Exception\\\\DriverException constructor expects Doctrine\\\\DBAL\\\\Query\\|null, Doctrine\\\\DBAL\\\\Driver\\\\Exception&PHPUnit\\\\Framework\\\\MockObject\\\\MockObject given\\.$#"
+			message: "#^Parameter \\#1 \\$originalClassName of method PHPUnit\\\\Framework\\\\TestCase\\:\\:createMock\\(\\) expects class\\-string\\<Doctrine\\\\DBAL\\\\Driver\\\\DriverException\\>, string given\\.$#"
+			count: 2
+			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$query of class Doctrine\\\\DBAL\\\\Exception\\\\DriverException constructor expects Doctrine\\\\DBAL\\\\Query\\|null, Doctrine\\\\DBAL\\\\Driver\\\\DriverException&PHPUnit\\\\Framework\\\\MockObject\\\\MockObject given\\.$#"
 			count: 1
 			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
 
