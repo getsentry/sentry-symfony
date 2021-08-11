@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\Event;
 use Sentry\State\HubInterface;
+use Sentry\State\Scope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
+use Symfony\Component\Messenger\Stamp\BusNameStamp;
 
 final class MessengerListener
 {
@@ -45,15 +48,28 @@ final class MessengerListener
             return;
         }
 
-        $error = $event->getThrowable();
+        $this->hub->withScope(function (Scope $scope) use ($event): void {
+            $envelope = $event->getEnvelope();
+            $exception = $event->getThrowable();
 
-        if ($error instanceof HandlerFailedException) {
-            foreach ($error->getNestedExceptions() as $nestedException) {
-                $this->hub->captureException($nestedException);
+            $scope->setTag('messenger.receiver_name', $event->getReceiverName());
+            $scope->setTag('messenger.message_class', \get_class($envelope->getMessage()));
+
+            /** @var BusNameStamp|null $messageBusStamp */
+            $messageBusStamp = $envelope->last(BusNameStamp::class);
+
+            if (null !== $messageBusStamp) {
+                $scope->setTag('messenger.message_bus', $messageBusStamp->getBusName());
             }
-        } else {
-            $this->hub->captureException($error);
-        }
+
+            if ($exception instanceof HandlerFailedException) {
+                foreach ($exception->getNestedExceptions() as $nestedException) {
+                    $this->hub->captureException($nestedException);
+                }
+            } else {
+                $this->hub->captureException($exception);
+            }
+        });
 
         $this->flushClient();
     }

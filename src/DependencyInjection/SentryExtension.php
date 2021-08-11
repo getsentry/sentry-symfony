@@ -7,6 +7,7 @@ namespace Sentry\SentryBundle\DependencyInjection;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
 use LogicException;
+use Psr\Log\NullLogger;
 use Sentry\Client;
 use Sentry\ClientBuilder;
 use Sentry\Integration\IgnoreErrorsIntegration;
@@ -26,7 +27,6 @@ use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
-use Sentry\Transport\TransportFactoryInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\FileLocator;
@@ -128,9 +128,10 @@ final class SentryExtension extends ConfigurableExtension
             ->setArgument(0, new Reference('sentry.client.options'))
             ->addMethodCall('setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER])
             ->addMethodCall('setSdkVersion', [PrettyVersions::getVersion('sentry/sentry-symfony')->getPrettyVersion()])
-            ->addMethodCall('setTransportFactory', [new Reference(TransportFactoryInterface::class)])
+            ->addMethodCall('setTransportFactory', [new Reference($config['transport_factory'])])
             ->addMethodCall('setSerializer', [$serializer])
-            ->addMethodCall('setRepresentationSerializer', [$representationSerializerDefinition]);
+            ->addMethodCall('setRepresentationSerializer', [$representationSerializerDefinition])
+            ->addMethodCall('setLogger', [null !== $config['logger'] ? new Reference($config['logger']) : new Reference(NullLogger::class, ContainerBuilder::IGNORE_ON_INVALID_REFERENCE)]);
 
         $container
             ->setDefinition('sentry.client', new Definition(Client::class))
@@ -175,7 +176,11 @@ final class SentryExtension extends ConfigurableExtension
             $container->removeDefinition(TracingRequestListener::class);
             $container->removeDefinition(TracingSubRequestListener::class);
             $container->removeDefinition(TracingConsoleListener::class);
+
+            return;
         }
+
+        $container->getDefinition(TracingConsoleListener::class)->replaceArgument(1, $config['console']['excluded_commands']);
     }
 
     /**

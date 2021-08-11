@@ -25,21 +25,15 @@ final class TracingConsoleListenerTest extends TestCase
      */
     private $hub;
 
-    /**
-     * @var TracingConsoleListener
-     */
-    private $listener;
-
     protected function setUp(): void
     {
         $this->hub = $this->createMock(HubInterface::class);
-        $this->listener = new TracingConsoleListener($this->hub);
     }
 
     /**
      * @dataProvider handleConsoleCommandEventStartsTransactionIfNoSpanIsSetOnHubDataProvider
      */
-    public function testHandleConsoleCommandEventStartsTransactionIfNoSpanIsSetOnHub(?Command $command, TransactionContext $expectedTransactionContext): void
+    public function testHandleConsoleCommandEventStartsTransactionIfNoSpanIsSetOnHub(Command $command, TransactionContext $expectedTransactionContext): void
     {
         $transaction = new Transaction(new TransactionContext());
 
@@ -61,7 +55,8 @@ final class TracingConsoleListenerTest extends TestCase
             ->with($transaction)
             ->willReturnSelf();
 
-        $this->listener->handleConsoleCommandEvent(new ConsoleCommandEvent(
+        $listener = new TracingConsoleListener($this->hub);
+        $listener->handleConsoleCommandEvent(new ConsoleCommandEvent(
             $command,
             $this->createMock(InputInterface::class),
             $this->createMock(OutputInterface::class)
@@ -73,15 +68,6 @@ final class TracingConsoleListenerTest extends TestCase
      */
     public function handleConsoleCommandEventStartsTransactionIfNoSpanIsSetOnHubDataProvider(): Generator
     {
-        $transactionContext = new TransactionContext();
-        $transactionContext->setOp('console.command');
-        $transactionContext->setName('<unnamed command>');
-
-        yield [
-            null,
-            $transactionContext,
-        ];
-
         $transactionContext = new TransactionContext();
         $transactionContext->setOp('console.command');
         $transactionContext->setName('<unnamed command>');
@@ -104,7 +90,7 @@ final class TracingConsoleListenerTest extends TestCase
     /**
      * @dataProvider handleConsoleCommandEventStartsChildSpanIfSpanIsSetOnHubDataProvider
      */
-    public function testHandleConsoleCommandEventStartsChildSpanIfSpanIsSetOnHub(?Command $command, string $expectedDescription): void
+    public function testHandleConsoleCommandEventStartsChildSpanIfSpanIsSetOnHub(Command $command, string $expectedDescription): void
     {
         $span = new Span();
 
@@ -123,7 +109,8 @@ final class TracingConsoleListenerTest extends TestCase
             }))
             ->willReturnSelf();
 
-        $this->listener->handleConsoleCommandEvent(new ConsoleCommandEvent(
+        $listener = new TracingConsoleListener($this->hub);
+        $listener->handleConsoleCommandEvent(new ConsoleCommandEvent(
             $command,
             $this->createMock(InputInterface::class),
             $this->createMock(OutputInterface::class)
@@ -136,11 +123,6 @@ final class TracingConsoleListenerTest extends TestCase
     public function handleConsoleCommandEventStartsChildSpanIfSpanIsSetOnHubDataProvider(): Generator
     {
         yield [
-            null,
-            '<unnamed command>',
-        ];
-
-        yield [
             new Command(),
             '<unnamed command>',
         ];
@@ -151,6 +133,19 @@ final class TracingConsoleListenerTest extends TestCase
         ];
     }
 
+    public function testHandleConsoleCommandEvent(): void
+    {
+        $this->hub->expects($this->never())
+            ->method('getSpan');
+
+        $listener = new TracingConsoleListener($this->hub, ['foo:bar']);
+        $listener->handleConsoleCommandEvent(new ConsoleCommandEvent(
+            new Command('foo:bar'),
+            $this->createMock(InputInterface::class),
+            $this->createMock(OutputInterface::class)
+        ));
+    }
+
     public function testHandleConsoleTerminateEvent(): void
     {
         $span = new Span();
@@ -159,7 +154,8 @@ final class TracingConsoleListenerTest extends TestCase
             ->method('getSpan')
             ->willReturn($span);
 
-        $this->listener->handleConsoleTerminateEvent(new ConsoleTerminateEvent(
+        $listener = new TracingConsoleListener($this->hub);
+        $listener->handleConsoleTerminateEvent(new ConsoleTerminateEvent(
             new Command(),
             $this->createMock(InputInterface::class),
             $this->createMock(OutputInterface::class),
@@ -175,8 +171,23 @@ final class TracingConsoleListenerTest extends TestCase
             ->method('getSpan')
             ->willReturn(null);
 
-        $this->listener->handleConsoleTerminateEvent(new ConsoleTerminateEvent(
+        $listener = new TracingConsoleListener($this->hub);
+        $listener->handleConsoleTerminateEvent(new ConsoleTerminateEvent(
             new Command(),
+            $this->createMock(InputInterface::class),
+            $this->createMock(OutputInterface::class),
+            0
+        ));
+    }
+
+    public function testHandleConsoleTerminateEventDoesNothingIfCommandIsExcluded(): void
+    {
+        $this->hub->expects($this->never())
+            ->method('getSpan');
+
+        $listener = new TracingConsoleListener($this->hub, ['foo:bar']);
+        $listener->handleConsoleTerminateEvent(new ConsoleTerminateEvent(
+            new Command('foo:bar'),
             $this->createMock(InputInterface::class),
             $this->createMock(OutputInterface::class),
             0

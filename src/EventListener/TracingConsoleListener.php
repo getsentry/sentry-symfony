@@ -25,13 +25,20 @@ final class TracingConsoleListener
     private $hub;
 
     /**
+     * @var string[] The list of commands for which distributed tracing must be skipped
+     */
+    private $excludedCommands;
+
+    /**
      * Constructor.
      *
-     * @param HubInterface $hub The current hub
+     * @param HubInterface $hub              The current hub
+     * @param string[]     $excludedCommands The list of commands for which distributed tracing must be skipped
      */
-    public function __construct(HubInterface $hub)
+    public function __construct(HubInterface $hub, array $excludedCommands = [])
     {
         $this->hub = $hub;
+        $this->excludedCommands = $excludedCommands;
     }
 
     /**
@@ -42,18 +49,24 @@ final class TracingConsoleListener
      */
     public function handleConsoleCommandEvent(ConsoleCommandEvent $event): void
     {
+        $command = $event->getCommand();
+
+        if ($this->isCommandExcluded($command)) {
+            return;
+        }
+
         $currentSpan = $this->hub->getSpan();
 
         if (null === $currentSpan) {
             $transactionContext = new TransactionContext();
             $transactionContext->setOp('console.command');
-            $transactionContext->setName($this->getSpanName($event->getCommand()));
+            $transactionContext->setName($this->getSpanName($command));
 
             $span = $this->hub->startTransaction($transactionContext);
         } else {
             $spanContext = new SpanContext();
             $spanContext->setOp('console.command');
-            $spanContext->setDescription($this->getSpanName($event->getCommand()));
+            $spanContext->setDescription($this->getSpanName($command));
 
             $span = $currentSpan->startChild($spanContext);
         }
@@ -69,6 +82,10 @@ final class TracingConsoleListener
      */
     public function handleConsoleTerminateEvent(ConsoleTerminateEvent $event): void
     {
+        if ($this->isCommandExcluded($event->getCommand())) {
+            return;
+        }
+
         $span = $this->hub->getSpan();
 
         if (null !== $span) {
@@ -83,5 +100,14 @@ final class TracingConsoleListener
         }
 
         return $command->getName();
+    }
+
+    private function isCommandExcluded(?Command $command): bool
+    {
+        if (null === $command) {
+            return true;
+        }
+
+        return \in_array($command->getName(), $this->excludedCommands, true);
     }
 }

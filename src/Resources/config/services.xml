@@ -72,6 +72,7 @@
 
         <service id="Sentry\SentryBundle\EventListener\TracingConsoleListener" class="Sentry\SentryBundle\EventListener\TracingConsoleListener">
             <argument type="service" id="Sentry\State\HubInterface" />
+            <argument /> <!-- $excludedCommands -->
 
             <tag name="kernel.event_listener" event="console.command" method="handleConsoleCommandEvent" priority="118" />
             <tag name="kernel.event_listener" event="console.terminate" method="handleConsoleTerminateEvent" priority="-54" />
@@ -115,6 +116,12 @@
         <service id="Sentry\Integration\RequestFetcherInterface" class="Sentry\SentryBundle\Integration\RequestFetcher">
             <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack" />
             <argument type="service" id="Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface" on-invalid="null" />
+        </service>
+
+        <service id="Sentry\SentryBundle\Twig\SentryExtension" class="Sentry\SentryBundle\Twig\SentryExtension">
+            <argument type="service" id="Sentry\State\HubInterface" />
+
+            <tag name="twig.extension" />
         </service>
     </services>
 </container>

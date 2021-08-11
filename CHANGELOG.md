@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Log the bus name, receiver name and message class name as event tags when using Symfony Messenger (#492)
+- Make the transport factory configurable in the bundle's config (#504)
+- Add the `sentry_trace_meta()` Twig function to print the `sentry-trace` HTML meta tag (#510)
+- Make the list of commands for which distributed tracing is active configurable (#515)
+- Introduce `TracingDriverConnection::getWrappedConnection()` (#536)
+- Add the `logger` config option to ease setting a PSR-3 logger to debug the SDK (#538)
+- Bump requirement for DBAL tracing to `^2.13|^3`; simplify the DBAL tracing feature (#527)
+
 ## 4.1.4 (2021-06-18)
 
 - Fix decoration of cache adapters inheriting parent service (#525)
