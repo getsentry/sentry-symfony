@@ -101,7 +101,7 @@ final class TracingDriver implements DriverInterface, VersionAwarePlatformDriver
     /**
      * {@inheritdoc}
      */
-    public function getDatabase(Connection $conn): string
+    public function getDatabase(Connection $conn): ?string
     {
         if (method_exists($this->decoratedDriver, 'getDatabase')) {
             return $this->decoratedDriver->getDatabase($conn);
