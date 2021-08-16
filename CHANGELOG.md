@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix return type for `TracingDriver::getDatabase()` method (#541)
+
 ## 4.2.0 (2021-08-12)
 
 - Log the bus name, receiver name and message class name as event tags when using Symfony Messenger (#492)
