@@ -159,7 +159,7 @@ trait TraceableCacheAdapterTrait
     {
         return $this->traceFunction('cache.prune', function (): bool {
             if (!$this->decoratedAdapter instanceof PruneableInterface) {
-                throw new \BadMethodCallException(sprintf('The %s::prune() method is not supported because the decorated adapter does not implement the "%s" interface.', self::class, PruneableInterface::class));
+                return false;
             }
 
             return $this->decoratedAdapter->prune();
@@ -171,11 +171,9 @@ trait TraceableCacheAdapterTrait
      */
     public function reset(): void
     {
-        if (!$this->decoratedAdapter instanceof ResettableInterface) {
-            throw new \BadMethodCallException(sprintf('The %s::reset() method is not supported because the decorated adapter does not implement the "%s" interface.', self::class, ResettableInterface::class));
+        if ($this->decoratedAdapter instanceof ResettableInterface) {
+            $this->decoratedAdapter->reset();
         }
-
-        $this->decoratedAdapter->reset();
     }
 
     /**
