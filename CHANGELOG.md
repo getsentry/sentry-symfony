@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Fix return type for `TracingDriver::getDatabase()` method (#541)
+- Fix missing instrumentation of the `Statement::execute()` method of Doctrine DBAL (#548)
 
 ## 4.2.0 (2021-08-12)
 

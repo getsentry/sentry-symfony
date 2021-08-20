@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\DependencyInjection\Compiler;
 
-use Doctrine\DBAL\Driver\ResultStatement;
 use Doctrine\DBAL\Result;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
@@ -57,7 +56,7 @@ final class DbalTracingPass implements CompilerPassInterface
                 throw new \InvalidArgumentException(sprintf('The Doctrine connection "%s" does not exists and cannot be instrumented.', $connectionName));
             }
 
-            if (!interface_exists(ResultStatement::class)) {
+            if (class_exists(Result::class)) {
                 $this->configureConnectionForDoctrineDBALVersion3($container, $connectionName);
             } else {
                 $this->configureConnectionForDoctrineDBALVersion2($container, $connectionName);

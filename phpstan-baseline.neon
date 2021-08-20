@@ -280,3 +280,103 @@ parameters:
 			count: 1
 			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
 
+		-
+			message: "#^Call to an undefined method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatement\\:\\:closeCursor\\(\\)\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Call to an undefined method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatement\\:\\:columnCount\\(\\)\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Call to an undefined method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatement\\:\\:errorCode\\(\\)\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Call to an undefined method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatement\\:\\:errorInfo\\(\\)\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Call to an undefined method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatement\\:\\:fetch\\(\\)\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Call to an undefined method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatement\\:\\:fetchAll\\(\\)\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Call to an undefined method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatement\\:\\:fetchColumn\\(\\)\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Call to an undefined method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatement\\:\\:getIterator\\(\\)\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Call to an undefined method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatement\\:\\:rowCount\\(\\)\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Call to an undefined method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatement\\:\\:setFetchMode\\(\\)\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Call to method PHPUnit\\\\Framework\\\\Assert\\:\\:assertTrue\\(\\) with Doctrine\\\\DBAL\\\\Driver\\\\Result will always evaluate to false\\.$#"
+			count: 2
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Trying to mock an undefined method closeCursor\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Trying to mock an undefined method columnCount\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Trying to mock an undefined method errorCode\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Trying to mock an undefined method errorInfo\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Trying to mock an undefined method fetch\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Trying to mock an undefined method fetchAll\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Trying to mock an undefined method fetchColumn\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Trying to mock an undefined method rowCount\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
+		-
+			message: "#^Trying to mock an undefined method setFetchMode\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementTest.php
+
