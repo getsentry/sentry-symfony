@@ -222,7 +222,7 @@ parameters:
 
 		-
 			message: "#^Call to an undefined method TCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface\\:\\:reset\\(\\)\\.$#"
-			count: 2
+			count: 1
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
 
 		-
