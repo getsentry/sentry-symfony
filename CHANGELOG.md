@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.2.1 (2021-08-24)
+
 - Fix return type for `TracingDriver::getDatabase()` method (#541)
 - Avoid throwing exception from the `TraceableCacheAdapterTrait::prune()` and `TraceableCacheAdapterTrait::reset()` methods when the decorated adapter does not implement the respective interfaces (#543)
 
