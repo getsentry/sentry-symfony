@@ -6,11 +6,15 @@ parameters:
     paths:
         - src
         - tests
+    bootstrapFiles:
+        - src/aliases.php
     excludePaths:
+        - src/aliases.php
         - tests/End2End/App
-        - src/Tracing/Doctrine/DBAL/TracingStatement.php
     dynamicConstantNames:
         - Symfony\Component\HttpKernel\Kernel::VERSION
         - Symfony\Component\HttpKernel\Kernel::VERSION_ID
     stubFiles:
         - tests/Stubs/Profile.phpstub
+    featureToggles:
+        disableRuntimeReflectionProvider: true
