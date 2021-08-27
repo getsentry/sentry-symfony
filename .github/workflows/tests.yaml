@@ -61,7 +61,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          coverage: pcov
+          coverage: xdebug
       - name: Install Symfony Flex
         run: composer global require --no-progress --no-scripts --no-plugins symfony/flex
       - run: composer remove --dev symfony/messenger --no-update
