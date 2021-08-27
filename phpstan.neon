@@ -10,6 +10,7 @@ parameters:
         - src/aliases.php
     excludePaths:
         - src/aliases.php
+        - src/Tracing/Doctrine/DBAL/TracingStatementForV2.php
         - tests/End2End/App
     dynamicConstantNames:
         - Symfony\Component\HttpKernel\Kernel::VERSION
