@@ -188,6 +188,11 @@ final class TracingDriverConnection implements DriverConnectionInterface
         throw new \BadMethodCallException(sprintf('The %s() method is not supported on Doctrine DBAL 3.0.', __METHOD__));
     }
 
+    public function getWrappedConnection(): DriverConnectionInterface
+    {
+        return $this->decoratedConnection;
+    }
+
     /**
      * @phpstan-template T
      *

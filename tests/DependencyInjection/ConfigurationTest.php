@@ -20,6 +20,8 @@ final class ConfigurationTest extends TestCase
     {
         $expectedBundleDefaultConfig = [
             'register_error_listener' => true,
+            'logger' => null,
+            'transport_factory' => 'Sentry\\Transport\\TransportFactoryInterface',
             'options' => [
                 'integrations' => [],
                 'prefixes' => array_merge(['%kernel.project_dir%'], array_filter(explode(\PATH_SEPARATOR, get_include_path() ?: ''))),
@@ -49,6 +51,9 @@ final class ConfigurationTest extends TestCase
                 ],
                 'cache' => [
                     'enabled' => class_exists(CacheItem::class),
+                ],
+                'console' => [
+                    'excluded_commands' => ['messenger:consume'],
                 ],
             ],
         ];

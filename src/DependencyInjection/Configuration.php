@@ -8,6 +8,7 @@ use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
 use Sentry\Options;
 use Sentry\SentryBundle\ErrorTypesParser;
+use Sentry\Transport\TransportFactoryInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
@@ -35,6 +36,14 @@ final class Configuration implements ConfigurationInterface
                     ->info('If this value is not provided, the SDK will try to read it from the SENTRY_DSN environment variable. If that variable also does not exist, the SDK will just not send any events.')
                 ->end()
                 ->booleanNode('register_error_listener')->defaultTrue()->end()
+                ->scalarNode('logger')
+                    ->info('The service ID of the PSR-3 logger used to log messages coming from the SDK client. Be aware that setting the same logger of the application may create a circular loop when an event fails to be sent.')
+                    ->defaultNull()
+                ->end()
+                ->scalarNode('transport_factory')
+                    ->info('The service ID of the transport factory used by the default SDK client.')
+                    ->defaultValue(TransportFactoryInterface::class)
+                ->end()
                 ->arrayNode('options')
                     ->addDefaultsIfNotSet()
                     ->fixXmlConfig('integration')
@@ -166,6 +175,16 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                         ->arrayNode('cache')
                             ->{class_exists(CacheItem::class) ? 'canBeDisabled' : 'canBeEnabled'}()
+                        ->end()
+                        ->arrayNode('console')
+                            ->addDefaultsIfNotSet()
+                            ->fixXmlConfig('excluded_command')
+                            ->children()
+                                ->arrayNode('excluded_commands')
+                                    ->scalarPrototype()->end()
+                                    ->defaultValue(['messenger:consume'])
+                                ->end()
+                            ->end()
                         ->end()
                     ->end()
                 ->end()

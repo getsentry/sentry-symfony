@@ -19,7 +19,7 @@ use Sentry\State\HubInterface;
  * This is a simple implementation of the {@see DriverInterface} interface that
  * decorates an existing driver to support distributed tracing capabilities.
  * This implementation IS and MUST be compatible with all versions of Doctrine
- * DBAL >= 2.10.
+ * DBAL >= 2.13.
  *
  * @internal
  */
@@ -36,8 +36,6 @@ final class TracingDriver implements DriverInterface, VersionAwarePlatformDriver
     private $decoratedDriver;
 
     /**
-     * Constructor.
-     *
      * @param HubInterface    $hub             The current hub
      * @param DriverInterface $decoratedDriver The instance of the driver to decorate
      */
@@ -103,7 +101,7 @@ final class TracingDriver implements DriverInterface, VersionAwarePlatformDriver
     /**
      * {@inheritdoc}
      */
-    public function getDatabase(Connection $conn): string
+    public function getDatabase(Connection $conn): ?string
     {
         if (method_exists($this->decoratedDriver, 'getDatabase')) {
             return $this->decoratedDriver->getDatabase($conn);

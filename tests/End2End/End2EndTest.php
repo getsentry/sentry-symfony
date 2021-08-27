@@ -18,7 +18,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
-if (!class_exists(KernelBrowser::class)) {
+if (!class_exists(KernelBrowser::class) && class_exists(Client::class)) {
     class_alias(Client::class, KernelBrowser::class);
 }
 

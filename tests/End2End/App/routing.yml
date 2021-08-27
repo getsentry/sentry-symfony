@@ -33,3 +33,7 @@ dispatch_unrecoverable:
 dispatch_unrecoverable_sync:
   path: /dispatch-unrecoverable-sync-message
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MessengerController::dispatchUnrecoverableSyncMessage' }
+
+tracing_ping_database:
+  path: /tracing/ping-database
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::pingDatabase' }

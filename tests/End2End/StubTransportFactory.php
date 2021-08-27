@@ -34,6 +34,11 @@ class StubTransportFactory implements TransportFactoryInterface
                     $message = $event->getMessage();
                 } elseif ($event->getExceptions()) {
                     $message = $event->getExceptions()[0]->getValue();
+                } elseif ($event->getTransaction()) {
+                    $message = 'TRACING: ' . $event->getTransaction();
+                    foreach ($event->getSpans() as $i => $span) {
+                        $message .= \PHP_EOL . $i . ') ' . $span->getDescription();
+                    }
                 } else {
                     $message = 'NO MESSAGE NOR EXCEPTIONS';
                 }

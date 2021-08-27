@@ -18,6 +18,7 @@ use Symfony\Contracts\Cache\CacheInterface as BaseCacheInterface;
 
 /**
  * @phpstan-template TCacheAdapter of AdapterInterface
+ * @phpstan-template TDecoratedCacheAdapter of AdapterInterface
  */
 abstract class AbstractTraceableCacheAdapterTest extends TestCase
 {
@@ -374,14 +375,24 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
-    public function testPruneThrowsExceptionIfDecoratedAdapterIsNotPruneable(): void
+    public function testPruneReturnsFalseIfDecoratedAdapterIsNotPruneable(): void
     {
+        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction->initSpanRecorder();
+
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn($transaction);
+
         $adapter = $this->createCacheAdapter($this->createMock(static::getAdapterClassFqcn()));
 
-        $this->expectException(\BadMethodCallException::class);
-        $this->expectExceptionMessage(sprintf('The %s::prune() method is not supported because the decorated adapter does not implement the "Symfony\\Component\\Cache\\PruneableInterface" interface.', \get_class($adapter)));
+        $this->assertFalse($adapter->prune());
 
-        $adapter->prune();
+        $spans = $transaction->getSpanRecorder()->getSpans();
+
+        $this->assertCount(2, $spans);
+        $this->assertSame('cache.prune', $spans[1]->getOp());
+        $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
     public function testReset(): void
@@ -394,28 +405,20 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter->reset();
     }
 
-    public function testResetThrowsExceptionIfDecoratedAdapterIsNotResettable(): void
-    {
-        $adapter = $this->createCacheAdapter($this->createMock(static::getAdapterClassFqcn()));
-
-        $this->expectException(\BadMethodCallException::class);
-        $this->expectExceptionMessage(sprintf('The %s::reset() method is not supported because the decorated adapter does not implement the "Symfony\\Component\\Cache\\ResettableInterface" interface.', \get_class($adapter)));
-
-        $adapter->reset();
-    }
-
     private static function isCachePackageInstalled(): bool
     {
         return interface_exists(BaseCacheInterface::class);
     }
 
     /**
+     * @phpstan-param TDecoratedCacheAdapter $decoratedAdapter
+     *
      * @phpstan-return TCacheAdapter
      */
-    abstract protected function createCacheAdapter(AdapterInterface $decoratedAdapter): AdapterInterface;
+    abstract protected function createCacheAdapter(AdapterInterface $decoratedAdapter);
 
     /**
-     * @return class-string<AdapterInterface>
+     * @return class-string<TDecoratedCacheAdapter>
      */
     abstract protected static function getAdapterClassFqcn(): string;
 }

@@ -336,6 +336,13 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
         $this->assertFalse($this->connection->rollBack());
     }
 
+    public function testGetWrappedConnection(): void
+    {
+        $connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', []);
+
+        $this->assertSame($this->decoratedConnection, $connection->getWrappedConnection());
+    }
+
     /**
      * @return \Generator<mixed>
      */
