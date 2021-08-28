@@ -59,11 +59,6 @@ final class TracingDriverConnection implements DriverConnectionInterface
     private $decoratedConnection;
 
     /**
-     * @var string The name of the database platform
-     */
-    private $databasePlatform;
-
-    /**
      * @var array<string, string> The tags to attach to the span
      */
     private $spanTags;
@@ -84,8 +79,7 @@ final class TracingDriverConnection implements DriverConnectionInterface
     ) {
         $this->hub = $hub;
         $this->decoratedConnection = $decoratedConnection;
-        $this->databasePlatform = $databasePlatform;
-        $this->spanTags = $this->getSpanTags($params);
+        $this->spanTags = $this->getSpanTags($databasePlatform, $params);
     }
 
     /**
@@ -93,9 +87,11 @@ final class TracingDriverConnection implements DriverConnectionInterface
      */
     public function prepare($sql): Statement
     {
-        return $this->traceFunction(self::SPAN_OP_CONN_PREPARE, $sql, function () use ($sql): Statement {
+        $statement = $this->traceFunction(self::SPAN_OP_CONN_PREPARE, $sql, function () use ($sql): Statement {
             return $this->decoratedConnection->prepare($sql);
         });
+
+        return new TracingStatement($this->hub, $statement, $sql, $this->spanTags);
     }
 
     /**
@@ -225,15 +221,16 @@ final class TracingDriverConnection implements DriverConnectionInterface
     /**
      * Gets a map of key-value pairs that will be set as tags of the span.
      *
-     * @param array<string, mixed> $params The connection params
+     * @param string               $databasePlatform The database platform
+     * @param array<string, mixed> $params           The connection params
      *
      * @return array<string, string>
      *
      * @see https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
      */
-    private function getSpanTags(array $params): array
+    private function getSpanTags(string $databasePlatform, array $params): array
     {
-        $tags = ['db.system' => $this->databasePlatform];
+        $tags = ['db.system' => $databasePlatform];
 
         if (isset($params['user'])) {
             $tags['db.user'] = $params['user'];

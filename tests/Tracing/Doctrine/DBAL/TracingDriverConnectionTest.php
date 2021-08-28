@@ -11,6 +11,7 @@ use Doctrine\DBAL\ParameterType;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnection;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatement;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
@@ -54,9 +55,10 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
      */
     public function testPrepare(array $params, array $expectedTags): void
     {
-        $statement = $this->createMock(DriverStatementInterface::class);
-        $connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', $params);
         $sql = 'SELECT 1 + 1';
+        $statement = $this->createMock(DriverStatementInterface::class);
+        $resultStatement = new TracingStatement($this->hub, $statement, $sql, $expectedTags);
+        $connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', $params);
 
         $transaction = new Transaction(new TransactionContext(), $this->hub);
         $transaction->initSpanRecorder();
@@ -70,7 +72,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->with($sql)
             ->willReturn($statement);
 
-        $this->assertSame($statement, $connection->prepare($sql));
+        $this->assertEquals($resultStatement, $connection->prepare($sql));
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -83,8 +85,9 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
 
     public function testPrepareDoesNothingIfNoSpanIsSetOnHub(): void
     {
-        $statement = $this->createMock(DriverStatementInterface::class);
         $sql = 'SELECT 1 + 1';
+        $statement = $this->createMock(DriverStatementInterface::class);
+        $resultStatement = new TracingStatement($this->hub, $statement, $sql, ['db.system' => 'foo_platform']);
 
         $this->hub->expects($this->once())
             ->method('getSpan')
@@ -95,7 +98,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->with($sql)
             ->willReturn($statement);
 
-        $this->assertSame($statement, $this->connection->prepare($sql));
+        $this->assertEquals($resultStatement, $this->connection->prepare($sql));
     }
 
     /**

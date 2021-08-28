@@ -96,31 +96,6 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
-			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent not found\\.$#"
-			count: 1
-			path: src/aliases.php
-
-		-
-			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterResponseEvent not found\\.$#"
-			count: 1
-			path: src/aliases.php
-
-		-
-			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent not found\\.$#"
-			count: 2
-			path: src/aliases.php
-
-		-
-			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent not found\\.$#"
-			count: 1
-			path: src/aliases.php
-
-		-
-			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\PostResponseEvent not found\\.$#"
-			count: 1
-			path: src/aliases.php
-
-		-
 			message: "#^Class Symfony\\\\Bundle\\\\FrameworkBundle\\\\Client not found\\.$#"
 			count: 1
 			path: tests/End2End/TracingEnd2EndTest.php
@@ -279,4 +254,49 @@ parameters:
 			message: "#^Trying to mock an undefined method getName\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\.$#"
 			count: 1
 			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
+
+		-
+			message: "#^Trying to mock an undefined method closeCursor\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Trying to mock an undefined method columnCount\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Trying to mock an undefined method errorCode\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Trying to mock an undefined method errorInfo\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Trying to mock an undefined method fetch\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Trying to mock an undefined method fetchAll\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Trying to mock an undefined method fetchColumn\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Trying to mock an undefined method rowCount\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Trying to mock an undefined method setFetchMode\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
 
