@@ -54,6 +54,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: xdebug
+          tools: flex
 
       - name: Setup Problem Matchers for PHPUnit
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
@@ -61,9 +62,6 @@ jobs:
       - name: Remove Symfony Messenger
         run: composer remove --dev symfony/messenger --no-update
         if: matrix.symfony-version == '3.4.*'
-
-      - name: Install Symfony Flex
-        run: composer global require --no-progress --no-scripts --no-plugins symfony/flex
 
       - name: Install dependencies
         uses: ramsey/composer-install@v1
