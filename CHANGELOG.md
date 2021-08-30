@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.2.2 (2021-08-30)
+
 - Fix missing instrumentation of the `Statement::execute()` method of Doctrine DBAL (#548)
 
 ## 4.2.1 (2021-08-24)
