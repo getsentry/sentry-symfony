@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.9.3@4c262932602b9bbab5020863d1eb22d49de0dbf4">
+<files psalm-version="4.10.0@916b098b008f6de4543892b1e0651c1c3b92cbfa">
   <file src="src/EventListener/ConsoleCommandListener.php">
     <InvalidExtendClass occurrences="1">
       <code>ConsoleListener</code>
@@ -7,6 +7,11 @@
     <MethodSignatureMismatch occurrences="1">
       <code>public function __construct(HubInterface $hub, bool $captureErrors = true)</code>
     </MethodSignatureMismatch>
+  </file>
+  <file src="src/Tracing/Doctrine/DBAL/TracingDriverForV2.php">
+    <UndefinedClass occurrences="1">
+      <code>ExceptionConverterDriver</code>
+    </UndefinedClass>
   </file>
   <file src="src/Tracing/Doctrine/DBAL/TracingStatementForV2.php">
     <InvalidReturnStatement occurrences="2">
@@ -33,6 +38,9 @@
     </UndefinedInterfaceMethod>
   </file>
   <file src="src/aliases.php">
+    <MissingDependency occurrences="1">
+      <code>TracingDriverForV2</code>
+    </MissingDependency>
     <UndefinedClass occurrences="6">
       <code>FilterControllerEvent</code>
       <code>FilterResponseEvent</code>

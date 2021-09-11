@@ -11,7 +11,9 @@ parameters:
     excludePaths:
         - src/aliases.php
         - src/Tracing/Doctrine/DBAL/TracingStatementForV2.php
+        - src/Tracing/Doctrine/DBAL/TracingDriverForV2.php
         - tests/End2End/App
+        - tests/Tracing/Doctrine/DBAL/TracingDriverForV2Test.php
     dynamicConstantNames:
         - Symfony\Component\HttpKernel\Kernel::VERSION
         - Symfony\Component\HttpKernel\Kernel::VERSION_ID
