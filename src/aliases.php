@@ -87,8 +87,10 @@ if (!interface_exists(LegacyExceptionConverterDriverInterface::class)) {
     class_alias(ExceptionConverterDriverInterface::class, LegacyExceptionConverterDriverInterface::class);
 }
 
-if (class_exists(Result::class)) {
-    class_alias(TracingStatementForV3::class, 'Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatement');
-} elseif (interface_exists(Result::class)) {
-    class_alias(TracingStatementForV2::class, 'Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatement');
+if (!class_exists('Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatement')) {
+    if (class_exists(Result::class)) {
+        class_alias(TracingStatementForV3::class, 'Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatement');
+    } elseif (interface_exists(Result::class)) {
+        class_alias(TracingStatementForV2::class, 'Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatement');
+    }
 }
