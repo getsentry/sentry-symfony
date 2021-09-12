@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix: Test if `TracingStatement` exists before attempting to create the class alias, otherwise it breaks when opcache is enabled. (#552)
+
 ## 4.2.2 (2021-08-30)
 
 - Fix missing instrumentation of the `Statement::execute()` method of Doctrine DBAL (#548)
