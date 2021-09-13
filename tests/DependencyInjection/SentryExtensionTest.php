@@ -178,7 +178,7 @@ abstract class SentryExtensionTest extends TestCase
         ], $definition->getTags());
     }
 
-    public function testClentIsCreatedFromOptions(): void
+    public function testClientIsCreatedFromOptions(): void
     {
         $container = $this->createContainerFromFixture('full');
         $optionsDefinition = $container->getDefinition('sentry.client.options');
