@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Fix: Test if `TracingStatement` exists before attempting to create the class alias, otherwise it breaks when opcache is enabled. (#552)
+- Fix: Pass logger from `logger` config option to `TransportFactory` (#555)
 
 ## 4.2.2 (2021-08-30)
 
