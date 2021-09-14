@@ -27,6 +27,7 @@ use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
+use Sentry\Transport\TransportFactoryInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\FileLocator;
@@ -124,6 +125,13 @@ final class SentryExtension extends ConfigurableExtension
             ->setPublic(false)
             ->setArgument(0, new Reference('sentry.client.options'));
 
+        $loggerReference = null === $config['logger']
+            ? new Reference(NullLogger::class, ContainerBuilder::IGNORE_ON_INVALID_REFERENCE)
+            : new Reference($config['logger']);
+
+        $factoryBuilderDefinition = $container->getDefinition(TransportFactoryInterface::class);
+        $factoryBuilderDefinition->setArgument('$logger', $loggerReference);
+
         $clientBuilderDefinition = (new Definition(ClientBuilder::class))
             ->setArgument(0, new Reference('sentry.client.options'))
             ->addMethodCall('setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER])
@@ -131,7 +139,7 @@ final class SentryExtension extends ConfigurableExtension
             ->addMethodCall('setTransportFactory', [new Reference($config['transport_factory'])])
             ->addMethodCall('setSerializer', [$serializer])
             ->addMethodCall('setRepresentationSerializer', [$representationSerializerDefinition])
-            ->addMethodCall('setLogger', [null !== $config['logger'] ? new Reference($config['logger']) : new Reference(NullLogger::class, ContainerBuilder::IGNORE_ON_INVALID_REFERENCE)]);
+            ->addMethodCall('setLogger', [$loggerReference]);
 
         $container
             ->setDefinition('sentry.client', new Definition(Client::class))

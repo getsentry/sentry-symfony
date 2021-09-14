@@ -14,6 +14,8 @@
             <argument type="service" id="Psr\Http\Message\RequestFactoryInterface" on-invalid="ignore" />
             <argument type="service" id="Psr\Http\Message\ResponseFactoryInterface" on-invalid="ignore" />
             <argument type="service" id="Psr\Http\Message\StreamFactoryInterface" on-invalid="ignore" />
+            <argument>null</argument>
+            <argument /> <!-- $logger -->
         </service>
 
         <service id="Sentry\State\HubInterface">
