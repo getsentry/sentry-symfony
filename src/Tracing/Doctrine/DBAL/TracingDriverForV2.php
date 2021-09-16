@@ -18,6 +18,8 @@ use Sentry\State\HubInterface;
  * This is a simple implementation of the {@see Driver} interface that decorates
  * an existing driver to support distributed tracing capabilities. This implementation
  * is compatible only with DBAL version < 3.0.
+ *
+ * @internal
  */
 final class TracingDriverForV2 implements Driver, VersionAwarePlatformDriver, ExceptionConverterDriver
 {
