@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle;
 
-use Doctrine\DBAL\Driver\ExceptionConverterDriver as LegacyExceptionConverterDriverInterface;
 use Doctrine\DBAL\Driver\Middleware as DoctrineMiddlewareInterface;
 use Doctrine\DBAL\Result;
 use Sentry\SentryBundle\EventListener\ErrorListenerExceptionEvent;
@@ -13,8 +12,9 @@ use Sentry\SentryBundle\EventListener\RequestListenerRequestEvent;
 use Sentry\SentryBundle\EventListener\RequestListenerResponseEvent;
 use Sentry\SentryBundle\EventListener\RequestListenerTerminateEvent;
 use Sentry\SentryBundle\EventListener\SubRequestListenerRequestEvent;
-use Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility\ExceptionConverterDriverInterface;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility\MiddlewareInterface;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverForV2;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverForV3;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatementForV2;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatementForV3;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
@@ -83,14 +83,12 @@ if (!interface_exists(DoctrineMiddlewareInterface::class)) {
     class_alias(MiddlewareInterface::class, DoctrineMiddlewareInterface::class);
 }
 
-if (!interface_exists(LegacyExceptionConverterDriverInterface::class)) {
-    class_alias(ExceptionConverterDriverInterface::class, LegacyExceptionConverterDriverInterface::class);
-}
-
 if (!class_exists('Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatement')) {
     if (class_exists(Result::class)) {
-        class_alias(TracingStatementForV3::class, 'Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatement');
+        class_alias(TracingStatementForV3::class, 'Sentry\\SentryBundle\\Tracing\\Doctrine\\DBAL\\TracingStatement');
+        class_alias(TracingDriverForV3::class, 'Sentry\\SentryBundle\\Tracing\\Doctrine\\DBAL\\TracingDriver');
     } elseif (interface_exists(Result::class)) {
-        class_alias(TracingStatementForV2::class, 'Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatement');
+        class_alias(TracingStatementForV2::class, 'Sentry\\SentryBundle\\Tracing\\Doctrine\\DBAL\\TracingStatement');
+        class_alias(TracingDriverForV2::class, 'Sentry\\SentryBundle\\Tracing\\Doctrine\\DBAL\\TracingDriver');
     }
 }

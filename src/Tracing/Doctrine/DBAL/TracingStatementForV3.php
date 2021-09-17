@@ -9,6 +9,9 @@ use Doctrine\DBAL\Driver\Statement;
 use Doctrine\DBAL\ParameterType;
 use Sentry\Tracing\SpanContext;
 
+/**
+ * @internal
+ */
 final class TracingStatementForV3 extends AbstractTracingStatement implements Statement
 {
     /**

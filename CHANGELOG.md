@@ -4,6 +4,7 @@
 
 - Fix: Test if `TracingStatement` exists before attempting to create the class alias, otherwise it breaks when opcache is enabled. (#552)
 - Fix: Pass logger from `logger` config option to `TransportFactory` (#555)
+- Improve the compatibility layer with Doctrine DBAL to avoid deprecations notices (#553)
 
 ## 4.2.2 (2021-08-30)
 

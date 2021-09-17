@@ -9,6 +9,8 @@ use Doctrine\DBAL\ParameterType;
 use Sentry\Tracing\SpanContext;
 
 /**
+ * @internal
+ *
  * @phpstan-implements \IteratorAggregate<mixed>
  */
 final class TracingStatementForV2 extends AbstractTracingStatement implements \IteratorAggregate, Statement
