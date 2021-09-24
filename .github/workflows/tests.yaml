@@ -42,6 +42,9 @@ jobs:
             symfony_constraint: 3.4.*
             env:
               SYMFONY_DEPRECATIONS_HELPER: disabled
+          - description: '8.1'
+            php: '8.1'
+            composer_option: '--ignore-platform-req=php'
           - description: 'prefer lowest'
             php: '7.2'
             composer_option: '--prefer-lowest'
