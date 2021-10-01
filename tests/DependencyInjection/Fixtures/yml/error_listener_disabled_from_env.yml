@@ -1,0 +1,4 @@
+parameters:
+    env(REGISTER_ERROR_LISTENER): "false"
+sentry:
+    register_error_listener: "%env(bool:REGISTER_ERROR_LISTENER)%"

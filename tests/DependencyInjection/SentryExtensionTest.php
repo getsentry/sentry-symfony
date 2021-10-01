@@ -56,6 +56,13 @@ abstract class SentryExtensionTest extends TestCase
         ], $definition->getTag('kernel.event_listener')[0]);
     }
 
+    public function testErrorListenerDisabledFromEnv(): void
+    {
+        $container = $this->createContainerFromFixture('error_listener_disabled_from_env');
+
+        $this->assertFalse($container->hasDefinition(ErrorListener::class));
+    }
+
     public function testErrorListenerIsRemovedWhenDisabled(): void
     {
         $container = $this->createContainerFromFixture('error_listener_disabled');
