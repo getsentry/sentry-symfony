@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Add return typehints to `SentryExtension` dependency injection to prepare for Symfony 6. (#563)
+- Add return typehints to the methods of the `SentryExtension` class to prepare for Symfony 6 (#563)
 
 ## 4.2.3 (2021-09-21)
 
