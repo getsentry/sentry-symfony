@@ -43,7 +43,7 @@ final class SentryExtension extends ConfigurableExtension
     /**
      * {@inheritdoc}
      */
-    public function getXsdValidationBasePath()
+    public function getXsdValidationBasePath(): string
     {
         return __DIR__ . '/../Resources/config/schema';
     }
@@ -51,7 +51,7 @@ final class SentryExtension extends ConfigurableExtension
     /**
      * {@inheritdoc}
      */
-    public function getNamespace()
+    public function getNamespace(): string
     {
         return 'https://sentry.io/schema/dic/sentry-symfony';
     }
