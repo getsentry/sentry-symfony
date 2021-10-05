@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add return typehints to the methods of the `SentryExtension` class to prepare for Symfony 6 (#563)
+
 ## 4.2.3 (2021-09-21)
 
 - Fix: Test if `TracingStatement` exists before attempting to create the class alias, otherwise it breaks when opcache is enabled. (#552)
