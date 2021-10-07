@@ -151,7 +151,7 @@ class End2EndTest extends WebTestCase
             $this->assertStringNotContainsString('not happen', $response->getContent() ?: '');
         } catch (\RuntimeException $exception) {
             $this->assertStringContainsStringIgnoringCase('error', $exception->getMessage());
-            $this->assertStringContainsStringIgnoringCase('contains 2 abstract methods', $exception->getMessage());
+            $this->assertStringContainsStringIgnoringCase('contains 1 abstract method', $exception->getMessage());
             $this->assertStringContainsStringIgnoringCase('MainController.php', $exception->getMessage());
             $this->assertStringContainsStringIgnoringCase('eval()\'d code on line', $exception->getMessage());
         }

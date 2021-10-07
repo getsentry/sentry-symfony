@@ -41,7 +41,7 @@ class MainController
 
     public function fatal(): Response
     {
-        $foo = eval("return new class() implements \Serializable {};");
+        $foo = eval("return new class() implements \JsonSerializable {};");
 
         return new Response('This response should not happen: ' . json_encode($foo));
     }
