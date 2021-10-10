@@ -51,6 +51,7 @@ final class RequestListenerTest extends TestCase
 
     /**
      * @dataProvider handleKernelRequestEventForSymfonyVersionAtLeast43DataProvider
+     * @dataProvider handleKernelRequestEventForSymfonyVersionLowerThan43DataProvider
      *
      * @param GetResponseEvent|RequestEvent $requestEvent
      */
