@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\KernelEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\Kernel;
@@ -51,7 +52,6 @@ final class RequestListenerTest extends TestCase
 
     /**
      * @dataProvider handleKernelRequestEventForSymfonyVersionAtLeast43DataProvider
-     * @dataProvider handleKernelRequestEventForSymfonyVersionLowerThan43DataProvider
      *
      * @param GetResponseEvent|RequestEvent $requestEvent
      */
@@ -109,6 +109,17 @@ final class RequestListenerTest extends TestCase
             $this->getMockedClientWithOptions(new Options(['send_default_pii' => false])),
             null,
             null,
+        ];
+
+        yield 'ip address IS NULL' => [
+            new GetResponseEvent(
+                $this->createMock(HttpKernelInterface::class),
+                new Request([], [], [], [], [], ['REMOTE_ADDR' => null]),
+                HttpKernelInterface::MASTER_REQUEST
+            ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
+            null,
+            UserDataBag::createFromUserIpAddress('127.0.0.1'),
         ];
 
         yield 'token IS NULL' => [
@@ -419,6 +430,17 @@ final class RequestListenerTest extends TestCase
                 }
             },
             new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
+        ];
+
+        yield 'ClientIP is NULL' => [
+            new RequestEvent(
+                $this->createMock(HttpKernelInterface::class),
+                new Request([], [], [], [], [], ['REMOTE_ADDR' => null]),
+                HttpKernelInterface::MAIN_REQUEST
+            ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
+            null,
+            new UserDataBag(),
         ];
     }
 

@@ -60,7 +60,9 @@ final class RequestListener
         }
 
         $token = null;
-        $userData = UserDataBag::createFromUserIpAddress($event->getRequest()->getClientIp());
+
+        $userData = new UserDataBag();
+        $userData->setIpAddress($event->getRequest()->getClientIp());
 
         if (null !== $this->tokenStorage) {
             $token = $this->tokenStorage->getToken();
