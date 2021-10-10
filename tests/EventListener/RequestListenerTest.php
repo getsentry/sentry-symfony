@@ -111,17 +111,6 @@ final class RequestListenerTest extends TestCase
             null,
         ];
 
-        yield 'ip address IS NULL' => [
-            new GetResponseEvent(
-                $this->createMock(HttpKernelInterface::class),
-                new Request([], [], [], [], [], ['REMOTE_ADDR' => null]),
-                HttpKernelInterface::MASTER_REQUEST
-            ),
-            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-            null,
-            UserDataBag::createFromUserIpAddress('127.0.0.1'),
-        ];
-
         yield 'token IS NULL' => [
             new GetResponseEvent(
                 $this->createMock(HttpKernelInterface::class),
