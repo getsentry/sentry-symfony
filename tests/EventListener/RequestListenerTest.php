@@ -425,7 +425,7 @@ final class RequestListenerTest extends TestCase
             new RequestEvent(
                 $this->createMock(HttpKernelInterface::class),
                 new Request(),
-                HttpKernelInterface::MAIN_REQUEST
+                HttpKernelInterface::MASTER_REQUEST
             ),
             $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
             null,
