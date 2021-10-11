@@ -59,9 +59,9 @@ final class RequestListener
             return;
         }
 
+        $token = null;
         $userData = new UserDataBag();
         $userData->setIpAddress($event->getRequest()->getClientIp());
-        $token = null;
 
         if (null !== $this->tokenStorage) {
             $token = $this->tokenStorage->getToken();
