@@ -421,10 +421,10 @@ final class RequestListenerTest extends TestCase
             new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
         ];
 
-        yield 'ClientIP is NULL' => [
+        yield 'request.clientIp IS NULL' => [
             new RequestEvent(
                 $this->createMock(HttpKernelInterface::class),
-                new Request([], [], [], [], [], ['REMOTE_ADDR' => null]),
+                new Request(),
                 HttpKernelInterface::MAIN_REQUEST
             ),
             $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
