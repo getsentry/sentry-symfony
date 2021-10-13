@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add support for Symfony 6 (#566)
 - Add return typehints to the methods of the `SentryExtension` class to prepare for Symfony 6 (#563)
 - Fix setting the IP address on the user context when it's not available (#565)
 
