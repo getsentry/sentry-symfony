@@ -134,7 +134,9 @@ final class RequestListenerTest extends TestCase
                 {
                     parent::__construct();
 
-                    $this->setAuthenticated(false);
+                    if (method_exists($this, 'setAuthenticated')) {
+                        $this->setAuthenticated(false);
+                    }
                 }
 
                 public function getCredentials()
@@ -157,7 +159,9 @@ final class RequestListenerTest extends TestCase
                 {
                     parent::__construct();
 
-                    $this->setAuthenticated(true);
+                    if (method_exists($this, 'setAuthenticated')) {
+                        $this->setAuthenticated(true);
+                    }
                 }
 
                 public function getCredentials()
@@ -180,7 +184,9 @@ final class RequestListenerTest extends TestCase
                 {
                     parent::__construct();
 
-                    $this->setAuthenticated(true);
+                    if (method_exists($this, 'setAuthenticated')) {
+                        $this->setAuthenticated(true);
+                    }
                     $this->setUser('foo_user');
                 }
 
@@ -204,7 +210,9 @@ final class RequestListenerTest extends TestCase
                 {
                     parent::__construct();
 
-                    $this->setAuthenticated(true);
+                    if (method_exists($this, 'setAuthenticated')) {
+                        $this->setAuthenticated(true);
+                    }
                     $this->setUser(new class() extends UserStub {
                         public function getUserIdentifier(): string
                         {
@@ -233,7 +241,10 @@ final class RequestListenerTest extends TestCase
                 {
                     parent::__construct();
 
-                    $this->setAuthenticated(true);
+                    if (method_exists($this, 'setAuthenticated')) {
+                        $this->setAuthenticated(true);
+                    }
+
                     $this->setUser(new class() implements \Stringable {
                         public function __toString(): string
                         {
@@ -305,7 +316,9 @@ final class RequestListenerTest extends TestCase
                 {
                     parent::__construct();
 
-                    $this->setAuthenticated(false);
+                    if (method_exists($this, 'setAuthenticated')) {
+                        $this->setAuthenticated(false);
+                    }
                 }
 
                 public function getCredentials()
@@ -328,7 +341,9 @@ final class RequestListenerTest extends TestCase
                 {
                     parent::__construct();
 
-                    $this->setAuthenticated(true);
+                    if (method_exists($this, 'setAuthenticated')) {
+                        $this->setAuthenticated(true);
+                    }
                 }
 
                 public function getCredentials()
@@ -339,29 +354,32 @@ final class RequestListenerTest extends TestCase
             UserDataBag::createFromUserIpAddress('127.0.0.1'),
         ];
 
-        yield 'token.authenticated = TRUE && token.user INSTANCEOF string' => [
-            new RequestEvent(
-                $this->createMock(HttpKernelInterface::class),
-                new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
-                HttpKernelInterface::MASTER_REQUEST
-            ),
-            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-            new class() extends AbstractToken {
-                public function __construct()
-                {
-                    parent::__construct();
+        if (Kernel::VERSION_ID < 60000) {
+            yield 'token.authenticated = TRUE && token.user INSTANCEOF string' => [
+                new RequestEvent(
+                    $this->createMock(HttpKernelInterface::class),
+                    new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
+                    HttpKernelInterface::MASTER_REQUEST
+                ),
+                $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
+                new class() extends AbstractToken {
+                    public function __construct()
+                    {
+                        parent::__construct();
 
-                    $this->setAuthenticated(true);
-                    $this->setUser('foo_user');
-                }
+                        $this->setAuthenticated(true);
 
-                public function getCredentials()
-                {
-                    return null;
-                }
-            },
-            new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
-        ];
+                        $this->setUser('foo_user');
+                    }
+
+                    public function getCredentials()
+                    {
+                        return null;
+                    }
+                },
+                new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
+            ];
+        }
 
         yield 'token.authenticated = TRUE && token.user INSTANCEOF UserInterface && getUserIdentifier() method DOES NOT EXISTS' => [
             new RequestEvent(
@@ -392,34 +410,39 @@ final class RequestListenerTest extends TestCase
             ];
         }
 
-        yield 'token.authenticated = TRUE && token.user INSTANCEOF object && __toString() method EXISTS' => [
-            new RequestEvent(
-                $this->createMock(HttpKernelInterface::class),
-                new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
-                HttpKernelInterface::MASTER_REQUEST
-            ),
-            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-            new class() extends AbstractToken {
-                public function __construct()
-                {
-                    parent::__construct();
+        if (Kernel::VERSION_ID < 60000) {
+            yield 'token.authenticated = TRUE && token.user INSTANCEOF object && __toString() method EXISTS' => [
+                new RequestEvent(
+                    $this->createMock(HttpKernelInterface::class),
+                    new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
+                    HttpKernelInterface::MASTER_REQUEST
+                ),
+                $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
+                new class() extends AbstractToken {
+                    public function __construct()
+                    {
+                        parent::__construct();
 
-                    $this->setAuthenticated(true);
-                    $this->setUser(new class() implements \Stringable {
-                        public function __toString(): string
-                        {
-                            return 'foo_user';
+                        if (method_exists($this, 'setAuthenticated')) {
+                            $this->setAuthenticated(true);
                         }
-                    });
-                }
 
-                public function getCredentials()
-                {
-                    return null;
-                }
-            },
-            new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
-        ];
+                        $this->setUser(new class() implements \Stringable {
+                            public function __toString(): string
+                            {
+                                return 'foo_user';
+                            }
+                        });
+                    }
+
+                    public function getCredentials()
+                    {
+                        return null;
+                    }
+                },
+                new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
+            ];
+        }
 
         yield 'request.clientIp IS NULL' => [
             new RequestEvent(
@@ -564,7 +587,10 @@ final class TokenStub extends AbstractToken
     {
         parent::__construct();
 
-        $this->setAuthenticated(true);
+        if (method_exists($this, 'setAuthenticated')) {
+            $this->setAuthenticated(true);
+        }
+
         $this->setUser($user);
     }
 
@@ -577,6 +603,11 @@ final class TokenStub extends AbstractToken
 abstract class UserStub implements UserInterface
 {
     public function getUsername(): string
+    {
+        return 'foo_user';
+    }
+
+    public function getUserIdentifier(): string
     {
         return 'foo_user';
     }
