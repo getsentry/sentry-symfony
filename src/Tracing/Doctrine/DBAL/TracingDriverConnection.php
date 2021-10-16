@@ -16,7 +16,7 @@ use Sentry\Tracing\SpanContext;
  * capabilities to Doctrine DBAL. This implementation IS and MUST be compatible
  * with all versions of Doctrine DBAL >= 2.10.
  */
-final class TracingDriverConnection implements DriverConnectionInterface
+final class TracingDriverConnection implements TracingDriverConnectionInterface
 {
     /**
      * @internal

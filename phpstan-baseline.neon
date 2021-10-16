@@ -36,6 +36,26 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:errorInfo\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:exec\\(\\) has parameter \\$sql with no typehint specified\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:prepare\\(\\) has parameter \\$sql with no typehint specified\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:query\\(\\) has parameter \\$args with no typehint specified\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
+
+		-
 			message: "#^Class Symfony\\\\Bundle\\\\FrameworkBundle\\\\Client not found\\.$#"
 			count: 1
 			path: tests/End2End/TracingEnd2EndTest.php
@@ -169,6 +189,26 @@ parameters:
 			message: "#^Trying to mock an undefined method errorInfo\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Connection\\.$#"
 			count: 1
 			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$hubOrConnectionFactory of class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverMiddleware constructor expects Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionFactoryInterface\\|Sentry\\\\State\\\\HubInterface, null given\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingDriverMiddlewareTest.php
+
+		-
+			message: "#^Trying to mock an undefined method errorCode\\(\\) on class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionInterface\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnectionTest.php
+
+		-
+			message: "#^Trying to mock an undefined method errorInfo\\(\\) on class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionInterface\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnectionTest.php
+
+		-
+			message: "#^Trying to mock an undefined method requiresQueryForServerVersion\\(\\) on class Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\ServerInfoAwareConnectionStub\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnectionTest.php
 
 		-
 			message: "#^Trying to mock an undefined method closeCursor\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"

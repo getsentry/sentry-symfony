@@ -5,6 +5,7 @@
 - Add return typehints to the methods of the `SentryExtension` class to prepare for Symfony 6 (#563)
 - Fix setting the IP address on the user context when it's not available (#565)
 - Fix wrong method existence check in `TracingDriverConnection::errorCode()` (#568)
+- Fix decoration of the Doctrine DBAL connection when it implemented the `ServerInfoAwareConnection` interface (#567)
 
 ## 4.2.3 (2021-09-21)
 

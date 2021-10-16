@@ -91,8 +91,14 @@
             <tag name="console.command" />
         </service>
 
-        <service id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware" class="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware">
+        <service id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryInterface" alias="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactory" />
+
+        <service id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactory" class="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactory">
             <argument type="service" id="Sentry\State\HubInterface" />
+        </service>
+
+        <service id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware" class="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware">
+            <argument type="service" id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryInterface" />
         </service>
 
         <service id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator" class="Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator">
