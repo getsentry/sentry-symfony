@@ -187,6 +187,7 @@ final class RequestListenerTest extends TestCase
                     if (method_exists($this, 'setAuthenticated')) {
                         $this->setAuthenticated(true);
                     }
+
                     $this->setUser('foo_user');
                 }
 
@@ -213,6 +214,7 @@ final class RequestListenerTest extends TestCase
                     if (method_exists($this, 'setAuthenticated')) {
                         $this->setAuthenticated(true);
                     }
+
                     $this->setUser(new class() extends UserStub {
                         public function getUserIdentifier(): string
                         {
@@ -368,7 +370,6 @@ final class RequestListenerTest extends TestCase
                         parent::__construct();
 
                         $this->setAuthenticated(true);
-
                         $this->setUser('foo_user');
                     }
 
