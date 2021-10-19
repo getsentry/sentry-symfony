@@ -133,7 +133,7 @@ final class TracingDriverConnection implements DriverConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function beginTransaction()
+    public function beginTransaction(): bool
     {
         return $this->traceFunction(self::SPAN_OP_CONN_BEGIN_TRANSACTION, 'BEGIN TRANSACTION', function (): bool {
             return $this->decoratedConnection->beginTransaction();
@@ -143,7 +143,7 @@ final class TracingDriverConnection implements DriverConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function commit()
+    public function commit(): bool
     {
         return $this->traceFunction(self::SPAN_OP_TRANSACTION_COMMIT, 'COMMIT', function (): bool {
             return $this->decoratedConnection->commit();
@@ -153,7 +153,7 @@ final class TracingDriverConnection implements DriverConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function rollBack()
+    public function rollBack(): bool
     {
         return $this->traceFunction(self::SPAN_OP_TRANSACTION_ROLLBACK, 'ROLLBACK', function (): bool {
             return $this->decoratedConnection->rollBack();
@@ -163,9 +163,9 @@ final class TracingDriverConnection implements DriverConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function errorCode()
+    public function errorCode(): ?string
     {
-        if (method_exists($this->decoratedConnection, 'errorInfo')) {
+        if (method_exists($this->decoratedConnection, 'errorCode')) {
             return $this->decoratedConnection->errorCode();
         }
 
@@ -175,7 +175,7 @@ final class TracingDriverConnection implements DriverConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function errorInfo()
+    public function errorInfo(): array
     {
         if (method_exists($this->decoratedConnection, 'errorInfo')) {
             return $this->decoratedConnection->errorInfo();
