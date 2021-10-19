@@ -12,7 +12,6 @@ use Doctrine\DBAL\Exception\DriverException as DBALDriverException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\VersionAwarePlatformDriver;
-use Sentry\State\HubInterface;
 
 /**
  * This is a simple implementation of the {@see Driver} interface that decorates
@@ -24,9 +23,9 @@ use Sentry\State\HubInterface;
 final class TracingDriverForV2 implements Driver, VersionAwarePlatformDriver, ExceptionConverterDriver
 {
     /**
-     * @var HubInterface The current hub
+     * @var TracingDriverConnectionFactoryInterface
      */
-    private $hub;
+    private $connectionFactory;
 
     /**
      * @var Driver|VersionAwarePlatformDriver|ExceptionConverterDriver The instance of the decorated driver
@@ -34,24 +33,23 @@ final class TracingDriverForV2 implements Driver, VersionAwarePlatformDriver, Ex
     private $decoratedDriver;
 
     /**
-     * @param HubInterface $hub             The current hub
-     * @param Driver       $decoratedDriver The instance of the driver to decorate
+     * @param TracingDriverConnectionFactoryInterface $connectionFactory The connection factory
+     * @param Driver                                  $decoratedDriver   The instance of the driver to decorate
      */
-    public function __construct(HubInterface $hub, Driver $decoratedDriver)
+    public function __construct(TracingDriverConnectionFactoryInterface $connectionFactory, Driver $decoratedDriver)
     {
-        $this->hub = $hub;
         $this->decoratedDriver = $decoratedDriver;
+        $this->connectionFactory = $connectionFactory;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function connect(array $params, $username = null, $password = null, array $driverOptions = []): TracingDriverConnection
+    public function connect(array $params, $username = null, $password = null, array $driverOptions = []): TracingDriverConnectionInterface
     {
-        return new TracingDriverConnection(
-            $this->hub,
+        return $this->connectionFactory->create(
             $this->decoratedDriver->connect($params, $username, $password, $driverOptions),
-            $this->decoratedDriver->getDatabasePlatform()->getName(),
+            $this->decoratedDriver->getDatabasePlatform(),
             $params
         );
     }

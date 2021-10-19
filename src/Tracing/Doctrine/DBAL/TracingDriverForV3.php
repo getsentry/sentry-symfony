@@ -10,7 +10,6 @@ use Doctrine\DBAL\Driver\API\ExceptionConverter;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\VersionAwarePlatformDriver;
-use Sentry\State\HubInterface;
 
 /**
  * This is a simple implementation of the {@see Driver} interface that decorates
@@ -22,9 +21,9 @@ use Sentry\State\HubInterface;
 final class TracingDriverForV3 implements Driver, VersionAwarePlatformDriver
 {
     /**
-     * @var HubInterface The current hub
+     * @var TracingDriverConnectionFactoryInterface The connection factory
      */
-    private $hub;
+    private $connectionFactory;
 
     /**
      * @var Driver|VersionAwarePlatformDriver The instance of the decorated driver
@@ -32,24 +31,25 @@ final class TracingDriverForV3 implements Driver, VersionAwarePlatformDriver
     private $decoratedDriver;
 
     /**
-     * @param HubInterface $hub             The current hub
-     * @param Driver       $decoratedDriver The instance of the driver to decorate
+     * Constructor.
+     *
+     * @param TracingDriverConnectionFactoryInterface $connectionFactory The connection factory
+     * @param Driver                                  $decoratedDriver   The instance of the driver to decorate
      */
-    public function __construct(HubInterface $hub, Driver $decoratedDriver)
+    public function __construct(TracingDriverConnectionFactoryInterface $connectionFactory, Driver $decoratedDriver)
     {
-        $this->hub = $hub;
+        $this->connectionFactory = $connectionFactory;
         $this->decoratedDriver = $decoratedDriver;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function connect(array $params): TracingDriverConnection
+    public function connect(array $params): TracingDriverConnectionInterface
     {
-        return new TracingDriverConnection(
-            $this->hub,
+        return $this->connectionFactory->create(
             $this->decoratedDriver->connect($params),
-            $this->decoratedDriver->getDatabasePlatform()->getName(),
+            $this->decoratedDriver->getDatabasePlatform(),
             $params
         );
     }
