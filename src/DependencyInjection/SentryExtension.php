@@ -31,6 +31,7 @@ use Sentry\Transport\TransportFactoryInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\Debug\Exception\FatalErrorException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader;
@@ -273,7 +274,14 @@ final class SentryExtension extends ConfigurableExtension
             // Prepend this integration to the beginning of the array so that
             // we can save some performance by skipping the rest of the integrations
             // if the error must be ignored
-            array_unshift($integrations, new Definition(IgnoreErrorsIntegration::class, [['ignore_exceptions' => [FatalError::class]]]));
+            array_unshift($integrations, new Definition(IgnoreErrorsIntegration::class, [
+                [
+                    'ignore_exceptions' => [
+                        FatalError::class,
+                        FatalErrorException::class,
+                    ],
+                ],
+            ]));
         }
 
         return $integrations;

@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.10.0@916b098b008f6de4543892b1e0651c1c3b92cbfa">
+<files psalm-version="4.11.1@e33492398bd4e5e2ab60e331d445979bd83feecd">
+  <file src="src/DependencyInjection/SentryExtension.php">
+    <UndefinedClass occurrences="1">
+      <code>FatalErrorException</code>
+    </UndefinedClass>
+  </file>
   <file src="src/EventListener/ConsoleCommandListener.php">
     <InvalidExtendClass occurrences="1">
       <code>ConsoleListener</code>
