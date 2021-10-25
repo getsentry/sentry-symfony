@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix fatal errors logged twice on Symfony `3.4` (#570)
+
 ## 4.2.4 (2021-10-20)
 
 - Add return typehints to the methods of the `SentryExtension` class to prepare for Symfony 6 (#563)
