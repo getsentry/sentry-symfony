@@ -32,6 +32,8 @@ jobs:
         exclude:
           - php: '8.0'
             symfony-version: 3.4.*
+          - php: '8.1'
+            symfony-version: 3.4.*
         include:
           - php: '7.2'
             symfony-version: 3.4.*
@@ -83,13 +85,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php:
-          - '7.2'
-          - '8.0'
-          - '8.1'
-        dependencies:
-          - lowest
-          - highest
+        include:
+          - php: '7.2'
+            dependencies: lowest
+          - php: '7.4'
+            dependencies: highest
+          - php: '8.0'
+            dependencies: lowest
+          - php: '8.1'
+            dependencies: highest
 
     steps:
       - name: Checkout
