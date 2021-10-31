@@ -13,16 +13,16 @@ use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\VersionAwarePlatformDriver as VersionAwarePlatformDriverInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
-use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnection;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryInterface;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionInterface;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverForV3;
-use Sentry\State\HubInterface;
 
 final class TracingDriverForV3Test extends DoctrineTestCase
 {
     /**
-     * @var MockObject&HubInterface
+     * @var MockObject&TracingDriverConnectionFactoryInterface
      */
-    private $hub;
+    private $connectionFactory;
 
     public static function setUpBeforeClass(): void
     {
@@ -33,29 +33,34 @@ final class TracingDriverForV3Test extends DoctrineTestCase
 
     protected function setUp(): void
     {
-        $this->hub = $this->createMock(HubInterface::class);
+        $this->connectionFactory = $this->createMock(TracingDriverConnectionFactoryInterface::class);
     }
 
     public function testConnect(): void
     {
+        $params = ['host' => 'localhost'];
         $databasePlatform = $this->createMock(AbstractPlatform::class);
-        $databasePlatform->expects($this->once())
-            ->method('getName')
-            ->willReturn('foo');
-
+        $driverConnection = $this->createMock(DriverConnectionInterface::class);
+        $tracingDriverConnection = $this->createMock(TracingDriverConnectionInterface::class);
         $decoratedDriver = $this->createMock(DriverInterface::class);
+
         $decoratedDriver->expects($this->once())
             ->method('connect')
-            ->with(['host' => 'localhost'])
-            ->willReturn($this->createMock(DriverConnectionInterface::class));
+            ->with($params)
+            ->willReturn($driverConnection);
 
         $decoratedDriver->expects($this->once())
             ->method('getDatabasePlatform')
             ->willReturn($databasePlatform);
 
-        $driver = new TracingDriverForV3($this->hub, $decoratedDriver);
+        $this->connectionFactory->expects($this->once())
+            ->method('create')
+            ->with($driverConnection, $databasePlatform, $params)
+            ->willReturn($tracingDriverConnection);
 
-        $this->assertInstanceOf(TracingDriverConnection::class, $driver->connect(['host' => 'localhost']));
+        $driver = new TracingDriverForV3($this->connectionFactory, $decoratedDriver);
+
+        $this->assertSame($tracingDriverConnection, $driver->connect($params));
     }
 
     public function testGetDatabasePlatform(): void
@@ -67,7 +72,7 @@ final class TracingDriverForV3Test extends DoctrineTestCase
             ->method('getDatabasePlatform')
             ->willReturn($databasePlatform);
 
-        $driver = new TracingDriverForV3($this->hub, $decoratedDriver);
+        $driver = new TracingDriverForV3($this->connectionFactory, $decoratedDriver);
 
         $this->assertSame($databasePlatform, $driver->getDatabasePlatform());
     }
@@ -84,7 +89,7 @@ final class TracingDriverForV3Test extends DoctrineTestCase
             ->with($connection, $databasePlatform)
             ->willReturn($schemaManager);
 
-        $driver = new TracingDriverForV3($this->hub, $decoratedDriver);
+        $driver = new TracingDriverForV3($this->connectionFactory, $decoratedDriver);
 
         $this->assertSame($schemaManager, $driver->getSchemaManager($connection, $databasePlatform));
     }
@@ -98,7 +103,7 @@ final class TracingDriverForV3Test extends DoctrineTestCase
             ->method('getExceptionConverter')
             ->willReturn($exceptionConverter);
 
-        $driver = new TracingDriverForV3($this->hub, $decoratedDriver);
+        $driver = new TracingDriverForV3($this->connectionFactory, $decoratedDriver);
 
         $this->assertSame($exceptionConverter, $driver->getExceptionConverter());
     }
@@ -113,7 +118,7 @@ final class TracingDriverForV3Test extends DoctrineTestCase
             ->with('5.7')
             ->willReturn($databasePlatform);
 
-        $driver = new TracingDriverForV3($this->hub, $decoratedDriver);
+        $driver = new TracingDriverForV3($this->connectionFactory, $decoratedDriver);
 
         $this->assertSame($databasePlatform, $driver->createDatabasePlatformForVersion('5.7'));
     }
@@ -127,7 +132,7 @@ final class TracingDriverForV3Test extends DoctrineTestCase
             ->method('getDatabasePlatform')
             ->willReturn($databasePlatform);
 
-        $driver = new TracingDriverForV3($this->hub, $decoratedDriver);
+        $driver = new TracingDriverForV3($this->connectionFactory, $decoratedDriver);
 
         $this->assertSame($databasePlatform, $driver->createDatabasePlatformForVersion('5.7'));
     }
