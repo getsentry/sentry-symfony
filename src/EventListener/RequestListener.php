@@ -68,7 +68,7 @@ final class RequestListener
         }
 
         if (null !== $token
-            && (!method_exists($token, 'isAuthenticated') || $token->isAuthenticated())
+            && (!method_exists($token, 'isAuthenticated') || $token->isAuthenticated(true))
             && null !== $token->getUser()
         ) {
             $userData->setUsername($this->getUsername($token->getUser()));
