@@ -601,34 +601,48 @@ final class TokenStub extends AbstractToken
     }
 }
 
-abstract class UserStub implements UserInterface
-{
-    public function getUsername(): string
+if (Kernel::VERSION_ID < 60000) {
+    abstract class UserStub implements UserInterface
     {
-        return 'foo_user';
-    }
+        public function getUsername(): string
+        {
+            return 'foo_user';
+        }
 
-    public function getUserIdentifier(): string
-    {
-        return 'foo_user';
-    }
+        public function getRoles(): array
+        {
+            return [];
+        }
 
-    public function getRoles(): array
-    {
-        return [];
-    }
+        public function getPassword(): ?string
+        {
+            return null;
+        }
 
-    public function getPassword(): ?string
-    {
-        return null;
-    }
+        public function getSalt(): ?string
+        {
+            return null;
+        }
 
-    public function getSalt(): ?string
-    {
-        return null;
+        public function eraseCredentials(): void
+        {
+        }
     }
-
-    public function eraseCredentials(): void
+} else {
+    abstract class UserStub implements UserInterface
     {
+        public function getUserIdentifier(): string
+        {
+            return 'foo_user';
+        }
+
+        public function getRoles(): array
+        {
+            return [];
+        }
+
+        public function eraseCredentials(): void
+        {
+        }
     }
 }
