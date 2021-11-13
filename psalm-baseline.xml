@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.11.1@e33492398bd4e5e2ab60e331d445979bd83feecd">
+<files psalm-version="4.12.0@e42bc4a23f67acba28a23bb09c348e2ff38a1d87">
   <file src="src/DependencyInjection/SentryExtension.php">
     <UndefinedClass occurrences="1">
       <code>FatalErrorException</code>
@@ -12,6 +12,24 @@
     <MethodSignatureMismatch occurrences="1">
       <code>public function __construct(HubInterface $hub, bool $captureErrors = true)</code>
     </MethodSignatureMismatch>
+  </file>
+  <file src="src/EventListener/ErrorListener.php">
+    <RedundantCondition occurrences="1">
+      <code>$event instanceof ExceptionEvent</code>
+    </RedundantCondition>
+    <UndefinedMethod occurrences="1">
+      <code>getException</code>
+    </UndefinedMethod>
+  </file>
+  <file src="src/EventListener/RequestListener.php">
+    <TooManyArguments occurrences="1">
+      <code>isAuthenticated</code>
+    </TooManyArguments>
+  </file>
+  <file src="src/Tracing/Cache/TraceableCacheAdapterTrait.php">
+    <ImplementedReturnTypeMismatch occurrences="1">
+      <code>iterable</code>
+    </ImplementedReturnTypeMismatch>
   </file>
   <file src="src/Tracing/Doctrine/DBAL/TracingDriverForV2.php">
     <UndefinedClass occurrences="1">

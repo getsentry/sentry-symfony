@@ -34,7 +34,6 @@ final class ErrorListener
      */
     public function handleExceptionEvent(ErrorListenerExceptionEvent $event): void
     {
-        /** @psalm-suppress RedundantCondition */
         if ($event instanceof ExceptionEvent) {
             $this->hub->captureException($event->getThrowable());
         } else {
