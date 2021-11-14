@@ -79,6 +79,7 @@ final class RequestListenerTest extends TestCase
 
         $event = $scope->applyToEvent(Event::createEvent());
 
+        $this->assertNotNull($event);
         $this->assertEquals($expectedUser, $event->getUser());
     }
 
@@ -344,6 +345,7 @@ final class RequestListenerTest extends TestCase
 
         $event = $scope->applyToEvent(Event::createEvent());
 
+        $this->assertNotNull($event);
         $this->assertSame($expectedTags, $event->getTags());
     }
 

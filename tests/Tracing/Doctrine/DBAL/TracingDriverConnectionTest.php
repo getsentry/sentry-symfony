@@ -73,6 +73,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->willReturn($statement);
 
         $this->assertEquals($resultStatement, $connection->prepare($sql));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -126,6 +127,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->willReturn($result);
 
         $this->assertSame($result, $connection->query($sql));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -187,6 +189,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->willReturn(10);
 
         $this->assertSame(10, $connection->exec($sql));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -228,6 +231,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->willReturn(false);
 
         $this->assertFalse($connection->beginTransaction());
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -272,6 +276,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->willReturn(false);
 
         $this->assertFalse($connection->commit());
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -316,6 +321,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->willReturn(false);
 
         $this->assertFalse($connection->rollBack());
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 

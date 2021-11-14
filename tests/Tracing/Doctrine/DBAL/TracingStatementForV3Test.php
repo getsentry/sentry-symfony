@@ -83,6 +83,7 @@ final class TracingStatementForV3Test extends DoctrineTestCase
             ->willReturn($driverResult);
 
         $this->assertSame($driverResult, $this->statement->execute(['foo' => 'bar']));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 

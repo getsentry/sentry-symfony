@@ -1,11 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Call to an undefined method Symfony\\\\Component\\\\Config\\\\Definition\\\\Builder\\\\NodeParentInterface\\:\\:booleanNode\\(\\)\\.$#"
-			count: 1
-			path: src/DependencyInjection/Configuration.php
-
-		-
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\Config\\\\Definition\\\\Builder\\\\TreeBuilder\\:\\:root\\(\\)\\.$#"
 			count: 1
 			path: src/DependencyInjection/Configuration.php
@@ -19,6 +14,11 @@ parameters:
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
 			count: 1
 			path: src/EventListener/AbstractTracingRequestListener.php
+
+		-
+			message: "#^Class Sentry\\\\SentryBundle\\\\EventListener\\\\ConsoleCommandListener extends @final class Sentry\\\\SentryBundle\\\\EventListener\\\\ConsoleListener\\.$#"
+			count: 1
+			path: src/EventListener/ConsoleCommandListener.php
 
 		-
 			message: "#^Else branch is unreachable because previous condition is always true\\.$#"
@@ -41,17 +41,27 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:exec\\(\\) has parameter \\$sql with no typehint specified\\.$#"
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:exec\\(\\) has parameter \\$sql with no type specified\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:prepare\\(\\) has parameter \\$sql with no typehint specified\\.$#"
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:prepare\\(\\) has parameter \\$sql with no type specified\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:query\\(\\) has parameter \\$args with no typehint specified\\.$#"
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:query\\(\\) has parameter \\$args with no type specified\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
+
+		-
+			message: "#^Parameter \\#1 \\$sql of method Doctrine\\\\DBAL\\\\Driver\\\\Connection\\:\\:query\\(\\) expects string, string\\|null given\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
+
+		-
+			message: "#^Parameter \\#2 \\$spanDescription of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:traceFunction\\(\\) expects string, string\\|null given\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
@@ -61,17 +71,22 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:exec\\(\\) has parameter \\$sql with no typehint specified\\.$#"
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:exec\\(\\) has parameter \\$sql with no type specified\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:prepare\\(\\) has parameter \\$sql with no typehint specified\\.$#"
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:prepare\\(\\) has parameter \\$sql with no type specified\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:query\\(\\) has parameter \\$args with no typehint specified\\.$#"
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:query\\(\\) has parameter \\$args with no type specified\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
+
+		-
+			message: "#^Parameter \\#1 \\$sql of method Doctrine\\\\DBAL\\\\Driver\\\\Connection\\:\\:query\\(\\) expects string, string\\|null given\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
 
@@ -101,7 +116,7 @@ parameters:
 			path: tests/EventListener/ErrorListenerTest.php
 
 		-
-			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\ErrorListenerTest\\:\\:testHandleExceptionEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent\\.$#"
+			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\ErrorListenerTest\\:\\:testHandleExceptionEvent\\(\\) has invalid type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent\\.$#"
 			count: 1
 			path: tests/EventListener/ErrorListenerTest.php
 
@@ -146,12 +161,12 @@ parameters:
 			path: tests/EventListener/RequestListenerTest.php
 
 		-
-			message: "#^Parameter \\$controllerEvent of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\RequestListenerTest\\:\\:testHandleKernelControllerEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent\\.$#"
+			message: "#^Parameter \\$controllerEvent of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\RequestListenerTest\\:\\:testHandleKernelControllerEvent\\(\\) has invalid type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent\\.$#"
 			count: 1
 			path: tests/EventListener/RequestListenerTest.php
 
 		-
-			message: "#^Parameter \\$requestEvent of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\RequestListenerTest\\:\\:testHandleKernelRequestEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\.$#"
+			message: "#^Parameter \\$requestEvent of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\RequestListenerTest\\:\\:testHandleKernelRequestEvent\\(\\) has invalid type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\.$#"
 			count: 1
 			path: tests/EventListener/RequestListenerTest.php
 
@@ -176,7 +191,7 @@ parameters:
 			path: tests/EventListener/SubRequestListenerTest.php
 
 		-
-			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\SubRequestListenerTest\\:\\:testHandleKernelRequestEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\.$#"
+			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\SubRequestListenerTest\\:\\:testHandleKernelRequestEvent\\(\\) has invalid type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\.$#"
 			count: 1
 			path: tests/EventListener/SubRequestListenerTest.php
 
