@@ -89,6 +89,10 @@
             <tag name="console.command" />
         </service>
 
+        <service id="Sentry\Monolog\Handler" class="Sentry\Monolog\Handler">
+            <argument type="service" id="Sentry\State\HubInterface" />
+        </service>
+
         <service id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware" class="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware">
             <argument type="service" id="Sentry\State\HubInterface" />
         </service>

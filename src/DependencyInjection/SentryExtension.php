@@ -6,7 +6,7 @@ namespace Sentry\SentryBundle\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
-use LogicException;
+use Monolog\Logger as MonologLogger;
 use Psr\Log\NullLogger;
 use Sentry\Client;
 use Sentry\ClientBuilder;
@@ -14,6 +14,7 @@ use Sentry\Integration\IgnoreErrorsIntegration;
 use Sentry\Integration\IntegrationInterface;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\Integration\RequestIntegration;
+use Sentry\Monolog\Handler;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
@@ -32,6 +33,7 @@ use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\ErrorHandler\Error\FatalError;
@@ -70,6 +72,7 @@ final class SentryExtension extends ConfigurableExtension
         $this->registerDbalTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerTwigTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerCacheTracingConfiguration($container, $mergedConfig['tracing']);
+        $this->registerMonologHandlerConfiguration($container, $mergedConfig['monolog']);
     }
 
     /**
@@ -234,6 +237,28 @@ final class SentryExtension extends ConfigurableExtension
         }
 
         $container->setParameter('sentry.tracing.cache.enabled', $isConfigEnabled);
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function registerMonologHandlerConfiguration(ContainerBuilder $container, array $config): void
+    {
+        $errorHandlerConfig = $config['error_handler'];
+
+        if (!$errorHandlerConfig['enabled']) {
+            $container->removeDefinition(Handler::class);
+
+            return;
+        }
+
+        if (!class_exists(MonologLogger::class)) {
+            throw new LogicException(sprintf('To use the "%s" class you need to require the "symfony/monolog-bundle" package.', Handler::class));
+        }
+
+        $definition = $container->getDefinition(Handler::class);
+        $definition->setArgument(0, MonologLogger::toMonologLevel($config['level']));
+        $definition->setArgument(1, $config['bubble']);
     }
 
     /**
