@@ -28,6 +28,7 @@ use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
+use Sentry\State\HubInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\FileLocator;
@@ -257,8 +258,11 @@ final class SentryExtension extends ConfigurableExtension
         }
 
         $definition = $container->getDefinition(Handler::class);
-        $definition->setArgument(0, MonologLogger::toMonologLevel($config['level']));
-        $definition->setArgument(1, $config['bubble']);
+        $definition->setArguments([
+            new Reference(HubInterface::class),
+            MonologLogger::toMonologLevel($config['level']),
+            $config['bubble'],
+        ]);
     }
 
     /**
