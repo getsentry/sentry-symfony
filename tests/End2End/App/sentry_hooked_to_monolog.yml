@@ -3,6 +3,7 @@ sentry:
   monolog:
     error_handler:
       enabled: true
+    level: error
   options:
     # TODO: add a simple option to switch off the error/fatal integrations
     default_integrations: false

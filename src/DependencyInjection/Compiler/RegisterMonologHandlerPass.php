@@ -17,7 +17,13 @@ class RegisterMonologHandlerPass implements CompilerPassInterface
             return;
         }
 
-        $logger = $container->getDefinition('monolog.logger');
-        $logger->addMethodCall('pushHandler', [new Reference(Handler::class)]);
+        foreach ($container->getServiceIds() as $serviceName) {
+            if (!str_starts_with($serviceName, 'monolog.logger.')) {
+                continue;
+            }
+
+            $logger = $container->getDefinition($serviceName);
+            $logger->addMethodCall('pushHandler', [new Reference(Handler::class)]);
+        }
     }
 }
