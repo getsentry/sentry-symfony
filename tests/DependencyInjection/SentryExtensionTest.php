@@ -263,6 +263,7 @@ abstract class SentryExtensionTest extends TestCase
         $transportFactoryDefinition = $container->findDefinition(TransportFactoryInterface::class);
         $logger = $transportFactoryDefinition->getArgument('$logger');
 
+        $this->assertInstanceOf(Reference::class, $logger);
         $this->assertSame('app.logger', $logger->__toString());
     }
 

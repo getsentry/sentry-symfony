@@ -56,16 +56,15 @@ abstract class AbstractTracingStatement
      * Calls the given callback by passing to it the specified arguments and
      * wrapping its execution into a child {@see Span} of the current one.
      *
-     * @param callable $callback The function to call
-     * @param mixed    ...$args  The arguments to pass to the callback
+     * @param \Closure $callback The function to call
      *
      * @phpstan-template T
      *
-     * @phpstan-param callable(mixed...): T $callback
+     * @phpstan-param \Closure(mixed...): T $callback
      *
      * @phpstan-return T
      */
-    protected function traceFunction(SpanContext $spanContext, callable $callback, ...$args)
+    protected function traceFunction(SpanContext $spanContext, \Closure $callback)
     {
         $span = $this->hub->getSpan();
 
@@ -74,7 +73,7 @@ abstract class AbstractTracingStatement
         }
 
         try {
-            return $callback(...$args);
+            return $callback();
         } finally {
             if (null !== $span) {
                 $span->finish();

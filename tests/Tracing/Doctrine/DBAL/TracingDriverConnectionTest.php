@@ -16,6 +16,9 @@ use Sentry\State\HubInterface;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
 
+/**
+ * @phpstan-import-type Params from \Doctrine\DBAL\DriverManager as ConnectionParams
+ */
 final class TracingDriverConnectionTest extends DoctrineTestCase
 {
     /**
@@ -107,6 +110,8 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
      *
      * @param array<string, mixed>  $params
      * @param array<string, string> $expectedTags
+     *
+     * @phpstan-param ConnectionParams $params
      */
     public function testQuery(array $params, array $expectedTags): void
     {

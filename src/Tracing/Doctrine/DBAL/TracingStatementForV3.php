@@ -40,6 +40,8 @@ final class TracingStatementForV3 extends AbstractTracingStatement implements St
         $spanContext->setDescription($this->sqlQuery);
         $spanContext->setTags($this->spanTags);
 
-        return $this->traceFunction($spanContext, [$this->decoratedStatement, 'execute'], $params);
+        return $this->traceFunction($spanContext, function () use ($params): Result {
+            return $this->decoratedStatement->execute($params);
+        });
     }
 }
