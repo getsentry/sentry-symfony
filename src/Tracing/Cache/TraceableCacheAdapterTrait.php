@@ -12,6 +12,7 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
 use Symfony\Component\Cache\PruneableInterface;
 use Symfony\Component\Cache\ResettableInterface;
 use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Component\Cache\CacheItem;
 
 /**
  * @internal
@@ -35,7 +36,7 @@ trait TraceableCacheAdapterTrait
     /**
      * {@inheritdoc}
      */
-    public function getItem(mixed $key)
+    public function getItem(mixed $key): CacheItem
     {
         return $this->traceFunction('cache.get_item', function () use ($key) {
             return $this->decoratedAdapter->getItem($key);
@@ -45,7 +46,7 @@ trait TraceableCacheAdapterTrait
     /**
      * {@inheritdoc}
      */
-    public function getItems(array $keys = [])
+    public function getItems(array $keys = []): iterable
     {
         return $this->traceFunction('cache.get_items', function () use ($keys) {
             return $this->decoratedAdapter->getItems($keys);
