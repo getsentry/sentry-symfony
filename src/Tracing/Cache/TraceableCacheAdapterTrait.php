@@ -35,7 +35,7 @@ trait TraceableCacheAdapterTrait
     /**
      * {@inheritdoc}
      */
-    public function getItem($key)
+    public function getItem(mixed $key)
     {
         return $this->traceFunction('cache.get_item', function () use ($key) {
             return $this->decoratedAdapter->getItem($key);
@@ -95,7 +95,7 @@ trait TraceableCacheAdapterTrait
     /**
      * {@inheritdoc}
      */
-    public function hasItem($key): bool
+    public function hasItem(string $key): bool
     {
         return $this->traceFunction('cache.has_item', function () use ($key): bool {
             return $this->decoratedAdapter->hasItem($key);
@@ -105,7 +105,7 @@ trait TraceableCacheAdapterTrait
     /**
      * {@inheritdoc}
      */
-    public function deleteItem($key): bool
+    public function deleteItem(string $key): bool
     {
         return $this->traceFunction('cache.delete_item', function () use ($key): bool {
             return $this->decoratedAdapter->deleteItem($key);
