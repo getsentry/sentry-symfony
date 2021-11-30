@@ -51,6 +51,8 @@ final class TracingServerInfoAwareDriverConnection implements TracingDriverConne
 
     /**
      * {@inheritdoc}
+     *
+     * @return mixed
      */
     public function quote($value, $type = ParameterType::STRING)
     {
@@ -67,8 +69,10 @@ final class TracingServerInfoAwareDriverConnection implements TracingDriverConne
 
     /**
      * {@inheritdoc}
+     *
+     * @return string|int|false
      */
-    public function lastInsertId($name = null): ?string
+    public function lastInsertId($name = null)
     {
         return $this->decoratedConnection->lastInsertId($name);
     }

@@ -106,6 +106,8 @@ final class TracingDriverConnection implements TracingDriverConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return mixed
      */
     public function quote($value, $type = ParameterType::STRING)
     {
@@ -124,6 +126,8 @@ final class TracingDriverConnection implements TracingDriverConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return string|int|false
      */
     public function lastInsertId($name = null)
     {

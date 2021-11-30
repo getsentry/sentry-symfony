@@ -68,7 +68,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
     public function testGetItems(): void
     {
-        $cacheItems = [new CacheItem()];
+        $cacheItems = ['foo' => new CacheItem()];
         $transaction = new Transaction(new TransactionContext(), $this->hub);
         $transaction->initSpanRecorder();
 
