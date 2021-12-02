@@ -91,7 +91,7 @@ final class RequestListener
 
         $route = $event->getRequest()->attributes->get('_route');
 
-        if (!is_string($route)) {
+        if (!\is_string($route)) {
             return;
         }
 
