@@ -14,6 +14,7 @@ parameters:
         - src/Tracing/Doctrine/DBAL/TracingDriverForV2.php
         - tests/End2End/App
         - tests/Tracing/Doctrine/DBAL/TracingDriverForV2Test.php
+        - tests/EventListener/Fixtures/UserWithoutIdentifierStub.php
     dynamicConstantNames:
         - Symfony\Component\HttpKernel\Kernel::VERSION
         - Symfony\Component\HttpKernel\Kernel::VERSION_ID

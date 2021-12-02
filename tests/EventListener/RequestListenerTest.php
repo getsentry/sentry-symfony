@@ -10,6 +10,8 @@ use Sentry\ClientInterface;
 use Sentry\Event;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\RequestListener;
+use Sentry\SentryBundle\Tests\EventListener\Fixtures\UserWithIdentifierStub;
+use Sentry\SentryBundle\Tests\EventListener\Fixtures\UserWithoutIdentifierStub;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Sentry\UserDataBag;
@@ -162,7 +164,7 @@ final class RequestListenerTest extends TestCase
                 HttpKernelInterface::MASTER_REQUEST
             ),
             $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-            new AuthenticatedTokenStub(new class() extends LegacyUserStub {}),
+            new AuthenticatedTokenStub(new UserWithoutIdentifierStub()),
             new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
         ];
 
@@ -173,7 +175,7 @@ final class RequestListenerTest extends TestCase
                 HttpKernelInterface::MASTER_REQUEST
             ),
             $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-            new AuthenticatedTokenStub(new UserStub()),
+            new AuthenticatedTokenStub(new UserWithIdentifierStub()),
             new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
         ];
 
@@ -277,7 +279,7 @@ final class RequestListenerTest extends TestCase
                     HttpKernelInterface::MASTER_REQUEST
                 ),
                 $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-                new AuthenticatedTokenStub(new class() extends LegacyUserStub {}),
+                new AuthenticatedTokenStub(new UserWithoutIdentifierStub()),
                 new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
             ];
 
@@ -305,7 +307,7 @@ final class RequestListenerTest extends TestCase
                 HttpKernelInterface::MASTER_REQUEST
             ),
             $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-            new AuthenticatedTokenStub(new UserStub()),
+            new AuthenticatedTokenStub(new UserWithIdentifierStub()),
             new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
         ];
 
@@ -475,40 +477,5 @@ final class AuthenticatedTokenStub extends AbstractToken
     public function getCredentials(): ?string
     {
         return null;
-    }
-}
-
-abstract class LegacyUserStub implements UserInterface
-{
-    public function getUsername(): string
-    {
-        return 'foo_user';
-    }
-
-    public function getRoles(): array
-    {
-        return [];
-    }
-
-    public function getPassword(): ?string
-    {
-        return null;
-    }
-
-    public function getSalt(): ?string
-    {
-        return null;
-    }
-
-    public function eraseCredentials(): void
-    {
-    }
-}
-
-final class UserStub extends LegacyUserStub
-{
-    public function getUserIdentifier(): string
-    {
-        return $this->getUsername();
     }
 }
