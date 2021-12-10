@@ -15,8 +15,8 @@ use Sentry\Tracing\TransactionContext;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleTerminateEvent;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\NullOutput;
 
 final class TracingConsoleListenerTest extends TestCase
 {
@@ -58,8 +58,8 @@ final class TracingConsoleListenerTest extends TestCase
         $listener = new TracingConsoleListener($this->hub);
         $listener->handleConsoleCommandEvent(new ConsoleCommandEvent(
             $command,
-            $this->createMock(InputInterface::class),
-            $this->createMock(OutputInterface::class)
+            new ArrayInput([]),
+            new NullOutput()
         ));
     }
 
@@ -112,8 +112,8 @@ final class TracingConsoleListenerTest extends TestCase
         $listener = new TracingConsoleListener($this->hub);
         $listener->handleConsoleCommandEvent(new ConsoleCommandEvent(
             $command,
-            $this->createMock(InputInterface::class),
-            $this->createMock(OutputInterface::class)
+            new ArrayInput([]),
+            new NullOutput()
         ));
     }
 
@@ -141,8 +141,8 @@ final class TracingConsoleListenerTest extends TestCase
         $listener = new TracingConsoleListener($this->hub, ['foo:bar']);
         $listener->handleConsoleCommandEvent(new ConsoleCommandEvent(
             new Command('foo:bar'),
-            $this->createMock(InputInterface::class),
-            $this->createMock(OutputInterface::class)
+            new ArrayInput([]),
+            new NullOutput()
         ));
     }
 
@@ -157,8 +157,8 @@ final class TracingConsoleListenerTest extends TestCase
         $listener = new TracingConsoleListener($this->hub);
         $listener->handleConsoleTerminateEvent(new ConsoleTerminateEvent(
             new Command(),
-            $this->createMock(InputInterface::class),
-            $this->createMock(OutputInterface::class),
+            new ArrayInput([]),
+            new NullOutput(),
             0
         ));
 
@@ -174,8 +174,8 @@ final class TracingConsoleListenerTest extends TestCase
         $listener = new TracingConsoleListener($this->hub);
         $listener->handleConsoleTerminateEvent(new ConsoleTerminateEvent(
             new Command(),
-            $this->createMock(InputInterface::class),
-            $this->createMock(OutputInterface::class),
+            new ArrayInput([]),
+            new NullOutput(),
             0
         ));
     }
@@ -188,8 +188,8 @@ final class TracingConsoleListenerTest extends TestCase
         $listener = new TracingConsoleListener($this->hub, ['foo:bar']);
         $listener->handleConsoleTerminateEvent(new ConsoleTerminateEvent(
             new Command('foo:bar'),
-            $this->createMock(InputInterface::class),
-            $this->createMock(OutputInterface::class),
+            new ArrayInput([]),
+            new NullOutput(),
             0
         ));
     }
