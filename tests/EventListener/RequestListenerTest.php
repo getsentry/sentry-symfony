@@ -10,6 +10,8 @@ use Sentry\ClientInterface;
 use Sentry\Event;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\RequestListener;
+use Sentry\SentryBundle\Tests\EventListener\Fixtures\UserWithIdentifierStub;
+use Sentry\SentryBundle\Tests\EventListener\Fixtures\UserWithoutIdentifierStub;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Sentry\UserDataBag;
@@ -129,19 +131,7 @@ final class RequestListenerTest extends TestCase
                 HttpKernelInterface::MASTER_REQUEST
             ),
             $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-            new class() extends AbstractToken {
-                public function __construct()
-                {
-                    parent::__construct();
-
-                    $this->setAuthenticated(false);
-                }
-
-                public function getCredentials()
-                {
-                    return null;
-                }
-            },
+            new UnauthenticatedTokenStub(),
             UserDataBag::createFromUserIpAddress('127.0.0.1'),
         ];
 
@@ -152,19 +142,7 @@ final class RequestListenerTest extends TestCase
                 HttpKernelInterface::MASTER_REQUEST
             ),
             $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-            new class() extends AbstractToken {
-                public function __construct()
-                {
-                    parent::__construct();
-
-                    $this->setAuthenticated(true);
-                }
-
-                public function getCredentials()
-                {
-                    return null;
-                }
-            },
+            new AuthenticatedTokenStub(null),
             UserDataBag::createFromUserIpAddress('127.0.0.1'),
         ];
 
@@ -175,49 +153,29 @@ final class RequestListenerTest extends TestCase
                 HttpKernelInterface::MASTER_REQUEST
             ),
             $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-            new class() extends AbstractToken {
-                public function __construct()
-                {
-                    parent::__construct();
-
-                    $this->setAuthenticated(true);
-                    $this->setUser('foo_user');
-                }
-
-                public function getCredentials()
-                {
-                    return null;
-                }
-            },
+            new AuthenticatedTokenStub('foo_user'),
             new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
         ];
 
-        yield 'token.authenticated = TRUE && token.user INSTANCEOF UserInterface' => [
+        yield 'token.authenticated = TRUE && token.user INSTANCEOF UserInterface && getUserIdentifier() method DOES NOT EXISTS' => [
             new GetResponseEvent(
                 $this->createMock(HttpKernelInterface::class),
                 new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
                 HttpKernelInterface::MASTER_REQUEST
             ),
             $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-            new class() extends AbstractToken {
-                public function __construct()
-                {
-                    parent::__construct();
+            new AuthenticatedTokenStub(new UserWithoutIdentifierStub()),
+            new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
+        ];
 
-                    $this->setAuthenticated(true);
-                    $this->setUser(new class() extends UserStub {
-                        public function getUserIdentifier(): string
-                        {
-                            return $this->getUsername();
-                        }
-                    });
-                }
-
-                public function getCredentials()
-                {
-                    return null;
-                }
-            },
+        yield 'token.authenticated = TRUE && token.user INSTANCEOF UserInterface && getUserIdentifier() method EXISTS' => [
+            new GetResponseEvent(
+                $this->createMock(HttpKernelInterface::class),
+                new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
+                HttpKernelInterface::MASTER_REQUEST
+            ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
+            new AuthenticatedTokenStub(new UserWithIdentifierStub()),
             new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
         ];
 
@@ -228,25 +186,12 @@ final class RequestListenerTest extends TestCase
                 HttpKernelInterface::MASTER_REQUEST
             ),
             $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-            new class() extends AbstractToken {
-                public function __construct()
+            new AuthenticatedTokenStub(new class() implements \Stringable {
+                public function __toString(): string
                 {
-                    parent::__construct();
-
-                    $this->setAuthenticated(true);
-                    $this->setUser(new class() implements \Stringable {
-                        public function __toString(): string
-                        {
-                            return 'foo_user';
-                        }
-                    });
+                    return 'foo_user';
                 }
-
-                public function getCredentials()
-                {
-                    return null;
-                }
-            },
+            }),
             new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
         ];
     }
@@ -300,19 +245,7 @@ final class RequestListenerTest extends TestCase
                 HttpKernelInterface::MASTER_REQUEST
             ),
             $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-            new class() extends AbstractToken {
-                public function __construct()
-                {
-                    parent::__construct();
-
-                    $this->setAuthenticated(false);
-                }
-
-                public function getCredentials()
-                {
-                    return null;
-                }
-            },
+            new UnauthenticatedTokenStub(),
             UserDataBag::createFromUserIpAddress('127.0.0.1'),
         ];
 
@@ -323,101 +256,58 @@ final class RequestListenerTest extends TestCase
                 HttpKernelInterface::MASTER_REQUEST
             ),
             $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-            new class() extends AbstractToken {
-                public function __construct()
-                {
-                    parent::__construct();
-
-                    $this->setAuthenticated(true);
-                }
-
-                public function getCredentials()
-                {
-                    return null;
-                }
-            },
+            new AuthenticatedTokenStub(null),
             UserDataBag::createFromUserIpAddress('127.0.0.1'),
         ];
 
-        yield 'token.authenticated = TRUE && token.user INSTANCEOF string' => [
-            new RequestEvent(
-                $this->createMock(HttpKernelInterface::class),
-                new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
-                HttpKernelInterface::MASTER_REQUEST
-            ),
-            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-            new class() extends AbstractToken {
-                public function __construct()
-                {
-                    parent::__construct();
-
-                    $this->setAuthenticated(true);
-                    $this->setUser('foo_user');
-                }
-
-                public function getCredentials()
-                {
-                    return null;
-                }
-            },
-            new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
-        ];
-
-        yield 'token.authenticated = TRUE && token.user INSTANCEOF UserInterface && getUserIdentifier() method DOES NOT EXISTS' => [
-            new RequestEvent(
-                $this->createMock(HttpKernelInterface::class),
-                new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
-                HttpKernelInterface::MASTER_REQUEST
-            ),
-            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-            new TokenStub(new class() extends UserStub {}),
-            new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
-        ];
-
-        if (Kernel::VERSION_ID >= 503000) {
-            yield 'token.authenticated = TRUE && token.user INSTANCEOF UserInterface && getUserIdentifier() method EXISTS' => [
+        if (version_compare(Kernel::VERSION, '6.0.0', '<')) {
+            yield 'token.authenticated = TRUE && token.user INSTANCEOF string' => [
                 new RequestEvent(
                     $this->createMock(HttpKernelInterface::class),
                     new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
                     HttpKernelInterface::MASTER_REQUEST
                 ),
                 $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-                new TokenStub(new class() extends UserStub {
-                    public function getUserIdentifier(): string
+                new AuthenticatedTokenStub('foo_user'),
+                new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
+            ];
+
+            yield 'token.authenticated = TRUE && token.user INSTANCEOF UserInterface && getUserIdentifier() method DOES NOT EXISTS' => [
+                new RequestEvent(
+                    $this->createMock(HttpKernelInterface::class),
+                    new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
+                    HttpKernelInterface::MASTER_REQUEST
+                ),
+                $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
+                new AuthenticatedTokenStub(new UserWithoutIdentifierStub()),
+                new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
+            ];
+
+            yield 'token.authenticated = TRUE && token.user INSTANCEOF object && __toString() method EXISTS' => [
+                new RequestEvent(
+                    $this->createMock(HttpKernelInterface::class),
+                    new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
+                    HttpKernelInterface::MASTER_REQUEST
+                ),
+                $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
+                new AuthenticatedTokenStub(new class() implements \Stringable {
+                    public function __toString(): string
                     {
-                        return $this->getUsername();
+                        return 'foo_user';
                     }
                 }),
                 new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
             ];
         }
 
-        yield 'token.authenticated = TRUE && token.user INSTANCEOF object && __toString() method EXISTS' => [
+        yield 'token.authenticated = TRUE && token.user INSTANCEOF UserInterface && getUserIdentifier() method EXISTS' => [
             new RequestEvent(
                 $this->createMock(HttpKernelInterface::class),
                 new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
                 HttpKernelInterface::MASTER_REQUEST
             ),
             $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-            new class() extends AbstractToken {
-                public function __construct()
-                {
-                    parent::__construct();
-
-                    $this->setAuthenticated(true);
-                    $this->setUser(new class() implements \Stringable {
-                        public function __toString(): string
-                        {
-                            return 'foo_user';
-                        }
-                    });
-                }
-
-                public function getCredentials()
-                {
-                    return null;
-                }
-            },
+            new AuthenticatedTokenStub(new UserWithIdentifierStub()),
             new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
         ];
 
@@ -558,45 +448,34 @@ final class RequestListenerTest extends TestCase
     }
 }
 
-final class TokenStub extends AbstractToken
+final class UnauthenticatedTokenStub extends AbstractToken
 {
-    public function __construct(UserInterface $user)
-    {
-        parent::__construct();
-
-        $this->setAuthenticated(true);
-        $this->setUser($user);
-    }
-
     public function getCredentials(): ?string
     {
         return null;
     }
 }
 
-abstract class UserStub implements UserInterface
+final class AuthenticatedTokenStub extends AbstractToken
 {
-    public function getUsername(): string
+    /**
+     * @param UserInterface|\Stringable|string|null $user
+     */
+    public function __construct($user)
     {
-        return 'foo_user';
+        parent::__construct();
+
+        if (method_exists($this, 'setAuthenticated')) {
+            $this->setAuthenticated(true);
+        }
+
+        if (null !== $user) {
+            $this->setUser($user);
+        }
     }
 
-    public function getRoles(): array
-    {
-        return [];
-    }
-
-    public function getPassword(): ?string
+    public function getCredentials(): ?string
     {
         return null;
-    }
-
-    public function getSalt(): ?string
-    {
-        return null;
-    }
-
-    public function eraseCredentials(): void
-    {
     }
 }

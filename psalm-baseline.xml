@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.11.1@e33492398bd4e5e2ab60e331d445979bd83feecd">
+<files psalm-version="4.13.1@5cf660f63b548ccd4a56f62d916ee4d6028e01a3">
   <file src="src/DependencyInjection/SentryExtension.php">
     <UndefinedClass occurrences="1">
       <code>FatalErrorException</code>
@@ -13,10 +13,36 @@
       <code>public function __construct(HubInterface $hub, bool $captureErrors = true)</code>
     </MethodSignatureMismatch>
   </file>
+  <file src="src/EventListener/ErrorListener.php">
+    <RedundantCondition occurrences="1">
+      <code>$event instanceof ExceptionEvent</code>
+    </RedundantCondition>
+    <UndefinedMethod occurrences="1">
+      <code>getException</code>
+    </UndefinedMethod>
+  </file>
+  <file src="src/EventListener/KernelEventForwardCompatibilityTrait.php">
+    <UndefinedMethod occurrences="1">
+      <code>isMasterRequest</code>
+    </UndefinedMethod>
+  </file>
+  <file src="src/Tracing/Cache/TraceableCacheAdapterTrait.php">
+    <LessSpecificImplementedReturnType occurrences="1">
+      <code>iterable</code>
+    </LessSpecificImplementedReturnType>
+  </file>
   <file src="src/Tracing/Doctrine/DBAL/TracingDriverForV2.php">
     <UndefinedClass occurrences="1">
       <code>ExceptionConverterDriver</code>
     </UndefinedClass>
+  </file>
+  <file src="src/Tracing/Doctrine/DBAL/TracingDriverForV3.php">
+    <InvalidReturnStatement occurrences="1">
+      <code>$this-&gt;decoratedDriver-&gt;getSchemaManager($conn, $platform)</code>
+    </InvalidReturnStatement>
+    <InvalidReturnType occurrences="1">
+      <code>AbstractSchemaManager&lt;T&gt;</code>
+    </InvalidReturnType>
   </file>
   <file src="src/Tracing/Doctrine/DBAL/TracingStatementForV2.php">
     <InvalidReturnStatement occurrences="2">

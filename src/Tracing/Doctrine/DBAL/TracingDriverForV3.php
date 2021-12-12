@@ -64,6 +64,12 @@ final class TracingDriverForV3 implements Driver, VersionAwarePlatformDriver
 
     /**
      * {@inheritdoc}
+     *
+     * @phpstan-template T of AbstractPlatform
+     *
+     * @phpstan-param T $platform
+     *
+     * @phpstan-return AbstractSchemaManager<T>
      */
     public function getSchemaManager(Connection $conn, AbstractPlatform $platform): AbstractSchemaManager
     {

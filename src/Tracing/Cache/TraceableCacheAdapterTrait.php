@@ -9,6 +9,7 @@ use Sentry\State\HubInterface;
 use Sentry\Tracing\SpanContext;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
+use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Cache\PruneableInterface;
 use Symfony\Component\Cache\ResettableInterface;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -35,7 +36,7 @@ trait TraceableCacheAdapterTrait
     /**
      * {@inheritdoc}
      */
-    public function getItem($key)
+    public function getItem($key): CacheItem
     {
         return $this->traceFunction('cache.get_item', function () use ($key) {
             return $this->decoratedAdapter->getItem($key);
@@ -45,7 +46,7 @@ trait TraceableCacheAdapterTrait
     /**
      * {@inheritdoc}
      */
-    public function getItems(array $keys = [])
+    public function getItems(array $keys = []): iterable
     {
         return $this->traceFunction('cache.get_items', function () use ($keys) {
             return $this->decoratedAdapter->getItems($keys);
@@ -66,6 +67,8 @@ trait TraceableCacheAdapterTrait
      * {@inheritdoc}
      *
      * @param mixed[] $metadata
+     *
+     * @return mixed
      */
     public function get(string $key, callable $callback, float $beta = null, array &$metadata = null)
     {

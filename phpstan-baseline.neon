@@ -16,9 +16,24 @@ parameters:
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
+			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
+			count: 1
+			path: src/EventListener/AbstractTracingRequestListener.php
+
+		-
 			message: "#^Else branch is unreachable because previous condition is always true\\.$#"
 			count: 1
 			path: src/EventListener/ErrorListener.php
+
+		-
+			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
+			count: 1
+			path: src/EventListener/RequestListener.php
+
+		-
+			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
+			count: 1
+			path: src/EventListener/SubRequestListener.php
 
 		-
 			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:errorInfo\\(\\) return type has no value type specified in iterable type array\\.$#"
@@ -101,13 +116,18 @@ parameters:
 			path: tests/EventListener/MessengerListenerTest.php
 
 		-
+			message: "#^Call to function method_exists\\(\\) with \\$this\\(Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\AuthenticatedTokenStub\\) and 'setAuthenticated' will always evaluate to false\\.$#"
+			count: 1
+			path: tests/EventListener/RequestListenerTest.php
+
+		-
 			message: "#^Instantiated class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent not found\\.$#"
 			count: 3
 			path: tests/EventListener/RequestListenerTest.php
 
 		-
 			message: "#^Instantiated class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent not found\\.$#"
-			count: 8
+			count: 9
 			path: tests/EventListener/RequestListenerTest.php
 
 		-
@@ -121,6 +141,11 @@ parameters:
 			path: tests/EventListener/RequestListenerTest.php
 
 		-
+			message: "#^Parameter \\#1 \\$user of method Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\AbstractToken\\:\\:setUser\\(\\) expects Symfony\\\\Component\\\\Security\\\\Core\\\\User\\\\UserInterface, string\\|Stringable\\|Symfony\\\\Component\\\\Security\\\\Core\\\\User\\\\UserInterface given\\.$#"
+			count: 1
+			path: tests/EventListener/RequestListenerTest.php
+
+		-
 			message: "#^Parameter \\$controllerEvent of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\RequestListenerTest\\:\\:testHandleKernelControllerEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent\\.$#"
 			count: 1
 			path: tests/EventListener/RequestListenerTest.php
@@ -129,6 +154,11 @@ parameters:
 			message: "#^Parameter \\$requestEvent of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\RequestListenerTest\\:\\:testHandleKernelRequestEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\.$#"
 			count: 1
 			path: tests/EventListener/RequestListenerTest.php
+
+		-
+			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
+			count: 1
+			path: tests/EventListener/SubRequestListenerTest.php
 
 		-
 			message: "#^Instantiated class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent not found\\.$#"
@@ -167,11 +197,6 @@ parameters:
 
 		-
 			message: "#^Call to an undefined method TCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface\\:\\:reset\\(\\)\\.$#"
-			count: 1
-			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
-
-		-
-			message: "#^Call to method PHPUnit\\\\Framework\\\\Assert\\:\\:assertSame\\(\\) with array\\(Symfony\\\\Component\\\\Cache\\\\CacheItem\\) and iterable\\<Symfony\\\\Component\\\\Cache\\\\CacheItem\\>&Traversable will always evaluate to false\\.$#"
 			count: 1
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
 
