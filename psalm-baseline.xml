@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.13.1@5cf660f63b548ccd4a56f62d916ee4d6028e01a3">
+<files psalm-version="v4.15.0@a1b5e489e6fcebe40cb804793d964e99fc347820">
   <file src="src/DependencyInjection/SentryExtension.php">
     <UndefinedClass occurrences="1">
       <code>FatalErrorException</code>
@@ -43,30 +43,6 @@
     <InvalidReturnType occurrences="1">
       <code>AbstractSchemaManager&lt;T&gt;</code>
     </InvalidReturnType>
-  </file>
-  <file src="src/Tracing/Doctrine/DBAL/TracingStatementForV2.php">
-    <InvalidReturnStatement occurrences="2">
-      <code>$this-&gt;decoratedStatement</code>
-      <code>$this-&gt;traceFunction($spanContext, [$this-&gt;decoratedStatement, 'execute'], $params)</code>
-    </InvalidReturnStatement>
-    <InvalidReturnType occurrences="2">
-      <code>\Traversable</code>
-      <code>bool</code>
-    </InvalidReturnType>
-    <MethodSignatureMismatch occurrences="1">
-      <code>TracingStatementForV2</code>
-    </MethodSignatureMismatch>
-    <UndefinedInterfaceMethod occurrences="9">
-      <code>closeCursor</code>
-      <code>columnCount</code>
-      <code>errorCode</code>
-      <code>errorInfo</code>
-      <code>fetch</code>
-      <code>fetchAll</code>
-      <code>fetchColumn</code>
-      <code>rowCount</code>
-      <code>setFetchMode</code>
-    </UndefinedInterfaceMethod>
   </file>
   <file src="src/aliases.php">
     <MissingDependency occurrences="1">
