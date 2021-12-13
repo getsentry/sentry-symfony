@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.2.5 (2021-12-13)
+
 - Add support for Symfony 6 (#566)
 - Fix fatal errors logged twice on Symfony `3.4` (#570)
 
