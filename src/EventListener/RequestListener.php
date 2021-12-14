@@ -8,6 +8,7 @@ use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Sentry\UserDataBag;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
@@ -60,13 +61,14 @@ final class RequestListener
         }
 
         $token = null;
-        $userData = UserDataBag::createFromUserIpAddress($event->getRequest()->getClientIp());
+        $userData = new UserDataBag();
+        $userData->setIpAddress($event->getRequest()->getClientIp());
 
         if (null !== $this->tokenStorage) {
             $token = $this->tokenStorage->getToken();
         }
 
-        if (null !== $token && $token->isAuthenticated() && null !== $token->getUser()) {
+        if ($this->isTokenAuthenticated($token)) {
             $userData->setUsername($this->getUsername($token->getUser()));
         }
 
@@ -122,5 +124,18 @@ final class RequestListener
         }
 
         return null;
+    }
+
+    private function isTokenAuthenticated(?TokenInterface $token): bool
+    {
+        if (null === $token) {
+            return false;
+        }
+
+        if (method_exists($token, 'isAuthenticated') && !$token->isAuthenticated(false)) {
+            return false;
+        }
+
+        return null !== $token->getUser();
     }
 }

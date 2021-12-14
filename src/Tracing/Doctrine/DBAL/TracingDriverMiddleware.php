@@ -11,22 +11,32 @@ use Sentry\State\HubInterface;
 /**
  * This middleware wraps a {@see Driver} instance into one that
  * supports the distributed tracing feature of Sentry.
+ *
+ * @internal since version 4.2
  */
 final class TracingDriverMiddleware implements Middleware
 {
     /**
-     * @var HubInterface The current hub
+     * @var TracingDriverConnectionFactoryInterface
      */
-    private $hub;
+    private $connectionFactory;
 
     /**
      * Constructor.
      *
-     * @param HubInterface $hub The current hub
+     * @param HubInterface|TracingDriverConnectionFactoryInterface $hubOrConnectionFactory The current hub (deprecated) or the connection factory
      */
-    public function __construct(HubInterface $hub)
+    public function __construct($hubOrConnectionFactory)
     {
-        $this->hub = $hub;
+        if ($hubOrConnectionFactory instanceof TracingDriverConnectionFactoryInterface) {
+            $this->connectionFactory = $hubOrConnectionFactory;
+        } elseif ($hubOrConnectionFactory instanceof HubInterface) {
+            @trigger_error(sprintf('Not passing an instance of the "%s" interface as argument of the constructor is deprecated since version 4.2 and will not work since version 5.0.', TracingDriverConnectionFactoryInterface::class), \E_USER_DEPRECATED);
+
+            $this->connectionFactory = new TracingDriverConnectionFactory($hubOrConnectionFactory);
+        } else {
+            throw new \InvalidArgumentException(sprintf('The constructor requires either an instance of the "%s" interface or an instance of the "%s" interface.', HubInterface::class, TracingDriverConnectionFactoryInterface::class));
+        }
     }
 
     /**
@@ -34,6 +44,6 @@ final class TracingDriverMiddleware implements Middleware
      */
     public function wrap(Driver $driver): Driver
     {
-        return new TracingDriver($this->hub, $driver);
+        return new TracingDriver($this->connectionFactory, $driver);
     }
 }

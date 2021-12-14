@@ -26,8 +26,10 @@ use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
+use Sentry\Transport\TransportFactoryInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Console\ConsoleEvents;
+use Symfony\Component\Debug\Exception\FatalErrorException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\EnvPlaceholderParameterBag;
@@ -178,13 +180,20 @@ abstract class SentryExtensionTest extends TestCase
         ], $definition->getTags());
     }
 
-    public function testClentIsCreatedFromOptions(): void
+    public function testClientIsCreatedFromOptions(): void
     {
         $container = $this->createContainerFromFixture('full');
         $optionsDefinition = $container->getDefinition('sentry.client.options');
         $expectedOptions = [
             'integrations' => [
-                new Definition(IgnoreErrorsIntegration::class, [['ignore_exceptions' => [FatalError::class]]]),
+                new Definition(IgnoreErrorsIntegration::class, [
+                    [
+                        'ignore_exceptions' => [
+                            FatalError::class,
+                            FatalErrorException::class,
+                        ],
+                    ],
+                ]),
                 new Reference('App\\Sentry\\Integration\\FooIntegration'),
             ],
             'default_integrations' => false,
@@ -243,6 +252,16 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertInstanceOf(Definition::class, $methodCalls[4][1][0]);
         $this->assertSame(RepresentationSerializer::class, $methodCalls[4][1][0]->getClass());
         $this->assertEquals($methodCalls[4][1][0]->getArgument(0), new Reference('sentry.client.options'));
+    }
+
+    public function testLoggerIsPassedToTransportFactory(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+
+        $transportFactoryDefinition = $container->findDefinition(TransportFactoryInterface::class);
+        $logger = $transportFactoryDefinition->getArgument('$logger');
+
+        $this->assertSame('app.logger', $logger->__toString());
     }
 
     public function testErrorTypesOptionIsParsedFromStringToIntegerValue(): void

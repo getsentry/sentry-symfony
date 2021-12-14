@@ -68,7 +68,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
     public function testGetItems(): void
     {
-        $cacheItems = [new CacheItem()];
+        $cacheItems = ['foo' => new CacheItem()];
         $transaction = new Transaction(new TransactionContext(), $this->hub);
         $transaction->initSpanRecorder();
 
@@ -375,14 +375,24 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
-    public function testPruneThrowsExceptionIfDecoratedAdapterIsNotPruneable(): void
+    public function testPruneReturnsFalseIfDecoratedAdapterIsNotPruneable(): void
     {
+        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction->initSpanRecorder();
+
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn($transaction);
+
         $adapter = $this->createCacheAdapter($this->createMock(static::getAdapterClassFqcn()));
 
-        $this->expectException(\BadMethodCallException::class);
-        $this->expectExceptionMessage(sprintf('The %s::prune() method is not supported because the decorated adapter does not implement the "Symfony\\Component\\Cache\\PruneableInterface" interface.', \get_class($adapter)));
+        $this->assertFalse($adapter->prune());
 
-        $adapter->prune();
+        $spans = $transaction->getSpanRecorder()->getSpans();
+
+        $this->assertCount(2, $spans);
+        $this->assertSame('cache.prune', $spans[1]->getOp());
+        $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
     public function testReset(): void
@@ -392,16 +402,6 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
             ->method('reset');
 
         $adapter = $this->createCacheAdapter($decoratedAdapter);
-        $adapter->reset();
-    }
-
-    public function testResetThrowsExceptionIfDecoratedAdapterIsNotResettable(): void
-    {
-        $adapter = $this->createCacheAdapter($this->createMock(static::getAdapterClassFqcn()));
-
-        $this->expectException(\BadMethodCallException::class);
-        $this->expectExceptionMessage(sprintf('The %s::reset() method is not supported because the decorated adapter does not implement the "Symfony\\Component\\Cache\\ResettableInterface" interface.', \get_class($adapter)));
-
         $adapter->reset();
     }
 

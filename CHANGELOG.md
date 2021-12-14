@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+## 4.2.5 (2021-12-13)
+
+- Add support for Symfony 6 (#566)
+- Fix fatal errors logged twice on Symfony `3.4` (#570)
+
+## 4.2.4 (2021-10-20)
+
+- Add return typehints to the methods of the `SentryExtension` class to prepare for Symfony 6 (#563)
+- Fix setting the IP address on the user context when it's not available (#565)
+- Fix wrong method existence check in `TracingDriverConnection::errorCode()` (#568)
+- Fix decoration of the Doctrine DBAL connection when it implemented the `ServerInfoAwareConnection` interface (#567)
+
+## 4.2.3 (2021-09-21)
+
+- Fix: Test if `TracingStatement` exists before attempting to create the class alias, otherwise it breaks when opcache is enabled. (#552)
+- Fix: Pass logger from `logger` config option to `TransportFactory` (#555)
+- Improve the compatibility layer with Doctrine DBAL to avoid deprecations notices (#553)
+
+## 4.2.2 (2021-08-30)
+
+- Fix missing instrumentation of the `Statement::execute()` method of Doctrine DBAL (#548)
+
+## 4.2.1 (2021-08-24)
+
+- Fix return type for `TracingDriver::getDatabase()` method (#541)
+- Avoid throwing exception from the `TraceableCacheAdapterTrait::prune()` and `TraceableCacheAdapterTrait::reset()` methods when the decorated adapter does not implement the respective interfaces (#543)
+
 ## 4.2.0 (2021-08-12)
 
 - Log the bus name, receiver name and message class name as event tags when using Symfony Messenger (#492)

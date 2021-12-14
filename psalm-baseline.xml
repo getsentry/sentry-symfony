@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.8.1@f73f2299dbc59a3e6c4d66cff4605176e728ee69">
+<files psalm-version="4.13.1@5cf660f63b548ccd4a56f62d916ee4d6028e01a3">
+  <file src="src/DependencyInjection/SentryExtension.php">
+    <UndefinedClass occurrences="1">
+      <code>FatalErrorException</code>
+    </UndefinedClass>
+  </file>
   <file src="src/EventListener/ConsoleCommandListener.php">
     <InvalidExtendClass occurrences="1">
       <code>ConsoleListener</code>
@@ -7,5 +12,73 @@
     <MethodSignatureMismatch occurrences="1">
       <code>public function __construct(HubInterface $hub, bool $captureErrors = true)</code>
     </MethodSignatureMismatch>
+  </file>
+  <file src="src/EventListener/ErrorListener.php">
+    <RedundantCondition occurrences="1">
+      <code>$event instanceof ExceptionEvent</code>
+    </RedundantCondition>
+    <UndefinedMethod occurrences="1">
+      <code>getException</code>
+    </UndefinedMethod>
+  </file>
+  <file src="src/EventListener/KernelEventForwardCompatibilityTrait.php">
+    <UndefinedMethod occurrences="1">
+      <code>isMasterRequest</code>
+    </UndefinedMethod>
+  </file>
+  <file src="src/Tracing/Cache/TraceableCacheAdapterTrait.php">
+    <LessSpecificImplementedReturnType occurrences="1">
+      <code>iterable</code>
+    </LessSpecificImplementedReturnType>
+  </file>
+  <file src="src/Tracing/Doctrine/DBAL/TracingDriverForV2.php">
+    <UndefinedClass occurrences="1">
+      <code>ExceptionConverterDriver</code>
+    </UndefinedClass>
+  </file>
+  <file src="src/Tracing/Doctrine/DBAL/TracingDriverForV3.php">
+    <InvalidReturnStatement occurrences="1">
+      <code>$this-&gt;decoratedDriver-&gt;getSchemaManager($conn, $platform)</code>
+    </InvalidReturnStatement>
+    <InvalidReturnType occurrences="1">
+      <code>AbstractSchemaManager&lt;T&gt;</code>
+    </InvalidReturnType>
+  </file>
+  <file src="src/Tracing/Doctrine/DBAL/TracingStatementForV2.php">
+    <InvalidReturnStatement occurrences="2">
+      <code>$this-&gt;decoratedStatement</code>
+      <code>$this-&gt;traceFunction($spanContext, [$this-&gt;decoratedStatement, 'execute'], $params)</code>
+    </InvalidReturnStatement>
+    <InvalidReturnType occurrences="2">
+      <code>\Traversable</code>
+      <code>bool</code>
+    </InvalidReturnType>
+    <MethodSignatureMismatch occurrences="1">
+      <code>TracingStatementForV2</code>
+    </MethodSignatureMismatch>
+    <UndefinedInterfaceMethod occurrences="9">
+      <code>closeCursor</code>
+      <code>columnCount</code>
+      <code>errorCode</code>
+      <code>errorInfo</code>
+      <code>fetch</code>
+      <code>fetchAll</code>
+      <code>fetchColumn</code>
+      <code>rowCount</code>
+      <code>setFetchMode</code>
+    </UndefinedInterfaceMethod>
+  </file>
+  <file src="src/aliases.php">
+    <MissingDependency occurrences="1">
+      <code>TracingDriverForV2</code>
+    </MissingDependency>
+    <UndefinedClass occurrences="6">
+      <code>FilterControllerEvent</code>
+      <code>FilterResponseEvent</code>
+      <code>GetResponseEvent</code>
+      <code>GetResponseEvent</code>
+      <code>GetResponseForExceptionEvent</code>
+      <code>PostResponseEvent</code>
+    </UndefinedClass>
   </file>
 </files>
