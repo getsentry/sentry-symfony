@@ -67,6 +67,17 @@ final class TracingStatementForV3Test extends DoctrineTestCase
         $this->assertTrue($this->statement->bindParam('foo', $variable, ParameterType::INTEGER));
     }
 
+    public function testBindParamWithoutLength(): void
+    {
+        $variable = 'bar';
+
+        $this->decoratedStatement = $this->createPartialMock(TestStatement::class, ['bindValue', 'execute']);
+        $this->statement = new TracingStatementForV3($this->hub, $this->decoratedStatement, 'SELECT 1', ['db.system' => 'sqlite']);
+
+        $this->assertTrue($this->statement->bindParam('foo', $variable, ParameterType::INTEGER));
+        $this->assertCount(3, $this->decoratedStatement->args);
+    }
+
     public function testExecute(): void
     {
         $driverResult = $this->createMock(Result::class);
@@ -107,5 +118,20 @@ final class TracingStatementForV3Test extends DoctrineTestCase
             ->willReturn($driverResult);
 
         $this->assertSame($driverResult, $this->statement->execute(['foo' => 'bar']));
+    }
+}
+
+abstract class TestStatement implements Statement {
+
+    /**
+     * @var array|null
+     */
+    public $args = null;
+
+    public function bindParam($param, &$variable, $type = ParameterType::STRING, $length = null)
+    {
+        $this->args = func_get_args();
+
+        return true;
     }
 }
