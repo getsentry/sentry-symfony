@@ -75,6 +75,7 @@ final class TracingStatementForV3Test extends DoctrineTestCase
         $this->statement = new TracingStatementForV3($this->hub, $this->decoratedStatement, 'SELECT 1', ['db.system' => 'sqlite']);
 
         $this->assertTrue($this->statement->bindParam('foo', $variable, ParameterType::INTEGER));
+        $this->assertInstanceOf(TestStatement::class, $this->decoratedStatement);
         $this->assertCount(3, $this->decoratedStatement->args);
     }
 
