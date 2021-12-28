@@ -125,7 +125,7 @@ final class TracingStatementForV3Test extends DoctrineTestCase
 abstract class TestStatement implements Statement {
 
     /**
-     * @var array|null
+     * @var mixed[]|null
      */
     public $args = null;
 
