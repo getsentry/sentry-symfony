@@ -55,6 +55,8 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
      *
      * @param array<string, mixed>  $params
      * @param array<string, string> $expectedTags
+     *
+     * @phpstan-param ConnectionParams $params
      */
     public function testPrepare(array $params, array $expectedTags): void
     {
@@ -175,6 +177,8 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
      *
      * @param array<string, mixed>  $params
      * @param array<string, string> $expectedTags
+     *
+     * @phpstan-param ConnectionParams $params
      */
     public function testExec(array $params, array $expectedTags): void
     {
@@ -220,6 +224,8 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
      *
      * @param array<string, mixed>  $params
      * @param array<string, string> $expectedTags
+     *
+     * @phpstan-param ConnectionParams $params
      */
     public function testBeginTransaction(array $params, array $expectedTags): void
     {
@@ -265,6 +271,8 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
      *
      * @param array<string, mixed>  $params
      * @param array<string, string> $expectedTags
+     *
+     * @phpstan-param ConnectionParams $params
      */
     public function testCommit(array $params, array $expectedTags): void
     {
@@ -310,6 +318,8 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
      *
      * @param array<string, mixed>  $params
      * @param array<string, string> $expectedTags
+     *
+     * @phpstan-param ConnectionParams $params
      */
     public function testRollBack(array $params, array $expectedTags): void
     {

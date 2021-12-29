@@ -181,11 +181,6 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/ConnectionConfigurator.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:__construct\\(\\) has parameter \\$params with no value type specified in iterable type array\\<string, mixed\\>\\.$#"
-			count: 5
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
-
-		-
 			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:errorInfo\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
@@ -193,11 +188,6 @@ parameters:
 		-
 			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:exec\\(\\) has parameter \\$sql with no type specified\\.$#"
 			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:getSpanTags\\(\\) has parameter \\$params with no value type specified in iterable type array\\<string, mixed\\>\\.$#"
-			count: 5
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
@@ -211,13 +201,8 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
-			message: "#^Offset 'unix_socket' on array\\{charset\\?\\: string, dbname\\?\\: string, default_dbname\\?\\: string, driver\\?\\: mixed, driverClass\\?\\: class\\-string\\<Doctrine\\\\DBAL\\\\Driver\\>, driverOptions\\?\\: array, host\\?\\: string, keepSlave\\?\\: bool, \\.\\.\\.\\} in isset\\(\\) does not exist\\.$#"
+			message: "#^Offset 'unix_socket' on array\\{charset\\?\\: string, dbname\\?\\: string, default_dbname\\?\\: string, driver\\?\\: 'ibm_db2'\\|'mysqli'\\|'oci8'\\|'pdo_mysql'\\|'pdo_oci'\\|'pdo_pgsql'\\|'pdo_sqlite'\\|'pdo_sqlsrv'\\|'sqlsrv', driverClass\\?\\: class\\-string\\<Doctrine\\\\DBAL\\\\Driver\\>, driverOptions\\?\\: array, host\\?\\: string, keepSlave\\?\\: bool, \\.\\.\\.\\} in isset\\(\\) does not exist\\.$#"
 			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
-
-		-
-			message: "#^PHPDoc tag @param for parameter \\$params contains unresolvable type\\.$#"
-			count: 2
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
@@ -229,26 +214,6 @@ parameters:
 			message: "#^Parameter \\#2 \\$spanDescription of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:traceFunction\\(\\) expects string, string\\|null given\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionFactory\\:\\:create\\(\\) has parameter \\$params with no value type specified in iterable type array\\<string, mixed\\>\\.$#"
-			count: 5
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionFactory.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionFactoryInterface\\:\\:create\\(\\) has parameter \\$params with no value type specified in iterable type array\\<string, mixed\\>\\.$#"
-			count: 5
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionFactoryInterface.php
-
-		-
-			message: "#^PHPDoc tag @param for parameter \\$params contains unresolvable type\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionFactoryInterface.php
-
-		-
-			message: "#^Parameter \\#3 \\$params of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionFactoryInterface\\:\\:create\\(\\) expects array\\{charset\\?\\: string, dbname\\?\\: string, default_dbname\\?\\: string, driver\\?\\: mixed, driverClass\\?\\: class\\-string\\<Doctrine\\\\DBAL\\\\Driver\\>, driverOptions\\?\\: array, host\\?\\: string, keepSlave\\?\\: bool, \\.\\.\\.\\}, array given\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriverForV3.php
 
 		-
 			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:errorInfo\\(\\) return type has no value type specified in iterable type array\\.$#"
@@ -444,21 +409,6 @@ parameters:
 			message: "#^Parameter \\#1 \\$decoratedAdapter of method Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Cache\\\\AbstractTraceableCacheAdapterTest\\<TCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface,TDecoratedCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface\\>\\:\\:createCacheAdapter\\(\\) expects TDecoratedCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface, PHPUnit\\\\Framework\\\\MockObject\\\\MockObject&Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Cache\\\\ResettableCacheAdapterInterface given\\.$#"
 			count: 1
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionTest\\:\\:testQuery\\(\\) has parameter \\$params with no value type specified in iterable type array\\<string, mixed\\>\\.$#"
-			count: 5
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionTest.php
-
-		-
-			message: "#^PHPDoc tag @param for parameter \\$params contains unresolvable type\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionTest.php
-
-		-
-			message: "#^Parameter \\#4 \\$params of class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection constructor expects array\\{charset\\?\\: string, dbname\\?\\: string, default_dbname\\?\\: string, driver\\?\\: mixed, driverClass\\?\\: class\\-string\\<Doctrine\\\\DBAL\\\\Driver\\>, driverOptions\\?\\: array, host\\?\\: string, keepSlave\\?\\: bool, \\.\\.\\.\\}, array\\<string, mixed\\> given\\.$#"
-			count: 5
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionTest.php
 
 		-
 			message: "#^Trying to mock an undefined method errorCode\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Connection\\.$#"
