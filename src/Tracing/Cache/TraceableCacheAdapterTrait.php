@@ -38,7 +38,7 @@ trait TraceableCacheAdapterTrait
      */
     public function getItem($key): CacheItem
     {
-        return $this->traceFunction('cache.get_item', function () use ($key) {
+        return $this->traceFunction('cache.get_item', function () use ($key): CacheItem {
             return $this->decoratedAdapter->getItem($key);
         });
     }
@@ -48,7 +48,7 @@ trait TraceableCacheAdapterTrait
      */
     public function getItems(array $keys = []): iterable
     {
-        return $this->traceFunction('cache.get_items', function () use ($keys) {
+        return $this->traceFunction('cache.get_items', function () use ($keys): iterable {
             return $this->decoratedAdapter->getItems($keys);
         });
     }
@@ -65,28 +65,10 @@ trait TraceableCacheAdapterTrait
 
     /**
      * {@inheritdoc}
-     *
-     * @param mixed[] $metadata
-     *
-     * @return mixed
-     */
-    public function get(string $key, callable $callback, float $beta = null, array &$metadata = null)
-    {
-        return $this->traceFunction('cache.get_item', function () use ($key, $callback, $beta, &$metadata) {
-            if (!$this->decoratedAdapter instanceof CacheInterface) {
-                throw new \BadMethodCallException(sprintf('The %s::get() method is not supported because the decorated adapter does not implement the "%s" interface.', self::class, CacheInterface::class));
-            }
-
-            return $this->decoratedAdapter->get($key, $callback, $beta, $metadata);
-        });
-    }
-
-    /**
-     * {@inheritdoc}
      */
     public function delete(string $key): bool
     {
-        return $this->traceFunction('cache.delete_item', function () use ($key) {
+        return $this->traceFunction('cache.delete_item', function () use ($key): bool {
             if (!$this->decoratedAdapter instanceof CacheInterface) {
                 throw new \BadMethodCallException(sprintf('The %s::delete() method is not supported because the decorated adapter does not implement the "%s" interface.', self::class, CacheInterface::class));
             }

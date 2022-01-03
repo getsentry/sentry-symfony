@@ -6,8 +6,8 @@ namespace Sentry\SentryBundle\Tests\DependencyInjection\Compiler;
 
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\Compiler\CacheTracingPass;
-use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapter;
-use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapter;
+use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapterForV2;
+use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapterForV2;
 use Sentry\State\HubInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
@@ -50,7 +50,7 @@ final class CacheTracingPassTest extends TestCase
                     ->setPublic(true)
                     ->addTag('cache.pool'),
             ],
-            TraceableCacheAdapter::class,
+            TraceableCacheAdapterForV2::class,
             \get_class($cacheAdapter),
         ];
 
@@ -60,7 +60,7 @@ final class CacheTracingPassTest extends TestCase
                     ->setPublic(true)
                     ->addTag('cache.pool'),
             ],
-            TraceableTagAwareCacheAdapter::class,
+            TraceableTagAwareCacheAdapterForV2::class,
             \get_class($tagAwareCacheAdapter),
         ];
 
@@ -71,7 +71,7 @@ final class CacheTracingPassTest extends TestCase
                     ->setPublic(true)
                     ->addTag('cache.pool'),
             ],
-            TraceableCacheAdapter::class,
+            TraceableCacheAdapterForV2::class,
             \get_class($cacheAdapter),
         ];
 
@@ -83,7 +83,7 @@ final class CacheTracingPassTest extends TestCase
                     ->setPublic(true)
                     ->addTag('cache.pool'),
             ],
-            TraceableTagAwareCacheAdapter::class,
+            TraceableTagAwareCacheAdapterForV2::class,
             \get_class($tagAwareCacheAdapter),
         ];
 
@@ -96,7 +96,7 @@ final class CacheTracingPassTest extends TestCase
                     ->setPublic(true)
                     ->addTag('cache.pool'),
             ],
-            TraceableTagAwareCacheAdapter::class,
+            TraceableTagAwareCacheAdapterForV2::class,
             \get_class($tagAwareCacheAdapter),
         ];
 
@@ -107,7 +107,7 @@ final class CacheTracingPassTest extends TestCase
                     ->setPublic(true)
                     ->addTag('cache.pool'),
             ],
-            TraceableTagAwareCacheAdapter::class,
+            TraceableTagAwareCacheAdapterForV2::class,
             \get_class($tagAwareCacheAdapter),
         ];
     }
@@ -143,12 +143,12 @@ final class CacheTracingPassTest extends TestCase
         $container->setParameter('sentry.tracing.cache.enabled', $isTracingActive);
 
         $container->register(HubInterface::class, HubInterface::class);
-        $container->register('sentry.tracing.traceable_cache_adapter', TraceableCacheAdapter::class)
+        $container->register('sentry.tracing.traceable_cache_adapter', TraceableCacheAdapterForV2::class)
             ->setAbstract(true)
             ->setArgument(0, new Reference(HubInterface::class))
             ->setArgument(1, null);
 
-        $container->register('sentry.tracing.traceable_tag_aware_cache_adapter', TraceableTagAwareCacheAdapter::class)
+        $container->register('sentry.tracing.traceable_tag_aware_cache_adapter', TraceableTagAwareCacheAdapterForV2::class)
             ->setAbstract(true)
             ->setArgument(0, new Reference(HubInterface::class))
             ->setArgument(1, null);
