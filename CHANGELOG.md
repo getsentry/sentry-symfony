@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.2.6 (2022-01-10)
+
 - Add support for `symfony/cache-contracts` package version `3.x` (#588)
 
 ## 4.2.5 (2021-12-13)
