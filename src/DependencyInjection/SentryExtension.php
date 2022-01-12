@@ -14,7 +14,7 @@ use Sentry\Integration\IgnoreErrorsIntegration;
 use Sentry\Integration\IntegrationInterface;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\Integration\RequestIntegration;
-use Sentry\Monolog\Handler;
+use Sentry\Monolog\Handler as SentryHandler;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
@@ -22,6 +22,7 @@ use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\EventListener\TracingConsoleListener;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
 use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
+use Sentry\SentryBundle\Monolog\SymfonyHandler;
 use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
@@ -248,16 +249,17 @@ final class SentryExtension extends ConfigurableExtension
         $errorHandlerConfig = $config['error_handler'];
 
         if (!$errorHandlerConfig['enabled']) {
-            $container->removeDefinition(Handler::class);
+            $container->removeDefinition(SymfonyHandler::class);
+            $container->removeDefinition(SentryHandler::class);
 
             return;
         }
 
         if (!class_exists(MonologLogger::class)) {
-            throw new LogicException(sprintf('To use the "%s" class you need to require the "symfony/monolog-bundle" package.', Handler::class));
+            throw new LogicException(sprintf('To use the "%s" class you need to require the "symfony/monolog-bundle" package.', SymfonyHandler::class));
         }
 
-        $definition = $container->getDefinition(Handler::class);
+        $definition = $container->getDefinition(SymfonyHandler::class);
         $definition->setArguments([
             new Reference(HubInterface::class),
             MonologLogger::toMonologLevel($config['level']),

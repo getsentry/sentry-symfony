@@ -89,6 +89,8 @@
             <tag name="console.command" />
         </service>
 
+        <service id="Sentry\SentryBundle\Monolog\SymfonyHandler" class="Sentry\SentryBundle\Monolog\SymfonyHandler" decorates="Sentry\Monolog\Handler" />
+
         <service id="Sentry\Monolog\Handler" class="Sentry\Monolog\Handler">
             <argument type="service" id="Sentry\State\HubInterface" />
         </service>
