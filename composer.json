@@ -16,7 +16,11 @@
         }
     ],
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "phpstan/extension-installer": true
+        }
     },
     "require": {
         "php": "^7.2||^8.0",
