@@ -226,7 +226,7 @@ abstract class SentryExtensionTest extends TestCase
             ],
             'dsn' => 'https://examplePublicKey@o0.ingest.sentry.io/0',
             'http_timeout' => 10,
-            'http_connect_timeout' => 15
+            'http_connect_timeout' => 15,
         ];
 
         $this->assertSame(Options::class, $optionsDefinition->getClass());
