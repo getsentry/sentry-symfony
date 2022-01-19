@@ -16,14 +16,18 @@
         }
     ],
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "phpstan/extension-installer": true
+        }
     },
     "require": {
         "php": "^7.2||^8.0",
         "jean85/pretty-package-versions": "^1.5 || ^2.0",
         "php-http/discovery": "^1.11",
         "sentry/sdk": "^3.1",
-        "symfony/cache-contracts": "^1.1||^2.4",
+        "symfony/cache-contracts": "^1.1||^2.4||^3.0",
         "symfony/config": "^3.4.44||^4.4.20||^5.0.11||^6.0",
         "symfony/console": "^3.4.44||^4.4.20||^5.0.11||^6.0",
         "symfony/dependency-injection": "^3.4.44||^4.4.20||^5.0.11||^6.0",
