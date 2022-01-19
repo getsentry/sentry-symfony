@@ -130,6 +130,8 @@ final class Configuration implements ConfigurationInterface
                             ->normalizeKeys(false)
                             ->scalarPrototype()->end()
                         ->end()
+                        ->integerNode('http_connect_timeout')->min(0)->end()
+                        ->integerNode('http_timeout')->min(0)->end()
                     ->end()
                 ->end()
             ->end();
