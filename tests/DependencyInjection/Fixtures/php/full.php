@@ -39,6 +39,8 @@ $container->loadFromExtension('sentry', [
         'capture_silenced_errors' => true,
         'max_request_body_size' => 'none',
         'class_serializers' => ['App\\FooClass' => 'App\\Sentry\\Serializer\\FooClassSerializer'],
+        'http_timeout' => 10,
+        'http_connect_timeout' => 15,
     ],
     'messenger' => [
         'enabled' => true,

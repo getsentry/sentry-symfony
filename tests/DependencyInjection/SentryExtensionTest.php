@@ -225,6 +225,8 @@ abstract class SentryExtensionTest extends TestCase
                 'App\\FooClass' => new Reference('App\\Sentry\\Serializer\\FooClassSerializer'),
             ],
             'dsn' => 'https://examplePublicKey@o0.ingest.sentry.io/0',
+            'http_timeout' => 10,
+            'http_connect_timeout' => 15
         ];
 
         $this->assertSame(Options::class, $optionsDefinition->getClass());

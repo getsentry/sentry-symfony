@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Add `TracingDriverConnectionInterface::getNativeConnection()` method to get the original driver connection (#597)
+- Add `options.http_timeout` and `options.http_connect_timeout` configuration options (#593)
 
 ## 4.2.10 (2022-05-17)
 

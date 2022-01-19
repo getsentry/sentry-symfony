@@ -51,6 +51,8 @@
         <xsd:attribute name="http-proxy" type="xsd:string" />
         <xsd:attribute name="capture-silenced-errors" type="xsd:boolean" />
         <xsd:attribute name="max-request-body-size" type="max-request-body-size" />
+        <xsd:attribute name="http-timeout" type="xsd:integer" />
+        <xsd:attribute name="http-connect-timeout" type="xsd:integer" />
     </xsd:complexType>
 
     <xsd:complexType name="tag">
