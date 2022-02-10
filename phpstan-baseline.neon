@@ -201,11 +201,6 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
-			message: "#^Offset 'unix_socket' on array\\{charset\\?\\: string, dbname\\?\\: string, default_dbname\\?\\: string, driver\\?\\: 'ibm_db2'\\|'mysqli'\\|'oci8'\\|'pdo_mysql'\\|'pdo_oci'\\|'pdo_pgsql'\\|'pdo_sqlite'\\|'pdo_sqlsrv'\\|'sqlsrv', driverClass\\?\\: class\\-string\\<Doctrine\\\\DBAL\\\\Driver\\>, driverOptions\\?\\: array, host\\?\\: string, keepSlave\\?\\: bool, \\.\\.\\.\\} in isset\\(\\) does not exist\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
-
-		-
 			message: "#^Parameter \\#1 \\$sql of method Doctrine\\\\DBAL\\\\Driver\\\\Connection\\:\\:query\\(\\) expects string, string\\|null given\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php

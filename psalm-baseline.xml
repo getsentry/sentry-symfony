@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="v4.15.0@a1b5e489e6fcebe40cb804793d964e99fc347820">
+<files psalm-version="4.20.0@f82a70e7edfc6cf2705e9374c8a0b6a974a779ed">
   <file src="src/DependencyInjection/SentryExtension.php">
     <UndefinedClass occurrences="1">
       <code>FatalErrorException</code>
@@ -43,6 +43,9 @@
     <InvalidReturnType occurrences="1">
       <code>AbstractSchemaManager&lt;T&gt;</code>
     </InvalidReturnType>
+    <MoreSpecificImplementedParamType occurrences="1">
+      <code>$params</code>
+    </MoreSpecificImplementedParamType>
   </file>
   <file src="src/aliases.php">
     <MissingDependency occurrences="1">
