@@ -27,7 +27,7 @@ final class TracingStatementForV3 extends AbstractTracingStatement implements St
      */
     public function bindParam($param, &$variable, $type = ParameterType::STRING, $length = null): bool
     {
-        return $this->decoratedStatement->bindParam($param, $variable, $type, ...array_slice(func_get_args(), 3));
+        return $this->decoratedStatement->bindParam($param, $variable, $type, ...\array_slice(\func_get_args(), 3));
     }
 
     /**

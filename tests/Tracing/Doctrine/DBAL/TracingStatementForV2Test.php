@@ -123,10 +123,21 @@ final class TracingStatementForV2Test extends DoctrineTestCase
 
         $this->decoratedStatement->expects($this->once())
             ->method('bindParam')
-            ->with('foo', $variable, ParameterType::INTEGER)
+            ->with('foo', $variable, ParameterType::INTEGER, 10)
             ->willReturn(true);
 
+        $this->assertTrue($this->statement->bindParam('foo', $variable, ParameterType::INTEGER, 10));
+    }
+
+    public function testBindParamForwardsLengthParamOnlyWhenExplicitlySet(): void
+    {
+        $variable = 'bar';
+        $decoratedStatement = $this->createPartialMock(TracingStatementForV2Stub::class, array_diff(get_class_methods(TracingStatementForV2Stub::class), ['bindParam']));
+
+        $this->statement = new TracingStatementForV2($this->hub, $decoratedStatement, 'SELECT 1', ['db.system' => 'sqlite']);
+
         $this->assertTrue($this->statement->bindParam('foo', $variable, ParameterType::INTEGER));
+        $this->assertSame(3, $decoratedStatement->bindParamCallArgsCount);
     }
 
     public function testErrorCode(): void
@@ -193,5 +204,33 @@ final class TracingStatementForV2Test extends DoctrineTestCase
             ->willReturn(10);
 
         $this->assertSame(10, $this->statement->rowCount());
+    }
+}
+
+if (!interface_exists(Statement::class)) {
+    abstract class TracingStatementForV2Stub
+    {
+    }
+} else {
+    /**
+     * @phpstan-implements \IteratorAggregate<mixed, mixed>
+     */
+    abstract class TracingStatementForV2Stub implements \IteratorAggregate, Statement
+    {
+        /**
+         * @var int
+         */
+        public $bindParamCallArgsCount = 0;
+
+        public function bindParam($param, &$variable, $type = ParameterType::STRING, $length = null): bool
+        {
+            // Since PHPUnit forcefully calls the mocked methods with all
+            // parameters, regardless of whether they were originally passed
+            // in an explicit manner, we can't use a mock to assert the number
+            // of args used in the call to the function
+            $this->bindParamCallArgsCount = \func_num_args();
+
+            return true;
+        }
     }
 }

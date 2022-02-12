@@ -246,6 +246,16 @@ parameters:
 			path: tests/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnectionTest.php
 
 		-
+			message: "#^Access to an undefined property PHPUnit\\\\Framework\\\\MockObject\\\\MockObject&Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatementForV2Stub\\:\\:\\$bindParamCallArgsCount\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Parameter \\#2 \\$decoratedStatement of class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatementForV2 constructor expects Doctrine\\\\DBAL\\\\Driver\\\\Statement, PHPUnit\\\\Framework\\\\MockObject\\\\MockObject&Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatementForV2Stub given\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
 			message: "#^Trying to mock an undefined method closeCursor\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
 			count: 1
 			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
