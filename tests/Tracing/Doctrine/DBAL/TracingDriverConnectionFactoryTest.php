@@ -8,6 +8,7 @@ use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
+use Sentry\SentryBundle\Tests\Tracing\Doctrine\DBAL\Fixture\ServerInfoAwareConnectionStub;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnection;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactory;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingServerInfoAwareDriverConnection;

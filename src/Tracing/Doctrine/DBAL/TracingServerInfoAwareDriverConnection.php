@@ -117,6 +117,20 @@ final class TracingServerInfoAwareDriverConnection implements TracingDriverConne
 
     /**
      * {@inheritdoc}
+     *
+     * @return resource|object
+     */
+    public function getNativeConnection()
+    {
+        if (!method_exists($this->decoratedConnection, 'getNativeConnection')) {
+            throw new \BadMethodCallException(sprintf('The connection "%s" does not support accessing the native connection.', \get_class($this->decoratedConnection)));
+        }
+
+        return $this->decoratedConnection->getNativeConnection();
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function requiresQueryForServerVersion(): bool
     {
