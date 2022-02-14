@@ -61,10 +61,47 @@ final class TracingStatementForV3Test extends DoctrineTestCase
 
         $this->decoratedStatement->expects($this->once())
             ->method('bindParam')
-            ->with('foo', $variable, ParameterType::INTEGER)
+            ->with('foo', $variable, ParameterType::INTEGER, 10)
             ->willReturn(true);
 
+        $this->assertTrue($this->statement->bindParam('foo', $variable, ParameterType::INTEGER, 10));
+    }
+
+    public function testBindParamForwardsLengthParamOnlyWhenExplicitlySet(): void
+    {
+        $variable = 'bar';
+        $decoratedStatement = new class() implements Statement {
+            /**
+             * @var int
+             */
+            public $bindParamCallArgsCount = 0;
+
+            public function bindValue($param, $value, $type = ParameterType::STRING): bool
+            {
+                throw new \BadMethodCallException();
+            }
+
+            public function bindParam($param, &$variable, $type = ParameterType::STRING, $length = null): bool
+            {
+                // Since PHPUnit forcefully calls the mocked methods with all
+                // parameters, regardless of whether they were originally passed
+                // in an explicit manner, we can't use a mock to assert the number
+                // of args used in the call to the function
+                $this->bindParamCallArgsCount = \func_num_args();
+
+                return true;
+            }
+
+            public function execute($params = null): Result
+            {
+                throw new \BadMethodCallException();
+            }
+        };
+
+        $this->statement = new TracingStatementForV3($this->hub, $decoratedStatement, 'SELECT 1', ['db.system' => 'sqlite']);
+
         $this->assertTrue($this->statement->bindParam('foo', $variable, ParameterType::INTEGER));
+        $this->assertSame(3, $decoratedStatement->bindParamCallArgsCount);
     }
 
     public function testExecute(): void

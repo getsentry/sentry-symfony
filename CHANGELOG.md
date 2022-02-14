@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix deprecation notice thrown when instrumenting the `PDOStatement::bindParam()` method and passing `$length = null` (#586)
+
 ## 4.2.6 (2022-01-10)
 
 - Add support for `symfony/cache-contracts` package version `3.x` (#588)
