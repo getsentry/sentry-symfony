@@ -6,7 +6,7 @@ namespace Sentry\SentryBundle\Tests\Tracing\Doctrine\DBAL\Fixture;
 
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionInterface;
 
-interface NativeDriverConnectionInterface extends TracingDriverConnectionInterface
+interface NativeDriverConnectionInterfaceStub extends TracingDriverConnectionInterface
 {
     /**
      * @return object|resource

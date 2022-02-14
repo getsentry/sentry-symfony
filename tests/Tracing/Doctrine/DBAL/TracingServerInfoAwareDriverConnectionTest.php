@@ -10,7 +10,8 @@ use Doctrine\DBAL\Driver\Statement;
 use Doctrine\DBAL\ParameterType;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
-use Sentry\SentryBundle\Tests\Tracing\Doctrine\DBAL\Fixture\NativeDriverConnectionInterface;
+use Sentry\SentryBundle\Tests\Tracing\Doctrine\DBAL\Fixture\NativeDriverConnectionInterfaceStub;
+use Sentry\SentryBundle\Tests\Tracing\Doctrine\DBAL\Fixture\ServerInfoAwareConnectionStub;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionInterface;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingServerInfoAwareDriverConnection;
 
@@ -263,7 +264,7 @@ final class TracingServerInfoAwareDriverConnectionTest extends DoctrineTestCase
         $nativeConnection = new class() {
         };
 
-        $decoratedConnection = $this->createMock(NativeDriverConnectionInterface::class);
+        $decoratedConnection = $this->createMock(NativeDriverConnectionInterfaceStub::class);
         $decoratedConnection->expects($this->once())
             ->method('getNativeConnection')
             ->willReturn($nativeConnection);
@@ -276,11 +277,10 @@ final class TracingServerInfoAwareDriverConnectionTest extends DoctrineTestCase
     public function testGetNativeConnectionThrowsExceptionIfDecoratedConnectionDoesNotImplementMethod(): void
     {
         $decoratedConnection = $this->createMock(TracingDriverConnectionInterface::class);
-
         $connection = new TracingServerInfoAwareDriverConnection($decoratedConnection);
 
         $this->expectException(\BadMethodCallException::class);
-        $this->expectExceptionMessageMatches('~The connection .+? does not support accessing the native connection~');
+        $this->expectExceptionMessageMatches('/The connection ".*?" does not support accessing the native connection\./');
 
         $connection->getNativeConnection();
     }
