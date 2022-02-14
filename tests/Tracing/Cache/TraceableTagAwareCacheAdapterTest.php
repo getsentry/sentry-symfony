@@ -33,6 +33,7 @@ final class TraceableTagAwareCacheAdapterTest extends AbstractTraceableCacheAdap
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->invalidateTags(['foo']));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 

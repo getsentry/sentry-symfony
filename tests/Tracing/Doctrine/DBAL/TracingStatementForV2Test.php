@@ -162,6 +162,7 @@ final class TracingStatementForV2Test extends DoctrineTestCase
             ->willReturn(true);
 
         $this->assertTrue($this->statement->execute(['foo' => 'bar']));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 

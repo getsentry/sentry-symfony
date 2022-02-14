@@ -15,6 +15,8 @@ use Sentry\Tracing\SpanContext;
  * This implementation wraps a driver connection and adds distributed tracing
  * capabilities to Doctrine DBAL. This implementation IS and MUST be compatible
  * with all versions of Doctrine DBAL >= 2.10.
+ *
+ * @phpstan-import-type Params from \Doctrine\DBAL\DriverManager as ConnectionParams
  */
 final class TracingDriverConnection implements TracingDriverConnectionInterface
 {
@@ -70,6 +72,8 @@ final class TracingDriverConnection implements TracingDriverConnectionInterface
      * @param DriverConnectionInterface $decoratedConnection The connection to decorate
      * @param string                    $databasePlatform    The name of the database platform
      * @param array<string, mixed>      $params              The connection params
+     *
+     * @phpstan-param ConnectionParams $params
      */
     public function __construct(
         HubInterface $hub,
@@ -229,6 +233,8 @@ final class TracingDriverConnection implements TracingDriverConnectionInterface
      * @param array<string, mixed> $params           The connection params
      *
      * @return array<string, string>
+     *
+     * @phpstan-param ConnectionParams $params
      *
      * @see https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
      */

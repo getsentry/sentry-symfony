@@ -233,11 +233,13 @@ abstract class SentryExtensionTest extends TestCase
         $clientDefinition = $container->findDefinition(ClientInterface::class);
         $factory = $clientDefinition->getFactory();
 
+        $this->assertIsArray($factory);
         $this->assertInstanceOf(Definition::class, $factory[0]);
         $this->assertSame('getClient', $factory[1]);
 
         $methodCalls = $factory[0]->getMethodCalls();
 
+        $this->assertCount(6, $methodCalls);
         $this->assertDefinitionMethodCallAt($methodCalls[0], 'setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER]);
         $this->assertDefinitionMethodCallAt($methodCalls[1], 'setSdkVersion', [PrettyVersions::getVersion('sentry/sentry-symfony')->getPrettyVersion()]);
         $this->assertDefinitionMethodCallAt($methodCalls[2], 'setTransportFactory', [new Reference('App\\Sentry\\Transport\\TransportFactory')]);
@@ -261,6 +263,7 @@ abstract class SentryExtensionTest extends TestCase
         $transportFactoryDefinition = $container->findDefinition(TransportFactoryInterface::class);
         $logger = $transportFactoryDefinition->getArgument('$logger');
 
+        $this->assertInstanceOf(Reference::class, $logger);
         $this->assertSame('app.logger', $logger->__toString());
     }
 
@@ -395,6 +398,9 @@ abstract class SentryExtensionTest extends TestCase
         $container = $this->createContainerFromFixture('logger_service_not_set');
         $clientDefinition = $container->findDefinition(ClientInterface::class);
         $factory = $clientDefinition->getFactory();
+
+        $this->assertIsArray($factory);
+
         $methodCalls = $factory[0]->getMethodCalls();
 
         $this->assertDefinitionMethodCallAt($methodCalls[5], 'setLogger', [new Reference(NullLogger::class, ContainerBuilder::IGNORE_ON_INVALID_REFERENCE)]);

@@ -16,6 +16,9 @@ use Sentry\State\HubInterface;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
 
+/**
+ * @phpstan-import-type Params from \Doctrine\DBAL\DriverManager as ConnectionParams
+ */
 final class TracingDriverConnectionTest extends DoctrineTestCase
 {
     /**
@@ -52,6 +55,8 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
      *
      * @param array<string, mixed>  $params
      * @param array<string, string> $expectedTags
+     *
+     * @phpstan-param ConnectionParams $params
      */
     public function testPrepare(array $params, array $expectedTags): void
     {
@@ -73,6 +78,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->willReturn($statement);
 
         $this->assertEquals($resultStatement, $connection->prepare($sql));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -106,6 +112,8 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
      *
      * @param array<string, mixed>  $params
      * @param array<string, string> $expectedTags
+     *
+     * @phpstan-param ConnectionParams $params
      */
     public function testQuery(array $params, array $expectedTags): void
     {
@@ -126,6 +134,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->willReturn($result);
 
         $this->assertSame($result, $connection->query($sql));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -168,6 +177,8 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
      *
      * @param array<string, mixed>  $params
      * @param array<string, string> $expectedTags
+     *
+     * @phpstan-param ConnectionParams $params
      */
     public function testExec(array $params, array $expectedTags): void
     {
@@ -187,6 +198,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->willReturn(10);
 
         $this->assertSame(10, $connection->exec($sql));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -212,6 +224,8 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
      *
      * @param array<string, mixed>  $params
      * @param array<string, string> $expectedTags
+     *
+     * @phpstan-param ConnectionParams $params
      */
     public function testBeginTransaction(array $params, array $expectedTags): void
     {
@@ -228,6 +242,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->willReturn(false);
 
         $this->assertFalse($connection->beginTransaction());
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -256,6 +271,8 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
      *
      * @param array<string, mixed>  $params
      * @param array<string, string> $expectedTags
+     *
+     * @phpstan-param ConnectionParams $params
      */
     public function testCommit(array $params, array $expectedTags): void
     {
@@ -272,6 +289,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->willReturn(false);
 
         $this->assertFalse($connection->commit());
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -300,6 +318,8 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
      *
      * @param array<string, mixed>  $params
      * @param array<string, string> $expectedTags
+     *
+     * @phpstan-param ConnectionParams $params
      */
     public function testRollBack(array $params, array $expectedTags): void
     {
@@ -316,6 +336,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->willReturn(false);
 
         $this->assertFalse($connection->rollBack());
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 

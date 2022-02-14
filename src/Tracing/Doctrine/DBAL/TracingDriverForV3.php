@@ -17,6 +17,8 @@ use Doctrine\DBAL\VersionAwarePlatformDriver;
  * is compatible with all versions of Doctrine DBAL >= 3.0.
  *
  * @internal
+ *
+ * @phpstan-import-type Params from \Doctrine\DBAL\DriverManager as ConnectionParams
  */
 final class TracingDriverForV3 implements Driver, VersionAwarePlatformDriver
 {
@@ -44,6 +46,8 @@ final class TracingDriverForV3 implements Driver, VersionAwarePlatformDriver
 
     /**
      * {@inheritdoc}
+     *
+     * @phpstan-param ConnectionParams $params
      */
     public function connect(array $params): TracingDriverConnectionInterface
     {

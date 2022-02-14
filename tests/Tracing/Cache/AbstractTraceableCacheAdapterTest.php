@@ -58,6 +58,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertSame($cacheItem, $adapter->getItem('foo'));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -85,6 +86,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertSame($cacheItems, $adapter->getItems(['foo']));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -111,6 +113,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->clear('foo'));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -139,6 +142,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertSame('bar', $adapter->get('foo', $callback, 1.0, $metadata));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -175,6 +179,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->delete('foo'));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -211,6 +216,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->hasItem('foo'));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -237,6 +243,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->deleteItem('foo'));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -263,6 +270,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->deleteItems(['foo']));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -290,6 +298,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->save($cacheItem));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -317,6 +326,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->saveDeferred($cacheItem));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -342,6 +352,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->commit());
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -367,6 +378,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->prune());
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -387,6 +399,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($this->createMock(static::getAdapterClassFqcn()));
 
         $this->assertFalse($adapter->prune());
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 

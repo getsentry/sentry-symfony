@@ -72,6 +72,7 @@ final class MessengerListenerTest extends TestCase
 
         $sentryEvent = $scope->applyToEvent(Event::createEvent());
 
+        $this->assertNotNull($sentryEvent);
         $this->assertSame($expectedTags, $sentryEvent->getTags());
     }
 

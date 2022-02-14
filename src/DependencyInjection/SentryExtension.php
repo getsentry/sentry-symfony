@@ -58,7 +58,9 @@ final class SentryExtension extends ConfigurableExtension
     }
 
     /**
-     * @param mixed[] $mergedConfig
+     * {@inheritdoc}
+     *
+     * @param array<array-key, mixed> $mergedConfig
      */
     protected function loadInternal(array $mergedConfig, ContainerBuilder $container): void
     {
