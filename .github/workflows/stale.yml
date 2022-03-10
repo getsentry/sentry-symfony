@@ -1,7 +1,7 @@
 name: 'close stale issues/PRs'
 on:
   schedule:
-    - cron: '* */3 * * *'
+    - cron: '0 0 * * *'
   workflow_dispatch:
 jobs:
   stale:
@@ -18,7 +18,7 @@ jobs:
           debug-only: false
           ascending: false
 
-          exempt-issue-labels: "Status: Backlog,Status: In Progress, Status: Confirmed, Status: Blocked"
+          exempt-issue-labels: "Status: Backlog,Status: In Progress"
           stale-issue-label: "Status: Stale"
           stale-issue-message: |-
             This issue has gone three weeks without activity. In another week, I will close it.
