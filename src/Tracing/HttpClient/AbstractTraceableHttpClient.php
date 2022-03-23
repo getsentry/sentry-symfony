@@ -46,6 +46,10 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
         $span = null;
         $transaction = $this->hub->getTransaction();
         if (null !== $transaction) {
+            $headers = $options['headers'] ?? [];
+            $headers['sentry-trace'] = $transaction->toTraceparent();
+            $options['headers'] = $headers;
+
             $context = new SpanContext();
             $context->setOp($method . ' ' . $url);
             $span = $transaction->startChild($context);

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tracing\HttpClient;
 
-use Closure;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 use Symfony\Component\HttpClient\Exception\ClientException;
@@ -71,16 +70,12 @@ abstract class AbstractTraceableResponse implements ResponseInterface
 
     public function getStatusCode(): int
     {
-        return $this->traceFunction('status_code', function () {
-            return $this->response->getStatusCode();
-        });
+        return $this->response->getStatusCode();
     }
 
     public function getHeaders(bool $throw = true): array
     {
-        return $this->traceFunction('headers', function () use ($throw) {
-            return $this->response->getHeaders($throw);
-        });
+        return $this->response->getHeaders($throw);
     }
 
     public function getContent(bool $throw = true): string
@@ -194,32 +189,6 @@ abstract class AbstractTraceableResponse implements ResponseInterface
         if (null !== $this->span) {
             $this->span->finish();
             $this->span = null;
-        }
-    }
-
-    /**
-     * @phpstan-template TResult
-     *
-     * @phpstan-param Closure(): TResult $callback
-     *
-     * @phpstan-return TResult
-     */
-    private function traceFunction(string $spanOperation, Closure $callback)
-    {
-        $span = $this->span;
-        if (null !== $span) {
-            $spanContext = new SpanContext();
-            $spanContext->setOp($spanOperation);
-
-            $span = $span->startChild($spanContext);
-        }
-
-        try {
-            return $callback();
-        } finally {
-            if (null !== $span) {
-                $span->finish();
-            }
         }
     }
 }
