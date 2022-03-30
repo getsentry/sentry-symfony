@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle;
 
-use Doctrine\DBAL\Driver\Middleware as DoctrineMiddlewareInterface;
 use Doctrine\DBAL\Result;
 use Sentry\SentryBundle\EventListener\ErrorListenerExceptionEvent;
 use Sentry\SentryBundle\EventListener\RequestListenerControllerEvent;
@@ -18,7 +17,6 @@ use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapterForV3;
 use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapter;
 use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapterForV2;
 use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapterForV3;
-use Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility\MiddlewareInterface;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverForV2;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverForV3;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatementForV2;
@@ -105,10 +103,6 @@ if (interface_exists(AdapterInterface::class)) {
             class_alias(TraceableTagAwareCacheAdapterForV2::class, TraceableTagAwareCacheAdapter::class);
         }
     }
-}
-
-if (!interface_exists(DoctrineMiddlewareInterface::class)) {
-    class_alias(MiddlewareInterface::class, DoctrineMiddlewareInterface::class);
 }
 
 if (!class_exists('Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatement')) {

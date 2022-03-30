@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tracing\Doctrine\DBAL;
 
 use Doctrine\DBAL\Driver;
-use Doctrine\DBAL\Driver\Middleware;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\Compatibility\MiddlewareInterface;
 use Sentry\State\HubInterface;
 
 /**
@@ -14,7 +14,7 @@ use Sentry\State\HubInterface;
  *
  * @internal since version 4.2
  */
-final class TracingDriverMiddleware implements Middleware
+final class TracingDriverMiddleware implements MiddlewareInterface
 {
     /**
      * @var TracingDriverConnectionFactoryInterface
