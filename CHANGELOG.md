@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.2.8 (2022-03-31)
+
 - Fix compatibility issue with Doctrine Bundle `>= 2.6.0` (#608)
 
 ## 4.2.7 (2022-02-18)
