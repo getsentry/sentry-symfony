@@ -137,7 +137,11 @@ final class TracingStatementForV2Test extends DoctrineTestCase
         $this->statement = new TracingStatementForV2($this->hub, $decoratedStatement, 'SELECT 1', ['db.system' => 'sqlite']);
 
         $this->assertTrue($this->statement->bindParam('foo', $variable, ParameterType::INTEGER));
-        $this->assertSame(3, $decoratedStatement->bindParamCallArgsCount);
+        $this->assertSame(4, $decoratedStatement->bindParamCallArgsCount);
+        $this->assertSame(0, $decoratedStatement->bindParamLengthValue);
+
+        $this->assertTrue($this->statement->bindParam('foo', $variable, ParameterType::STRING, 3));
+        $this->assertSame(3, $decoratedStatement->bindParamLengthValue);
     }
 
     public function testErrorCode(): void
@@ -222,6 +226,7 @@ if (!interface_exists(Statement::class)) {
          * @var int
          */
         public $bindParamCallArgsCount = 0;
+        public $bindParamLengthValue = null;
 
         public function bindParam($param, &$variable, $type = ParameterType::STRING, $length = null): bool
         {
@@ -230,6 +235,7 @@ if (!interface_exists(Statement::class)) {
             // in an explicit manner, we can't use a mock to assert the number
             // of args used in the call to the function
             $this->bindParamCallArgsCount = \func_num_args();
+            $this->bindParamLengthValue = $length;
 
             return true;
         }
