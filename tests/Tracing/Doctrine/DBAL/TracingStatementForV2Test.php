@@ -215,6 +215,10 @@ final class TracingStatementForV2Test extends DoctrineTestCase
 if (!interface_exists(Statement::class)) {
     abstract class TracingStatementForV2Stub
     {
+        /**
+         * @var int|null
+         */
+        public $bindParamLengthValue;
     }
 } else {
     /**
@@ -226,7 +230,10 @@ if (!interface_exists(Statement::class)) {
          * @var int
          */
         public $bindParamCallArgsCount = 0;
-        public $bindParamLengthValue = null;
+        /**
+         * @var int|null
+         */
+        public $bindParamLengthValue;
 
         public function bindParam($param, &$variable, $type = ParameterType::STRING, $length = null): bool
         {
