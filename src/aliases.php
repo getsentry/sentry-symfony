@@ -63,7 +63,7 @@ if (!class_exists(TraceableResponse::class) && interface_exists(ResponseInterfac
     if (!interface_exists(StreamableInterface::class)) {
         class_alias(TraceableResponseForV4::class, TraceableResponse::class);
         class_alias(TraceableHttpClientForV5::class, TraceableHttpClient::class);
-    } elseif (\PHP_VERSION_ID >= 80000) {
+    } elseif (version_compare(\PHP_VERSION, '8.0', '>=')) {
         class_alias(TraceableResponseForV6::class, TraceableResponse::class);
         class_alias(TraceableHttpClientForV6::class, TraceableHttpClient::class);
     } else {

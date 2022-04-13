@@ -52,7 +52,7 @@ final class TraceableHttpClientTest extends TestCase
         $transaction->initSpanRecorder();
 
         $this->hub->expects($this->once())
-            ->method('getTransaction')
+            ->method('getSpan')
             ->willReturn($transaction);
 
         $response = $this->createMock(ResponseInterface::class);
@@ -73,14 +73,22 @@ final class TraceableHttpClientTest extends TestCase
 
         $this->assertCount(2, $spans);
         $this->assertNull($spans[1]->getEndTimestamp());
-        $this->assertSame('POST http://www.example.org/test-page', $spans[1]->getOp());
+        $this->assertSame('http.request', $spans[1]->getOp());
+        $this->assertSame([
+            'method' => 'POST',
+            'url' => 'http://www.example.org/test-page',
+        ], $spans[1]->getTags());
 
         $response->getContent(false);
 
         $spans = $transaction->getSpanRecorder()->getSpans();
         $this->assertCount(2, $spans);
         $this->assertNotNull($spans[1]->getEndTimestamp());
-        $this->assertSame('POST http://www.example.org/test-page', $spans[1]->getOp());
+        $this->assertSame('http.request', $spans[1]->getOp());
+        $this->assertSame([
+            'method' => 'POST',
+            'url' => 'http://www.example.org/test-page',
+        ], $spans[1]->getTags());
     }
 
     private static function isHttpClientPackageInstalled(): bool

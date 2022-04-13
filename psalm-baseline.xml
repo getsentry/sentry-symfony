@@ -50,6 +50,16 @@
       <code>$params</code>
     </MoreSpecificImplementedParamType>
   </file>
+  <file src="src/Tracing/HttpClient/TraceableResponseForV5.php">
+    <UndefinedInterfaceMethod occurrences="1">
+      <code>toStream</code>
+    </UndefinedInterfaceMethod>
+  </file>
+  <file src="src/Tracing/HttpClient/TraceableResponseForV6.php">
+    <UndefinedInterfaceMethod occurrences="1">
+      <code>toStream</code>
+    </UndefinedInterfaceMethod>
+  </file>
   <file src="src/aliases.php">
     <MissingDependency occurrences="1">
       <code>TracingDriverForV2</code>

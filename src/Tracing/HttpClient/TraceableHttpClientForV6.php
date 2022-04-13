@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tracing\HttpClient;
 
-class TraceableHttpClientForV6 extends AbstractTraceableHttpClient
+final class TraceableHttpClientForV6 extends AbstractTraceableHttpClient
 {
     /**
      * {@inheritdoc}

@@ -7,11 +7,10 @@ namespace Sentry\SentryBundle\Tracing\HttpClient;
 /**
  * @internal
  */
-class TraceableResponseForV4 extends AbstractTraceableResponse
+final class TraceableResponseForV4 extends AbstractTraceableResponse
 {
     /**
-     * @return mixed An array of all available info, or one of them when $type is
-     *               provided, or null when an unsupported type is requested
+     * {@inheritdoc}
      */
     public function getInfo(string $type = null)
     {

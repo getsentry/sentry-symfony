@@ -25,9 +25,9 @@ final class HttpClientTracingPass implements CompilerPassInterface
         }
 
         foreach ($container->findTaggedServiceIds('http_client.client') as $id => $tags) {
-            $container->register('.sentry.' . $id, TraceableHttpClient::class)
+            $container->register('.sentry.traceable.' . $id, TraceableHttpClient::class)
                 ->setArguments([
-                    new Reference('.sentry.' . $id . '.inner'),
+                    new Reference('.sentry.traceable.' . $id . '.inner'),
                     new Reference(HubInterface::class),
                 ])
                 ->addTag('kernel.reset', ['method' => 'reset'])

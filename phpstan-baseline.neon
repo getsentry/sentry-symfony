@@ -430,3 +430,12 @@ parameters:
 			count: 1
 			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
 
+		-
+			message: "#^Call to an undefined method Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface::toStream\\(\\)\\.$#"
+			count: 1
+			path: src/Tracing/HttpClient/TraceableResponseForV5.php
+
+		-
+			message: "#^Call to an undefined method Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface::toStream\\(\\)\\.$#"
+			count: 1
+			path: src/Tracing/HttpClient/TraceableResponseForV6.php

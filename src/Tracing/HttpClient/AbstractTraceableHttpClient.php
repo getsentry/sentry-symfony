@@ -44,15 +44,20 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
     public function request(string $method, string $url, array $options = []): ResponseInterface
     {
         $span = null;
-        $transaction = $this->hub->getTransaction();
-        if (null !== $transaction) {
+        $parent = $this->hub->getSpan();
+        if (null !== $parent) {
             $headers = $options['headers'] ?? [];
-            $headers['sentry-trace'] = $transaction->toTraceparent();
+            $headers['sentry-trace'] = $parent->toTraceparent();
             $options['headers'] = $headers;
 
             $context = new SpanContext();
-            $context->setOp($method . ' ' . $url);
-            $span = $transaction->startChild($context);
+            $context->setOp('http.request');
+            $context->setTags([
+                'method' => $method,
+                'url' => $url,
+            ]);
+
+            $span = $parent->startChild($context);
         }
 
         return new TraceableResponse($this->client, $this->client->request($method, $url, $options), $span);

@@ -5,18 +5,11 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tracing\HttpClient;
 
 use Sentry\Tracing\Span;
-use Sentry\Tracing\SpanContext;
 use Symfony\Component\HttpClient\Exception\ClientException;
 use Symfony\Component\HttpClient\Exception\RedirectionException;
 use Symfony\Component\HttpClient\Exception\ServerException;
-use Symfony\Component\HttpClient\Response\StreamableInterface;
-use Symfony\Component\HttpClient\Response\StreamWrapper;
 use Symfony\Component\HttpClient\TraceableHttpClient;
 use Symfony\Contracts\HttpClient\ChunkInterface;
-use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
@@ -33,7 +26,7 @@ abstract class AbstractTraceableResponse implements ResponseInterface
     /**
      * @var HttpClientInterface
      */
-    private $client;
+    protected $client;
 
     /**
      * @var Span|null
@@ -111,30 +104,6 @@ abstract class AbstractTraceableResponse implements ResponseInterface
     }
 
     /**
-     * Casts the response to a PHP stream resource.
-     *
-     * @return resource
-     *
-     * @throws TransportExceptionInterface   When a network error occurs
-     * @throws RedirectionExceptionInterface On a 3xx when $throw is true and the "max_redirects" option has been reached
-     * @throws ClientExceptionInterface      On a 4xx when $throw is true
-     * @throws ServerExceptionInterface      On a 5xx when $throw is true
-     */
-    public function toStream(bool $throw = true)
-    {
-        if ($throw) {
-            // Ensure headers arrived
-            $this->response->getHeaders(true);
-        }
-
-        if ($this->response instanceof StreamableInterface) {
-            return $this->response->toStream(false);
-        }
-
-        return StreamWrapper::createResource($this->response, $this->client);
-    }
-
-    /**
      * @internal
      *
      * @return \Generator<AbstractTraceableResponse, ChunkInterface>
@@ -152,16 +121,10 @@ abstract class AbstractTraceableResponse implements ResponseInterface
 
             $traceableMap[$r->response] = $r;
             $wrappedResponses[] = $r->response;
-            if ($r->span) {
-                $spanContext = new SpanContext();
-                $spanContext->setOp('stream');
-
-                $r->span = $r->span->startChild($spanContext);
-            }
         }
 
         foreach ($client->stream($wrappedResponses, $timeout) as $r => $chunk) {
-            if ($traceableMap[$r]->span) {
+            if (null !== $traceableMap[$r]->span) {
                 $traceableMap[$r]->span->finish();
             }
 
