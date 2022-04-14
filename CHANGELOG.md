@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add support for tracing of http client requests (#606)
+
 ## 4.3.0 (2022-05-30)
 - Fix compatibility issue with Symfony >= 6.1.0 (#635)
 - Add `TracingDriverConnectionInterface::getNativeConnection()` method to get the original driver connection (#597)
