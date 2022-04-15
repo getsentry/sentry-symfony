@@ -161,4 +161,12 @@ final class TracingServerInfoAwareDriverConnection implements TracingDriverConne
     {
         return $this->decoratedConnection->getWrappedConnection();
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getNativeConnection()
+    {
+        return $this->decoratedConnection->getNativeConnection();
+    }
 }
