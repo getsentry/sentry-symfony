@@ -78,8 +78,8 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertNull($spans[1]->getEndTimestamp());
         $this->assertSame('http.request', $spans[1]->getOp());
         $this->assertSame([
-            'method' => 'POST',
-            'url' => 'http://www.example.org/test-page',
+            'http.method' => 'POST',
+            'http.url' => 'http://www.example.org/test-page',
         ], $spans[1]->getTags());
 
         $response->getContent(false);
@@ -89,8 +89,8 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertNotNull($spans[1]->getEndTimestamp());
         $this->assertSame('http.request', $spans[1]->getOp());
         $this->assertSame([
-            'method' => 'POST',
-            'url' => 'http://www.example.org/test-page',
+            'http.method' => 'POST',
+            'http.url' => 'http://www.example.org/test-page',
         ], $spans[1]->getTags());
     }
 
