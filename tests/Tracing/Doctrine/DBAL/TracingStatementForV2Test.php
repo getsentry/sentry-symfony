@@ -123,7 +123,7 @@ final class TracingStatementForV2Test extends DoctrineTestCase
      * @param mixed[] $callArgs
      * @param mixed[] $expectedCallArgs
      */
-    public function testBindParam(array $callArgs, int $expectedLengthArg, array $expectedCallArgs): void
+    public function testBindParam(array $callArgs, array $expectedCallArgs): void
     {
         $variable = 'bar';
         $decoratedStatement = $this->createPartialMock(TracingStatementForV2Stub::class, array_diff(get_class_methods(TracingStatementForV2Stub::class), ['bindParam']));
@@ -132,7 +132,6 @@ final class TracingStatementForV2Test extends DoctrineTestCase
 
         $this->assertTrue($this->statement->bindParam('foo', $variable, ParameterType::INTEGER, ...$callArgs));
         $this->assertSame($expectedCallArgs, $decoratedStatement->bindParamCallArgs);
-        $this->assertSame($expectedLengthArg, $decoratedStatement->bindParamLengthValue);
     }
 
     /**
@@ -142,19 +141,16 @@ final class TracingStatementForV2Test extends DoctrineTestCase
     {
         yield '$length parameter not passed at all' => [
             [],
-            0,
             ['foo', 'bar', 1, 0],
         ];
 
         yield '$length parameter passed as `null`' => [
             [null],
-            0,
             ['foo', 'bar', 1, 0],
         ];
 
         yield 'additional parameters passed' => [
             [null, 'baz'],
-            0,
             ['foo', 'bar', 1, 0, 'baz'],
         ];
     }
@@ -234,11 +230,6 @@ if (!interface_exists(Statement::class)) {
          * @var mixed[]
          */
         public $bindParamCallArgs = [];
-
-        /**
-         * @var int|null
-         */
-        public $bindParamLengthValue;
     }
 } else {
     /**
@@ -251,11 +242,6 @@ if (!interface_exists(Statement::class)) {
          */
         public $bindParamCallArgs = [];
 
-        /**
-         * @var int|null
-         */
-        public $bindParamLengthValue;
-
         public function bindParam($param, &$variable, $type = ParameterType::STRING, $length = null): bool
         {
             // Since PHPUnit forcefully calls the mocked methods with all
@@ -263,7 +249,6 @@ if (!interface_exists(Statement::class)) {
             // in an explicit manner, we can't use a mock to assert the number
             // of args used in the call to the function
             $this->bindParamCallArgs = \func_get_args();
-            $this->bindParamLengthValue = $length;
 
             return true;
         }
