@@ -119,6 +119,9 @@ final class TracingStatementForV2Test extends DoctrineTestCase
 
     /**
      * @dataProvider bindParamDataProvider
+     *
+     * @param mixed[] $callArgs
+     * @param mixed[] $expectedCallArgs
      */
     public function testBindParam(array $callArgs, int $expectedLengthArg, array $expectedCallArgs): void
     {
@@ -227,6 +230,11 @@ final class TracingStatementForV2Test extends DoctrineTestCase
 if (!interface_exists(Statement::class)) {
     abstract class TracingStatementForV2Stub
     {
+        /**
+         * @var mixed[]
+         */
+        public $bindParamCallArgs = [];
+
         /**
          * @var int|null
          */
