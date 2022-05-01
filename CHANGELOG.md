@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix deprecation notice thrown when instrumenting the `PDOStatement::bindParam()` method and passing `$length = null` on DBAL `2.x` (#613)
+
 ## 4.2.8 (2022-03-31)
 
 - Fix compatibility issue with Doctrine Bundle `>= 2.6.0` (#608)

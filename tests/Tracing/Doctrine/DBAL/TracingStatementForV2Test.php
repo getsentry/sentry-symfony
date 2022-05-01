@@ -117,31 +117,43 @@ final class TracingStatementForV2Test extends DoctrineTestCase
         $this->assertTrue($this->statement->bindValue('foo', 'bar', ParameterType::INTEGER));
     }
 
-    public function testBindParam(): void
-    {
-        $variable = 'bar';
-
-        $this->decoratedStatement->expects($this->once())
-            ->method('bindParam')
-            ->with('foo', $variable, ParameterType::INTEGER, 10)
-            ->willReturn(true);
-
-        $this->assertTrue($this->statement->bindParam('foo', $variable, ParameterType::INTEGER, 10));
-    }
-
-    public function testBindParamForwardsLengthParamOnlyWhenExplicitlySet(): void
+    /**
+     * @dataProvider bindParamDataProvider
+     */
+    public function testBindParam(array $callArgs, int $expectedLengthArg, array $expectedCallArgs): void
     {
         $variable = 'bar';
         $decoratedStatement = $this->createPartialMock(TracingStatementForV2Stub::class, array_diff(get_class_methods(TracingStatementForV2Stub::class), ['bindParam']));
 
         $this->statement = new TracingStatementForV2($this->hub, $decoratedStatement, 'SELECT 1', ['db.system' => 'sqlite']);
 
-        $this->assertTrue($this->statement->bindParam('foo', $variable, ParameterType::INTEGER));
-        $this->assertSame(4, $decoratedStatement->bindParamCallArgsCount);
-        $this->assertSame(0, $decoratedStatement->bindParamLengthValue);
+        $this->assertTrue($this->statement->bindParam('foo', $variable, ParameterType::INTEGER, ...$callArgs));
+        $this->assertSame($expectedCallArgs, $decoratedStatement->bindParamCallArgs);
+        $this->assertSame($expectedLengthArg, $decoratedStatement->bindParamLengthValue);
+    }
 
-        $this->assertTrue($this->statement->bindParam('foo', $variable, ParameterType::STRING, 3));
-        $this->assertSame(3, $decoratedStatement->bindParamLengthValue);
+    /**
+     * @return \Generator<mixed>
+     */
+    public function bindParamDataProvider(): \Generator
+    {
+        yield '$length parameter not passed at all' => [
+            [],
+            0,
+            ['foo', 'bar', 1, 0],
+        ];
+
+        yield '$length parameter passed as `null`' => [
+            [null],
+            0,
+            ['foo', 'bar', 1, 0],
+        ];
+
+        yield 'additional parameters passed' => [
+            [null, 'baz'],
+            0,
+            ['foo', 'bar', 1, 0, 'baz'],
+        ];
     }
 
     public function testErrorCode(): void
@@ -227,9 +239,10 @@ if (!interface_exists(Statement::class)) {
     abstract class TracingStatementForV2Stub implements \IteratorAggregate, Statement
     {
         /**
-         * @var int
+         * @var mixed[]
          */
-        public $bindParamCallArgsCount = 0;
+        public $bindParamCallArgs = [];
+
         /**
          * @var int|null
          */
@@ -241,7 +254,7 @@ if (!interface_exists(Statement::class)) {
             // parameters, regardless of whether they were originally passed
             // in an explicit manner, we can't use a mock to assert the number
             // of args used in the call to the function
-            $this->bindParamCallArgsCount = \func_num_args();
+            $this->bindParamCallArgs = \func_get_args();
             $this->bindParamLengthValue = $length;
 
             return true;
