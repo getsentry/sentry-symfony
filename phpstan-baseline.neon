@@ -441,12 +441,12 @@ parameters:
 			path: tests/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnectionTest.php
 
 		-
-			message: "#^Access to an undefined property PHPUnit\\\\Framework\\\\MockObject\\\\MockObject&Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatementForV2Stub\\:\\:\\$bindParamCallArgsCount\\.$#"
+			message: "#^Parameter \\#2 \\$decoratedStatement of class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatementForV2 constructor expects Doctrine\\\\DBAL\\\\Driver\\\\Statement, PHPUnit\\\\Framework\\\\MockObject\\\\MockObject&Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatementForV2Stub given\\.$#"
 			count: 1
 			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
 
 		-
-			message: "#^Parameter \\#2 \\$decoratedStatement of class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatementForV2 constructor expects Doctrine\\\\DBAL\\\\Driver\\\\Statement, PHPUnit\\\\Framework\\\\MockObject\\\\MockObject&Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatementForV2Stub given\\.$#"
+			message: "#^Parameter \\#4 \\$length of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatementForV2\\:\\:bindParam\\(\\) expects int\\|null, mixed given\\.$#"
 			count: 1
 			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
 
