@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.2.9 (2022-05-03)
+
 - Fix deprecation notice thrown when instrumenting the `PDOStatement::bindParam()` method and passing `$length = null` on DBAL `2.x` (#613)
 
 ## 4.2.8 (2022-03-31)
