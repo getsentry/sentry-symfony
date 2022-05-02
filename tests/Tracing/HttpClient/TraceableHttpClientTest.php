@@ -76,7 +76,7 @@ final class TraceableHttpClientTest extends TestCase
 
         $this->assertCount(2, $spans);
         $this->assertNull($spans[1]->getEndTimestamp());
-        $this->assertSame('http.request', $spans[1]->getOp());
+        $this->assertSame('http.client', $spans[1]->getOp());
         $this->assertSame([
             'http.method' => 'POST',
             'http.url' => 'http://www.example.org/test-page',
@@ -87,7 +87,7 @@ final class TraceableHttpClientTest extends TestCase
         $spans = $transaction->getSpanRecorder()->getSpans();
         $this->assertCount(2, $spans);
         $this->assertNotNull($spans[1]->getEndTimestamp());
-        $this->assertSame('http.request', $spans[1]->getOp());
+        $this->assertSame('http.client', $spans[1]->getOp());
         $this->assertSame([
             'http.method' => 'POST',
             'http.url' => 'http://www.example.org/test-page',
