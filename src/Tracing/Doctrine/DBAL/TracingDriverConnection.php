@@ -87,6 +87,16 @@ final class TracingDriverConnection implements TracingDriverConnectionInterface
     }
 
     /**
+     * Returns a PDO native connection
+     *
+     * @return resource|object
+     */
+    public function getNativeConnection()
+    {
+        return $this->decoratedConnection->getNativeConnection();
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function prepare($sql): Statement
