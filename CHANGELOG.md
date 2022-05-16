@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix compatibility issue with Twig >= 3.4.0 (#628)
+
 ## 4.2.9 (2022-05-03)
 
 - Fix deprecation notice thrown when instrumenting the `PDOStatement::bindParam()` method and passing `$length = null` on DBAL `2.x` (#613)
