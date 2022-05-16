@@ -36,7 +36,7 @@ final class SentryExtension extends AbstractExtension
     /**
      * Returns an HTML meta tag named `sentry-trace`.
      */
-    private function getTraceMeta(): string
+    public function getTraceMeta(): string
     {
         $span = $this->hub->getSpan();
 
