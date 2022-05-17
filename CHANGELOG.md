@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 4.2.10 (2022-05-17)
+
 - Fix compatibility issue with Twig >= 3.4.0 (#628)
 
 ## 4.2.9 (2022-05-03)
