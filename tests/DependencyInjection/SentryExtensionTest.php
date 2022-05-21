@@ -219,14 +219,14 @@ abstract class SentryExtensionTest extends TestCase
             'send_default_pii' => true,
             'max_value_length' => 255,
             'http_proxy' => 'proxy.example.com:8080',
+            'http_timeout' => 10,
+            'http_connect_timeout' => 15,
             'capture_silenced_errors' => true,
             'max_request_body_size' => 'none',
             'class_serializers' => [
                 'App\\FooClass' => new Reference('App\\Sentry\\Serializer\\FooClassSerializer'),
             ],
             'dsn' => 'https://examplePublicKey@o0.ingest.sentry.io/0',
-            'http_timeout' => 10,
-            'http_connect_timeout' => 15,
         ];
 
         $this->assertSame(Options::class, $optionsDefinition->getClass());

@@ -30,10 +30,10 @@
                         send-default-pii="true"
                         max-value-length="255"
                         http-proxy="proxy.example.com:8080"
-                        capture-silenced-errors="true"
-                        max-request-body-size="none"
                         http-timeout="10"
                         http-connect-timeout="15"
+                        capture-silenced-errors="true"
+                        max-request-body-size="none"
         >
             <sentry:integration>App\Sentry\Integration\FooIntegration</sentry:integration>
             <sentry:prefix>%kernel.project_dir%</sentry:prefix>
