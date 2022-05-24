@@ -108,7 +108,7 @@ final class TracingStatementForV2 extends AbstractTracingStatement implements \I
      */
     public function bindParam($param, &$variable, $type = ParameterType::STRING, $length = null): bool
     {
-        return $this->decoratedStatement->bindParam($param, $variable, $type, $length);
+        return $this->decoratedStatement->bindParam($param, $variable, $type, $length ?? 0, ...\array_slice(\func_get_args(), 4));
     }
 
     /**

@@ -50,6 +50,7 @@ abstract class AbstractConsoleListenerTest extends TestCase
 
         $event = $scope->applyToEvent(Event::createEvent());
 
+        $this->assertNotNull($event);
         $this->assertSame($expectedTags, $event->getTags());
         $this->assertSame($expectedExtra, $event->getExtra());
     }
@@ -119,6 +120,7 @@ abstract class AbstractConsoleListenerTest extends TestCase
 
         $event = $scope->applyToEvent(Event::createEvent());
 
+        $this->assertNotNull($event);
         $this->assertSame(['console.command.exit_code' => '1'], $event->getTags());
     }
 

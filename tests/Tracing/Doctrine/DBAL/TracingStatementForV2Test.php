@@ -117,16 +117,42 @@ final class TracingStatementForV2Test extends DoctrineTestCase
         $this->assertTrue($this->statement->bindValue('foo', 'bar', ParameterType::INTEGER));
     }
 
-    public function testBindParam(): void
+    /**
+     * @dataProvider bindParamDataProvider
+     *
+     * @param mixed[] $callArgs
+     * @param mixed[] $expectedCallArgs
+     */
+    public function testBindParam(array $callArgs, array $expectedCallArgs): void
     {
         $variable = 'bar';
+        $decoratedStatement = $this->createPartialMock(TracingStatementForV2Stub::class, array_diff(get_class_methods(TracingStatementForV2Stub::class), ['bindParam']));
 
-        $this->decoratedStatement->expects($this->once())
-            ->method('bindParam')
-            ->with('foo', $variable, ParameterType::INTEGER)
-            ->willReturn(true);
+        $this->statement = new TracingStatementForV2($this->hub, $decoratedStatement, 'SELECT 1', ['db.system' => 'sqlite']);
 
-        $this->assertTrue($this->statement->bindParam('foo', $variable, ParameterType::INTEGER));
+        $this->assertTrue($this->statement->bindParam('foo', $variable, ParameterType::INTEGER, ...$callArgs));
+        $this->assertSame($expectedCallArgs, $decoratedStatement->bindParamCallArgs);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function bindParamDataProvider(): \Generator
+    {
+        yield '$length parameter not passed at all' => [
+            [],
+            ['foo', 'bar', 1, 0],
+        ];
+
+        yield '$length parameter passed as `null`' => [
+            [null],
+            ['foo', 'bar', 1, 0],
+        ];
+
+        yield 'additional parameters passed' => [
+            [null, 'baz'],
+            ['foo', 'bar', 1, 0, 'baz'],
+        ];
     }
 
     public function testErrorCode(): void
@@ -162,6 +188,7 @@ final class TracingStatementForV2Test extends DoctrineTestCase
             ->willReturn(true);
 
         $this->assertTrue($this->statement->execute(['foo' => 'bar']));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -193,5 +220,37 @@ final class TracingStatementForV2Test extends DoctrineTestCase
             ->willReturn(10);
 
         $this->assertSame(10, $this->statement->rowCount());
+    }
+}
+
+if (!interface_exists(Statement::class)) {
+    abstract class TracingStatementForV2Stub
+    {
+        /**
+         * @var mixed[]
+         */
+        public $bindParamCallArgs = [];
+    }
+} else {
+    /**
+     * @phpstan-implements \IteratorAggregate<mixed, mixed>
+     */
+    abstract class TracingStatementForV2Stub implements \IteratorAggregate, Statement
+    {
+        /**
+         * @var mixed[]
+         */
+        public $bindParamCallArgs = [];
+
+        public function bindParam($param, &$variable, $type = ParameterType::STRING, $length = null): bool
+        {
+            // Since PHPUnit forcefully calls the mocked methods with all
+            // parameters, regardless of whether they were originally passed
+            // in an explicit manner, we can't use a mock to assert the number
+            // of args used in the call to the function
+            $this->bindParamCallArgs = \func_get_args();
+
+            return true;
+        }
     }
 }

@@ -1,6 +1,9 @@
 <?php
 
-return PhpCsFixer\Config::create()
+declare(strict_types=1);
+
+return (new PhpCsFixer\Config())
+    ->setRiskyAllowed(true)
     ->setRules([
         '@PSR2' => true,
         '@Symfony' => true,
@@ -11,8 +14,6 @@ return PhpCsFixer\Config::create()
             'imports_order' => ['class', 'function', 'const'],
         ],
         'declare_strict_types' => true,
-        'psr0' => true,
-        'psr4' => true,
         'random_api_migration' => true,
         'yoda_style' => true,
         'self_accessor' => false,
@@ -27,7 +28,6 @@ return PhpCsFixer\Config::create()
             'property' => 'multi',
         ],
     ])
-    ->setRiskyAllowed(true)
     ->setFinder(
         PhpCsFixer\Finder::create()
             ->in(__DIR__)

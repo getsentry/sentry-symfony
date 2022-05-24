@@ -89,14 +89,14 @@ final class RequestListener
             return;
         }
 
-        $request = $event->getRequest();
+        $route = $event->getRequest()->attributes->get('_route');
 
-        if (!$request->attributes->has('_route')) {
+        if (!\is_string($route)) {
             return;
         }
 
-        $this->hub->configureScope(static function (Scope $scope) use ($request): void {
-            $scope->setTag('route', (string) $request->attributes->get('_route'));
+        $this->hub->configureScope(static function (Scope $scope) use ($route): void {
+            $scope->setTag('route', $route);
         });
     }
 

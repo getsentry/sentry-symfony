@@ -4,6 +4,22 @@
 
 - Add `TracingDriverConnectionInterface::getNativeConnection()` method to get the original driver connection (#597)
 
+## 4.2.10 (2022-05-17)
+
+- Fix compatibility issue with Twig >= 3.4.0 (#628)
+
+## 4.2.9 (2022-05-03)
+
+- Fix deprecation notice thrown when instrumenting the `PDOStatement::bindParam()` method and passing `$length = null` on DBAL `2.x` (#613)
+
+## 4.2.8 (2022-03-31)
+
+- Fix compatibility issue with Doctrine Bundle `>= 2.6.0` (#608)
+
+## 4.2.7 (2022-02-18)
+
+- Fix deprecation notice thrown when instrumenting the `PDOStatement::bindParam()` method and passing `$length = null` (#586)
+
 ## 4.2.6 (2022-01-10)
 
 - Add support for `symfony/cache-contracts` package version `3.x` (#588)
