@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\End2End;
 
 use Sentry\SentryBundle\Tests\End2End\App\Kernel;
+use Sentry\SentrySdk;
 use Sentry\State\HubInterface;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
@@ -162,6 +163,11 @@ class End2EndTest extends WebTestCase
     public function testNotice(): void
     {
         $client = static::createClient();
+
+        /** @var HubInterface $hub */
+        $hub = $client->getContainer()->get('test.hub');
+        $hub->getClient()->getOptions()->setCaptureSilencedErrors(true);
+
         $client->request('GET', '/notice');
 
         $response = $client->getResponse();
