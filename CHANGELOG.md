@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fix compatibility issue with Symfony >= 6.1.0 (#635)
 
 ## 4.2.10 (2022-05-17)
 

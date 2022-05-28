@@ -115,8 +115,11 @@ class SentryTestCommandTest extends BaseTestCase
 
     private function executeCommand(): CommandTester
     {
+        $command = new SentryTestCommand();
+        $command->setName('sentry:test');
+
         $application = new Application();
-        $application->add(new SentryTestCommand());
+        $application->add($command);
 
         $command = $application->find('sentry:test');
         $commandTester = new CommandTester($command);
