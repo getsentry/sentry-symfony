@@ -88,7 +88,7 @@
         </service>
 
         <service id="Sentry\SentryBundle\Command\SentryTestCommand" class="Sentry\SentryBundle\Command\SentryTestCommand">
-            <tag name="console.command" />
+            <tag name="console.command" command="sentry:test" />
         </service>
 
         <service id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryInterface" alias="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactory" />
