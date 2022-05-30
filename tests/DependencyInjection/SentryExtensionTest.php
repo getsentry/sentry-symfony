@@ -219,6 +219,8 @@ abstract class SentryExtensionTest extends TestCase
             'send_default_pii' => true,
             'max_value_length' => 255,
             'http_proxy' => 'proxy.example.com:8080',
+            'http_timeout' => 10,
+            'http_connect_timeout' => 15,
             'capture_silenced_errors' => true,
             'max_request_body_size' => 'none',
             'class_serializers' => [
