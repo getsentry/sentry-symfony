@@ -2,7 +2,7 @@ sentry:
   tracing:
     enabled: true
   options:
-    capture_silenced_errors: true
+    capture_silenced_errors: false
     error_types: E_ALL & ~E_USER_DEPRECATED
     traces_sample_rate: 0
 

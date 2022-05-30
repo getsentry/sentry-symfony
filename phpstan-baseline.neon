@@ -436,7 +436,7 @@ parameters:
 			path: tests/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnectionTest.php
 
 		-
-			message: "#^Trying to mock an undefined method requiresQueryForServerVersion\\(\\) on class Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\ServerInfoAwareConnectionStub\\.$#"
+			message: "#^Trying to mock an undefined method requiresQueryForServerVersion\\(\\) on class Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\Fixture\\\\ServerInfoAwareConnectionStub\\.$#"
 			count: 1
 			path: tests/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnectionTest.php
 
