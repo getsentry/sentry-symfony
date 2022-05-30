@@ -162,6 +162,15 @@ class End2EndTest extends WebTestCase
     public function testNotice(): void
     {
         $client = static::createClient();
+
+        /** @var HubInterface $hub */
+        $hub = $client->getContainer()->get('test.hub');
+        $sentryClient = $hub->getClient();
+
+        $this->assertNotNull($sentryClient);
+
+        $sentryClient->getOptions()->setCaptureSilencedErrors(true);
+
         $client->request('GET', '/notice');
 
         $response = $client->getResponse();

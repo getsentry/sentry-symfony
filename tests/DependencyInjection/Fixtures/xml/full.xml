@@ -30,6 +30,8 @@
                         send-default-pii="true"
                         max-value-length="255"
                         http-proxy="proxy.example.com:8080"
+                        http-timeout="10"
+                        http-connect-timeout="15"
                         capture-silenced-errors="true"
                         max-request-body-size="none"
         >
