@@ -12,6 +12,8 @@ use Sentry\Tracing\TransactionContext;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleTerminateEvent;
+use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\Console\Input\InputOption;
 
 /**
  * This listener either starts a {@see Transaction} or a child {@see Span} when
@@ -30,15 +32,22 @@ final class TracingConsoleListener
     private $excludedCommands;
 
     /**
+     * @var string|null The name of the InputOption to add for trace propagation from console commands
+     */
+    private $tracePropogationOptionName;
+
+    /**
      * Constructor.
      *
-     * @param HubInterface $hub              The current hub
-     * @param string[]     $excludedCommands The list of commands for which distributed tracing must be skipped
+     * @param HubInterface $hub                        The current hub
+     * @param string[]     $excludedCommands           The list of commands for which distributed tracing must be skipped
+     * @param string|null       $tracePropogationOptionName The name of the InputOption to add for trace propagation from console commands
      */
-    public function __construct(HubInterface $hub, array $excludedCommands = [])
+    public function __construct(HubInterface $hub, array $excludedCommands = [], ?string $tracePropogationOptionName = null)
     {
         $this->hub = $hub;
         $this->excludedCommands = $excludedCommands;
+        $this->tracePropogationOptionName = $tracePropogationOptionName;
     }
 
     /**
@@ -55,10 +64,12 @@ final class TracingConsoleListener
             return;
         }
 
+        $sentryTrace = $this->getTracePropogationInformationIfExists($event);
+
         $currentSpan = $this->hub->getSpan();
 
         if (null === $currentSpan) {
-            $transactionContext = new TransactionContext();
+            $transactionContext = TransactionContext::fromSentryTrace($sentryTrace ?? '');
             $transactionContext->setOp('console.command');
             $transactionContext->setName($this->getSpanName($command));
 
@@ -109,5 +120,41 @@ final class TracingConsoleListener
         }
 
         return \in_array($command->getName(), $this->excludedCommands, true);
+    }
+
+    private function getTracePropogationInformationIfExists(ConsoleCommandEvent $event): ?string
+    {
+        if ($this->tracePropogationOptionName === null) {
+            return null;
+        }
+
+        $command = $event->getCommand();
+        if ($command === null) {
+            return null;
+        }
+        $application = $command->getApplication();
+        if ($application === null) {
+            return null;
+        }
+        $definition = $application->getDefinition();
+
+        $definition->addOption(
+            new InputOption(
+                $this->tracePropogationOptionName,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Used for trace propagation between services (see: https://develop.sentry.dev/sdk/performance/#header-sentry-trace)'
+            )
+        );
+
+        // update command with new global definition
+        $command->mergeApplicationDefinition();
+
+        // get input re-bound to new command definitoni
+        $input = $event->getInput();
+        $definition = $command->getDefinition();
+        $input->bind($definition);
+
+        return $input->getOption($this->tracePropogationOptionName);
     }
 }

@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Add `tracing.console.trace_propagation` configuration option for CLI applications. (#638)
 
 ## 4.3.0 (2022-05-30)
 - Fix compatibility issue with Symfony >= 6.1.0 (#635)

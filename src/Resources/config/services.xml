@@ -75,6 +75,7 @@
         <service id="Sentry\SentryBundle\EventListener\TracingConsoleListener" class="Sentry\SentryBundle\EventListener\TracingConsoleListener">
             <argument type="service" id="Sentry\State\HubInterface" />
             <argument /> <!-- $excludedCommands -->
+            <argument /> <!-- $tracePropogationOptionName -->
 
             <tag name="kernel.event_listener" event="console.command" method="handleConsoleCommandEvent" priority="118" />
             <tag name="kernel.event_listener" event="console.terminate" method="handleConsoleTerminateEvent" priority="-54" />
