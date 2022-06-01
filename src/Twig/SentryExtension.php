@@ -29,14 +29,14 @@ final class SentryExtension extends AbstractExtension
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('sentry_trace_meta', \Closure::fromCallable([$this, 'getTraceMeta']), ['is_safe' => ['html']]),
+            new TwigFunction('sentry_trace_meta', [$this, 'getTraceMeta'], ['is_safe' => ['html']]),
         ];
     }
 
     /**
      * Returns an HTML meta tag named `sentry-trace`.
      */
-    private function getTraceMeta(): string
+    public function getTraceMeta(): string
     {
         $span = $this->hub->getSpan();
 

@@ -2,6 +2,58 @@
 
 ## Unreleased
 
+## 4.3.0 (2022-05-30)
+- Fix compatibility issue with Symfony >= 6.1.0 (#635)
+- Add `TracingDriverConnectionInterface::getNativeConnection()` method to get the original driver connection (#597)
+- Add `options.http_timeout` and `options.http_connect_timeout` configuration options (#593)
+
+## 4.2.10 (2022-05-17)
+
+- Fix compatibility issue with Twig >= 3.4.0 (#628)
+
+## 4.2.9 (2022-05-03)
+
+- Fix deprecation notice thrown when instrumenting the `PDOStatement::bindParam()` method and passing `$length = null` on DBAL `2.x` (#613)
+
+## 4.2.8 (2022-03-31)
+
+- Fix compatibility issue with Doctrine Bundle `>= 2.6.0` (#608)
+
+## 4.2.7 (2022-02-18)
+
+- Fix deprecation notice thrown when instrumenting the `PDOStatement::bindParam()` method and passing `$length = null` (#586)
+
+## 4.2.6 (2022-01-10)
+
+- Add support for `symfony/cache-contracts` package version `3.x` (#588)
+
+## 4.2.5 (2021-12-13)
+
+- Add support for Symfony 6 (#566)
+- Fix fatal errors logged twice on Symfony `3.4` (#570)
+
+## 4.2.4 (2021-10-20)
+
+- Add return typehints to the methods of the `SentryExtension` class to prepare for Symfony 6 (#563)
+- Fix setting the IP address on the user context when it's not available (#565)
+- Fix wrong method existence check in `TracingDriverConnection::errorCode()` (#568)
+- Fix decoration of the Doctrine DBAL connection when it implemented the `ServerInfoAwareConnection` interface (#567)
+
+## 4.2.3 (2021-09-21)
+
+- Fix: Test if `TracingStatement` exists before attempting to create the class alias, otherwise it breaks when opcache is enabled. (#552)
+- Fix: Pass logger from `logger` config option to `TransportFactory` (#555)
+- Improve the compatibility layer with Doctrine DBAL to avoid deprecations notices (#553)
+
+## 4.2.2 (2021-08-30)
+
+- Fix missing instrumentation of the `Statement::execute()` method of Doctrine DBAL (#548)
+
+## 4.2.1 (2021-08-24)
+
+- Fix return type for `TracingDriver::getDatabase()` method (#541)
+- Avoid throwing exception from the `TraceableCacheAdapterTrait::prune()` and `TraceableCacheAdapterTrait::reset()` methods when the decorated adapter does not implement the respective interfaces (#543)
+
 ## 4.2.0 (2021-08-12)
 
 - Log the bus name, receiver name and message class name as event tags when using Symfony Messenger (#492)

@@ -30,6 +30,8 @@ final class TracingRequestListener extends AbstractTracingRequestListener
 
         /** @var Request $request */
         $request = $event->getRequest();
+
+        /** @var float $requestStartTime */
         $requestStartTime = $request->server->get('REQUEST_TIME_FLOAT', microtime(true));
 
         $context = TransactionContext::fromSentryTrace($request->headers->get('sentry-trace', ''));

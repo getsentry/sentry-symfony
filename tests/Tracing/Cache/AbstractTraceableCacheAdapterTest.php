@@ -58,6 +58,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertSame($cacheItem, $adapter->getItem('foo'));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -68,7 +69,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
     public function testGetItems(): void
     {
-        $cacheItems = [new CacheItem()];
+        $cacheItems = ['foo' => new CacheItem()];
         $transaction = new Transaction(new TransactionContext(), $this->hub);
         $transaction->initSpanRecorder();
 
@@ -85,6 +86,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertSame($cacheItems, $adapter->getItems(['foo']));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -111,6 +113,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->clear('foo'));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -139,6 +142,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertSame('bar', $adapter->get('foo', $callback, 1.0, $metadata));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -175,6 +179,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->delete('foo'));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -211,6 +216,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->hasItem('foo'));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -237,6 +243,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->deleteItem('foo'));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -263,6 +270,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->deleteItems(['foo']));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -290,6 +298,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->save($cacheItem));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -317,6 +326,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->saveDeferred($cacheItem));
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -342,6 +352,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->commit());
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -367,6 +378,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($decoratedAdapter);
 
         $this->assertTrue($adapter->prune());
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 
@@ -375,14 +387,25 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
-    public function testPruneThrowsExceptionIfDecoratedAdapterIsNotPruneable(): void
+    public function testPruneReturnsFalseIfDecoratedAdapterIsNotPruneable(): void
     {
+        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction->initSpanRecorder();
+
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn($transaction);
+
         $adapter = $this->createCacheAdapter($this->createMock(static::getAdapterClassFqcn()));
 
-        $this->expectException(\BadMethodCallException::class);
-        $this->expectExceptionMessage(sprintf('The %s::prune() method is not supported because the decorated adapter does not implement the "Symfony\\Component\\Cache\\PruneableInterface" interface.', \get_class($adapter)));
+        $this->assertFalse($adapter->prune());
+        $this->assertNotNull($transaction->getSpanRecorder());
 
-        $adapter->prune();
+        $spans = $transaction->getSpanRecorder()->getSpans();
+
+        $this->assertCount(2, $spans);
+        $this->assertSame('cache.prune', $spans[1]->getOp());
+        $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
     public function testReset(): void
@@ -392,16 +415,6 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
             ->method('reset');
 
         $adapter = $this->createCacheAdapter($decoratedAdapter);
-        $adapter->reset();
-    }
-
-    public function testResetThrowsExceptionIfDecoratedAdapterIsNotResettable(): void
-    {
-        $adapter = $this->createCacheAdapter($this->createMock(static::getAdapterClassFqcn()));
-
-        $this->expectException(\BadMethodCallException::class);
-        $this->expectExceptionMessage(sprintf('The %s::reset() method is not supported because the decorated adapter does not implement the "Symfony\\Component\\Cache\\ResettableInterface" interface.', \get_class($adapter)));
-
         $adapter->reset();
     }
 

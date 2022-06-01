@@ -15,8 +15,10 @@ use Sentry\Tracing\SpanContext;
  * This implementation wraps a driver connection and adds distributed tracing
  * capabilities to Doctrine DBAL. This implementation IS and MUST be compatible
  * with all versions of Doctrine DBAL >= 2.10.
+ *
+ * @phpstan-import-type Params from \Doctrine\DBAL\DriverManager as ConnectionParams
  */
-final class TracingDriverConnection implements DriverConnectionInterface
+final class TracingDriverConnection implements TracingDriverConnectionInterface
 {
     /**
      * @internal
@@ -59,11 +61,6 @@ final class TracingDriverConnection implements DriverConnectionInterface
     private $decoratedConnection;
 
     /**
-     * @var string The name of the database platform
-     */
-    private $databasePlatform;
-
-    /**
      * @var array<string, string> The tags to attach to the span
      */
     private $spanTags;
@@ -75,6 +72,8 @@ final class TracingDriverConnection implements DriverConnectionInterface
      * @param DriverConnectionInterface $decoratedConnection The connection to decorate
      * @param string                    $databasePlatform    The name of the database platform
      * @param array<string, mixed>      $params              The connection params
+     *
+     * @phpstan-param ConnectionParams $params
      */
     public function __construct(
         HubInterface $hub,
@@ -84,8 +83,7 @@ final class TracingDriverConnection implements DriverConnectionInterface
     ) {
         $this->hub = $hub;
         $this->decoratedConnection = $decoratedConnection;
-        $this->databasePlatform = $databasePlatform;
-        $this->spanTags = $this->getSpanTags($params);
+        $this->spanTags = $this->getSpanTags($databasePlatform, $params);
     }
 
     /**
@@ -93,9 +91,11 @@ final class TracingDriverConnection implements DriverConnectionInterface
      */
     public function prepare($sql): Statement
     {
-        return $this->traceFunction(self::SPAN_OP_CONN_PREPARE, $sql, function () use ($sql): Statement {
+        $statement = $this->traceFunction(self::SPAN_OP_CONN_PREPARE, $sql, function () use ($sql): Statement {
             return $this->decoratedConnection->prepare($sql);
         });
+
+        return new TracingStatement($this->hub, $statement, $sql, $this->spanTags);
     }
 
     /**
@@ -110,6 +110,8 @@ final class TracingDriverConnection implements DriverConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return mixed
      */
     public function quote($value, $type = ParameterType::STRING)
     {
@@ -128,6 +130,8 @@ final class TracingDriverConnection implements DriverConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return string|int|false
      */
     public function lastInsertId($name = null)
     {
@@ -137,7 +141,7 @@ final class TracingDriverConnection implements DriverConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function beginTransaction()
+    public function beginTransaction(): bool
     {
         return $this->traceFunction(self::SPAN_OP_CONN_BEGIN_TRANSACTION, 'BEGIN TRANSACTION', function (): bool {
             return $this->decoratedConnection->beginTransaction();
@@ -147,7 +151,7 @@ final class TracingDriverConnection implements DriverConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function commit()
+    public function commit(): bool
     {
         return $this->traceFunction(self::SPAN_OP_TRANSACTION_COMMIT, 'COMMIT', function (): bool {
             return $this->decoratedConnection->commit();
@@ -157,7 +161,7 @@ final class TracingDriverConnection implements DriverConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function rollBack()
+    public function rollBack(): bool
     {
         return $this->traceFunction(self::SPAN_OP_TRANSACTION_ROLLBACK, 'ROLLBACK', function (): bool {
             return $this->decoratedConnection->rollBack();
@@ -166,10 +170,24 @@ final class TracingDriverConnection implements DriverConnectionInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return resource|object
      */
-    public function errorCode()
+    public function getNativeConnection()
     {
-        if (method_exists($this->decoratedConnection, 'errorInfo')) {
+        if (!method_exists($this->decoratedConnection, 'getNativeConnection')) {
+            throw new \BadMethodCallException(sprintf('The connection "%s" does not support accessing the native connection.', \get_class($this->decoratedConnection)));
+        }
+
+        return $this->decoratedConnection->getNativeConnection();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function errorCode(): ?string
+    {
+        if (method_exists($this->decoratedConnection, 'errorCode')) {
             return $this->decoratedConnection->errorCode();
         }
 
@@ -179,7 +197,7 @@ final class TracingDriverConnection implements DriverConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function errorInfo()
+    public function errorInfo(): array
     {
         if (method_exists($this->decoratedConnection, 'errorInfo')) {
             return $this->decoratedConnection->errorInfo();
@@ -225,15 +243,18 @@ final class TracingDriverConnection implements DriverConnectionInterface
     /**
      * Gets a map of key-value pairs that will be set as tags of the span.
      *
-     * @param array<string, mixed> $params The connection params
+     * @param string               $databasePlatform The database platform
+     * @param array<string, mixed> $params           The connection params
      *
      * @return array<string, string>
      *
+     * @phpstan-param ConnectionParams $params
+     *
      * @see https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
      */
-    private function getSpanTags(array $params): array
+    private function getSpanTags(string $databasePlatform, array $params): array
     {
-        $tags = ['db.system' => $this->databasePlatform];
+        $tags = ['db.system' => $databasePlatform];
 
         if (isset($params['user'])) {
             $tags['db.user'] = $params['user'];

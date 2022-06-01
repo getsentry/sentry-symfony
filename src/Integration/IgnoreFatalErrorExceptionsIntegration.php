@@ -17,7 +17,9 @@ use Symfony\Component\ErrorHandler\Error\FatalError;
  */
 final class IgnoreFatalErrorExceptionsIntegration implements IntegrationInterface
 {
-    /** @var ExceptionDataBag|null  */
+    /**
+     * @var ExceptionDataBag|null
+     */
     private static $previousExceptionDataBag = null;
 
     public function setupOnce(): void

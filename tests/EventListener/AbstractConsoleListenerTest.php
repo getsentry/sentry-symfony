@@ -15,8 +15,8 @@ use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\Console\Event\ConsoleTerminateEvent;
 use Symfony\Component\Console\Input\ArgvInput;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\NullOutput;
 
 abstract class AbstractConsoleListenerTest extends TestCase
 {
@@ -50,6 +50,7 @@ abstract class AbstractConsoleListenerTest extends TestCase
 
         $event = $scope->applyToEvent(Event::createEvent());
 
+        $this->assertNotNull($event);
         $this->assertSame($expectedTags, $event->getTags());
         $this->assertSame($expectedExtra, $event->getExtra());
     }
@@ -60,25 +61,25 @@ abstract class AbstractConsoleListenerTest extends TestCase
     public function handleConsoleCommmandEventDataProvider(): \Generator
     {
         yield [
-            new ConsoleCommandEvent(null, $this->createMock(InputInterface::class), $this->createMock(OutputInterface::class)),
+            new ConsoleCommandEvent(null, new ArrayInput([]), new NullOutput()),
             [],
             [],
         ];
 
         yield [
-            new ConsoleCommandEvent(new Command(), $this->createMock(InputInterface::class), $this->createMock(OutputInterface::class)),
+            new ConsoleCommandEvent(new Command(), new ArrayInput([]), new NullOutput()),
             [],
             [],
         ];
 
         yield [
-            new ConsoleCommandEvent(new Command('foo:bar'), $this->createMock(InputInterface::class), $this->createMock(OutputInterface::class)),
+            new ConsoleCommandEvent(new Command('foo:bar'), new ArrayInput([]), new NullOutput()),
             ['console.command' => 'foo:bar'],
             [],
         ];
 
         yield [
-            new ConsoleCommandEvent(new Command('foo:bar'), new ArgvInput(['bin/console', 'foo:bar', '--foo=bar']), $this->createMock(OutputInterface::class)),
+            new ConsoleCommandEvent(new Command('foo:bar'), new ArgvInput(['bin/console', 'foo:bar', '--foo=bar']), new NullOutput()),
             ['console.command' => 'foo:bar'],
             ['Full command' => "'foo:bar' --foo=bar"],
         ];
@@ -92,7 +93,7 @@ abstract class AbstractConsoleListenerTest extends TestCase
         $this->hub->expects($this->once())
             ->method('popScope');
 
-        $listener->handleConsoleTerminateEvent(new ConsoleTerminateEvent(new Command(), $this->createMock(InputInterface::class), $this->createMock(OutputInterface::class), 0));
+        $listener->handleConsoleTerminateEvent(new ConsoleTerminateEvent(new Command(), new ArrayInput([]), new NullOutput(), 0));
     }
 
     /**
@@ -101,7 +102,7 @@ abstract class AbstractConsoleListenerTest extends TestCase
     public function testHandleConsoleErrorEvent(bool $captureErrors): void
     {
         $scope = new Scope();
-        $consoleEvent = new ConsoleErrorEvent($this->createMock(InputInterface::class), $this->createMock(OutputInterface::class), new \Exception());
+        $consoleEvent = new ConsoleErrorEvent(new ArrayInput([]), new NullOutput(), new \Exception());
         $listenerClass = static::getListenerClass();
         $listener = new $listenerClass($this->hub, $captureErrors);
 
@@ -119,6 +120,7 @@ abstract class AbstractConsoleListenerTest extends TestCase
 
         $event = $scope->applyToEvent(Event::createEvent());
 
+        $this->assertNotNull($event);
         $this->assertSame(['console.command.exit_code' => '1'], $event->getTags());
     }
 

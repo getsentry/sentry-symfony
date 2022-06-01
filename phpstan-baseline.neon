@@ -1,9 +1,9 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Call to an undefined method Symfony\\\\Component\\\\Config\\\\Definition\\\\Builder\\\\NodeParentInterface\\:\\:booleanNode\\(\\)\\.$#"
+			message: "#^Parameter \\#1 \\.\\.\\.\\$arrays of function array_merge expects array, mixed given\\.$#"
 			count: 1
-			path: src/DependencyInjection/Configuration.php
+			path: src/DependencyInjection/Compiler/DbalTracingPass.php
 
 		-
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\Config\\\\Definition\\\\Builder\\\\TreeBuilder\\:\\:root\\(\\)\\.$#"
@@ -11,114 +11,269 @@ parameters:
 			path: src/DependencyInjection/Configuration.php
 
 		-
+			message: "#^Cannot access offset 'before_breadcrumb' on mixed\\.$#"
+			count: 3
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Cannot access offset 'before_send' on mixed\\.$#"
+			count: 3
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Cannot access offset 'class_serializers' on mixed\\.$#"
+			count: 3
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Cannot access offset 'connections' on mixed\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Cannot access offset 'default_integrations' on mixed\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Cannot access offset 'dsn' on mixed\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Cannot access offset 'excluded_commands' on mixed\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Cannot access offset 'in_app_exclude' on mixed\\.$#"
+			count: 2
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Cannot access offset 'integrations' on mixed\\.$#"
+			count: 3
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Cannot access offset 'traces_sampler' on mixed\\.$#"
+			count: 3
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Class Symfony\\\\Component\\\\Debug\\\\Exception\\\\FatalErrorException not found\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Parameter \\#1 \\$array of function array_filter expects array, mixed given\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Parameter \\#1 \\$callback of function array_map expects \\(callable\\(mixed\\)\\: mixed\\)\\|null, Closure\\(string\\)\\: Symfony\\\\Component\\\\DependencyInjection\\\\Reference given\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Parameter \\#1 \\$id of class Symfony\\\\Component\\\\DependencyInjection\\\\Reference constructor expects string, mixed given\\.$#"
+			count: 5
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Parameter \\#1 \\$integrations of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:configureIntegrationsOption\\(\\) expects array\\<string\\>, mixed given\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Parameter \\#2 \\$array of function array_map expects array, mixed given\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Parameter \\#2 \\$callback of function array_filter expects callable\\(mixed\\)\\: mixed, Closure\\(string\\)\\: bool given\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Parameter \\#2 \\$config of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:registerCacheTracingConfiguration\\(\\) expects array\\<string, mixed\\>, mixed given\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Parameter \\#2 \\$config of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:registerDbalTracingConfiguration\\(\\) expects array\\<string, mixed\\>, mixed given\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Parameter \\#2 \\$config of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:registerMessengerListenerConfiguration\\(\\) expects array\\<string, mixed\\>, mixed given\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Parameter \\#2 \\$config of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:registerTracingConfiguration\\(\\) expects array\\<string, mixed\\>, mixed given\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Parameter \\#2 \\$config of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:registerTwigTracingConfiguration\\(\\) expects array\\<string, mixed\\>, mixed given\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Parameter \\#2 \\$config of method Symfony\\\\Component\\\\DependencyInjection\\\\Extension\\\\Extension\\:\\:isConfigEnabled\\(\\) expects array, mixed given\\.$#"
+			count: 3
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Parameter \\#2 \\$registerErrorListener of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:configureErrorListenerIntegration\\(\\) expects bool, mixed given\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Parameter \\#2 \\$useDefaultIntegrations of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:configureRequestIntegration\\(\\) expects bool, mixed given\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of method Symfony\\\\Component\\\\DependencyInjection\\\\Container\\:\\:setParameter\\(\\) expects array\\|bool\\|float\\|int\\|string\\|UnitEnum\\|null, mixed given\\.$#"
+			count: 2
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
+			count: 1
+			path: src/EventListener/AbstractTracingRequestListener.php
+
+		-
+			message: "#^Class Sentry\\\\SentryBundle\\\\EventListener\\\\ConsoleCommandListener extends @final class Sentry\\\\SentryBundle\\\\EventListener\\\\ConsoleListener\\.$#"
+			count: 1
+			path: src/EventListener/ConsoleCommandListener.php
+
+		-
 			message: "#^Else branch is unreachable because previous condition is always true\\.$#"
 			count: 1
 			path: src/EventListener/ErrorListener.php
 
 		-
-			message: "#^Call to an undefined method Doctrine\\\\DBAL\\\\Driver\\|Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\Compatibility\\\\ExceptionConverterDriverInterface\\:\\:connect\\(\\)\\.$#"
+			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
 			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
+			path: src/EventListener/RequestListener.php
 
 		-
-			message: "#^Call to an undefined method Doctrine\\\\DBAL\\\\Driver\\|Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\Compatibility\\\\ExceptionConverterDriverInterface\\:\\:getDatabasePlatform\\(\\)\\.$#"
-			count: 2
-			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
-
-		-
-			message: "#^Call to an undefined method Doctrine\\\\DBAL\\\\Driver\\|Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\Compatibility\\\\ExceptionConverterDriverInterface\\:\\:getSchemaManager\\(\\)\\.$#"
+			message: "#^Cannot call method getUser\\(\\) on Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\TokenInterface\\|null\\.$#"
 			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
+			path: src/EventListener/RequestListener.php
 
 		-
-			message: "#^Call to an undefined method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\Compatibility\\\\ExceptionConverterDriverInterface\\:\\:convertException\\(\\)\\.$#"
+			message: "#^Parameter \\#1 \\$user of method Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListener\\:\\:getUsername\\(\\) expects object\\|string, Symfony\\\\Component\\\\Security\\\\Core\\\\User\\\\UserInterface\\|null given\\.$#"
 			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
+			path: src/EventListener/RequestListener.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriver\\:\\:connect\\(\\) has parameter \\$driverOptions with no value type specified in iterable type array\\.$#"
+			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
 			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
+			path: src/EventListener/SubRequestListener.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriver\\:\\:connect\\(\\) has parameter \\$password with no typehint specified\\.$#"
+			message: "#^Parameter \\#1 \\$driver of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverMiddleware\\:\\:wrap\\(\\) expects Doctrine\\\\DBAL\\\\Driver, mixed given\\.$#"
 			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
+			path: src/Tracing/Doctrine/DBAL/ConnectionConfigurator.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriver\\:\\:connect\\(\\) has parameter \\$username with no typehint specified\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriver\\:\\:convertException\\(\\) has parameter \\$message with no typehint specified\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
-
-		-
-			message: "#^Parameter \\#2 \\$query of class Doctrine\\\\DBAL\\\\Exception\\\\DriverException constructor expects Doctrine\\\\DBAL\\\\Query\\|null, Doctrine\\\\DBAL\\\\Driver\\\\DriverException given\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
-
-		-
-			message: "#^Parameter \\$exception of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriver\\:\\:convertException\\(\\) has invalid typehint type Doctrine\\\\DBAL\\\\Driver\\\\DriverException\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriver.php
-
-		-
-			message: "#^Call to an undefined method Doctrine\\\\DBAL\\\\Driver\\\\Connection\\:\\:errorCode\\(\\)\\.$#"
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:errorInfo\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:errorCode\\(\\) has no return typehint specified\\.$#"
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:exec\\(\\) has parameter \\$sql with no type specified\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:errorInfo\\(\\) has no return typehint specified\\.$#"
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:prepare\\(\\) has parameter \\$sql with no type specified\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:exec\\(\\) has parameter \\$sql with no typehint specified\\.$#"
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:query\\(\\) has parameter \\$args with no type specified\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:prepare\\(\\) has parameter \\$sql with no typehint specified\\.$#"
+			message: "#^Parameter \\#1 \\$sql of method Doctrine\\\\DBAL\\\\Driver\\\\Connection\\:\\:query\\(\\) expects string, string\\|null given\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:query\\(\\) has parameter \\$args with no typehint specified\\.$#"
+			message: "#^Parameter \\#2 \\$spanDescription of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:traceFunction\\(\\) expects string, string\\|null given\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
-			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent not found\\.$#"
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:errorInfo\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
-			path: src/aliases.php
+			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
 
 		-
-			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterResponseEvent not found\\.$#"
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:exec\\(\\) has parameter \\$sql with no type specified\\.$#"
 			count: 1
-			path: src/aliases.php
+			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
 
 		-
-			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent not found\\.$#"
-			count: 2
-			path: src/aliases.php
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:prepare\\(\\) has parameter \\$sql with no type specified\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
 
 		-
-			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent not found\\.$#"
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:query\\(\\) has parameter \\$args with no type specified\\.$#"
 			count: 1
-			path: src/aliases.php
+			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
 
 		-
-			message: "#^Class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\PostResponseEvent not found\\.$#"
+			message: "#^Parameter \\#1 \\$sql of method Doctrine\\\\DBAL\\\\Driver\\\\Connection\\:\\:query\\(\\) expects string, string\\|null given\\.$#"
 			count: 1
-			path: src/aliases.php
+			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
+
+		-
+			message: "#^Parameter \\#2 \\$callback of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\AbstractTracingStatement\\:\\:traceFunction\\(\\) expects callable\\(\\.\\.\\.mixed\\)\\: Doctrine\\\\DBAL\\\\Driver\\\\Result, array\\{Doctrine\\\\DBAL\\\\Driver\\\\Statement, 'execute'\\} given\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingStatementForV3.php
+
+		-
+			message: "#^Cannot access offset 'sample_rate' on mixed\\.$#"
+			count: 1
+			path: tests/DependencyInjection/ConfigurationTest.php
+
+		-
+			message: "#^Cannot access offset 'traces_sample_rate' on mixed\\.$#"
+			count: 1
+			path: tests/DependencyInjection/ConfigurationTest.php
+
+		-
+			message: "#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\\.$#"
+			count: 1
+			path: tests/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Cannot access offset 'dsn' on mixed\\.$#"
+			count: 1
+			path: tests/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Cannot access offset 'error_types' on mixed\\.$#"
+			count: 1
+			path: tests/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Cannot access offset 'integrations' on mixed\\.$#"
+			count: 1
+			path: tests/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Class Symfony\\\\Component\\\\Debug\\\\Exception\\\\FatalErrorException not found\\.$#"
+			count: 1
+			path: tests/DependencyInjection/SentryExtensionTest.php
 
 		-
 			message: "#^Class Symfony\\\\Bundle\\\\FrameworkBundle\\\\Client not found\\.$#"
@@ -141,7 +296,7 @@ parameters:
 			path: tests/EventListener/ErrorListenerTest.php
 
 		-
-			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\ErrorListenerTest\\:\\:testHandleExceptionEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent\\.$#"
+			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\ErrorListenerTest\\:\\:testHandleExceptionEvent\\(\\) has invalid type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent\\.$#"
 			count: 1
 			path: tests/EventListener/ErrorListenerTest.php
 
@@ -156,13 +311,18 @@ parameters:
 			path: tests/EventListener/MessengerListenerTest.php
 
 		-
+			message: "#^Call to function method_exists\\(\\) with \\$this\\(Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\AuthenticatedTokenStub\\) and 'setAuthenticated' will always evaluate to false\\.$#"
+			count: 1
+			path: tests/EventListener/RequestListenerTest.php
+
+		-
 			message: "#^Instantiated class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent not found\\.$#"
 			count: 3
 			path: tests/EventListener/RequestListenerTest.php
 
 		-
 			message: "#^Instantiated class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent not found\\.$#"
-			count: 8
+			count: 9
 			path: tests/EventListener/RequestListenerTest.php
 
 		-
@@ -176,14 +336,24 @@ parameters:
 			path: tests/EventListener/RequestListenerTest.php
 
 		-
-			message: "#^Parameter \\$controllerEvent of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\RequestListenerTest\\:\\:testHandleKernelControllerEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent\\.$#"
+			message: "#^Parameter \\#1 \\$user of method Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\AbstractToken\\:\\:setUser\\(\\) expects Symfony\\\\Component\\\\Security\\\\Core\\\\User\\\\UserInterface, string\\|Stringable\\|Symfony\\\\Component\\\\Security\\\\Core\\\\User\\\\UserInterface given\\.$#"
 			count: 1
 			path: tests/EventListener/RequestListenerTest.php
 
 		-
-			message: "#^Parameter \\$requestEvent of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\RequestListenerTest\\:\\:testHandleKernelRequestEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\.$#"
+			message: "#^Parameter \\$controllerEvent of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\RequestListenerTest\\:\\:testHandleKernelControllerEvent\\(\\) has invalid type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent\\.$#"
 			count: 1
 			path: tests/EventListener/RequestListenerTest.php
+
+		-
+			message: "#^Parameter \\$requestEvent of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\RequestListenerTest\\:\\:testHandleKernelRequestEvent\\(\\) has invalid type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\.$#"
+			count: 1
+			path: tests/EventListener/RequestListenerTest.php
+
+		-
+			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
+			count: 1
+			path: tests/EventListener/SubRequestListenerTest.php
 
 		-
 			message: "#^Instantiated class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent not found\\.$#"
@@ -201,7 +371,7 @@ parameters:
 			path: tests/EventListener/SubRequestListenerTest.php
 
 		-
-			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\SubRequestListenerTest\\:\\:testHandleKernelRequestEvent\\(\\) has invalid typehint type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\.$#"
+			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\SubRequestListenerTest\\:\\:testHandleKernelRequestEvent\\(\\) has invalid type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\.$#"
 			count: 1
 			path: tests/EventListener/SubRequestListenerTest.php
 
@@ -222,11 +392,6 @@ parameters:
 
 		-
 			message: "#^Call to an undefined method TCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface\\:\\:reset\\(\\)\\.$#"
-			count: 2
-			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
-
-		-
-			message: "#^Call to method PHPUnit\\\\Framework\\\\Assert\\:\\:assertSame\\(\\) with array\\(Symfony\\\\Component\\\\Cache\\\\CacheItem\\) and iterable\\<Symfony\\\\Component\\\\Cache\\\\CacheItem\\>&Traversable will always evaluate to false\\.$#"
 			count: 1
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
 
@@ -246,37 +411,87 @@ parameters:
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
 
 		-
-			message: "#^Class Doctrine\\\\DBAL\\\\Driver\\\\DriverException not found\\.$#"
-			count: 3
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$driverException of class Doctrine\\\\DBAL\\\\Exception\\\\DriverException constructor expects Doctrine\\\\DBAL\\\\Driver\\\\Exception, string given\\.$#"
+			message: "#^Trying to mock an undefined method errorCode\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Connection\\.$#"
 			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
+			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionTest.php
 
 		-
-			message: "#^Parameter \\#1 \\$originalClassName of method PHPUnit\\\\Framework\\\\TestCase\\:\\:createMock\\(\\) expects class\\-string\\<Doctrine\\\\DBAL\\\\Driver\\\\DriverException\\>, string given\\.$#"
-			count: 2
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
-
-		-
-			message: "#^Parameter \\#2 \\$query of class Doctrine\\\\DBAL\\\\Exception\\\\DriverException constructor expects Doctrine\\\\DBAL\\\\Query\\|null, Doctrine\\\\DBAL\\\\Driver\\\\DriverException&PHPUnit\\\\Framework\\\\MockObject\\\\MockObject given\\.$#"
+			message: "#^Trying to mock an undefined method errorInfo\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Connection\\.$#"
 			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
+			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionTest.php
 
 		-
-			message: "#^Trying to mock an undefined method convertException\\(\\) on class Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\StubExceptionConverterDriverInterface\\.$#"
+			message: "#^Parameter \\#1 \\$hubOrConnectionFactory of class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverMiddleware constructor expects Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionFactoryInterface\\|Sentry\\\\State\\\\HubInterface, null given\\.$#"
 			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
+			path: tests/Tracing/Doctrine/DBAL/TracingDriverMiddlewareTest.php
 
 		-
-			message: "#^Trying to mock an undefined method getDatabase\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\.$#"
+			message: "#^Trying to mock an undefined method errorCode\\(\\) on class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionInterface\\.$#"
 			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
+			path: tests/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnectionTest.php
 
 		-
-			message: "#^Trying to mock an undefined method getName\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\.$#"
+			message: "#^Trying to mock an undefined method errorInfo\\(\\) on class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionInterface\\.$#"
 			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverTest.php
+			path: tests/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnectionTest.php
+
+		-
+			message: "#^Trying to mock an undefined method requiresQueryForServerVersion\\(\\) on class Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\Fixture\\\\ServerInfoAwareConnectionStub\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnectionTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$decoratedStatement of class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatementForV2 constructor expects Doctrine\\\\DBAL\\\\Driver\\\\Statement, PHPUnit\\\\Framework\\\\MockObject\\\\MockObject&Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatementForV2Stub given\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Parameter \\#4 \\$length of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatementForV2\\:\\:bindParam\\(\\) expects int\\|null, mixed given\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Trying to mock an undefined method closeCursor\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Trying to mock an undefined method columnCount\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Trying to mock an undefined method errorCode\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Trying to mock an undefined method errorInfo\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Trying to mock an undefined method fetch\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Trying to mock an undefined method fetchAll\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Trying to mock an undefined method fetchColumn\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Trying to mock an undefined method rowCount\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
+
+		-
+			message: "#^Trying to mock an undefined method setFetchMode\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
 

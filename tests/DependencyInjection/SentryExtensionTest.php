@@ -28,8 +28,10 @@ use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
+use Sentry\Transport\TransportFactoryInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Console\ConsoleEvents;
+use Symfony\Component\Debug\Exception\FatalErrorException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\EnvPlaceholderParameterBag;
@@ -196,13 +198,20 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertFalse($container->hasDefinition(Handler::class));
     }
 
-    public function testClentIsCreatedFromOptions(): void
+    public function testClientIsCreatedFromOptions(): void
     {
         $container = $this->createContainerFromFixture('full');
         $optionsDefinition = $container->getDefinition('sentry.client.options');
         $expectedOptions = [
             'integrations' => [
-                new Definition(IgnoreErrorsIntegration::class, [['ignore_exceptions' => [FatalError::class]]]),
+                new Definition(IgnoreErrorsIntegration::class, [
+                    [
+                        'ignore_exceptions' => [
+                            FatalError::class,
+                            FatalErrorException::class,
+                        ],
+                    ],
+                ]),
                 new Reference('App\\Sentry\\Integration\\FooIntegration'),
             ],
             'default_integrations' => false,
@@ -228,6 +237,8 @@ abstract class SentryExtensionTest extends TestCase
             'send_default_pii' => true,
             'max_value_length' => 255,
             'http_proxy' => 'proxy.example.com:8080',
+            'http_timeout' => 10,
+            'http_connect_timeout' => 15,
             'capture_silenced_errors' => true,
             'max_request_body_size' => 'none',
             'class_serializers' => [
@@ -242,11 +253,13 @@ abstract class SentryExtensionTest extends TestCase
         $clientDefinition = $container->findDefinition(ClientInterface::class);
         $factory = $clientDefinition->getFactory();
 
+        $this->assertIsArray($factory);
         $this->assertInstanceOf(Definition::class, $factory[0]);
         $this->assertSame('getClient', $factory[1]);
 
         $methodCalls = $factory[0]->getMethodCalls();
 
+        $this->assertCount(6, $methodCalls);
         $this->assertDefinitionMethodCallAt($methodCalls[0], 'setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER]);
         $this->assertDefinitionMethodCallAt($methodCalls[1], 'setSdkVersion', [PrettyVersions::getVersion('sentry/sentry-symfony')->getPrettyVersion()]);
         $this->assertDefinitionMethodCallAt($methodCalls[2], 'setTransportFactory', [new Reference('App\\Sentry\\Transport\\TransportFactory')]);
@@ -261,6 +274,17 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertInstanceOf(Definition::class, $methodCalls[4][1][0]);
         $this->assertSame(RepresentationSerializer::class, $methodCalls[4][1][0]->getClass());
         $this->assertEquals($methodCalls[4][1][0]->getArgument(0), new Reference('sentry.client.options'));
+    }
+
+    public function testLoggerIsPassedToTransportFactory(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+
+        $transportFactoryDefinition = $container->findDefinition(TransportFactoryInterface::class);
+        $logger = $transportFactoryDefinition->getArgument('$logger');
+
+        $this->assertInstanceOf(Reference::class, $logger);
+        $this->assertSame('app.logger', $logger->__toString());
     }
 
     public function testErrorTypesOptionIsParsedFromStringToIntegerValue(): void
@@ -394,6 +418,9 @@ abstract class SentryExtensionTest extends TestCase
         $container = $this->createContainerFromFixture('logger_service_not_set');
         $clientDefinition = $container->findDefinition(ClientInterface::class);
         $factory = $clientDefinition->getFactory();
+
+        $this->assertIsArray($factory);
+
         $methodCalls = $factory[0]->getMethodCalls();
 
         $this->assertDefinitionMethodCallAt($methodCalls[5], 'setLogger', [new Reference(NullLogger::class, ContainerBuilder::IGNORE_ON_INVALID_REFERENCE)]);

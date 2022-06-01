@@ -52,6 +52,8 @@ final class TwigTracingExtensionTest extends TestCase
 
         $this->listener->enter($profile);
 
+        $this->assertNotNull($transaction->getSpanRecorder());
+
         $spans = $transaction->getSpanRecorder()->getSpans();
 
         $this->assertCount(2, $spans);
@@ -108,6 +110,8 @@ final class TwigTracingExtensionTest extends TestCase
 
         $this->listener->enter($profile);
         $this->listener->leave($profile);
+
+        $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
 

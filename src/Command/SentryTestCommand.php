@@ -11,8 +11,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class SentryTestCommand extends Command
 {
-    protected static $defaultName = 'sentry:test';
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $currentHub = SentrySdk::getCurrentHub();
