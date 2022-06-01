@@ -6,7 +6,6 @@ namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
-use Monolog\Logger as MonologLogger;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
@@ -187,8 +186,7 @@ abstract class SentryExtensionTest extends TestCase
         $container = $this->createContainerFromFixture('monolog_handler');
         $definition = $container->getDefinition(Handler::class);
 
-        $this->assertSame(MonologLogger::ERROR, $definition->getArgument(0));
-        $this->assertFalse($definition->getArgument(1));
+        $this->assertCount(1, $definition->getArguments(), 'Arguments are not default ones');
     }
 
     public function testMonologHandlerIsRemovedWhenDisabled(): void

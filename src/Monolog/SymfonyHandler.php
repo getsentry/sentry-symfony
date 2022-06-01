@@ -66,10 +66,9 @@ class SymfonyHandler implements HandlerInterface, ProcessableHandlerInterface, F
 
     public function handle(array $record): bool
     {
-        if (
-            \array_key_exists('exception', $record)
-            && $record['exception'] instanceof FatalError
-        ) {
+        $exception = $record['exception'] ?? null;
+
+        if ($exception instanceof FatalError) {
             return false;
         }
 
