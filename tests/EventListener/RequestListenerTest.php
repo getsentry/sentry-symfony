@@ -17,7 +17,6 @@ use Sentry\State\Scope;
 use Sentry\UserDataBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
-use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -326,12 +325,10 @@ final class RequestListenerTest extends TestCase
 
     /**
      * @dataProvider handleKernelControllerEventWithSymfonyVersionAtLeast43DataProvider
-     * @dataProvider handleKernelControllerEventWithSymfonyVersionLowerThan43DataProvider
      *
-     * @param ControllerEvent|FilterControllerEvent $controllerEvent
-     * @param array<string, string>                 $expectedTags
+     * @param array<string, string> $expectedTags
      */
-    public function testHandleKernelControllerEvent($controllerEvent, array $expectedTags): void
+    public function testHandleKernelControllerEvent(ControllerEvent $controllerEvent, array $expectedTags): void
     {
         $scope = new Scope();
 
@@ -382,51 +379,6 @@ final class RequestListenerTest extends TestCase
 
         yield 'event.requestType = MASTER_REQUEST && request.attributes._route EXISTS' => [
             new ControllerEvent(
-                $this->createMock(HttpKernelInterface::class),
-                static function () {
-                },
-                new Request([], [], ['_route' => 'homepage']),
-                HttpKernelInterface::MASTER_REQUEST
-            ),
-            [
-                'route' => 'homepage',
-            ],
-        ];
-    }
-
-    /**
-     * @return \Generator<mixed>
-     */
-    public function handleKernelControllerEventWithSymfonyVersionLowerThan43DataProvider(): \Generator
-    {
-        if (version_compare(Kernel::VERSION, '4.3.0', '>=')) {
-            return;
-        }
-
-        yield 'event.requestType != MASTER_REQUEST' => [
-            new FilterControllerEvent(
-                $this->createMock(HttpKernelInterface::class),
-                static function () {
-                },
-                new Request([], [], ['_route' => 'homepage']),
-                HttpKernelInterface::SUB_REQUEST
-            ),
-            [],
-        ];
-
-        yield 'event.requestType = MASTER_REQUEST && request.attributes._route NOT EXISTS ' => [
-            new FilterControllerEvent(
-                $this->createMock(HttpKernelInterface::class),
-                static function () {
-                },
-                new Request(),
-                HttpKernelInterface::MASTER_REQUEST
-            ),
-            [],
-        ];
-
-        yield 'event.requestType = MASTER_REQUEST && request.attributes._route EXISTS' => [
-            new FilterControllerEvent(
                 $this->createMock(HttpKernelInterface::class),
                 static function () {
                 },

@@ -7,6 +7,7 @@ namespace Sentry\SentryBundle\EventListener;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Sentry\UserDataBag;
+use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -82,9 +83,9 @@ final class RequestListener
      * This method is called for each request handled by the framework and
      * sets the route on the current Sentry scope.
      *
-     * @param RequestEvent $event The event
+     * @param ControllerEvent $event The event
      */
-    public function handleKernelControllerEvent(RequestEvent $event): void
+    public function handleKernelControllerEvent(ControllerEvent $event): void
     {
         if (!$this->isMainRequest($event)) {
             return;
@@ -133,7 +134,7 @@ final class RequestListener
             return false;
         }
 
-        if (!$token->isAuthenticated()) {
+        if (method_exists($token, 'isAuthenticated') && !$token->isAuthenticated(false)) {
             return false;
         }
 
