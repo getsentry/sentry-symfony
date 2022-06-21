@@ -61,11 +61,6 @@ parameters:
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
-			message: "#^Class Symfony\\\\Component\\\\Debug\\\\Exception\\\\FatalErrorException not found\\.$#"
-			count: 1
-			path: src/DependencyInjection/SentryExtension.php
-
-		-
 			message: "#^Parameter \\#1 \\$array of function array_filter expects array, mixed given\\.$#"
 			count: 1
 			path: src/DependencyInjection/SentryExtension.php
@@ -149,11 +144,6 @@ parameters:
 			message: "#^Class Sentry\\\\SentryBundle\\\\EventListener\\\\ConsoleCommandListener extends @final class Sentry\\\\SentryBundle\\\\EventListener\\\\ConsoleListener\\.$#"
 			count: 1
 			path: src/EventListener/ConsoleCommandListener.php
-
-		-
-			message: "#^Else branch is unreachable because previous condition is always true\\.$#"
-			count: 1
-			path: src/EventListener/ErrorListener.php
 
 		-
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
@@ -271,11 +261,6 @@ parameters:
 			path: tests/DependencyInjection/SentryExtensionTest.php
 
 		-
-			message: "#^Class Symfony\\\\Component\\\\Debug\\\\Exception\\\\FatalErrorException not found\\.$#"
-			count: 1
-			path: tests/DependencyInjection/SentryExtensionTest.php
-
-		-
 			message: "#^Class Symfony\\\\Bundle\\\\FrameworkBundle\\\\Client not found\\.$#"
 			count: 1
 			path: tests/End2End/TracingEnd2EndTest.php
@@ -316,18 +301,8 @@ parameters:
 			path: tests/EventListener/RequestListenerTest.php
 
 		-
-			message: "#^Instantiated class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent not found\\.$#"
-			count: 3
-			path: tests/EventListener/RequestListenerTest.php
-
-		-
 			message: "#^Instantiated class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent not found\\.$#"
 			count: 9
-			path: tests/EventListener/RequestListenerTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListener\\:\\:handleKernelControllerEvent\\(\\) expects Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\ControllerEvent, Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\ControllerEvent\\|Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent given\\.$#"
-			count: 1
 			path: tests/EventListener/RequestListenerTest.php
 
 		-
@@ -337,11 +312,6 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$user of method Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\AbstractToken\\:\\:setUser\\(\\) expects Symfony\\\\Component\\\\Security\\\\Core\\\\User\\\\UserInterface, string\\|Stringable\\|Symfony\\\\Component\\\\Security\\\\Core\\\\User\\\\UserInterface given\\.$#"
-			count: 1
-			path: tests/EventListener/RequestListenerTest.php
-
-		-
-			message: "#^Parameter \\$controllerEvent of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\RequestListenerTest\\:\\:testHandleKernelControllerEvent\\(\\) has invalid type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent\\.$#"
 			count: 1
 			path: tests/EventListener/RequestListenerTest.php
 
