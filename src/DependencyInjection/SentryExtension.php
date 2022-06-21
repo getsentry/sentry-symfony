@@ -280,7 +280,6 @@ final class SentryExtension extends ConfigurableExtension
                 [
                     'ignore_exceptions' => [
                         FatalError::class,
-                        FatalErrorException::class,
                     ],
                 ],
             ]));

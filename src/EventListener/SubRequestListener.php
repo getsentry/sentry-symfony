@@ -6,6 +6,7 @@ namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\State\HubInterface;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 
 /**
  * This listener ensures that a new {@see \Sentry\State\Scope} is created for
@@ -34,9 +35,9 @@ final class SubRequestListener
      * This method is called for each subrequest handled by the framework and
      * pushes a new {@see \Sentry\State\Scope} onto the stack.
      *
-     * @param SubRequestListenerRequestEvent $event The event
+     * @param RequestEvent $event The event
      */
-    public function handleKernelRequestEvent(SubRequestListenerRequestEvent $event): void
+    public function handleKernelRequestEvent(RequestEvent $event): void
     {
         if ($this->isMainRequest($event)) {
             return;
