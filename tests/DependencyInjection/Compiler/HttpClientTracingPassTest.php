@@ -38,7 +38,7 @@ class HttpClientTracingPassTest extends TestCase
         $container->addCompilerPass(new HttpClientTracingPass());
         $container->compile();
 
-        self::assertEquals(HttpClient::class, $container->getDefinition('http.client')->getClass());
+        $this->assertEquals(HttpClient::class, $container->getDefinition('http.client')->getClass());
     }
 
     /**
@@ -63,7 +63,7 @@ class HttpClientTracingPassTest extends TestCase
         $container->addCompilerPass(new HttpClientTracingPass());
         $container->compile();
 
-        self::assertEquals(TraceableHttpClient::class, $container->findDefinition('http.client')->getClass());
+        $this->assertEquals(TraceableHttpClient::class, $container->findDefinition('http.client')->getClass());
     }
 
     private static function isHttpClientPackageInstalled(): bool
