@@ -6,6 +6,8 @@ namespace Sentry\SentryBundle\Tests\Tracing\HttpClient;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Sentry\SentryBundle\Tests\Tracing\HttpClient\Fixtures\DestructibleResponseInterface;
+use Sentry\SentryBundle\Tests\Tracing\HttpClient\Fixtures\StreamableResponseInterface;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableResponse;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\SpanContext;
@@ -62,10 +64,7 @@ class TraceableResponseTest extends TestCase
         $context = new SpanContext();
         $span = $transaction->startChild($context);
 
-        $this->mockedResponse = $this->getMockBuilder(ResponseInterface::class)
-            ->addMethods(['__destruct'])
-            ->getMockForAbstractClass();
-
+        $this->mockedResponse = $this->createMock(DestructibleResponseInterface::class);
         $this->mockedResponse
             ->expects($this->once())
             ->method('__destruct');
@@ -145,10 +144,7 @@ class TraceableResponseTest extends TestCase
             self::markTestSkipped('Response toStream method is not existent in this version of http-client');
         }
 
-        $this->mockedResponse = $this->getMockBuilder(ResponseInterface::class)
-            ->addMethods(['toStream'])
-            ->getMockForAbstractClass();
-
+        $this->mockedResponse = $this->createMock(StreamableResponseInterface::class);
         $this->mockedResponse
             ->expects($this->once())
             ->method('toStream')
