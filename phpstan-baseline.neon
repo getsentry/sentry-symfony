@@ -122,7 +122,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#2 \\$config of method Symfony\\\\Component\\\\DependencyInjection\\\\Extension\\\\Extension\\:\\:isConfigEnabled\\(\\) expects array, mixed given\\.$#"
-			count: 3
+			count: 4
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
@@ -132,6 +132,11 @@ parameters:
 
 		-
 			message: "#^Parameter \\#2 \\$useDefaultIntegrations of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:configureRequestIntegration\\(\\) expects bool, mixed given\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Parameter \\#2 \\$config of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:registerHttpClientTracingConfiguration\\(\\) expects array<string, mixed>, mixed given\\.$#"
 			count: 1
 			path: src/DependencyInjection/SentryExtension.php
 

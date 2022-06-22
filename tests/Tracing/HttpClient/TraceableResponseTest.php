@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sentry\SentryBundle\Tests\Tracing\HttpClient;
 
 use PHPUnit\Framework\MockObject\MockObject;
@@ -51,7 +53,7 @@ class TraceableResponseTest extends TestCase
     public function testCannotBeDeserialized(): void
     {
         $this->expectException(\BadMethodCallException::class);
-        unserialize(sprintf('O:%u:"%s":0:{}', strlen(TraceableResponse::class), TraceableResponse::class));
+        unserialize(sprintf('O:%u:"%s":0:{}', \strlen(TraceableResponse::class), TraceableResponse::class));
     }
 
     public function testDestructor(): void
@@ -139,7 +141,7 @@ class TraceableResponseTest extends TestCase
 
     public function testToStream(): void
     {
-        if (! method_exists($this->response, 'toStream')) {
+        if (!method_exists($this->response, 'toStream')) {
             self::markTestSkipped('Response toStream method is not existent in this version of http-client');
         }
 
