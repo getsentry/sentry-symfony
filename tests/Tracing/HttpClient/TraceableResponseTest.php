@@ -16,7 +16,7 @@ use Sentry\Tracing\TransactionContext;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
-class TraceableResponseTest extends TestCase
+final class TraceableResponseTest extends TestCase
 {
     /**
      * @var MockObject&ResponseInterface
