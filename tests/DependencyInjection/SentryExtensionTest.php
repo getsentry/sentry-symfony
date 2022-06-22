@@ -35,6 +35,7 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\EnvPlaceholderParameterBag;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\ErrorHandler\Error\FatalError;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
@@ -378,6 +379,18 @@ abstract class SentryExtensionTest extends TestCase
         $container = $this->createContainerFromFixture('twig_tracing_enabled');
 
         $this->assertTrue($container->hasDefinition(TwigTracingExtension::class));
+    }
+
+    public function testHttpClientTracingExtensionIsConfiguredWhenHttpClientTracingIsEnabled(): void
+    {
+        if (!class_exists(HttpClient::class)) {
+            $this->expectException(\LogicException::class);
+            $this->expectExceptionMessage('Http client tracing support cannot be enabled because the symfony/http-client Composer package is not installed.');
+        }
+
+        $container = $this->createContainerFromFixture('http_client_tracing_enabled');
+
+        $this->assertTrue($container->getParameter('sentry.tracing.http_client.enabled'));
     }
 
     public function testTwigTracingExtensionIsRemovedWhenTwigTracingIsDisabled(): void
