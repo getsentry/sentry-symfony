@@ -52,6 +52,7 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
 
             $context = new SpanContext();
             $context->setOp('http.client');
+            $context->setDescription('HTTP ' . $method);
             $context->setTags([
                 'http.method' => $method,
                 'http.url' => $url,
