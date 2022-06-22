@@ -103,13 +103,13 @@ abstract class AbstractTraceableResponse implements ResponseInterface
         /** @var \SplObjectStorage<ResponseInterface, AbstractTraceableResponse> $traceableMap */
         $traceableMap = new \SplObjectStorage();
 
-        foreach ($responses as $r) {
-            if (!$r instanceof self) {
-                throw new \TypeError(sprintf('"%s::stream()" expects parameter 1 to be an iterable of TraceableResponse objects, "%s" given.', TraceableHttpClient::class, get_debug_type($r)));
+        foreach ($responses as $response) {
+            if (!$response instanceof self) {
+                throw new \TypeError(sprintf('"%s::stream()" expects parameter 1 to be an iterable of TraceableResponse objects, "%s" given.', TraceableHttpClient::class, get_debug_type($response)));
             }
 
-            $traceableMap[$r->response] = $r;
-            $wrappedResponses[] = $r->response;
+            $traceableMap[$response->response] = $response;
+            $wrappedResponses[] = $response->response;
         }
 
         foreach ($client->stream($wrappedResponses, $timeout) as $r => $chunk) {
