@@ -5,9 +5,6 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tracing\HttpClient;
 
 use Sentry\Tracing\Span;
-use Symfony\Component\HttpClient\Exception\ClientException;
-use Symfony\Component\HttpClient\Exception\RedirectionException;
-use Symfony\Component\HttpClient\Exception\ServerException;
 use Symfony\Component\HttpClient\TraceableHttpClient;
 use Symfony\Contracts\HttpClient\ChunkInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -77,10 +74,6 @@ abstract class AbstractTraceableResponse implements ResponseInterface
             return $this->response->getContent($throw);
         } finally {
             $this->finish();
-
-            if ($throw) {
-                $this->checkStatusCode($this->response->getStatusCode());
-            }
         }
     }
 
@@ -90,10 +83,6 @@ abstract class AbstractTraceableResponse implements ResponseInterface
             return $this->response->toArray($throw);
         } finally {
             $this->finish();
-
-            if ($throw) {
-                $this->checkStatusCode($this->response->getStatusCode());
-            }
         }
     }
 
@@ -129,21 +118,6 @@ abstract class AbstractTraceableResponse implements ResponseInterface
             }
 
             yield $traceableMap[$r] => $chunk;
-        }
-    }
-
-    private function checkStatusCode(int $code): void
-    {
-        if (500 <= $code) {
-            throw new ServerException($this);
-        }
-
-        if (400 <= $code) {
-            throw new ClientException($this);
-        }
-
-        if (300 <= $code) {
-            throw new RedirectionException($this);
         }
     }
 
