@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Add support for tracing of http client requests (#606)
+- Add support for tracing of the Symfony HTTP client requests (#606)
 
 ## 4.3.0 (2022-05-30)
 - Fix compatibility issue with Symfony >= 6.1.0 (#635)
