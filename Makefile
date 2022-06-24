@@ -19,3 +19,17 @@ pre-commit-check: cs phpstan psalm test
 
 setup-git:
 	git config branch.autosetuprebase always
+
+setup: build composer-install
+
+shell: build
+	docker-compose run --rm php zsh
+
+composer-install: start
+	docker-compose exec php composer install
+
+start:
+	docker-compose up -d php
+
+build:
+	docker-compose build php

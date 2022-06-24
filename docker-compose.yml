@@ -1,0 +1,24 @@
+version: '3.2'
+
+services:
+  php:
+    container_name: sentry_container
+    command:
+      - tail
+      - -f
+      - /dev/null
+    build:
+      context: docker
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      PHP_IDE_CONFIG: "serverName=Sentry"
+    volumes:
+      - .:/home/sentry/projects
+      - ~/.composer:/home/sentry/.composer
+      - ./docker/config/sudoers:/etc/sudoers
+      - ./docker/config/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf
+      - ./docker/config/php.ini:/usr/local/etc/php/conf.d/php.ini
+      - ./docker/config/.zshrc:/root/.zshrc
+      - ./docker/config/.zshrc:/home/sentry/.zshrc
+    user: sentry
