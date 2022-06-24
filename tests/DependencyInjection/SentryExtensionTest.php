@@ -29,6 +29,7 @@ use Sentry\Serializer\Serializer;
 use Sentry\Transport\TransportFactoryInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Console\ConsoleEvents;
+use Symfony\Component\Debug\Exception\FatalErrorException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\EnvPlaceholderParameterBag;
@@ -189,6 +190,7 @@ abstract class SentryExtensionTest extends TestCase
                     [
                         'ignore_exceptions' => [
                             FatalError::class,
+                            FatalErrorException::class,
                         ],
                     ],
                 ]),

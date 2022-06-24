@@ -61,6 +61,11 @@ parameters:
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
+			message: "#^Class Symfony\\\\Component\\\\Debug\\\\Exception\\\\FatalErrorException not found\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
 			message: "#^Parameter \\#1 \\$array of function array_filter expects array, mixed given\\.$#"
 			count: 1
 			path: src/DependencyInjection/SentryExtension.php
@@ -257,6 +262,11 @@ parameters:
 
 		-
 			message: "#^Cannot access offset 'integrations' on mixed\\.$#"
+			count: 1
+			path: tests/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Class Symfony\\\\Component\\\\Debug\\\\Exception\\\\FatalErrorException not found\\.$#"
 			count: 1
 			path: tests/DependencyInjection/SentryExtensionTest.php
 
