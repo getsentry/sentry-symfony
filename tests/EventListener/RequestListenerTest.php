@@ -83,10 +83,6 @@ final class RequestListenerTest extends TestCase
      */
     public function handleKernelRequestEventDataProvider(): \Generator
     {
-        if (version_compare(Kernel::VERSION, '4.3.0', '<')) {
-            return;
-        }
-
         yield 'event.requestType != MASTER_REQUEST' => [
             new RequestEvent(
                 $this->createMock(HttpKernelInterface::class),
@@ -233,10 +229,6 @@ final class RequestListenerTest extends TestCase
      */
     public function handleKernelControllerEventDataProvider(): \Generator
     {
-        if (version_compare(Kernel::VERSION, '4.3.0', '<')) {
-            return;
-        }
-
         yield 'event.requestType != MASTER_REQUEST' => [
             new ControllerEvent(
                 $this->createMock(HttpKernelInterface::class),

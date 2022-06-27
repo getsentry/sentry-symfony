@@ -9,7 +9,6 @@ use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
 use Sentry\Event;
 use Sentry\SentryBundle\EventListener\MessengerListener;
-use Sentry\SentryBundle\Tests\End2End\App\Kernel;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\Messenger\Envelope;
@@ -194,10 +193,6 @@ final class MessengerListenerTest extends TestCase
 
     private function getMessageFailedEvent(Envelope $envelope, string $receiverName, \Throwable $error, bool $retry): WorkerMessageFailedEvent
     {
-        if (version_compare(Kernel::VERSION, '4.4.0', '<')) {
-            return new WorkerMessageFailedEvent($envelope, $receiverName, $error, $retry);
-        }
-
         $event = new WorkerMessageFailedEvent($envelope, $receiverName, $error);
 
         if ($retry) {
