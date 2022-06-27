@@ -9,6 +9,7 @@ use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
+use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
 
@@ -26,6 +27,11 @@ final class MessengerListener
     private $captureSoftFails;
 
     /**
+     * @var bool Keeps the state relative of a scope push
+     */
+    private $scopePushed = false;
+
+    /**
      * @param HubInterface $hub              The current hub
      * @param bool         $captureSoftFails Whether to capture errors thrown
      *                                       while processing a message that
@@ -35,6 +41,11 @@ final class MessengerListener
     {
         $this->hub = $hub;
         $this->captureSoftFails = $captureSoftFails;
+    }
+
+    public function handleWorkerMessageReceivedEvent(WorkerMessageReceivedEvent $event): void {
+        $this->hub->pushScope();
+        $this->scopePushed = true;
     }
 
     /**
@@ -71,6 +82,10 @@ final class MessengerListener
             }
         });
 
+        if($this->scopePushed) {
+            $this->hub->popScope();
+        }
+
         $this->flushClient();
     }
 
@@ -81,10 +96,15 @@ final class MessengerListener
      */
     public function handleWorkerMessageHandledEvent(WorkerMessageHandledEvent $event): void
     {
+        if($this->scopePushed) {
+            $this->hub->popScope();
+        }
+
         // Flush normally happens at shutdown... which only happens in the worker if it is run with a lifecycle limit
         // such as --time=X or --limit=Y. Flush immediately in a background worker.
         $this->flushClient();
     }
+
 
     private function flushClient(): void
     {
