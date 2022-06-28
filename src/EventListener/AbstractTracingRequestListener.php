@@ -7,6 +7,7 @@ namespace Sentry\SentryBundle\EventListener;
 use Sentry\State\HubInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\Routing\Route;
 
 abstract class AbstractTracingRequestListener
@@ -34,11 +35,10 @@ abstract class AbstractTracingRequestListener
      * gathering information like the HTTP status code and attaching them as
      * tags of the span/transaction.
      *
-     * @param RequestListenerResponseEvent $event The event
+     * @param ResponseEvent $event The event
      */
-    public function handleKernelResponseEvent(RequestListenerResponseEvent $event): void
+    public function handleKernelResponseEvent(ResponseEvent $event): void
     {
-        /** @var Response $response */
         $response = $event->getResponse();
         $span = $this->hub->getSpan();
 

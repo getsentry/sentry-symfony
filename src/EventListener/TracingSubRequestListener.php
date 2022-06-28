@@ -7,6 +7,7 @@ namespace Sentry\SentryBundle\EventListener;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 
 /**
  * This event listener acts on the sub requests and starts a child span of the
@@ -18,9 +19,9 @@ final class TracingSubRequestListener extends AbstractTracingRequestListener
      * This method is called for each subrequest handled by the framework and
      * traces each by starting a new {@see Span}.
      *
-     * @param SubRequestListenerRequestEvent $event The event
+     * @param RequestEvent $event The event
      */
-    public function handleKernelRequestEvent(SubRequestListenerRequestEvent $event): void
+    public function handleKernelRequestEvent(RequestEvent $event): void
     {
         if ($this->isMainRequest($event)) {
             return;

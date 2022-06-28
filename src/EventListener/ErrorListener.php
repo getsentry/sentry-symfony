@@ -30,14 +30,10 @@ final class ErrorListener
     /**
      * Handles an exception that happened while running the application.
      *
-     * @param ErrorListenerExceptionEvent $event The event
+     * @param ExceptionEvent $event The event
      */
-    public function handleExceptionEvent(ErrorListenerExceptionEvent $event): void
+    public function handleExceptionEvent(ExceptionEvent $event): void
     {
-        if ($event instanceof ExceptionEvent) {
-            $this->hub->captureException($event->getThrowable());
-        } else {
-            $this->hub->captureException($event->getException());
-        }
+        $this->hub->captureException($event->getThrowable());
     }
 }

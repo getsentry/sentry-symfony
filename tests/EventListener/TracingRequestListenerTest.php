@@ -8,9 +8,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
 use Sentry\Options;
-use Sentry\SentryBundle\EventListener\RequestListenerRequestEvent;
-use Sentry\SentryBundle\EventListener\RequestListenerResponseEvent;
-use Sentry\SentryBundle\EventListener\RequestListenerTerminateEvent;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\SpanId;
@@ -21,6 +18,9 @@ use Sentry\Tracing\TransactionContext;
 use Symfony\Bridge\PhpUnit\ClockMock;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Routing\Route;
 
@@ -73,7 +73,7 @@ final class TracingRequestListenerTest extends TestCase
             ->method('setSpan')
             ->with($transaction);
 
-        $this->listener->handleKernelRequestEvent(new RequestListenerRequestEvent(
+        $this->listener->handleKernelRequestEvent(new RequestEvent(
             $this->createMock(HttpKernelInterface::class),
             $request,
             HttpKernelInterface::MASTER_REQUEST
@@ -354,7 +354,7 @@ final class TracingRequestListenerTest extends TestCase
         $this->hub->expects($this->never())
             ->method('startTransaction');
 
-        $this->listener->handleKernelRequestEvent(new RequestListenerRequestEvent(
+        $this->listener->handleKernelRequestEvent(new RequestEvent(
             $this->createMock(HttpKernelInterface::class),
             new Request(),
             HttpKernelInterface::SUB_REQUEST
@@ -369,7 +369,7 @@ final class TracingRequestListenerTest extends TestCase
             ->method('getSpan')
             ->willReturn($transaction);
 
-        $this->listener->handleKernelResponseEvent(new RequestListenerResponseEvent(
+        $this->listener->handleKernelResponseEvent(new ResponseEvent(
             $this->createMock(HttpKernelInterface::class),
             new Request(),
             HttpKernelInterface::MASTER_REQUEST,
@@ -386,7 +386,7 @@ final class TracingRequestListenerTest extends TestCase
             ->method('getSpan')
             ->willReturn(null);
 
-        $this->listener->handleKernelResponseEvent(new RequestListenerResponseEvent(
+        $this->listener->handleKernelResponseEvent(new ResponseEvent(
             $this->createMock(HttpKernelInterface::class),
             new Request(),
             HttpKernelInterface::MASTER_REQUEST,
@@ -405,7 +405,7 @@ final class TracingRequestListenerTest extends TestCase
             ->method('getTransaction')
             ->willReturn($transaction);
 
-        $this->listener->handleKernelTerminateEvent(new RequestListenerTerminateEvent(
+        $this->listener->handleKernelTerminateEvent(new TerminateEvent(
             $this->createMock(HttpKernelInterface::class),
             new Request(),
             new Response()
@@ -420,7 +420,7 @@ final class TracingRequestListenerTest extends TestCase
             ->method('getTransaction')
             ->willReturn(null);
 
-        $this->listener->handleKernelTerminateEvent(new RequestListenerTerminateEvent(
+        $this->listener->handleKernelTerminateEvent(new TerminateEvent(
             $this->createMock(HttpKernelInterface::class),
             new Request(),
             new Response()

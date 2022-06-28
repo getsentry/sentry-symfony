@@ -12,10 +12,8 @@ use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\HttpKernel\Kernel;
 
 class SubRequestListenerTest extends TestCase
 {
@@ -38,12 +36,9 @@ class SubRequestListenerTest extends TestCase
     }
 
     /**
-     * @dataProvider handleKernelRequestEventWithSymfonyVersionAtLeast43DataProvider
-     * @dataProvider handleKernelRequestEventWithSymfonyVersionLowerThan43DataProvider
-     *
-     * @param RequestEvent|GetResponseEvent $event
+     * @dataProvider handleKernelRequestEventDataProvider
      */
-    public function testHandleKernelRequestEvent($event): void
+    public function testHandleKernelRequestEvent(RequestEvent $event): void
     {
         $this->hub->expects($this->isMainRequest($event) ? $this->never() : $this->once())
             ->method('pushScope')
@@ -55,36 +50,14 @@ class SubRequestListenerTest extends TestCase
     /**
      * @return \Generator<mixed>
      */
-    public function handleKernelRequestEventWithSymfonyVersionAtLeast43DataProvider(): \Generator
+    public function handleKernelRequestEventDataProvider(): \Generator
     {
-        if (version_compare(Kernel::VERSION, '4.3.0', '<')) {
-            return;
-        }
-
         yield [
             new RequestEvent($this->createMock(HttpKernelInterface::class), new Request(), HttpKernelInterface::MASTER_REQUEST),
         ];
 
         yield [
             new RequestEvent($this->createMock(HttpKernelInterface::class), new Request(), HttpKernelInterface::SUB_REQUEST),
-        ];
-    }
-
-    /**
-     * @return \Generator<mixed>
-     */
-    public function handleKernelRequestEventWithSymfonyVersionLowerThan43DataProvider(): \Generator
-    {
-        if (version_compare(Kernel::VERSION, '4.3.0', '>=')) {
-            return;
-        }
-
-        yield [
-            new GetResponseEvent($this->createMock(HttpKernelInterface::class), new Request(), HttpKernelInterface::MASTER_REQUEST),
-        ];
-
-        yield [
-            new GetResponseEvent($this->createMock(HttpKernelInterface::class), new Request(), HttpKernelInterface::SUB_REQUEST),
         ];
     }
 
