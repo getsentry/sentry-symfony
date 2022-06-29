@@ -97,6 +97,12 @@
             <argument type="service" id="Sentry\State\HubInterface" />
         </service>
 
+        <service id="Sentry\SentryBundle\Monolog\SymfonyHandler" class="Sentry\SentryBundle\Monolog\SymfonyHandler" decorates="Sentry\Monolog\Handler" />
+
+        <service id="Sentry\Monolog\Handler" class="Sentry\Monolog\Handler">
+            <argument type="service" id="Sentry\State\HubInterface" />
+        </service>
+
         <service id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware" class="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware">
             <argument type="service" id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryInterface" />
         </service>

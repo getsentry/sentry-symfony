@@ -10,6 +10,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
 use Sentry\Integration\IgnoreErrorsIntegration;
+use Sentry\Monolog\Handler;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
@@ -178,6 +179,21 @@ abstract class SentryExtensionTest extends TestCase
                 ],
             ],
         ], $definition->getTags());
+    }
+
+    public function testMonologHandler(): void
+    {
+        $container = $this->createContainerFromFixture('monolog_handler');
+        $definition = $container->getDefinition(Handler::class);
+
+        $this->assertCount(1, $definition->getArguments(), 'Arguments are not default ones');
+    }
+
+    public function testMonologHandlerIsRemovedWhenDisabled(): void
+    {
+        $container = $this->createContainerFromFixture('monolog_handler_disabled');
+
+        $this->assertFalse($container->hasDefinition(Handler::class));
     }
 
     public function testClientIsCreatedFromOptions(): void

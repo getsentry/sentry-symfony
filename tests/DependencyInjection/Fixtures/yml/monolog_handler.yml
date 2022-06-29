@@ -1,0 +1,4 @@
+sentry:
+    monolog:
+        level: !php/const Monolog\Logger::ERROR
+        bubble: false

@@ -6,6 +6,7 @@ namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
+use Monolog\Logger;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
 use Symfony\Bundle\TwigBundle\TwigBundle;
@@ -39,6 +40,13 @@ final class ConfigurationTest extends TestCase
             'messenger' => [
                 'enabled' => interface_exists(MessageBusInterface::class),
                 'capture_soft_fails' => true,
+            ],
+            'monolog' => [
+                'error_handler' => [
+                    'enabled' => class_exists(Logger::class),
+                ],
+                'level' => Logger::DEBUG,
+                'bubble' => true,
             ],
             'tracing' => [
                 'enabled' => true,

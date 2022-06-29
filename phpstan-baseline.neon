@@ -41,6 +41,11 @@ parameters:
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
+			message: "#^Cannot access offset 'enabled' on mixed\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
 			message: "#^Cannot access offset 'excluded_commands' on mixed\\.$#"
 			count: 1
 			path: src/DependencyInjection/SentryExtension.php
@@ -86,6 +91,11 @@ parameters:
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
+			message: "#^Parameter \\#1 \\$level of static method Monolog\\\\Logger\\:\\:toMonologLevel\\(\\) expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|'ALERT'\\|'alert'\\|'CRITICAL'\\|'critical'\\|'DEBUG'\\|'debug'\\|'EMERGENCY'\\|'emergency'\\|'ERROR'\\|'error'\\|'INFO'\\|'info'\\|'NOTICE'\\|'notice'\\|'WARNING'\\|'warning', mixed given\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
 			message: "#^Parameter \\#2 \\$array of function array_map expects array, mixed given\\.$#"
 			count: 1
 			path: src/DependencyInjection/SentryExtension.php
@@ -107,6 +117,11 @@ parameters:
 
 		-
 			message: "#^Parameter \\#2 \\$config of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:registerMessengerListenerConfiguration\\(\\) expects array\\<string, mixed\\>, mixed given\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Parameter \\#2 \\$config of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:registerMonologHandlerConfiguration\\(\\) expects array\\<string, mixed\\>, mixed given\\.$#"
 			count: 1
 			path: src/DependencyInjection/SentryExtension.php
 
@@ -169,6 +184,26 @@ parameters:
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
 			count: 1
 			path: src/EventListener/SubRequestListener.php
+
+		-
+			message: "#^Cannot call method getType\\(\\) on Sentry\\\\ExceptionDataBag\\|null\\.$#"
+			count: 1
+			path: src/Integration/IgnoreFatalErrorExceptionsIntegration.php
+
+		-
+			message: "#^Cannot call method getValue\\(\\) on Sentry\\\\ExceptionDataBag\\|null\\.$#"
+			count: 1
+			path: src/Integration/IgnoreFatalErrorExceptionsIntegration.php
+
+		-
+			message: "#^Instanceof between null and Symfony\\\\Component\\\\ErrorHandler\\\\Error\\\\FatalError will always evaluate to false\\.$#"
+			count: 1
+			path: src/Monolog/SymfonyHandler.php
+
+		-
+			message: "#^Offset 'exception' on array\\{message\\: string, context\\: array, level\\: 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600, level_name\\: 'ALERT'\\|'CRITICAL'\\|'DEBUG'\\|'EMERGENCY'\\|'ERROR'\\|'INFO'\\|'NOTICE'\\|'WARNING', channel\\: string, datetime\\: DateTimeImmutable, extra\\: array\\} on left side of \\?\\? does not exist\\.$#"
+			count: 1
+			path: src/Monolog/SymfonyHandler.php
 
 		-
 			message: "#^Parameter \\#1 \\$driver of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverMiddleware\\:\\:wrap\\(\\) expects Doctrine\\\\DBAL\\\\Driver, mixed given\\.$#"
