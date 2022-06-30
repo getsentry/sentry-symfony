@@ -83,6 +83,7 @@
         <service id="Sentry\SentryBundle\EventListener\MessengerListener" class="Sentry\SentryBundle\EventListener\MessengerListener">
             <argument type="service" id="Sentry\State\HubInterface" />
 
+            <tag name="kernel.event_listener" event="Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent" method="handleWorkerMessageReceivedEvent" priority="50" />
             <tag name="kernel.event_listener" event="Symfony\Component\Messenger\Event\WorkerMessageFailedEvent" method="handleWorkerMessageFailedEvent" priority="50" />
             <tag name="kernel.event_listener" event="Symfony\Component\Messenger\Event\WorkerMessageHandledEvent" method="handleWorkerMessageHandledEvent" priority="50" />
         </service>
