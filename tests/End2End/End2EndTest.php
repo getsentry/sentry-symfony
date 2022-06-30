@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\End2End;
 
+use Sentry\Event;
 use Sentry\SentryBundle\Tests\End2End\App\Kernel;
 use Sentry\State\HubInterface;
+use Sentry\State\Scope;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -237,6 +239,34 @@ class End2EndTest extends WebTestCase
         $this->assertLastEventIdIsNull($client);
     }
 
+    public function testMessengerCleanScope(): void
+    {
+        $this->skipIfMessengerIsMissing();
+
+        $client = static::createClient();
+
+        $client->request('GET', '/dispatch-message?foo=bar');
+
+        $response = $client->getResponse();
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
+
+        $this->consumeOneMessage($client->getKernel());
+
+//        $hub = $this->getHub($client);
+
+//        $hub->configureScope(function(Scope $scope) {
+//
+//            $event = $scope->applyToEvent(Event::createEvent());
+
+// no context found, maybe because the fix is working well and has cleaned correctly the hub?
+//            print_r($event->getContexts());
+//        });
+
+        $this->assertLastEventIdIsNull($client);
+    }
+
     private function consumeOneMessage(KernelInterface $kernel): void
     {
         $application = new Application($kernel);
@@ -274,11 +304,7 @@ class End2EndTest extends WebTestCase
 
     private function assertLastEventIdIsNull(KernelBrowser $client): void
     {
-        $container = $client->getContainer();
-        $this->assertNotNull($container);
-
-        $hub = $container->get('test.hub');
-        $this->assertInstanceOf(HubInterface::class, $hub);
+        $hub = $this->getHub($client);
 
         $this->assertNull($hub->getLastEventId(), 'Some error was captured');
     }
@@ -288,5 +314,16 @@ class End2EndTest extends WebTestCase
         if (!interface_exists(MessageBusInterface::class)) {
             $this->markTestSkipped('Messenger missing');
         }
+    }
+
+    protected function getHub(KernelBrowser $client)
+    {
+        $container = $client->getContainer();
+        $this->assertNotNull($container);
+
+        $hub = $container->get('test.hub');
+        $this->assertInstanceOf(HubInterface::class, $hub);
+
+        return $hub;
     }
 }

@@ -43,7 +43,8 @@ final class MessengerListener
         $this->captureSoftFails = $captureSoftFails;
     }
 
-    public function handleWorkerMessageReceivedEvent(WorkerMessageReceivedEvent $event): void {
+    public function handleWorkerMessageReceivedEvent(WorkerMessageReceivedEvent $event): void
+    {
         $this->hub->pushScope();
         $this->scopePushed = true;
     }
@@ -55,6 +56,8 @@ final class MessengerListener
      */
     public function handleWorkerMessageFailedEvent(WorkerMessageFailedEvent $event): void
     {
+        file_put_contents('./log.log', "\nhandleWorkerMessageFailedEvent\n", \FILE_APPEND);
+
         if (!$this->captureSoftFails && $event->willRetry()) {
             return;
         }
@@ -82,7 +85,7 @@ final class MessengerListener
             }
         });
 
-        if($this->scopePushed) {
+        if ($this->scopePushed) {
             $this->hub->popScope();
         }
 
@@ -96,7 +99,9 @@ final class MessengerListener
      */
     public function handleWorkerMessageHandledEvent(WorkerMessageHandledEvent $event): void
     {
-        if($this->scopePushed) {
+        file_put_contents('./log.log', "\nhandleWorkerMessageHandledEvent\n", \FILE_APPEND);
+
+        if ($this->scopePushed) {
             $this->hub->popScope();
         }
 
@@ -104,7 +109,6 @@ final class MessengerListener
         // such as --time=X or --limit=Y. Flush immediately in a background worker.
         $this->flushClient();
     }
-
 
     private function flushClient(): void
     {

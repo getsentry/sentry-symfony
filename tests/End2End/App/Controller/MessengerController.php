@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\End2End\App\Controller;
 
 use Sentry\SentryBundle\Tests\End2End\App\Messenger\FooMessage;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
 
@@ -20,11 +21,12 @@ class MessengerController
         $this->messenger = $messenger;
     }
 
-    public function dispatchMessage(): Response
+    public function dispatchMessage(Request $request): Response
     {
-        $this->messenger->dispatch(new FooMessage());
+        $query = $request->query->all();
+        $this->messenger->dispatch(new FooMessage(true, $query));
 
-        return new Response('Success');
+        return new Response('Success ');
     }
 
     public function dispatchUnrecoverableMessage(): Response

@@ -13,6 +13,7 @@ services:
       - "host.docker.internal:host-gateway"
     environment:
       PHP_IDE_CONFIG: "serverName=Sentry"
+      XDEBUG_MODE: debug # per PHP-FPM
     volumes:
       - .:/home/sentry/projects
       - ~/.composer:/home/sentry/.composer
