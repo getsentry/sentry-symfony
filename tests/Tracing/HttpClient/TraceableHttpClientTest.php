@@ -14,6 +14,8 @@ use Sentry\SentryBundle\Tracing\HttpClient\TraceableHttpClient;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 use Symfony\Contracts\Service\ResetInterface;
@@ -112,6 +114,41 @@ final class TraceableHttpClientTest extends TestCase
             ->method('reset');
 
         $this->httpClient->reset();
+    }
+
+    public function testWithOptions(): void
+    {
+        $transaction = new Transaction(new TransactionContext());
+        $transaction->initSpanRecorder();
+
+        $this->hub->expects($this->exactly(2))
+            ->method('getSpan')
+            ->willReturn($transaction);
+
+        $responses = [
+            new MockResponse(),
+            new MockResponse(),
+        ];
+
+        $decoratedHttpClient = new MockHttpClient($responses, 'https://www.example.com');
+        $httpClient1 = new TraceableHttpClient($decoratedHttpClient, $this->hub);
+        $httpClient2 = $httpClient1->withOptions(['base_uri' => 'https://www.example.org']);
+
+        $this->assertNotSame($httpClient1, $httpClient2);
+
+        $response = $httpClient1->request('GET', 'test-page');
+
+        $this->assertInstanceOf(AbstractTraceableResponse::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame('GET', $response->getInfo('http_method'));
+        $this->assertSame('https://www.example.com/test-page', $response->getInfo('url'));
+
+        $response = $httpClient2->request('GET', 'test-page');
+
+        $this->assertInstanceOf(AbstractTraceableResponse::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame('GET', $response->getInfo('http_method'));
+        $this->assertSame('https://www.example.org/test-page', $response->getInfo('url'));
     }
 
     private static function isHttpClientPackageInstalled(): bool
