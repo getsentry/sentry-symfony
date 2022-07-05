@@ -11,6 +11,7 @@
         <directory name="src" />
         <ignoreFiles>
             <file name="src/Tracing/Doctrine/DBAL/TracingStatementForV2.php" />
+            <file name="src/Tracing/HttpClient/TraceableHttpClientForV4.php" />
             <file name="src/Tracing/HttpClient/TraceableHttpClientForV5.php" />
             <directory name="vendor" />
         </ignoreFiles>

@@ -11,6 +11,7 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\NullLogger;
 use Sentry\SentryBundle\Tracing\HttpClient\AbstractTraceableResponse;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableHttpClient;
+use Sentry\SentryBundle\Tracing\HttpClient\TraceableResponse;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
@@ -153,6 +154,34 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame('GET', $response->getInfo('http_method'));
         $this->assertSame('https://www.example.org/test-page', $response->getInfo('url'));
+    }
+
+    public function testStream(): void
+    {
+        if (!method_exists(MockHttpClient::class, 'stream')) {
+            self::markTestSkipped();
+        }
+
+        $transaction = new Transaction(new TransactionContext());
+        $transaction->initSpanRecorder();
+
+        $mockResponse = MockResponse::fromRequest('GET', 'https://www.example.com', [], new MockResponse('test_body', ['http_code' => 201]));
+        $decoratedHttpClient = new MockHttpClient([$mockResponse], 'https://www.example.com');
+        $httpClient = new TraceableHttpClient($decoratedHttpClient, $this->hub);
+        $response = new TraceableResponse($decoratedHttpClient, $mockResponse, $transaction);
+
+        $stream = $httpClient->stream([$response]);
+        $chunks = iterator_to_array($stream, false);
+
+        $this->assertCount(3, $chunks);
+
+        $this->assertNotNull($transaction->getSpanRecorder());
+        $spans = $transaction->getSpanRecorder()->getSpans();
+        $this->assertCount(1, $spans);
+        $this->assertNotNull($spans[0]->getEndTimestamp());
+
+        $this->assertEquals('test_body', $response->getContent(false));
+        $this->assertEquals(201, $response->getStatusCode());
     }
 
     private static function isHttpClientPackageInstalled(): bool

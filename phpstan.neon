@@ -12,6 +12,7 @@ parameters:
         - src/aliases.php
         - src/Tracing/Doctrine/DBAL/TracingStatementForV2.php
         - src/Tracing/Doctrine/DBAL/TracingDriverForV2.php
+        - src/Tracing/HttpClient/TraceableHttpClientForV4.php
         - src/Tracing/HttpClient/TraceableHttpClientForV5.php
         - tests/End2End/App
         - tests/Tracing/Doctrine/DBAL/TracingDriverForV2Test.php
