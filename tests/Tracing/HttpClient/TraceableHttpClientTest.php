@@ -118,6 +118,10 @@ final class TraceableHttpClientTest extends TestCase
 
     public function testWithOptions(): void
     {
+        if (!method_exists(MockHttpClient::class, 'withOptions')) {
+            self::markTestSkipped();
+        }
+
         $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 

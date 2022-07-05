@@ -50,6 +50,8 @@ sentry:
             enabled: false
         cache:
             enabled: false
+        http_client:
+            enabled: false
         console:
             excluded_commands:
               - app:command

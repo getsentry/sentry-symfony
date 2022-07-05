@@ -18,6 +18,7 @@ use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatement;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatementForV2;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatementForV3;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableHttpClient;
+use Sentry\SentryBundle\Tracing\HttpClient\TraceableHttpClientForV4;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableHttpClientForV5;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableHttpClientForV6;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableResponse;
@@ -62,7 +63,7 @@ if (!class_exists(TracingStatement::class)) {
 if (!class_exists(TraceableResponse::class) && interface_exists(ResponseInterface::class)) {
     if (!interface_exists(StreamableInterface::class)) {
         class_alias(TraceableResponseForV4::class, TraceableResponse::class);
-        class_alias(TraceableHttpClientForV5::class, TraceableHttpClient::class);
+        class_alias(TraceableHttpClientForV4::class, TraceableHttpClient::class);
     } elseif (version_compare(\PHP_VERSION, '8.0', '>=')) {
         class_alias(TraceableResponseForV6::class, TraceableResponse::class);
         class_alias(TraceableHttpClientForV6::class, TraceableHttpClient::class);
