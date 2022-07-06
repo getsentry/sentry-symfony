@@ -30,7 +30,7 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
     /**
      * @var HubInterface
      */
-    private $hub;
+    protected $hub;
 
     public function __construct(HttpClientInterface $client, HubInterface $hub)
     {
@@ -45,6 +45,7 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
     {
         $span = null;
         $parent = $this->hub->getSpan();
+
         if (null !== $parent) {
             $headers = $options['headers'] ?? [];
             $headers['sentry-trace'] = $parent->toTraceparent();
@@ -71,8 +72,6 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
     {
         if ($responses instanceof AbstractTraceableResponse) {
             $responses = [$responses];
-        } elseif (!is_iterable($responses)) {
-            throw new \TypeError(sprintf('"%s()" expects parameter 1 to be an iterable of TraceableResponse objects, "%s" given.', __METHOD__, get_debug_type($responses)));
         }
 
         return new ResponseStream(AbstractTraceableResponse::stream($this->client, $responses, $timeout));

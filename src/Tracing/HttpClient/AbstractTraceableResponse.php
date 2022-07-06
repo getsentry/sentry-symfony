@@ -28,7 +28,7 @@ abstract class AbstractTraceableResponse implements ResponseInterface
     /**
      * @var Span|null
      */
-    private $span;
+    protected $span;
 
     public function __construct(HttpClientInterface $client, ResponseInterface $response, ?Span $span)
     {
@@ -54,7 +54,7 @@ abstract class AbstractTraceableResponse implements ResponseInterface
                 $this->response->__destruct();
             }
         } finally {
-            $this->finish();
+            $this->finishSpan();
         }
     }
 
@@ -73,7 +73,7 @@ abstract class AbstractTraceableResponse implements ResponseInterface
         try {
             return $this->response->getContent($throw);
         } finally {
-            $this->finish();
+            $this->finishSpan();
         }
     }
 
@@ -82,26 +82,28 @@ abstract class AbstractTraceableResponse implements ResponseInterface
         try {
             return $this->response->toArray($throw);
         } finally {
-            $this->finish();
+            $this->finishSpan();
         }
     }
 
     public function cancel(): void
     {
         $this->response->cancel();
-        $this->finish();
+        $this->finishSpan();
     }
 
     /**
      * @internal
      *
+     * @param iterable<AbstractTraceableResponse> $responses
+     *
      * @return \Generator<AbstractTraceableResponse, ChunkInterface>
      */
     public static function stream(HttpClientInterface $client, iterable $responses, ?float $timeout): \Generator
     {
-        $wrappedResponses = [];
         /** @var \SplObjectStorage<ResponseInterface, AbstractTraceableResponse> $traceableMap */
         $traceableMap = new \SplObjectStorage();
+        $wrappedResponses = [];
 
         foreach ($responses as $response) {
             if (!$response instanceof self) {
@@ -112,16 +114,15 @@ abstract class AbstractTraceableResponse implements ResponseInterface
             $wrappedResponses[] = $response->response;
         }
 
-        foreach ($client->stream($wrappedResponses, $timeout) as $r => $chunk) {
-            if (null !== $traceableMap[$r]->span) {
-                $traceableMap[$r]->span->finish();
-            }
+        foreach ($client->stream($wrappedResponses, $timeout) as $response => $chunk) {
+            $traceableResponse = $traceableMap[$response];
+            $traceableResponse->finishSpan();
 
-            yield $traceableMap[$r] => $chunk;
+            yield $traceableResponse => $chunk;
         }
     }
 
-    private function finish(): void
+    private function finishSpan(): void
     {
         if (null !== $this->span) {
             $this->span->finish();
