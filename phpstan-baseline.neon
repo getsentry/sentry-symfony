@@ -161,16 +161,6 @@ parameters:
 			path: src/EventListener/RequestListener.php
 
 		-
-			message: "#^Cannot call method getUser\\(\\) on Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\TokenInterface\\|null\\.$#"
-			count: 1
-			path: src/EventListener/RequestListener.php
-
-		-
-			message: "#^Parameter \\#1 \\$user of method Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListener\\:\\:getUsername\\(\\) expects object\\|string, Symfony\\\\Component\\\\Security\\\\Core\\\\User\\\\UserInterface\\|null given\\.$#"
-			count: 1
-			path: src/EventListener/RequestListener.php
-
-		-
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
 			count: 1
 			path: src/EventListener/SubRequestListener.php
@@ -312,6 +302,21 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$user of method Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\AbstractToken\\:\\:setUser\\(\\) expects Symfony\\\\Component\\\\Security\\\\Core\\\\User\\\\UserInterface, string\\|Stringable\\|Symfony\\\\Component\\\\Security\\\\Core\\\\User\\\\UserInterface given\\.$#"
+			count: 1
+			path: tests/EventListener/RequestListenerTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$roles of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects array\\<string\\>, string given\\.$#"
+			count: 1
+			path: tests/EventListener/RequestListenerTest.php
+
+		-
+			message: "#^Parameter \\#4 \\$originalToken of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\TokenInterface, array\\<int, string\\> given\\.$#"
+			count: 1
+			path: tests/EventListener/RequestListenerTest.php
+
+		-
+			message: "#^Parameter \\#5 \\$originatedFromUri of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects string\\|null, Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\AuthenticatedTokenStub given\\.$#"
 			count: 1
 			path: tests/EventListener/RequestListenerTest.php
 

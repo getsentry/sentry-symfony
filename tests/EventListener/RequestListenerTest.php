@@ -22,6 +22,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\SwitchUserToken;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -51,6 +52,9 @@ final class RequestListenerTest extends TestCase
 
     /**
      * @dataProvider handleKernelRequestEventDataProvider
+     * @dataProvider handleKernelRequestEventForSymfonyVersionLowerThan54DataProvider
+     * @dataProvider handleKernelRequestEventForSymfonyVersionGreaterThan54DataProvider
+     * @dataProvider handleKernelRequestEventForSymfonyVersionLowerThan60DataProvider
      */
     public function testHandleKernelRequestEvent(RequestEvent $requestEvent, ?ClientInterface $client, ?TokenInterface $token, ?UserDataBag $expectedUser): void
     {
@@ -138,46 +142,6 @@ final class RequestListenerTest extends TestCase
             UserDataBag::createFromUserIpAddress('127.0.0.1'),
         ];
 
-        if (version_compare(Kernel::VERSION, '6.0.0', '<')) {
-            yield 'token.authenticated = TRUE && token.user INSTANCEOF string' => [
-                new RequestEvent(
-                    $this->createMock(HttpKernelInterface::class),
-                    new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
-                    HttpKernelInterface::MASTER_REQUEST
-                ),
-                $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-                new AuthenticatedTokenStub('foo_user'),
-                new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
-            ];
-
-            yield 'token.authenticated = TRUE && token.user INSTANCEOF UserInterface && getUserIdentifier() method DOES NOT EXISTS' => [
-                new RequestEvent(
-                    $this->createMock(HttpKernelInterface::class),
-                    new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
-                    HttpKernelInterface::MASTER_REQUEST
-                ),
-                $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-                new AuthenticatedTokenStub(new UserWithoutIdentifierStub()),
-                new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
-            ];
-
-            yield 'token.authenticated = TRUE && token.user INSTANCEOF object && __toString() method EXISTS' => [
-                new RequestEvent(
-                    $this->createMock(HttpKernelInterface::class),
-                    new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
-                    HttpKernelInterface::MASTER_REQUEST
-                ),
-                $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
-                new AuthenticatedTokenStub(new class() implements \Stringable {
-                    public function __toString(): string
-                    {
-                        return 'foo_user';
-                    }
-                }),
-                new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
-            ];
-        }
-
         yield 'token.authenticated = TRUE && token.user INSTANCEOF UserInterface && getUserIdentifier() method EXISTS' => [
             new RequestEvent(
                 $this->createMock(HttpKernelInterface::class),
@@ -198,6 +162,115 @@ final class RequestListenerTest extends TestCase
             $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
             null,
             new UserDataBag(),
+        ];
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function handleKernelRequestEventForSymfonyVersionLowerThan54DataProvider(): \Generator
+    {
+        if (version_compare(Kernel::VERSION, '5.4.0', '>=')) {
+            return;
+        }
+
+        yield 'token.authenticated = TRUE && token INSTANCEOF SwitchUserToken' => [
+            new RequestEvent(
+                $this->createMock(HttpKernelInterface::class),
+                new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
+                HttpKernelInterface::MASTER_REQUEST
+            ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
+            new SwitchUserToken(
+                new UserWithIdentifierStub(),
+                '',
+                'user_provider',
+                ['ROLE_USER'],
+                new AuthenticatedTokenStub(new UserWithIdentifierStub('foo_user_impersonator'))
+            ),
+            UserDataBag::createFromArray([
+                'ip_address' => '127.0.0.1',
+                'username' => 'foo_user',
+                'impersonator_username' => 'foo_user_impersonator',
+            ]),
+        ];
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function handleKernelRequestEventForSymfonyVersionGreaterThan54DataProvider(): \Generator
+    {
+        if (version_compare(Kernel::VERSION, '5.4.0', '<')) {
+            return;
+        }
+
+        yield 'token.authenticated = TRUE && token INSTANCEOF SwitchUserToken' => [
+            new RequestEvent(
+                $this->createMock(HttpKernelInterface::class),
+                new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
+                HttpKernelInterface::MASTER_REQUEST
+            ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
+            new SwitchUserToken(
+                new UserWithIdentifierStub(),
+                'main',
+                ['ROLE_USER'],
+                new AuthenticatedTokenStub(new UserWithIdentifierStub('foo_user_impersonator'))
+            ),
+            UserDataBag::createFromArray([
+                'ip_address' => '127.0.0.1',
+                'username' => 'foo_user',
+                'impersonator_username' => 'foo_user_impersonator',
+            ]),
+        ];
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function handleKernelRequestEventForSymfonyVersionLowerThan60DataProvider(): \Generator
+    {
+        if (version_compare(Kernel::VERSION, '6.0.0', '>=')) {
+            return;
+        }
+
+        yield 'token.authenticated = TRUE && token.user INSTANCEOF string' => [
+            new RequestEvent(
+                $this->createMock(HttpKernelInterface::class),
+                new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
+                HttpKernelInterface::MASTER_REQUEST
+            ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
+            new AuthenticatedTokenStub('foo_user'),
+            new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
+        ];
+
+        yield 'token.authenticated = TRUE && token.user INSTANCEOF UserInterface && getUserIdentifier() method DOES NOT EXISTS' => [
+            new RequestEvent(
+                $this->createMock(HttpKernelInterface::class),
+                new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
+                HttpKernelInterface::MASTER_REQUEST
+            ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
+            new AuthenticatedTokenStub(new UserWithoutIdentifierStub()),
+            new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
+        ];
+
+        yield 'token.authenticated = TRUE && token.user INSTANCEOF object && __toString() method EXISTS' => [
+            new RequestEvent(
+                $this->createMock(HttpKernelInterface::class),
+                new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
+                HttpKernelInterface::MASTER_REQUEST
+            ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
+            new AuthenticatedTokenStub(new class() implements \Stringable {
+                public function __toString(): string
+                {
+                    return 'foo_user';
+                }
+            }),
+            new UserDataBag(null, null, '127.0.0.1', 'foo_user'),
         ];
     }
 
