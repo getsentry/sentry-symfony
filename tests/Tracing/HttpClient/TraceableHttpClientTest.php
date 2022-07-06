@@ -31,7 +31,7 @@ final class TraceableHttpClientTest extends TestCase
     /**
      * @var MockObject&HttpClientInterface&LoggerAwareInterface&ResetInterface
      */
-    private $client;
+    private $decoratedHttpClient;
 
     /**
      * @var TraceableHttpClient
@@ -48,8 +48,8 @@ final class TraceableHttpClientTest extends TestCase
     protected function setUp(): void
     {
         $this->hub = $this->createMock(HubInterface::class);
-        $this->client = $this->createMock(TestableHttpClientInterface::class);
-        $this->httpClient = new TraceableHttpClient($this->client, $this->hub);
+        $this->decoratedHttpClient = $this->createMock(TestableHttpClientInterface::class);
+        $this->httpClient = new TraceableHttpClient($this->decoratedHttpClient, $this->hub);
     }
 
     public function testRequest(): void
@@ -62,7 +62,7 @@ final class TraceableHttpClientTest extends TestCase
             ->willReturn($transaction);
 
         $response = $this->createMock(ResponseInterface::class);
-        $this->client->expects($this->once())
+        $this->decoratedHttpClient->expects($this->once())
             ->method('request')
             ->with('POST', 'http://www.example.org/test-page', new Callback(function ($value) use ($transaction) {
                 $this->assertArrayHasKey('headers', $value);
@@ -102,16 +102,17 @@ final class TraceableHttpClientTest extends TestCase
     public function testSetLoggerShouldBeForwardedToDecoratedInstance(): void
     {
         $logger = new NullLogger();
-        $this->client->expects($this->once())
+
+        $this->decoratedHttpClient->expects($this->once())
             ->method('setLogger')
             ->with($logger);
 
         $this->httpClient->setLogger($logger);
     }
 
-    public function testResetCallShouldBeForwardedToDecoratedInstance(): void
+    public function testReset(): void
     {
-        $this->client->expects($this->once())
+        $this->decoratedHttpClient->expects($this->once())
             ->method('reset');
 
         $this->httpClient->reset();
