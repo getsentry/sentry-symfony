@@ -37,16 +37,6 @@ abstract class AbstractTraceableResponse implements ResponseInterface
         $this->span = $span;
     }
 
-    public function __sleep(): array
-    {
-        throw new \BadMethodCallException('Cannot serialize ' . __CLASS__);
-    }
-
-    public function __wakeup()
-    {
-        throw new \BadMethodCallException('Cannot unserialize ' . __CLASS__);
-    }
-
     public function __destruct()
     {
         try {
@@ -56,6 +46,16 @@ abstract class AbstractTraceableResponse implements ResponseInterface
         } finally {
             $this->finishSpan();
         }
+    }
+
+    public function __sleep(): array
+    {
+        throw new \BadMethodCallException('Serializing instances of this class is forbidden.');
+    }
+
+    public function __wakeup()
+    {
+        throw new \BadMethodCallException('Unserializing instances of this class is forbidden.');
     }
 
     public function getStatusCode(): int

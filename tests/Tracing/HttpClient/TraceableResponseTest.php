@@ -6,23 +6,19 @@ namespace Sentry\SentryBundle\Tests\Tracing\HttpClient;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Sentry\SentryBundle\Tests\Tracing\HttpClient\Fixtures\DestructibleResponseInterface;
 use Sentry\SentryBundle\Tests\Tracing\HttpClient\Fixtures\StreamableResponseInterface;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableResponse;
 use Sentry\State\HubInterface;
+use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Symfony\Contracts\HttpClient\ResponseInterface;
 
 final class TraceableResponseTest extends TestCase
 {
-    /**
-     * @var MockObject&ResponseInterface
-     */
-    private $mockedResponse;
-
     /**
      * @var MockObject&HttpClientInterface
      */
@@ -31,30 +27,27 @@ final class TraceableResponseTest extends TestCase
     /**
      * @var MockObject&HubInterface
      */
-    protected $hub;
-
-    /**
-     * @var TraceableResponse
-     */
-    private $response;
+    private $hub;
 
     protected function setUp(): void
     {
-        $this->mockedResponse = $this->createMock(ResponseInterface::class);
         $this->client = $this->createMock(HttpClientInterface::class);
         $this->hub = $this->createMock(HubInterface::class);
-        $this->response = new TraceableResponse($this->client, $this->mockedResponse, null);
     }
 
-    public function testCannotBeSerialized(): void
+    public function testInstanceCannotBeSerialized(): void
     {
         $this->expectException(\BadMethodCallException::class);
-        serialize($this->response);
+        $this->expectExceptionMessage('Serializing instances of this class is forbidden.');
+
+        serialize(new TraceableResponse($this->client, new MockResponse(), null));
     }
 
-    public function testCannotBeDeserialized(): void
+    public function testInstanceCannotBeUnserialized(): void
     {
         $this->expectException(\BadMethodCallException::class);
+        $this->expectExceptionMessage('Unserializing instances of this class is forbidden.');
+
         unserialize(sprintf('O:%u:"%s":0:{}', \strlen(TraceableResponse::class), TraceableResponse::class));
     }
 
@@ -63,16 +56,10 @@ final class TraceableResponseTest extends TestCase
         $transaction = new Transaction(new TransactionContext(), $this->hub);
         $context = new SpanContext();
         $span = $transaction->startChild($context);
-
-        $this->mockedResponse = $this->createMock(DestructibleResponseInterface::class);
-        $this->mockedResponse
-            ->expects($this->once())
-            ->method('__destruct');
-
-        $this->response = new TraceableResponse($this->client, $this->mockedResponse, $span);
+        $response = new TraceableResponse($this->client, new MockResponse(), $span);
 
         // Call gc to invoke destructors at the right time.
-        unset($this->response);
+        unset($response);
 
         gc_mem_caches();
         gc_collect_cycles();
@@ -80,77 +67,68 @@ final class TraceableResponseTest extends TestCase
         $this->assertNotNull($span->getEndTimestamp());
     }
 
-    public function testGetHeaders(): void
-    {
-        $this->mockedResponse
-            ->expects($this->once())
-            ->method('getHeaders')
-            ->with(true);
-
-        $this->response->getHeaders(true);
-    }
-
     public function testGetStatusCode(): void
     {
-        $this->mockedResponse
-            ->expects($this->once())
-            ->method('getStatusCode');
+        $response = new TraceableResponse($this->client, new MockResponse(), null);
 
-        $this->response->getStatusCode();
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    public function testGetHeaders(): void
+    {
+        $expectedHeaders = ['content-length' => ['0']];
+        $response = new TraceableResponse($this->client, new MockResponse('', ['response_headers' => $expectedHeaders]), null);
+
+        $this->assertSame($expectedHeaders, $response->getHeaders());
     }
 
     public function testGetContent(): void
     {
-        $this->mockedResponse
-            ->expects($this->once())
-            ->method('getContent')
-            ->with(false);
+        $span = new Span();
+        $httpClient = new MockHttpClient(new MockResponse('foobar'));
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', '/'), $span);
 
-        $this->response->getContent(false);
+        $this->assertSame('foobar', $response->getContent());
+        $this->assertNotNull($span->getEndTimestamp());
     }
 
     public function testToArray(): void
     {
-        $this->mockedResponse
-            ->expects($this->once())
-            ->method('toArray')
-            ->with(false);
+        $span = new Span();
+        $httpClient = new MockHttpClient(new MockResponse('{"foo":"bar"}'));
+        $response = new TraceableResponse($this->client, $httpClient->request('GET', '/'), $span);
 
-        $this->response->toArray(false);
+        $this->assertSame(['foo' => 'bar'], $response->toArray());
+        $this->assertNotNull($span->getEndTimestamp());
     }
 
     public function testCancel(): void
     {
-        $this->mockedResponse
-            ->expects($this->once())
-            ->method('cancel');
+        $span = new Span();
+        $response = new TraceableResponse($this->client, new MockResponse(), $span);
 
-        $this->response->cancel();
+        $response->cancel();
+
+        $this->assertTrue($response->getInfo('canceled'));
+        $this->assertNotNull($span->getEndTimestamp());
     }
 
     public function testGetInfo(): void
     {
-        $this->mockedResponse
-            ->expects($this->once())
-            ->method('getInfo')
-            ->with('type');
+        $response = new TraceableResponse($this->client, new MockResponse(), null);
 
-        $this->response->getInfo('type');
+        $this->assertSame(200, $response->getInfo('http_code'));
     }
 
     public function testToStream(): void
     {
-        if (!method_exists($this->response, 'toStream')) {
-            self::markTestSkipped('Response toStream method is not existent in this version of http-client');
+        $httpClient = new MockHttpClient(new MockResponse('foobar'));
+        $response = new TraceableResponse($this->client, $httpClient->request('GET', '/'), null);
+
+        if (!method_exists($response, 'toStream')) {
+            $this->markTestSkipped('The TraceableResponse::toStream() method is not supported');
         }
 
-        $this->mockedResponse = $this->createMock(StreamableResponseInterface::class);
-        $this->mockedResponse
-            ->expects($this->once())
-            ->method('toStream')
-            ->with(false);
-
-        $this->response = new TraceableResponse($this->client, $this->mockedResponse, null);
-        $this->response->toStream(false);
+        $this->assertSame('foobar', stream_get_contents($response->toStream()));
     }
 }
