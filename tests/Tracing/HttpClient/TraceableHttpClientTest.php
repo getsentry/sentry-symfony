@@ -87,6 +87,7 @@ final class TraceableHttpClientTest extends TestCase
 
         $response->getContent(false);
 
+        $this->assertNotNull($transaction->getSpanRecorder());
         $spans = $transaction->getSpanRecorder()->getSpans();
         $this->assertCount(2, $spans);
         $this->assertNotNull($spans[1]->getEndTimestamp());
@@ -118,6 +119,7 @@ final class TraceableHttpClientTest extends TestCase
             $chunks[] = $chunk->getContent();
         }
 
+        $this->assertNotNull($transaction->getSpanRecorder());
         $spans = $transaction->getSpanRecorder()->getSpans();
         $expectedTags = [
             'http.method' => 'GET',
