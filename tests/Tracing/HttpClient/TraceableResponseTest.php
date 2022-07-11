@@ -6,7 +6,6 @@ namespace Sentry\SentryBundle\Tests\Tracing\HttpClient;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Sentry\SentryBundle\Tests\Tracing\HttpClient\Fixtures\StreamableResponseInterface;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableResponse;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\Span;
@@ -86,7 +85,7 @@ final class TraceableResponseTest extends TestCase
     {
         $span = new Span();
         $httpClient = new MockHttpClient(new MockResponse('foobar'));
-        $response = new TraceableResponse($httpClient, $httpClient->request('GET', '/'), $span);
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span);
 
         $this->assertSame('foobar', $response->getContent());
         $this->assertNotNull($span->getEndTimestamp());
@@ -96,7 +95,7 @@ final class TraceableResponseTest extends TestCase
     {
         $span = new Span();
         $httpClient = new MockHttpClient(new MockResponse('{"foo":"bar"}'));
-        $response = new TraceableResponse($this->client, $httpClient->request('GET', '/'), $span);
+        $response = new TraceableResponse($this->client, $httpClient->request('GET', 'https://www.example.org/'), $span);
 
         $this->assertSame(['foo' => 'bar'], $response->toArray());
         $this->assertNotNull($span->getEndTimestamp());
@@ -123,7 +122,7 @@ final class TraceableResponseTest extends TestCase
     public function testToStream(): void
     {
         $httpClient = new MockHttpClient(new MockResponse('foobar'));
-        $response = new TraceableResponse($this->client, $httpClient->request('GET', '/'), null);
+        $response = new TraceableResponse($this->client, $httpClient->request('GET', 'https://www.example.org/'), null);
 
         if (!method_exists($response, 'toStream')) {
             $this->markTestSkipped('The TraceableResponse::toStream() method is not supported');
