@@ -142,6 +142,13 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame(1, $loopIndex);
     }
 
+    public function testStreamShouldThrowOnWrongParameterType(): void
+    {
+        $this->expectException(\TypeError::class);
+        $this->expectExceptionMessage('"Sentry\SentryBundle\Tracing\HttpClient\AbstractTraceableHttpClient::stream()" expects parameter 1 to be an iterable of TraceableResponse objects, "stdClass" given.');
+        $this->httpClient->stream(new \stdClass());
+    }
+
     public function testSetLoggerShouldBeForwardedToDecoratedInstance(): void
     {
         $logger = new NullLogger();

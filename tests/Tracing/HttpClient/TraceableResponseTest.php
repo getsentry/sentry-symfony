@@ -15,6 +15,7 @@ use Sentry\Tracing\TransactionContext;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 final class TraceableResponseTest extends TestCase
 {
@@ -129,5 +130,14 @@ final class TraceableResponseTest extends TestCase
         }
 
         $this->assertSame('foobar', stream_get_contents($response->toStream()));
+    }
+
+    public function testStreamWithWrongObjectsShouldThrow(): void
+    {
+        $httpClient = new MockHttpClient(new MockResponse('foobar'));
+        $response = $this->createMock(ResponseInterface::class);
+
+        $this->expectException(\TypeError::class);
+        iterator_to_array(TraceableResponse::stream($httpClient, [$response], null));
     }
 }

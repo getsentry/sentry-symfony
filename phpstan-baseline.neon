@@ -286,6 +286,16 @@ parameters:
 			path: src/Tracing/HttpClient/TraceableHttpClientForV6.php
 
 		-
+			message: "#^Parameter \\#1 $responses of method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableHttpClient::stream\\(\\) expects iterable<\\(int\\|string\\), Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface>|Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface, stdClass given\\.$#"
+			count: 1
+			path: tests/Tracing/HttpClient/TraceableHttpClientTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$responses of static method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableResponse::stream\\(\\) expects iterable<Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableResponse>, array<int, PHPUnit\\\\Framework\\\\MockObject\\\\MockObject&Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface> given\\.$#"
+			count: 1
+			path: tests/Tracing/HttpClient/TraceableResponseTest.php
+
+		-
 			message: "#^Class Symfony\\\\Component\\\\Debug\\\\Exception\\\\FatalErrorException not found\\.$#"
 			count: 1
 			path: tests/DependencyInjection/SentryExtensionTest.php
