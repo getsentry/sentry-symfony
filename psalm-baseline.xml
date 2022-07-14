@@ -50,6 +50,16 @@
       <code>$params</code>
     </MoreSpecificImplementedParamType>
   </file>
+  <file src="src/Tracing/HttpClient/TraceableResponseForV5.php">
+    <UndefinedInterfaceMethod occurrences="1">
+      <code>toStream</code>
+    </UndefinedInterfaceMethod>
+  </file>
+  <file src="src/Tracing/HttpClient/TraceableResponseForV6.php">
+    <UndefinedInterfaceMethod occurrences="1">
+      <code>toStream</code>
+    </UndefinedInterfaceMethod>
+  </file>
   <file src="src/aliases.php">
     <MissingDependency occurrences="1">
       <code>TracingDriverForV2</code>
@@ -62,5 +72,24 @@
       <code>GetResponseForExceptionEvent</code>
       <code>PostResponseEvent</code>
     </UndefinedClass>
+  </file>
+  <file src="src/DependencyInjection/Compiler/CacheTracingPass.php">
+    <UndefinedDocblockClass occurrences="1">
+      <code>$container-&gt;getParameter('sentry.tracing.cache.enabled')</code>
+    </UndefinedDocblockClass>
+  </file>
+  <file src="src/DependencyInjection/Compiler/HttpClientTracingPass.php">
+    <UndefinedDocblockClass occurrences="2">
+      <code>$container-&gt;getParameter('sentry.tracing.enabled')</code>
+      <code>$container-&gt;getParameter('sentry.tracing.http_client.enabled')</code>
+    </UndefinedDocblockClass>
+  </file>
+  <file src="src/DependencyInjection/Compiler/DbalTracingPass.php">
+    <UndefinedDocblockClass occurrences="4">
+      <code>$container-&gt;getParameter('sentry.tracing.enabled')</code>
+      <code>$container-&gt;getParameter('sentry.tracing.dbal.enabled')</code>
+      <code>$container-&gt;getParameter('sentry.tracing.dbal.connections')</code>
+      <code>$container-&gt;getParameter('doctrine.connections')</code>
+    </UndefinedDocblockClass>
   </file>
 </files>

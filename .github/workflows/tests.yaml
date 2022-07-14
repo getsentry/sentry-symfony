@@ -63,6 +63,10 @@ jobs:
       - name: Setup Problem Matchers for PHPUnit
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
+      - name: Update PHPUnit
+        run: composer require --dev phpunit/phpunit ^9.3.9 --no-update
+        if: matrix.php == '8.0' && matrix.dependencies == 'lowest'
+
       - name: Install dependencies
         uses: ramsey/composer-install@v1
         with:
@@ -112,7 +116,7 @@ jobs:
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
       - name: Remove optional packages
-        run: composer remove doctrine/dbal doctrine/doctrine-bundle symfony/messenger symfony/twig-bundle symfony/cache --dev --no-update
+        run: composer remove doctrine/dbal doctrine/doctrine-bundle symfony/messenger symfony/twig-bundle symfony/cache symfony/http-client --dev --no-update
 
       - name: Install dependencies
         uses: ramsey/composer-install@v1

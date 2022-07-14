@@ -14,6 +14,7 @@ use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final class Configuration implements ConfigurationInterface
@@ -183,6 +184,9 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                         ->arrayNode('cache')
                             ->{class_exists(CacheItem::class) ? 'canBeDisabled' : 'canBeEnabled'}()
+                        ->end()
+                        ->arrayNode('http_client')
+                            ->{class_exists(HttpClient::class) ? 'canBeDisabled' : 'canBeEnabled'}()
                         ->end()
                         ->arrayNode('console')
                             ->addDefaultsIfNotSet()

@@ -37,6 +37,7 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\ErrorHandler\Error\FatalError;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
 final class SentryExtension extends ConfigurableExtension
@@ -74,6 +75,7 @@ final class SentryExtension extends ConfigurableExtension
         $this->registerDbalTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerTwigTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerCacheTracingConfiguration($container, $mergedConfig['tracing']);
+        $this->registerHttpClientTracingConfiguration($container, $mergedConfig['tracing']);
     }
 
     /**
@@ -245,6 +247,21 @@ final class SentryExtension extends ConfigurableExtension
         }
 
         $container->setParameter('sentry.tracing.cache.enabled', $isConfigEnabled);
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function registerHttpClientTracingConfiguration(ContainerBuilder $container, array $config): void
+    {
+        $isConfigEnabled = $this->isConfigEnabled($container, $config)
+            && $this->isConfigEnabled($container, $config['http_client']);
+
+        if ($isConfigEnabled && !class_exists(HttpClient::class)) {
+            throw new LogicException('Http client tracing support cannot be enabled because the symfony/http-client Composer package is not installed.');
+        }
+
+        $container->setParameter('sentry.tracing.http_client.enabled', $isConfigEnabled);
     }
 
     /**
