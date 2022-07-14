@@ -106,6 +106,11 @@ parameters:
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
+			message: "#^Parameter \\#2 \\$config of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:registerHttpClientTracingConfiguration\\(\\) expects array\\<string, mixed\\>, mixed given\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
 			message: "#^Parameter \\#2 \\$config of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:registerMessengerListenerConfiguration\\(\\) expects array\\<string, mixed\\>, mixed given\\.$#"
 			count: 1
 			path: src/DependencyInjection/SentryExtension.php
@@ -132,11 +137,6 @@ parameters:
 
 		-
 			message: "#^Parameter \\#2 \\$useDefaultIntegrations of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:configureRequestIntegration\\(\\) expects bool, mixed given\\.$#"
-			count: 1
-			path: src/DependencyInjection/SentryExtension.php
-
-		-
-			message: "#^Parameter \\#2 \\$config of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:registerHttpClientTracingConfiguration\\(\\) expects array<string, mixed>, mixed given\\.$#"
 			count: 1
 			path: src/DependencyInjection/SentryExtension.php
 
@@ -241,6 +241,31 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingStatementForV3.php
 
 		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableHttpClient\\:\\:request\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Tracing/HttpClient/AbstractTraceableHttpClient.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableResponse\\:\\:toArray\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Tracing/HttpClient/AbstractTraceableResponse.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\TraceableHttpClientForV6\\:\\:withOptions\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Tracing/HttpClient/TraceableHttpClientForV6.php
+
+		-
+			message: "#^Call to an undefined method Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface\\:\\:toStream\\(\\)\\.$#"
+			count: 1
+			path: src/Tracing/HttpClient/TraceableResponseForV5.php
+
+		-
+			message: "#^Call to an undefined method Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface\\:\\:toStream\\(\\)\\.$#"
+			count: 1
+			path: src/Tracing/HttpClient/TraceableResponseForV6.php
+
+		-
 			message: "#^Cannot access offset 'sample_rate' on mixed\\.$#"
 			count: 1
 			path: tests/DependencyInjection/ConfigurationTest.php
@@ -269,31 +294,6 @@ parameters:
 			message: "#^Cannot access offset 'integrations' on mixed\\.$#"
 			count: 1
 			path: tests/DependencyInjection/SentryExtensionTest.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableHttpClient::request\\(\\) has parameter \\$options with no value type specified in iterable type array.$#"
-			count: 1
-			path: src/Tracing/HttpClient/AbstractTraceableHttpClient.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableResponse::toArray\\(\\) return type has no value type specified in iterable type array.$#"
-			count: 1
-			path: src/Tracing/HttpClient/AbstractTraceableResponse.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\TraceableHttpClientForV6::withOptions\\(\\) has parameter \\$options with no value type specified in iterable type array.$#"
-			count: 1
-			path: src/Tracing/HttpClient/TraceableHttpClientForV6.php
-
-		-
-			message: "#^Parameter \\#1 $responses of method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableHttpClient::stream\\(\\) expects iterable<\\(int\\|string\\), Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface>|Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface, stdClass given\\.$#"
-			count: 1
-			path: tests/Tracing/HttpClient/TraceableHttpClientTest.php
-
-		-
-			message: "#^Parameter \\#2 \\$responses of static method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableResponse::stream\\(\\) expects iterable<Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableResponse>, array<int, PHPUnit\\\\Framework\\\\MockObject\\\\MockObject&Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface> given\\.$#"
-			count: 1
-			path: tests/Tracing/HttpClient/TraceableResponseTest.php
 
 		-
 			message: "#^Class Symfony\\\\Component\\\\Debug\\\\Exception\\\\FatalErrorException not found\\.$#"
@@ -441,11 +441,11 @@ parameters:
 			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
 
 		-
-			message: "#^Call to an undefined method Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface::toStream\\(\\)\\.$#"
+			message: "#^Parameter \\#1 \\$responses of method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableHttpClient\\:\\:stream\\(\\) expects iterable\\<\\(int\\|string\\), Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface\\>\\|Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface, stdClass given\\.$#"
 			count: 1
-			path: src/Tracing/HttpClient/TraceableResponseForV5.php
+			path: tests/Tracing/HttpClient/TraceableHttpClientTest.php
 
 		-
-			message: "#^Call to an undefined method Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface::toStream\\(\\)\\.$#"
+			message: "#^Parameter \\#2 \\$responses of static method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableResponse\\:\\:stream\\(\\) expects iterable\\<Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableResponse\\>, array\\<int, stdClass\\> given\\.$#"
 			count: 1
-			path: src/Tracing/HttpClient/TraceableResponseForV6.php
+			path: tests/Tracing/HttpClient/TraceableResponseTest.php

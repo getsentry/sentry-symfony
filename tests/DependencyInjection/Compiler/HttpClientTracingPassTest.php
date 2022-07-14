@@ -7,10 +7,8 @@ namespace Sentry\SentryBundle\Tests\DependencyInjection\Compiler;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\Compiler\HttpClientTracingPass;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableHttpClient;
-use Sentry\State\HubAdapter;
 use Sentry\State\HubInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -23,47 +21,61 @@ final class HttpClientTracingPassTest extends TestCase
         }
     }
 
-    /**
-     * @param array<string, mixed> $params
-     *
-     * @dataProvider provideDisableContainerParameters
-     */
-    public function testShouldNotDecorateHttpClientServicesIfDisabled(array $params): void
+    public function testProcess(): void
     {
-        $container = new ContainerBuilder(new ParameterBag($params));
+        $container = $this->createContainerBuilder(true, true);
+        $container->compile();
+
+        $this->assertSame(TraceableHttpClient::class, $container->findDefinition('http.client')->getClass());
+    }
+
+    /**
+     * @dataProvider processDoesNothingIfConditionsForEnablingTracingAreMissingDataProvider
+     */
+    public function testProcessDoesNothingIfConditionsForEnablingTracingAreMissing(bool $isTracingEnabled, bool $isHttpClientTracingEnabled): void
+    {
+        $container = $this->createContainerBuilder($isTracingEnabled, $isHttpClientTracingEnabled);
+        $container->compile();
+
+        $this->assertSame(HttpClient::class, $container->getDefinition('http.client')->getClass());
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function processDoesNothingIfConditionsForEnablingTracingAreMissingDataProvider(): \Generator
+    {
+        yield [
+            true,
+            false,
+        ];
+
+        yield [
+            false,
+            false,
+        ];
+
+        yield [
+            false,
+            true,
+        ];
+    }
+
+    private function createContainerBuilder(bool $isTracingEnabled, bool $isHttpClientTracingEnabled): ContainerBuilder
+    {
+        $container = new ContainerBuilder();
+        $container->addCompilerPass(new HttpClientTracingPass());
+        $container->setParameter('sentry.tracing.enabled', $isTracingEnabled);
+        $container->setParameter('sentry.tracing.http_client.enabled', $isHttpClientTracingEnabled);
+
+        $container->register(HubInterface::class, HubInterface::class)
+            ->setPublic(true);
+
         $container->register('http.client', HttpClient::class)
             ->setPublic(true)
             ->addTag('http_client.client');
 
-        $container->addCompilerPass(new HttpClientTracingPass());
-        $container->compile();
-
-        $this->assertEquals(HttpClient::class, $container->getDefinition('http.client')->getClass());
-    }
-
-    /**
-     * @return iterable<mixed[]>
-     */
-    public function provideDisableContainerParameters(): iterable
-    {
-        yield [['sentry.tracing.enabled' => true, 'sentry.tracing.http_client.enabled' => false]];
-        yield [['sentry.tracing.enabled' => false, 'sentry.tracing.http_client.enabled' => false]];
-        yield [['sentry.tracing.enabled' => false, 'sentry.tracing.http_client.enabled' => true]];
-    }
-
-    public function testShouldDecorateHttpClients(): void
-    {
-        $container = new ContainerBuilder(new ParameterBag(['sentry.tracing.enabled' => true, 'sentry.tracing.http_client.enabled' => true]));
-        $container->register(HubInterface::class)
-            ->setFactory([HubAdapter::class, 'getInstance']);
-        $container->register('http.client', HttpClient::class)
-            ->setPublic(true)
-            ->addTag('http_client.client');
-
-        $container->addCompilerPass(new HttpClientTracingPass());
-        $container->compile();
-
-        $this->assertEquals(TraceableHttpClient::class, $container->findDefinition('http.client')->getClass());
+        return $container;
     }
 
     private static function isHttpClientPackageInstalled(): bool
