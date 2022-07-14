@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\Tracing\HttpClient;
 
-use PHPUnit\Framework\Constraint\Callback;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerAwareInterface;
@@ -17,7 +16,6 @@ use Sentry\Tracing\TransactionContext;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Symfony\Contracts\HttpClient\ResponseInterface;
 use Symfony\Contracts\Service\ResetInterface;
 
 final class TraceableHttpClientTest extends TestCase
@@ -28,7 +26,7 @@ final class TraceableHttpClientTest extends TestCase
     private $hub;
 
     /**
-     * @var MockObject&HttpClientInterface&LoggerAwareInterface&ResetInterface
+     * @var MockObject&TestableHttpClientInterface
      */
     private $decoratedHttpClient;
 
@@ -60,43 +58,29 @@ final class TraceableHttpClientTest extends TestCase
             ->method('getSpan')
             ->willReturn($transaction);
 
-        $response = $this->createMock(ResponseInterface::class);
-        $this->decoratedHttpClient->expects($this->once())
-            ->method('request')
-            ->with('POST', 'http://www.example.org/test-page', new Callback(function ($value) use ($transaction) {
-                $this->assertArrayHasKey('headers', $value);
-
-                return ['sentry-trace' => $transaction->toTraceparent()] === $value['headers'];
-            }))
-            ->willReturn($response);
-
-        $response = $this->httpClient->request('POST', 'http://www.example.org/test-page', []);
+        $mockResponse = new MockResponse();
+        $decoratedHttpClient = new MockHttpClient($mockResponse);
+        $httpClient = new TraceableHttpClient($decoratedHttpClient, $this->hub);
+        $response = $httpClient->request('GET', 'https://www.example.com/test-page');
 
         $this->assertInstanceOf(AbstractTraceableResponse::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame('GET', $response->getInfo('http_method'));
+        $this->assertSame('https://www.example.com/test-page', $response->getInfo('url'));
+        $this->assertSame(['sentry-trace: ' . $transaction->toTraceparent()], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
         $this->assertNotNull($transaction->getSpanRecorder());
+
         $spans = $transaction->getSpanRecorder()->getSpans();
+        $expectedTags = [
+            'http.method' => 'GET',
+            'http.url' => 'https://www.example.com/test-page',
+        ];
 
         $this->assertCount(2, $spans);
         $this->assertNull($spans[1]->getEndTimestamp());
         $this->assertSame('http.client', $spans[1]->getOp());
-        $this->assertSame('HTTP POST', $spans[1]->getDescription());
-        $this->assertSame([
-            'http.method' => 'POST',
-            'http.url' => 'http://www.example.org/test-page',
-        ], $spans[1]->getTags());
-
-        $response->getContent(false);
-
-        $this->assertNotNull($transaction->getSpanRecorder());
-        $spans = $transaction->getSpanRecorder()->getSpans();
-        $this->assertCount(2, $spans);
-        $this->assertNotNull($spans[1]->getEndTimestamp());
-        $this->assertSame('http.client', $spans[1]->getOp());
-        $this->assertSame('HTTP POST', $spans[1]->getDescription());
-        $this->assertSame([
-            'http.method' => 'POST',
-            'http.url' => 'http://www.example.org/test-page',
-        ], $spans[1]->getTags());
+        $this->assertSame('HTTP GET', $spans[1]->getDescription());
+        $this->assertSame($expectedTags, $spans[1]->getTags());
     }
 
     public function testStream(): void
@@ -120,6 +104,7 @@ final class TraceableHttpClientTest extends TestCase
         }
 
         $this->assertNotNull($transaction->getSpanRecorder());
+
         $spans = $transaction->getSpanRecorder()->getSpans();
         $expectedTags = [
             'http.method' => 'GET',
@@ -142,14 +127,15 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame(1, $loopIndex);
     }
 
-    public function testStreamShouldThrowOnWrongParameterType(): void
+    public function testStreamThrowsExceptionIfResponsesArgumentIsInvalid(): void
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('"Sentry\SentryBundle\Tracing\HttpClient\AbstractTraceableHttpClient::stream()" expects parameter 1 to be an iterable of TraceableResponse objects, "stdClass" given.');
+        $this->expectExceptionMessage('"Sentry\\SentryBundle\\Tracing\\HttpClient\\AbstractTraceableHttpClient::stream()" expects parameter 1 to be an iterable of TraceableResponse objects, "stdClass" given.');
+
         $this->httpClient->stream(new \stdClass());
     }
 
-    public function testSetLoggerShouldBeForwardedToDecoratedInstance(): void
+    public function testSetLogger(): void
     {
         $logger = new NullLogger();
 
