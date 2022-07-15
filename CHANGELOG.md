@@ -3,9 +3,11 @@
 ## Unreleased
 
 - Add support for tracing of the Symfony HTTP client requests (#606)
+- Support logging the impersonator user, if any (#647)
 
 ## 4.3.0 (2022-05-30)
-- Fix compatibility issue with Symfony >= 6.1.0 (#635)
+
+- Fix compatibility issue with Symfony `>= 6.1.0` (#635)
 - Add `TracingDriverConnectionInterface::getNativeConnection()` method to get the original driver connection (#597)
 - Add `options.http_timeout` and `options.http_connect_timeout` configuration options (#593)
 

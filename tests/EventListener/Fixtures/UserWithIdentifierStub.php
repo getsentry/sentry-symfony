@@ -8,6 +8,16 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 final class UserWithIdentifierStub implements UserInterface
 {
+    /**
+     * @var string
+     */
+    private $username;
+
+    public function __construct(string $username = 'foo_user')
+    {
+        $this->username = $username;
+    }
+
     public function getUserIdentifier(): string
     {
         return $this->getUsername();
@@ -15,7 +25,7 @@ final class UserWithIdentifierStub implements UserInterface
 
     public function getUsername(): string
     {
-        return 'foo_user';
+        return $this->username;
     }
 
     public function getRoles(): array
