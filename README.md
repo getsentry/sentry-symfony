@@ -4,31 +4,28 @@
   </a>
 </p>
 
-# sentry-symfony
-
-Symfony integration for [Sentry](https://getsentry.com/).
+# Official Sentry SDK for Symfony
 
 [![Stable release][Last stable image]][Packagist link]
+[![License](https://poser.pugx.org/sentry/sentry/license)](https://packagist.org/packages/sentry/sentry)
 [![Total Downloads](https://poser.pugx.org/sentry/sentry/downloads)](https://packagist.org/packages/sentry/sentry)
 [![Monthly Downloads](https://poser.pugx.org/sentry/sentry/d/monthly)](https://packagist.org/packages/sentry/sentry)
-[![License](https://poser.pugx.org/sentry/sentry/license)](https://packagist.org/packages/sentry/sentry)
 
 ![CI](https://github.com/getsentry/sentry-symfony/workflows/CI/badge.svg) [![Coverage Status][Master Code Coverage Image]][Master Code Coverage]
 [![Discord](https://img.shields.io/discord/621778831602221064)](https://discord.gg/cWnMQeA)
 
-## Benefits
+This is the official Symfony SDK for [Sentry](https://getsentry.com/).
 
-Use `sentry-symfony` for:
+## Getting Started
 
- * A fast Sentry setup
- * Easy configuration in your Symfony app
- * Automatic wiring in your app. Each event has the following things added automatically to it:
-   - user
-   - Symfony environment
-   - app path
-   - excluded paths (cache and vendor)
+Using this `sentry-symfony` SDK provides you with the following benefits:
 
-## Installation
+ * Quickly integrate and configure Sentry for your Symfony app
+ * Out of the box, each event will contain the following data by default 
+   - The currently authenticated user
+   - The Symfony environment
+
+### Install
 
 To install the SDK you will need to be using [Composer]([https://getcomposer.org/)
 in your project. To install it please see the [docs](https://getcomposer.org/download/).
@@ -37,7 +34,7 @@ in your project. To install it please see the [docs](https://getcomposer.org/dow
 composer require sentry/sentry-symfony
 ```
 
-If you're using the [Symfony Flex](https://symfony.com/doc/current/setup/flex.html) Composer plugin, it could show a message similar to this:
+If you're using the [Symfony Flex](https://symfony.com/doc/current/setup/flex.html) Composer plugin, you might encounter a message similar to this:
 
 ```
 The recipe for this package comes from the "contrib" repository, which is open to community contributions.
@@ -48,9 +45,8 @@ Do you want to execute this recipe?
 
 Just type `y`, press return, and the procedure will continue.
 
-**Warning:** due to a bug in all versions lower than `6.0` of the [`SensioFrameworkExtra`](https://github.com/sensiolabs/SensioFrameworkExtraBundle) bundle,
-if you have it installed you will likely get an error during the execution of the commands above in regards to the missing `Nyholm\Psr7\Factory\Psr17Factory`
-class. To workaround the issue, if you are not using the PSR-7 bridge, please change the configuration of that bundle as follows:
+**Caution:** Due to a bug in the [`SensioFrameworkExtra`](https://github.com/sensiolabs/SensioFrameworkExtraBundle) bundle, affecting version 6.0 and below, you might run into a missing `Nyholm\Psr7\Factory\Psr17Factory::class` error while executing the commands mentioned above.
+If you are not using the PSR-7 bridge, you can work around this issue by changing the configuration of the bundle as follows:
 
 ```yaml
 sensio_framework_extra:
@@ -60,7 +56,7 @@ sensio_framework_extra:
 
 For more details about the issue see https://github.com/sensiolabs/SensioFrameworkExtraBundle/pull/710.
 
-### Step 2: Enable the Bundle
+### Enable the Bundle
 
 If you installed the package using the Flex recipe, the bundle will be automatically enabled. Otherwise, enable it by adding it to the list
 of registered bundles in the `Kernel.php` file of your project:
@@ -80,13 +76,16 @@ class AppKernel extends \Symfony\Component\HttpKernel\Kernel
 }
 ```
 
-Note that, unlike before in version 3, the bundle will be enabled in all environments; event reporting, instead, is enabled
-only when providing a DSN (see the next step).
+The bundle will be enabled in all environments by default.
+To enable event reporting, you'll need to add a DSN (see the next step).
 
-## Configuration of the SDK
+### Configure
 
-Add your [Sentry DSN](https://docs.sentry.io/quickstart/#configure-the-dsn) value of your project, if you have Symfony 3.4 add it to ``app/config/config_prod.yml`` for Symfony 4 or newer add the value to `config/packages/sentry.yaml`.
-Keep in mind that leaving the `dsn` value empty (or undeclared) in other environments will effectively disable Sentry reporting.
+Add the [Sentry DSN](https://docs.sentry.io/quickstart/#configure-the-dsn) of your project.
+If you're using Symfony 3.4, add the DSN to your `app/config/config_prod.yml` file.
+For Symfony 4 or newer, add the DSN to your `config/packages/sentry.yaml` file.
+
+Keep in mind that by leaving the `dsn` value empty (or undeclared), you will disable Sentry's event reporting.
 
 ```yaml
 sentry:
@@ -105,20 +104,19 @@ the [PHP specific](https://docs.sentry.io/platforms/php/#php-specific-options) o
 
 #### Optional: use custom HTTP factory/transport
 
-Since SDK 2.0 uses HTTPlug to remain transport-agnostic, you need to have installed two packages that provides 
+Since the SDK 2.0 uses HTTPlug to remain transport-agnostic, you need to install two packages that provide 
 [`php-http/async-client-implementation`](https://packagist.org/providers/php-http/async-client-implementation)
 and [`psr/http-message-implementation`](https://packagist.org/providers/psr/http-message-implementation).
 
 This bundle depends on `sentry/sdk`, which is a metapackage that already solves this need, requiring our suggested HTTP
 packages: the Curl client and Guzzle's message factories.
 
-If instead you want to use a different HTTP client or message factory, you can override the ``sentry/sdk`` package adding the following to your ``composer.json`` after the ``require`` section:
+Instead, if you want to use a different HTTP client or message factory, you can override the ``sentry/sdk`` package by adding the following to your ``composer.json`` after the ``require`` section:
 ```json
     "replace": {
         "sentry/sdk": "*"
     }
 ```
-This will prevent the installation of ``sentry/sdk`` package and will allow you to install through Composer the HTTP client or message factory of your choice.
 
 For example for using Guzzle's components: 
 
@@ -154,7 +152,8 @@ sentry:
             YourValueObject: 'ValueObjectSerializer'
 ```
 
-Several serializers can be added and the serializable check is done using **instanceof**. The serializer must implements the `__invoke` method returning an **array** with the information to send to sentry (class name is always sent).
+Several serializers can be added and the serializable check is done by using the **instanceof** type operator.
+The serializer must implement the `__invoke` method, which needs to return an **array**, containing the information that should be send to Sentry. The class name is always sent by default.
 
 Serializer example:
 ```php
@@ -168,6 +167,25 @@ final class ValueObjectSerializer
     }
 }
 ```
+
+## Contributing to the SDK
+
+Please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Getting help/support
+
+If you need help setting up or configuring the Symfony SDK (or anything else in the Sentry universe) please head over to the [Sentry Community on Discord](https://discord.com/invite/Ww9hbqr). There is a ton of great people in our Discord community ready to help you!
+
+## Resources
+
+- [![Documentation](https://img.shields.io/badge/documentation-sentry.io-green.svg)](https://docs.sentry.io/quickstart/)
+- [![Discord](https://img.shields.io/discord/621778831602221064)](https://discord.gg/Ww9hbqr)
+- [![Stack Overflow](https://img.shields.io/badge/stack%20overflow-sentry-green.svg)](http://stackoverflow.com/questions/tagged/sentry)
+- [![Twitter Follow](https://img.shields.io/twitter/follow/getsentry?label=getsentry&style=social)](https://twitter.com/intent/follow?screen_name=getsentry)
+
+## License
+
+Licensed under the Apache 2.0 license, see [`LICENSE`](LICENSE)
 
 [Last stable image]: https://poser.pugx.org/sentry/sentry-symfony/version.svg
 [Packagist link]: https://packagist.org/packages/sentry/sentry-symfony
