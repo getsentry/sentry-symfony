@@ -23,32 +23,32 @@ final class TracingDriverConnection implements TracingDriverConnectionInterface
     /**
      * @internal
      */
-    public const SPAN_OP_CONN_PREPARE = 'sql.conn.prepare';
+    public const SPAN_OP_CONN_PREPARE = 'db.sql.prepare';
 
     /**
      * @internal
      */
-    public const SPAN_OP_CONN_QUERY = 'sql.conn.query';
+    public const SPAN_OP_CONN_QUERY = 'db.sql.query';
 
     /**
      * @internal
      */
-    public const SPAN_OP_CONN_EXEC = 'sql.conn.exec';
+    public const SPAN_OP_CONN_EXEC = 'db.sql.exec';
 
     /**
      * @internal
      */
-    public const SPAN_OP_CONN_BEGIN_TRANSACTION = 'sql.conn.begin_transaction';
+    public const SPAN_OP_CONN_BEGIN_TRANSACTION = 'db.sql.transaction.begin';
 
     /**
      * @internal
      */
-    public const SPAN_OP_TRANSACTION_COMMIT = 'sql.transaction.commit';
+    public const SPAN_OP_TRANSACTION_COMMIT = 'db.sql.transaction.commit';
 
     /**
      * @internal
      */
-    public const SPAN_OP_TRANSACTION_ROLLBACK = 'sql.transaction.rollback';
+    public const SPAN_OP_TRANSACTION_ROLLBACK = 'db.sql.transaction.rollback';
 
     /**
      * @var HubInterface The current hub
