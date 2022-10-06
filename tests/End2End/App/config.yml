@@ -1,4 +1,5 @@
 sentry:
+  dsn: http://public@example.com/sentry/1
   tracing:
     enabled: true
   options:
