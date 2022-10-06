@@ -2,7 +2,10 @@
 
 ## Unreleased
 
+fix: Update span ops (#655)
+
 ## 4.3.0 (2022-05-30)
+
 - Fix compatibility issue with Symfony >= 6.1.0 (#635)
 - Add `TracingDriverConnectionInterface::getNativeConnection()` method to get the original driver connection (#597)
 - Add `options.http_timeout` and `options.http_connect_timeout` configuration options (#593)
