@@ -6,6 +6,7 @@ namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
+use Sentry\Tracing\TransactionSource;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
@@ -36,9 +37,13 @@ final class TracingRequestListener extends AbstractTracingRequestListener
         /** @var float $requestStartTime */
         $requestStartTime = $request->server->get('REQUEST_TIME_FLOAT', microtime(true));
 
-        $context = TransactionContext::fromSentryTrace($request->headers->get('sentry-trace', ''));
+        $context = TransactionContext::fromHeaders(
+            $request->headers->get('sentry-trace', ''),
+            $request->headers->get('baggage', '')
+        );
         $context->setOp('http.server');
         $context->setName(sprintf('%s %s%s%s', $request->getMethod(), $request->getSchemeAndHttpHost(), $request->getBaseUrl(), $request->getPathInfo()));
+        $context->setSource(TransactionSource::route());
         $context->setStartTimestamp($requestStartTime);
         $context->setTags($this->getTags($request));
 
