@@ -5,6 +5,10 @@
 - Add support for tracing of the Symfony HTTP client requests (#606)
 - Support logging the impersonator user, if any (#647)
 
+## 4.3.1 (2022-10-10)
+
+fix: Update span ops (#655)
+
 ## 4.3.0 (2022-05-30)
 
 - Fix compatibility issue with Symfony `>= 6.1.0` (#635)

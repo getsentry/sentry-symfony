@@ -14,7 +14,7 @@ abstract class AbstractTracingStatement
     /**
      * @internal
      */
-    public const SPAN_OP_STMT_EXECUTE = 'sql.stmt.execute';
+    public const SPAN_OP_STMT_EXECUTE = 'db.sql.execute';
 
     /**
      * @var HubInterface The current hub
