@@ -6,7 +6,6 @@ namespace Sentry\SentryBundle\Transport;
 
 use Http\Client\HttpAsyncClient as HttpAsyncClientInterface;
 use Http\Discovery\Psr17FactoryDiscovery;
-use Jean85\PrettyVersions;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
@@ -14,6 +13,7 @@ use Psr\Http\Message\UriFactoryInterface;
 use Psr\Log\LoggerInterface;
 use Sentry\HttpClient\HttpClientFactory;
 use Sentry\Options;
+use Sentry\SentryBundle\SentryBundle;
 use Sentry\Transport\DefaultTransportFactory;
 use Sentry\Transport\TransportFactoryInterface;
 use Sentry\Transport\TransportInterface;
@@ -52,7 +52,7 @@ final class TransportFactory implements TransportFactoryInterface
                 $streamFactory,
                 $httpClient,
                 'sentry.php.symfony',
-                PrettyVersions::getVersion('sentry/sentry-symfony')->getPrettyVersion()
+                SentryBundle::SDK_VERSION
             ),
             $logger
         );
