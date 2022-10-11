@@ -95,7 +95,7 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setParentSpanId(new SpanId('566e3688a61d4bc8'));
         $transactionContext->setParentSampled(true);
         $transactionContext->setName('GET http://www.example.com/');
-        $transactionContext->setSource(TransactionSource::route());
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -132,7 +132,7 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setParentSpanId(new SpanId('566e3688a61d4bc8'));
         $transactionContext->setParentSampled(true);
         $transactionContext->setName('GET http://www.example.com/');
-        $transactionContext->setSource(TransactionSource::route());
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -164,7 +164,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/');
-        $transactionContext->setSource(TransactionSource::route());
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -187,7 +187,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://127.0.0.1/');
-        $transactionContext->setSource(TransactionSource::route());
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -218,7 +218,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/path');
-        $transactionContext->setSource(TransactionSource::route());
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -242,7 +242,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/path');
-        $transactionContext->setSource(TransactionSource::route());
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -266,7 +266,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/');
-        $transactionContext->setSource(TransactionSource::route());
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -290,7 +290,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/');
-        $transactionContext->setSource(TransactionSource::route());
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -314,7 +314,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/');
-        $transactionContext->setSource(TransactionSource::route());
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -338,7 +338,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/');
-        $transactionContext->setSource(TransactionSource::route());
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -362,7 +362,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/');
-        $transactionContext->setSource(TransactionSource::route());
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -386,7 +386,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://:/');
-        $transactionContext->setSource(TransactionSource::route());
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([

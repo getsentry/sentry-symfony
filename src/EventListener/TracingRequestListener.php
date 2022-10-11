@@ -43,7 +43,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
         );
         $context->setOp('http.server');
         $context->setName(sprintf('%s %s%s%s', $request->getMethod(), $request->getSchemeAndHttpHost(), $request->getBaseUrl(), $request->getPathInfo()));
-        $context->setSource(TransactionSource::route());
+        $context->setSource(TransactionSource::url());
         $context->setStartTimestamp($requestStartTime);
         $context->setTags($this->getTags($request));
 
