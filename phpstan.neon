@@ -10,10 +10,14 @@ parameters:
         - src/aliases.php
     excludePaths:
         - src/aliases.php
+        - src/Tracing/Cache/TraceableCacheAdapterForV2.php
+        - src/Tracing/Cache/TraceableTagAwareCacheAdapterForV2.php
         - src/Tracing/Doctrine/DBAL/TracingStatementForV2.php
         - src/Tracing/Doctrine/DBAL/TracingDriverForV2.php
         - src/Tracing/HttpClient/TraceableHttpClientForV4.php
         - src/Tracing/HttpClient/TraceableHttpClientForV5.php
+        - src/Tracing/HttpClient/TraceableResponseForV4.php
+        - src/Tracing/HttpClient/TraceableResponseForV5.php
         - tests/End2End/App
         - tests/Tracing/Doctrine/DBAL/TracingDriverForV2Test.php
         - tests/EventListener/Fixtures/UserWithoutIdentifierStub.php
