@@ -74,7 +74,6 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame('GET', $response->getInfo('http_method'));
         $this->assertSame('https://www.example.com/test-page', $response->getInfo('url'));
         $this->assertSame(['sentry-trace: ' . $transaction->toTraceparent()], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
-        $this->assertSame(['baggage: ' . $transaction->toBaggage()], $mockResponse->getRequestOptions()['normalized_headers']['baggage']);
         $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();

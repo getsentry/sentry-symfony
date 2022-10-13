@@ -49,7 +49,6 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
         if (null !== $parent) {
             $headers = $options['headers'] ?? [];
             $headers['sentry-trace'] = $parent->toTraceparent();
-            $headers['baggage'] = $parent->toBaggage();
             $options['headers'] = $headers;
 
             $context = new SpanContext();
