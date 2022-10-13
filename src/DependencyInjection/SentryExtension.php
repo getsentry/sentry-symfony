@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
-use Jean85\PrettyVersions;
 use LogicException;
 use Psr\Log\NullLogger;
 use Sentry\Client;
@@ -140,7 +139,7 @@ final class SentryExtension extends ConfigurableExtension
         $clientBuilderDefinition = (new Definition(ClientBuilder::class))
             ->setArgument(0, new Reference('sentry.client.options'))
             ->addMethodCall('setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER])
-            ->addMethodCall('setSdkVersion', [PrettyVersions::getVersion('sentry/sentry-symfony')->getPrettyVersion()])
+            ->addMethodCall('setSdkVersion', [SentryBundle::SDK_VERSION])
             ->addMethodCall('setTransportFactory', [new Reference($config['transport_factory'])])
             ->addMethodCall('setSerializer', [$serializer])
             ->addMethodCall('setRepresentationSerializer', [$representationSerializerDefinition])
