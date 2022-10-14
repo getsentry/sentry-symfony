@@ -10,11 +10,13 @@ use Sentry\ClientInterface;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
 use Sentry\State\HubInterface;
+use Sentry\Tracing\DynamicSamplingContext;
 use Sentry\Tracing\SpanId;
 use Sentry\Tracing\SpanStatus;
 use Sentry\Tracing\TraceId;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
+use Sentry\Tracing\TransactionSource;
 use Symfony\Bridge\PhpUnit\ClockMock;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -85,11 +87,15 @@ final class TracingRequestListenerTest extends TestCase
      */
     public function handleKernelRequestEventDataProvider(): \Generator
     {
+        $samplingContext = DynamicSamplingContext::fromHeader('');
+        $samplingContext->freeze();
+
         $transactionContext = new TransactionContext();
         $transactionContext->setTraceId(new TraceId('566e3688a61d4bc888951642d6f14a19'));
         $transactionContext->setParentSpanId(new SpanId('566e3688a61d4bc8'));
         $transactionContext->setParentSampled(true);
         $transactionContext->setName('GET http://www.example.com/');
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -100,6 +106,7 @@ final class TracingRequestListenerTest extends TestCase
             'route' => '<unknown>',
             'net.host.name' => 'www.example.com',
         ]);
+        $transactionContext->getMetadata()->setDynamicSamplingContext($samplingContext);
 
         yield 'request.headers.sentry-trace EXISTS' => [
             new Options(),
@@ -117,8 +124,47 @@ final class TracingRequestListenerTest extends TestCase
             $transactionContext,
         ];
 
+        $samplingContext = DynamicSamplingContext::fromHeader('sentry-trace_id=566e3688a61d4bc888951642d6f14a19,sentry-public_key=public,sentry-sample_rate=1');
+        $samplingContext->freeze();
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setTraceId(new TraceId('566e3688a61d4bc888951642d6f14a19'));
+        $transactionContext->setParentSpanId(new SpanId('566e3688a61d4bc8'));
+        $transactionContext->setParentSampled(true);
+        $transactionContext->setName('GET http://www.example.com/');
+        $transactionContext->setSource(TransactionSource::url());
+        $transactionContext->setOp('http.server');
+        $transactionContext->setStartTimestamp(1613493597.010275);
+        $transactionContext->setTags([
+            'net.host.port' => '80',
+            'http.method' => 'GET',
+            'http.url' => 'http://www.example.com/',
+            'http.flavor' => '1.1',
+            'route' => '<unknown>',
+            'net.host.name' => 'www.example.com',
+        ]);
+        $transactionContext->getMetadata()->setDynamicSamplingContext($samplingContext);
+
+        yield 'request.headers.sentry-trace and headers.baggage EXISTS' => [
+            new Options(),
+            Request::create(
+                'http://www.example.com',
+                'GET',
+                [],
+                [],
+                [],
+                [
+                    'REQUEST_TIME_FLOAT' => 1613493597.010275,
+                    'HTTP_sentry-trace' => '566e3688a61d4bc888951642d6f14a19-566e3688a61d4bc8-1',
+                    'HTTP_baggage' => 'sentry-trace_id=566e3688a61d4bc888951642d6f14a19,sentry-public_key=public,sentry-sample_rate=1',
+                ]
+            ),
+            $transactionContext,
+        ];
+
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/');
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -141,6 +187,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://127.0.0.1/');
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -171,6 +218,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/path');
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -194,6 +242,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/path');
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -217,6 +266,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/');
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -240,6 +290,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/');
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -263,6 +314,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/');
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -286,6 +338,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/');
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -309,6 +362,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/');
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
@@ -332,6 +386,7 @@ final class TracingRequestListenerTest extends TestCase
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://:/');
+        $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([

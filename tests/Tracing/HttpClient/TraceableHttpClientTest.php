@@ -11,6 +11,7 @@ use Psr\Log\NullLogger;
 use Sentry\SentryBundle\Tracing\HttpClient\AbstractTraceableResponse;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableHttpClient;
 use Sentry\State\HubInterface;
+use Sentry\Tracing\DynamicSamplingContext;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
 use Symfony\Component\HttpClient\MockHttpClient;
@@ -51,7 +52,12 @@ final class TraceableHttpClientTest extends TestCase
 
     public function testRequest(): void
     {
-        $transaction = new Transaction(new TransactionContext());
+        $samplingContext = DynamicSamplingContext::fromHeader('sentry-trace_id=566e3688a61d4bc888951642d6f14a19,sentry-public_key=public,sentry-sample_rate=1');
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->getMetadata()->setDynamicSamplingContext($samplingContext);
+
+        $transaction = new Transaction($transactionContext);
         $transaction->initSpanRecorder();
 
         $this->hub->expects($this->once())
