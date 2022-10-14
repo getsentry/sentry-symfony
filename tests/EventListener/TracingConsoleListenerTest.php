@@ -12,6 +12,7 @@ use Sentry\State\HubInterface;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
+use Sentry\Tracing\TransactionSource;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleTerminateEvent;
@@ -71,6 +72,7 @@ final class TracingConsoleListenerTest extends TestCase
         $transactionContext = new TransactionContext();
         $transactionContext->setOp('console.command');
         $transactionContext->setName('<unnamed command>');
+        $transactionContext->setSource(TransactionSource::task());
 
         yield [
             new Command(),
@@ -80,6 +82,7 @@ final class TracingConsoleListenerTest extends TestCase
         $transactionContext = new TransactionContext();
         $transactionContext->setOp('console.command');
         $transactionContext->setName('app:command');
+        $transactionContext->setSource(TransactionSource::task());
 
         yield [
             new Command('app:command'),
