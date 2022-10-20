@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- feat: Add support for Dynamic Sampling
+- feat: Add support for Dynamic Sampling (#665)
 
 ## 4.3.1 (2022-10-10)
 
