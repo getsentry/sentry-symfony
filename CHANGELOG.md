@@ -2,9 +2,13 @@
 
 ## Unreleased
 
+## 4.4.0 (2022-10-20)
+
+- feat: Add support for Dynamic Sampling (#665)
+
 ## 4.3.1 (2022-10-10)
 
-fix: Update span ops (#655)
+- fix: Update span ops (#655)
 
 ## 4.3.0 (2022-05-30)
 

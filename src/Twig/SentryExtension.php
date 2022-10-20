@@ -30,6 +30,7 @@ final class SentryExtension extends AbstractExtension
     {
         return [
             new TwigFunction('sentry_trace_meta', [$this, 'getTraceMeta'], ['is_safe' => ['html']]),
+            new TwigFunction('sentry_baggage_meta', [$this, 'getBaggageMeta'], ['is_safe' => ['html']]),
         ];
     }
 
@@ -41,5 +42,15 @@ final class SentryExtension extends AbstractExtension
         $span = $this->hub->getSpan();
 
         return sprintf('<meta name="sentry-trace" content="%s" />', null !== $span ? $span->toTraceparent() : '');
+    }
+
+    /**
+     * Returns an HTML meta tag named `baggage`.
+     */
+    public function getBaggageMeta(): string
+    {
+        $span = $this->hub->getSpan();
+
+        return sprintf('<meta name="baggage" content="%s" />', null !== $span ? $span->toBaggage() : '');
     }
 }

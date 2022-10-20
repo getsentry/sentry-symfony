@@ -8,6 +8,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\Twig\SentryExtension;
 use Sentry\State\HubInterface;
+use Sentry\Tracing\DynamicSamplingContext;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanId;
 use Sentry\Tracing\TraceId;
@@ -68,6 +69,42 @@ final class SentryExtensionTest extends TestCase
         yield [
             $transaction,
             '<meta name="sentry-trace" content="a3c01c41d7b94b90aee23edac90f4319-e69c2aef0ec34f2a" />',
+        ];
+    }
+
+    /**
+     * @dataProvider baggageMetaFunctionDataProvider
+     */
+    public function testBaggageMetaFunction(?Span $span, string $expectedTemplate): void
+    {
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn($span);
+
+        $environment = new Environment(new ArrayLoader(['foo.twig' => '{{ sentry_baggage_meta() }}']));
+        $environment->addExtension(new SentryExtension($this->hub));
+
+        $this->assertSame($expectedTemplate, $environment->render('foo.twig'));
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function baggageMetaFunctionDataProvider(): \Generator
+    {
+        yield [
+            null,
+            '<meta name="baggage" content="" />',
+        ];
+
+        $samplingContext = DynamicSamplingContext::fromHeader('sentry-trace_id=566e3688a61d4bc888951642d6f14a19,sentry-public_key=public,sentry-sample_rate=1');
+        $transactionContext = new TransactionContext();
+        $transactionContext->getMetadata()->setDynamicSamplingContext($samplingContext);
+        $transaction = new Transaction($transactionContext);
+
+        yield [
+            $transaction,
+            '<meta name="baggage" content="sentry-trace_id=566e3688a61d4bc888951642d6f14a19,sentry-public_key=public,sentry-sample_rate=1" />',
         ];
     }
 
