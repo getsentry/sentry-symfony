@@ -7,6 +7,7 @@ namespace Sentry\SentryBundle\Tests\EventListener;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sentry\Event;
+use Sentry\EventHint;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
@@ -113,8 +114,20 @@ abstract class AbstractConsoleListenerTest extends TestCase
             });
 
         $this->hub->expects($captureErrors ? $this->once() : $this->never())
-            ->method('captureException')
-            ->with($consoleEvent->getError());
+            ->method('captureEvent')
+            ->with(
+                $this->anything(),
+                $this->logicalAnd(
+                    $this->isInstanceOf(EventHint::class),
+                    $this->callback(function (EventHint $subject) use ($consoleEvent) {
+                        self::assertSame($consoleEvent->getError(), $subject->exception);
+                        self::assertNotNull($subject->mechanism);
+                        self::assertFalse($subject->mechanism->isHandled());
+
+                        return true;
+                    })
+                )
+            );
 
         $listener->handleConsoleErrorEvent($consoleEvent);
 

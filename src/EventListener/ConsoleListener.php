@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\Event;
+use Sentry\EventHint;
+use Sentry\ExceptionMechanism;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
@@ -82,7 +85,12 @@ class ConsoleListener
             $scope->setTag('console.command.exit_code', (string) $event->getExitCode());
 
             if ($this->captureErrors) {
-                $this->hub->captureException($event->getError());
+                $hint = EventHint::fromArray([
+                    'exception' => $event->getError(),
+                    'mechanism' => new ExceptionMechanism(ExceptionMechanism::TYPE_GENERIC, false),
+                ]);
+
+                $this->hub->captureEvent(Event::createEvent(), $hint);
             }
         });
     }
