@@ -202,6 +202,7 @@ abstract class SentryExtensionTest extends TestCase
             'sample_rate' => 1,
             'traces_sample_rate' => 1,
             'traces_sampler' => new Reference('App\\Sentry\\Tracing\\TracesSampler'),
+            'trace_propagation_targets' => ['website.invalid'],
             'attach_stacktrace' => true,
             'context_lines' => 0,
             'enable_compression' => true,
