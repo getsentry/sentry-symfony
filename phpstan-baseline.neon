@@ -231,6 +231,11 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingStatementForV3.php
 
 		-
+			message: "#^Parameter \\#4 \\$length of method Doctrine\\\\DBAL\\\\Driver\\\\Statement\\:\\:bindParam\\(\\) expects int\\|null, mixed given\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingStatementForV3.php
+
+		-
 			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableHttpClient\\:\\:request\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Tracing/HttpClient/AbstractTraceableHttpClient.php
@@ -244,11 +249,6 @@ parameters:
 			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\TraceableHttpClientForV6\\:\\:withOptions\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Tracing/HttpClient/TraceableHttpClientForV6.php
-
-		-
-			message: "#^Call to an undefined method Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface\\:\\:toStream\\(\\)\\.$#"
-			count: 1
-			path: src/Tracing/HttpClient/TraceableResponseForV5.php
 
 		-
 			message: "#^Call to an undefined method Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface\\:\\:toStream\\(\\)\\.$#"
