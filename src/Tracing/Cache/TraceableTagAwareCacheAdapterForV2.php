@@ -49,7 +49,7 @@ final class TraceableTagAwareCacheAdapterForV2 implements TagAwareAdapterInterfa
             }
 
             return $this->decoratedAdapter->get($key, $callback, $beta, $metadata);
-        });
+        }, $key);
     }
 
     /**

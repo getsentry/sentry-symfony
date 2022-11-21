@@ -46,6 +46,6 @@ final class TraceableCacheAdapterForV3 implements AdapterInterface, CacheInterfa
             }
 
             return $this->decoratedAdapter->get($key, $callback, $beta, $metadata);
-        });
+        }, $key);
     }
 }
