@@ -9,6 +9,7 @@ use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
+use Sentry\Tracing\TransactionSource;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleTerminateEvent;
@@ -61,6 +62,7 @@ final class TracingConsoleListener
             $transactionContext = new TransactionContext();
             $transactionContext->setOp('console.command');
             $transactionContext->setName($this->getSpanName($command));
+            $transactionContext->setSource(TransactionSource::task());
 
             $span = $this->hub->startTransaction($transactionContext);
         } else {
