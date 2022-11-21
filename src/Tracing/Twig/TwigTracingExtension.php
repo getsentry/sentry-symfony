@@ -7,7 +7,6 @@ namespace Sentry\SentryBundle\Tracing\Twig;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
-use SplObjectStorage;
 use Twig\Extension\AbstractExtension;
 use Twig\Profiler\NodeVisitor\ProfilerNodeVisitor;
 use Twig\Profiler\Profile;
@@ -20,7 +19,7 @@ final class TwigTracingExtension extends AbstractExtension
     private $hub;
 
     /**
-     * @var SplObjectStorage<object, Span> The currently active spans
+     * @var \SplObjectStorage<object, Span> The currently active spans
      */
     private $spans;
 
@@ -30,7 +29,7 @@ final class TwigTracingExtension extends AbstractExtension
     public function __construct(HubInterface $hub)
     {
         $this->hub = $hub;
-        $this->spans = new SplObjectStorage();
+        $this->spans = new \SplObjectStorage();
     }
 
     /**
