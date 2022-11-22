@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\EventListener;
 
-use Generator;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\EventListener\TracingConsoleListener;
@@ -65,9 +64,9 @@ final class TracingConsoleListenerTest extends TestCase
     }
 
     /**
-     * @return Generator<mixed>
+     * @return \Generator<mixed>
      */
-    public function handleConsoleCommandEventStartsTransactionIfNoSpanIsSetOnHubDataProvider(): Generator
+    public function handleConsoleCommandEventStartsTransactionIfNoSpanIsSetOnHubDataProvider(): \Generator
     {
         $transactionContext = new TransactionContext();
         $transactionContext->setOp('console.command');
@@ -121,9 +120,9 @@ final class TracingConsoleListenerTest extends TestCase
     }
 
     /**
-     * @return Generator<mixed>
+     * @return \Generator<mixed>
      */
-    public function handleConsoleCommandEventStartsChildSpanIfSpanIsSetOnHubDataProvider(): Generator
+    public function handleConsoleCommandEventStartsChildSpanIfSpanIsSetOnHubDataProvider(): \Generator
     {
         yield [
             new Command(),
