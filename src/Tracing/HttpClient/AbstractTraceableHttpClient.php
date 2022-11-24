@@ -115,6 +115,6 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
     private function formatUri(Uri $uri): string
     {
         // Instead of relying on Uri::__toString, we only use a sub set of the URI
-        return Uri::composeComponents($uri->getScheme(), $uri->getAuthority(), $uri->getPath(), null, null);
+        return Uri::composeComponents($uri->getScheme(), $uri->getHost(), $uri->getPath(), null, null);
     }
 }

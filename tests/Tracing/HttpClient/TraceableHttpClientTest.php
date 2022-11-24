@@ -63,12 +63,12 @@ final class TraceableHttpClientTest extends TestCase
         $mockResponse = new MockResponse();
         $decoratedHttpClient = new MockHttpClient($mockResponse);
         $httpClient = new TraceableHttpClient($decoratedHttpClient, $this->hub);
-        $response = $httpClient->request('GET', 'https://www.example.com/test-page?foo=bar#baz');
+        $response = $httpClient->request('GET', 'https://username:password@www.example.com/test-page?foo=bar#baz');
 
         $this->assertInstanceOf(AbstractTraceableResponse::class, $response);
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame('GET', $response->getInfo('http_method'));
-        $this->assertSame('https://www.example.com/test-page?foo=bar#baz', $response->getInfo('url'));
+        $this->assertSame('https://username:password@www.example.com/test-page?foo=bar#baz', $response->getInfo('url'));
         $this->assertSame(['sentry-trace: ' . $transaction->toTraceparent()], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
         $this->assertArrayNotHasKey('baggage', $mockResponse->getRequestOptions()['normalized_headers']);
         $this->assertNotNull($transaction->getSpanRecorder());
