@@ -51,11 +51,12 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
             $headers = $options['headers'] ?? [];
             $headers['sentry-trace'] = $parent->toTraceparent();
 
+            $uri = new Uri($url);
+
             // Check if the request destination is allow listed in the trace_propagation_targets option.
             $client = $this->hub->getClient();
             if (null !== $client) {
                 $sdkOptions = $client->getOptions();
-                $uri = new Uri($url);
 
                 if (\in_array($uri->getHost(), $sdkOptions->getTracePropagationTargets())) {
                     $headers['baggage'] = $parent->toBaggage();
@@ -64,12 +65,14 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
 
             $options['headers'] = $headers;
 
+            $formattedUri = $this->formatUri($uri);
+
             $context = new SpanContext();
             $context->setOp('http.client');
-            $context->setDescription('HTTP ' . $method);
+            $context->setDescription($method . ' ' . $formattedUri);
             $context->setTags([
                 'http.method' => $method,
-                'http.url' => $url,
+                'http.url' => $formattedUri,
             ]);
 
             $span = $parent->startChild($context);
@@ -107,5 +110,11 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
         if ($this->client instanceof LoggerAwareInterface) {
             $this->client->setLogger($logger);
         }
+    }
+
+    private function formatUri(Uri $uri): string
+    {
+        // Instead of relying on Uri::__toString, we only use a sub set of the URI
+        return Uri::composeComponents($uri->getScheme(), $uri->getAuthority(), $uri->getPath(), null, null);
     }
 }
