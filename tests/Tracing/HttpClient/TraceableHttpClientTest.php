@@ -63,12 +63,12 @@ final class TraceableHttpClientTest extends TestCase
         $mockResponse = new MockResponse();
         $decoratedHttpClient = new MockHttpClient($mockResponse);
         $httpClient = new TraceableHttpClient($decoratedHttpClient, $this->hub);
-        $response = $httpClient->request('GET', 'https://www.example.com/test-page');
+        $response = $httpClient->request('GET', 'https://username:password@www.example.com/test-page?foo=bar#baz');
 
         $this->assertInstanceOf(AbstractTraceableResponse::class, $response);
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame('GET', $response->getInfo('http_method'));
-        $this->assertSame('https://www.example.com/test-page', $response->getInfo('url'));
+        $this->assertSame('https://username:password@www.example.com/test-page?foo=bar#baz', $response->getInfo('url'));
         $this->assertSame(['sentry-trace: ' . $transaction->toTraceparent()], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
         $this->assertArrayNotHasKey('baggage', $mockResponse->getRequestOptions()['normalized_headers']);
         $this->assertNotNull($transaction->getSpanRecorder());
@@ -82,7 +82,7 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertCount(2, $spans);
         $this->assertNull($spans[1]->getEndTimestamp());
         $this->assertSame('http.client', $spans[1]->getOp());
-        $this->assertSame('HTTP GET', $spans[1]->getDescription());
+        $this->assertSame('GET https://www.example.com/test-page', $spans[1]->getDescription());
         $this->assertSame($expectedTags, $spans[1]->getTags());
     }
 
@@ -130,7 +130,7 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertCount(2, $spans);
         $this->assertNull($spans[1]->getEndTimestamp());
         $this->assertSame('http.client', $spans[1]->getOp());
-        $this->assertSame('HTTP PUT', $spans[1]->getDescription());
+        $this->assertSame('PUT https://www.example.com/test-page', $spans[1]->getDescription());
         $this->assertSame($expectedTags, $spans[1]->getTags());
     }
 
@@ -178,7 +178,7 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertCount(2, $spans);
         $this->assertNull($spans[1]->getEndTimestamp());
         $this->assertSame('http.client', $spans[1]->getOp());
-        $this->assertSame('HTTP POST', $spans[1]->getDescription());
+        $this->assertSame('POST https://www.example.com/test-page', $spans[1]->getDescription());
         $this->assertSame($expectedTags, $spans[1]->getTags());
     }
 
@@ -214,7 +214,7 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertCount(2, $spans);
         $this->assertNotNull($spans[1]->getEndTimestamp());
         $this->assertSame('http.client', $spans[1]->getOp());
-        $this->assertSame('HTTP GET', $spans[1]->getDescription());
+        $this->assertSame('GET https://www.example.com/test-page', $spans[1]->getDescription());
         $this->assertSame($expectedTags, $spans[1]->getTags());
 
         $loopIndex = 0;
