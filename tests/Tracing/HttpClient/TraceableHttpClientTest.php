@@ -86,7 +86,7 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame($expectedTags, $spans[1]->getTags());
     }
 
-    public function testRequestWithInvalidBaggage(): void
+    public function testRequestDoesNotContainBaggageHeader(): void
     {
         $options = new Options([
             'dsn' => 'http://public:secret@example.com/sentry/1',
