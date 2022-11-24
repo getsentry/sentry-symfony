@@ -36,6 +36,7 @@
                         max-request-body-size="none"
         >
             <sentry:integration>App\Sentry\Integration\FooIntegration</sentry:integration>
+            <sentry:trace-propagation-target>website.invalid</sentry:trace-propagation-target>
             <sentry:prefix>%kernel.project_dir%</sentry:prefix>
             <sentry:tag name="context">development</sentry:tag>
             <sentry:in-app-exclude>%kernel.cache_dir%</sentry:in-app-exclude>

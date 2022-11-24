@@ -23,6 +23,7 @@
     <xsd:complexType name="options">
         <xsd:sequence>
             <xsd:element name="integration" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="trace-propagation-target" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
             <xsd:element name="prefix" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
             <xsd:element name="tag" type="tag" minOccurs="0" maxOccurs="unbounded" />
             <xsd:element name="in-app-exclude" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
