@@ -5,7 +5,7 @@
 - Add support for tracing of the Symfony HTTP client requests (#606)
 - Support logging the impersonator user, if any (#647)
 - ref: Use constant for the SDK version (#662)
-- Add support for HTTP Client baggage propagation (#663)
+- Add support for HTTP client baggage propagation (#663)
 
 ## 4.3.1 (2022-10-10)
 
