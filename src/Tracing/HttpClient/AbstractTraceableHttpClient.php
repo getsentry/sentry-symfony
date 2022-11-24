@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tracing\HttpClient;
 
+use GuzzleHttp\Psr7\Uri;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Sentry\State\HubInterface;
@@ -49,6 +50,18 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
         if (null !== $parent) {
             $headers = $options['headers'] ?? [];
             $headers['sentry-trace'] = $parent->toTraceparent();
+
+            // Check if the request destination is allow listed in the trace_propagation_targets option.
+            $client = $this->hub->getClient();
+            if (null !== $client) {
+                $sdkOptions = $client->getOptions();
+                $uri = new Uri($url);
+
+                if (\in_array($uri->getHost(), $sdkOptions->getTracePropagationTargets())) {
+                    $headers['baggage'] = $parent->toBaggage();
+                }
+            }
+
             $options['headers'] = $headers;
 
             $context = new SpanContext();
