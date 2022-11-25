@@ -2,11 +2,13 @@
 
 ## Unreleased
 
+## 4.5.0 (2022-11-28)
+
 - feat: Add support for tracing of Symfony HTTP client requests (#606)
     - feat: Add support for HTTP client baggage propagation (#663)
     - ref: Add proper HTTP client span descriptions (#680)
 - feat: Support logging the impersonator user, if any (#647)
-- ref: Use constant for the SDK version (#662)
+- ref: Use a constant for the SDK version (#662)
 
 ## 4.4.0 (2022-10-20)
 
