@@ -4,6 +4,8 @@
 
 ## 4.5.0 (2022-11-28)
 
+- Symfony version 3.4 is no longer supported
+    - Drop Symfony support below 4.4 (#643)
 - feat: Add support for tracing of Symfony HTTP client requests (#606)
     - feat: Add support for HTTP client baggage propagation (#663)
     - ref: Add proper HTTP client span descriptions (#680)
