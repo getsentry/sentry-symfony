@@ -12,6 +12,7 @@ use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final class ConfigurationTest extends TestCase
@@ -25,6 +26,7 @@ final class ConfigurationTest extends TestCase
             'options' => [
                 'integrations' => [],
                 'prefixes' => array_merge(['%kernel.project_dir%'], array_filter(explode(\PATH_SEPARATOR, get_include_path() ?: ''))),
+                'trace_propagation_targets' => [],
                 'environment' => '%kernel.environment%',
                 'release' => PrettyVersions::getRootPackageVersion()->getPrettyVersion(),
                 'tags' => [],
@@ -51,6 +53,9 @@ final class ConfigurationTest extends TestCase
                 ],
                 'cache' => [
                     'enabled' => class_exists(CacheItem::class),
+                ],
+                'http_client' => [
+                    'enabled' => class_exists(HttpClient::class),
                 ],
                 'console' => [
                     'excluded_commands' => ['messenger:consume'],

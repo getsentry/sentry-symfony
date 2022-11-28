@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
-use Jean85\PrettyVersions;
-use LogicException;
 use Psr\Log\NullLogger;
 use Sentry\Client;
 use Sentry\ClientBuilder;
@@ -37,6 +35,7 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\ErrorHandler\Error\FatalError;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
 final class SentryExtension extends ConfigurableExtension
@@ -74,6 +73,7 @@ final class SentryExtension extends ConfigurableExtension
         $this->registerDbalTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerTwigTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerCacheTracingConfiguration($container, $mergedConfig['tracing']);
+        $this->registerHttpClientTracingConfiguration($container, $mergedConfig['tracing']);
     }
 
     /**
@@ -138,7 +138,7 @@ final class SentryExtension extends ConfigurableExtension
         $clientBuilderDefinition = (new Definition(ClientBuilder::class))
             ->setArgument(0, new Reference('sentry.client.options'))
             ->addMethodCall('setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER])
-            ->addMethodCall('setSdkVersion', [PrettyVersions::getVersion('sentry/sentry-symfony')->getPrettyVersion()])
+            ->addMethodCall('setSdkVersion', [SentryBundle::SDK_VERSION])
             ->addMethodCall('setTransportFactory', [new Reference($config['transport_factory'])])
             ->addMethodCall('setSerializer', [$serializer])
             ->addMethodCall('setRepresentationSerializer', [$representationSerializerDefinition])
@@ -203,7 +203,7 @@ final class SentryExtension extends ConfigurableExtension
             && $this->isConfigEnabled($container, $config['dbal']);
 
         if ($isConfigEnabled && !class_exists(DoctrineBundle::class)) {
-            throw new LogicException('DBAL tracing support cannot be enabled because the doctrine/doctrine-bundle Composer package is not installed.');
+            throw new \LogicException('DBAL tracing support cannot be enabled because the doctrine/doctrine-bundle Composer package is not installed.');
         }
 
         $container->setParameter('sentry.tracing.dbal.enabled', $isConfigEnabled);
@@ -224,7 +224,7 @@ final class SentryExtension extends ConfigurableExtension
             && $this->isConfigEnabled($container, $config['twig']);
 
         if ($isConfigEnabled && !class_exists(TwigBundle::class)) {
-            throw new LogicException('Twig tracing support cannot be enabled because the symfony/twig-bundle Composer package is not installed.');
+            throw new \LogicException('Twig tracing support cannot be enabled because the symfony/twig-bundle Composer package is not installed.');
         }
 
         if (!$isConfigEnabled) {
@@ -241,10 +241,25 @@ final class SentryExtension extends ConfigurableExtension
             && $this->isConfigEnabled($container, $config['cache']);
 
         if ($isConfigEnabled && !class_exists(CacheItem::class)) {
-            throw new LogicException('Cache tracing support cannot be enabled because the symfony/cache Composer package is not installed.');
+            throw new \LogicException('Cache tracing support cannot be enabled because the symfony/cache Composer package is not installed.');
         }
 
         $container->setParameter('sentry.tracing.cache.enabled', $isConfigEnabled);
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function registerHttpClientTracingConfiguration(ContainerBuilder $container, array $config): void
+    {
+        $isConfigEnabled = $this->isConfigEnabled($container, $config)
+            && $this->isConfigEnabled($container, $config['http_client']);
+
+        if ($isConfigEnabled && !class_exists(HttpClient::class)) {
+            throw new \LogicException('Http client tracing support cannot be enabled because the symfony/http-client Composer package is not installed.');
+        }
+
+        $container->setParameter('sentry.tracing.http_client.enabled', $isConfigEnabled);
     }
 
     /**

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
-use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
@@ -35,6 +34,7 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\EnvPlaceholderParameterBag;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\ErrorHandler\Error\FatalError;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
@@ -202,6 +202,7 @@ abstract class SentryExtensionTest extends TestCase
             'sample_rate' => 1,
             'traces_sample_rate' => 1,
             'traces_sampler' => new Reference('App\\Sentry\\Tracing\\TracesSampler'),
+            'trace_propagation_targets' => ['website.invalid'],
             'attach_stacktrace' => true,
             'context_lines' => 0,
             'enable_compression' => true,
@@ -243,7 +244,7 @@ abstract class SentryExtensionTest extends TestCase
 
         $this->assertCount(6, $methodCalls);
         $this->assertDefinitionMethodCallAt($methodCalls[0], 'setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER]);
-        $this->assertDefinitionMethodCallAt($methodCalls[1], 'setSdkVersion', [PrettyVersions::getVersion('sentry/sentry-symfony')->getPrettyVersion()]);
+        $this->assertDefinitionMethodCallAt($methodCalls[1], 'setSdkVersion', [SentryBundle::SDK_VERSION]);
         $this->assertDefinitionMethodCallAt($methodCalls[2], 'setTransportFactory', [new Reference('App\\Sentry\\Transport\\TransportFactory')]);
         $this->assertDefinitionMethodCallAt($methodCalls[5], 'setLogger', [new Reference('app.logger')]);
 
@@ -378,6 +379,18 @@ abstract class SentryExtensionTest extends TestCase
         $container = $this->createContainerFromFixture('twig_tracing_enabled');
 
         $this->assertTrue($container->hasDefinition(TwigTracingExtension::class));
+    }
+
+    public function testHttpClientTracingExtensionIsConfiguredWhenHttpClientTracingIsEnabled(): void
+    {
+        if (!class_exists(HttpClient::class)) {
+            $this->expectException(\LogicException::class);
+            $this->expectExceptionMessage('Http client tracing support cannot be enabled because the symfony/http-client Composer package is not installed.');
+        }
+
+        $container = $this->createContainerFromFixture('http_client_tracing_enabled');
+
+        $this->assertTrue($container->getParameter('sentry.tracing.http_client.enabled'));
     }
 
     public function testTwigTracingExtensionIsRemovedWhenTwigTracingIsDisabled(): void

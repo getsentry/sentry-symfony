@@ -6,8 +6,6 @@ namespace Sentry\SentryBundle\Tests\EventListener;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Sentry\SentryBundle\EventListener\RequestListenerResponseEvent;
-use Sentry\SentryBundle\EventListener\SubRequestListenerRequestEvent;
 use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\Span;
@@ -15,6 +13,8 @@ use Sentry\Tracing\SpanStatus;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 final class TracingSubRequestListenerTest extends TestCase
@@ -57,7 +57,7 @@ final class TracingSubRequestListenerTest extends TestCase
             }))
             ->willReturnSelf();
 
-        $this->listener->handleKernelRequestEvent(new SubRequestListenerRequestEvent(
+        $this->listener->handleKernelRequestEvent(new RequestEvent(
             $this->createMock(HttpKernelInterface::class),
             $request,
             HttpKernelInterface::SUB_REQUEST
@@ -143,7 +143,7 @@ final class TracingSubRequestListenerTest extends TestCase
         $this->hub->expects($this->never())
             ->method('getSpan');
 
-        $this->listener->handleKernelRequestEvent(new SubRequestListenerRequestEvent(
+        $this->listener->handleKernelRequestEvent(new RequestEvent(
             $this->createMock(HttpKernelInterface::class),
             new Request(),
             HttpKernelInterface::MASTER_REQUEST
@@ -156,7 +156,7 @@ final class TracingSubRequestListenerTest extends TestCase
             ->method('getSpan')
             ->willReturn(null);
 
-        $this->listener->handleKernelRequestEvent(new SubRequestListenerRequestEvent(
+        $this->listener->handleKernelRequestEvent(new RequestEvent(
             $this->createMock(HttpKernelInterface::class),
             new Request(),
             HttpKernelInterface::SUB_REQUEST
@@ -216,7 +216,7 @@ final class TracingSubRequestListenerTest extends TestCase
             ->method('getSpan')
             ->willReturn($span);
 
-        $this->listener->handleKernelResponseEvent(new RequestListenerResponseEvent(
+        $this->listener->handleKernelResponseEvent(new ResponseEvent(
             $this->createMock(HttpKernelInterface::class),
             new Request(),
             HttpKernelInterface::SUB_REQUEST,
@@ -233,7 +233,7 @@ final class TracingSubRequestListenerTest extends TestCase
             ->method('getSpan')
             ->willReturn(null);
 
-        $this->listener->handleKernelResponseEvent(new RequestListenerResponseEvent(
+        $this->listener->handleKernelResponseEvent(new ResponseEvent(
             $this->createMock(HttpKernelInterface::class),
             new Request(),
             HttpKernelInterface::SUB_REQUEST,

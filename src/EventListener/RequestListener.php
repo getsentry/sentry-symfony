@@ -7,7 +7,10 @@ namespace Sentry\SentryBundle\EventListener;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Sentry\UserDataBag;
+use Symfony\Component\HttpKernel\Event\ControllerEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\SwitchUserToken;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -46,9 +49,9 @@ final class RequestListener
      * This method is called for each request handled by the framework and
      * fills the Sentry scope with information about the current user.
      *
-     * @param RequestListenerRequestEvent $event The event
+     * @param RequestEvent $event The event
      */
-    public function handleKernelRequestEvent(RequestListenerRequestEvent $event): void
+    public function handleKernelRequestEvent(RequestEvent $event): void
     {
         if (!$this->isMainRequest($event)) {
             return;
@@ -60,16 +63,11 @@ final class RequestListener
             return;
         }
 
-        $token = null;
         $userData = new UserDataBag();
         $userData->setIpAddress($event->getRequest()->getClientIp());
 
         if (null !== $this->tokenStorage) {
-            $token = $this->tokenStorage->getToken();
-        }
-
-        if ($this->isTokenAuthenticated($token)) {
-            $userData->setUsername($this->getUsername($token->getUser()));
+            $this->setUserData($userData, $this->tokenStorage->getToken());
         }
 
         $this->hub->configureScope(static function (Scope $scope) use ($userData): void {
@@ -81,9 +79,9 @@ final class RequestListener
      * This method is called for each request handled by the framework and
      * sets the route on the current Sentry scope.
      *
-     * @param RequestListenerControllerEvent $event The event
+     * @param ControllerEvent $event The event
      */
-    public function handleKernelControllerEvent(RequestListenerControllerEvent $event): void
+    public function handleKernelControllerEvent(ControllerEvent $event): void
     {
         if (!$this->isMainRequest($event)) {
             return;
@@ -101,7 +99,7 @@ final class RequestListener
     }
 
     /**
-     * @param UserInterface|object|string $user
+     * @param UserInterface|object|string|null $user
      */
     private function getUsername($user): ?string
     {
@@ -126,12 +124,32 @@ final class RequestListener
         return null;
     }
 
-    private function isTokenAuthenticated(?TokenInterface $token): bool
+    private function getImpersonatorUser(TokenInterface $token): ?string
     {
-        if (null === $token) {
-            return false;
+        if (!$token instanceof SwitchUserToken) {
+            return null;
         }
 
+        return $this->getUsername($token->getOriginalToken()->getUser());
+    }
+
+    private function setUserData(UserDataBag $userData, ?TokenInterface $token): void
+    {
+        if (null === $token || !$this->isTokenAuthenticated($token)) {
+            return;
+        }
+
+        $userData->setUsername($this->getUsername($token->getUser()));
+
+        $impersonatorUser = $this->getImpersonatorUser($token);
+
+        if (null !== $impersonatorUser) {
+            $userData->setMetadata('impersonator_username', $impersonatorUser);
+        }
+    }
+
+    private function isTokenAuthenticated(TokenInterface $token): bool
+    {
         if (method_exists($token, 'isAuthenticated') && !$token->isAuthenticated(false)) {
             return false;
         }

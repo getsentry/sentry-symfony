@@ -14,6 +14,7 @@ use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final class Configuration implements ConfigurationInterface
@@ -47,6 +48,7 @@ final class Configuration implements ConfigurationInterface
                 ->arrayNode('options')
                     ->addDefaultsIfNotSet()
                     ->fixXmlConfig('integration')
+                    ->fixXmlConfig('trace_propagation_target')
                     ->fixXmlConfig('tag')
                     ->fixXmlConfig('class_serializer')
                     ->fixXmlConfig('prefix', 'prefixes')
@@ -71,6 +73,10 @@ final class Configuration implements ConfigurationInterface
                             ->info('The sampling factor to apply to transactions. A value of 0 will deny sending any transaction, and a value of 1 will send all transactions.')
                         ->end()
                         ->scalarNode('traces_sampler')->end()
+                        ->arrayNode('trace_propagation_targets')
+                            ->scalarPrototype()->end()
+                            ->beforeNormalization()->castToArray()->end()
+                        ->end()
                         ->booleanNode('attach_stacktrace')->end()
                         ->integerNode('context_lines')->min(0)->end()
                         ->booleanNode('enable_compression')->end()
@@ -183,6 +189,9 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                         ->arrayNode('cache')
                             ->{class_exists(CacheItem::class) ? 'canBeDisabled' : 'canBeEnabled'}()
+                        ->end()
+                        ->arrayNode('http_client')
+                            ->{class_exists(HttpClient::class) ? 'canBeDisabled' : 'canBeEnabled'}()
                         ->end()
                         ->arrayNode('console')
                             ->addDefaultsIfNotSet()

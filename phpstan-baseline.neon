@@ -106,6 +106,11 @@ parameters:
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
+			message: "#^Parameter \\#2 \\$config of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:registerHttpClientTracingConfiguration\\(\\) expects array\\<string, mixed\\>, mixed given\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
 			message: "#^Parameter \\#2 \\$config of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:registerMessengerListenerConfiguration\\(\\) expects array\\<string, mixed\\>, mixed given\\.$#"
 			count: 1
 			path: src/DependencyInjection/SentryExtension.php
@@ -122,7 +127,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#2 \\$config of method Symfony\\\\Component\\\\DependencyInjection\\\\Extension\\\\Extension\\:\\:isConfigEnabled\\(\\) expects array, mixed given\\.$#"
-			count: 3
+			count: 4
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
@@ -151,22 +156,7 @@ parameters:
 			path: src/EventListener/ConsoleCommandListener.php
 
 		-
-			message: "#^Else branch is unreachable because previous condition is always true\\.$#"
-			count: 1
-			path: src/EventListener/ErrorListener.php
-
-		-
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
-			count: 1
-			path: src/EventListener/RequestListener.php
-
-		-
-			message: "#^Cannot call method getUser\\(\\) on Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\TokenInterface\\|null\\.$#"
-			count: 1
-			path: src/EventListener/RequestListener.php
-
-		-
-			message: "#^Parameter \\#1 \\$user of method Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListener\\:\\:getUsername\\(\\) expects object\\|string, Symfony\\\\Component\\\\Security\\\\Core\\\\User\\\\UserInterface\\|null given\\.$#"
 			count: 1
 			path: src/EventListener/RequestListener.php
 
@@ -241,6 +231,31 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingStatementForV3.php
 
 		-
+			message: "#^Parameter \\#4 \\$length of method Doctrine\\\\DBAL\\\\Driver\\\\Statement\\:\\:bindParam\\(\\) expects int\\|null, mixed given\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingStatementForV3.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableHttpClient\\:\\:request\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Tracing/HttpClient/AbstractTraceableHttpClient.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableResponse\\:\\:toArray\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Tracing/HttpClient/AbstractTraceableResponse.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\TraceableHttpClientForV6\\:\\:withOptions\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Tracing/HttpClient/TraceableHttpClientForV6.php
+
+		-
+			message: "#^Call to an undefined method Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface\\:\\:toStream\\(\\)\\.$#"
+			count: 1
+			path: src/Tracing/HttpClient/TraceableResponseForV6.php
+
+		-
 			message: "#^Cannot access offset 'sample_rate' on mixed\\.$#"
 			count: 1
 			path: tests/DependencyInjection/ConfigurationTest.php
@@ -281,57 +296,7 @@ parameters:
 			path: tests/End2End/TracingEnd2EndTest.php
 
 		-
-			message: "#^Call to method getException\\(\\) on an unknown class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent\\.$#"
-			count: 1
-			path: tests/EventListener/ErrorListenerTest.php
-
-		-
-			message: "#^Instantiated class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent not found\\.$#"
-			count: 1
-			path: tests/EventListener/ErrorListenerTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\ErrorListener\\:\\:handleExceptionEvent\\(\\) expects Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\ExceptionEvent, Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\ExceptionEvent\\|Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent given\\.$#"
-			count: 1
-			path: tests/EventListener/ErrorListenerTest.php
-
-		-
-			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\ErrorListenerTest\\:\\:testHandleExceptionEvent\\(\\) has invalid type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseForExceptionEvent\\.$#"
-			count: 1
-			path: tests/EventListener/ErrorListenerTest.php
-
-		-
-			message: "#^Class Symfony\\\\Component\\\\Messenger\\\\Event\\\\WorkerMessageFailedEvent constructor invoked with 4 parameters, 3 required\\.$#"
-			count: 1
-			path: tests/EventListener/MessengerListenerTest.php
-
-		-
-			message: "#^If condition is always false\\.$#"
-			count: 1
-			path: tests/EventListener/MessengerListenerTest.php
-
-		-
 			message: "#^Call to function method_exists\\(\\) with \\$this\\(Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\AuthenticatedTokenStub\\) and 'setAuthenticated' will always evaluate to false\\.$#"
-			count: 1
-			path: tests/EventListener/RequestListenerTest.php
-
-		-
-			message: "#^Instantiated class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent not found\\.$#"
-			count: 3
-			path: tests/EventListener/RequestListenerTest.php
-
-		-
-			message: "#^Instantiated class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent not found\\.$#"
-			count: 9
-			path: tests/EventListener/RequestListenerTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListener\\:\\:handleKernelControllerEvent\\(\\) expects Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\ControllerEvent, Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\ControllerEvent\\|Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent given\\.$#"
-			count: 1
-			path: tests/EventListener/RequestListenerTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\RequestListener\\:\\:handleKernelRequestEvent\\(\\) expects Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\RequestEvent, Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\|Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\RequestEvent given\\.$#"
 			count: 1
 			path: tests/EventListener/RequestListenerTest.php
 
@@ -341,37 +306,22 @@ parameters:
 			path: tests/EventListener/RequestListenerTest.php
 
 		-
-			message: "#^Parameter \\$controllerEvent of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\RequestListenerTest\\:\\:testHandleKernelControllerEvent\\(\\) has invalid type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\FilterControllerEvent\\.$#"
+			message: "#^Parameter \\#3 \\$roles of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects array\\<string\\>, string given\\.$#"
 			count: 1
 			path: tests/EventListener/RequestListenerTest.php
 
 		-
-			message: "#^Parameter \\$requestEvent of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\RequestListenerTest\\:\\:testHandleKernelRequestEvent\\(\\) has invalid type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\.$#"
+			message: "#^Parameter \\#4 \\$originalToken of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\TokenInterface, array\\<int, string\\> given\\.$#"
+			count: 1
+			path: tests/EventListener/RequestListenerTest.php
+
+		-
+			message: "#^Parameter \\#5 \\$originatedFromUri of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects string\\|null, Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\AuthenticatedTokenStub given\\.$#"
 			count: 1
 			path: tests/EventListener/RequestListenerTest.php
 
 		-
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
-			count: 1
-			path: tests/EventListener/SubRequestListenerTest.php
-
-		-
-			message: "#^Instantiated class Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent not found\\.$#"
-			count: 2
-			path: tests/EventListener/SubRequestListenerTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$event of method Sentry\\\\SentryBundle\\\\EventListener\\\\SubRequestListener\\:\\:handleKernelRequestEvent\\(\\) expects Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\RequestEvent, Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\|Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\RequestEvent given\\.$#"
-			count: 1
-			path: tests/EventListener/SubRequestListenerTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$event of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\SubRequestListenerTest\\:\\:isMainRequest\\(\\) expects Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent, Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\|Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\RequestEvent given\\.$#"
-			count: 1
-			path: tests/EventListener/SubRequestListenerTest.php
-
-		-
-			message: "#^Parameter \\$event of method Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\SubRequestListenerTest\\:\\:testHandleKernelRequestEvent\\(\\) has invalid type Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\GetResponseEvent\\.$#"
 			count: 1
 			path: tests/EventListener/SubRequestListenerTest.php
 
@@ -495,3 +445,12 @@ parameters:
 			count: 1
 			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
 
+		-
+			message: "#^Parameter \\#1 \\$responses of method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableHttpClient\\:\\:stream\\(\\) expects iterable\\<\\(int\\|string\\), Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface\\>\\|Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface, stdClass given\\.$#"
+			count: 1
+			path: tests/Tracing/HttpClient/TraceableHttpClientTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$responses of static method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableResponse\\:\\:stream\\(\\) expects iterable\\<Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableResponse\\>, array\\<int, stdClass\\> given\\.$#"
+			count: 1
+			path: tests/Tracing/HttpClient/TraceableResponseTest.php
