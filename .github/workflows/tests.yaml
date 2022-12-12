@@ -7,7 +7,6 @@ on:
       - master
       - develop
       - release/**
-      - 3.5.x
 
 jobs:
   tests:
@@ -24,6 +23,7 @@ jobs:
           - '7.4'
           - '8.0'
           - '8.1'
+          - '8.2'
         symfony-version:
           - 4.4.*
           - 5.*
@@ -100,6 +100,8 @@ jobs:
             dependencies: lowest
             symfony-version: 4.4.*
           - php: '8.1'
+            dependencies: highest
+          - php: '8.2'
             dependencies: highest
 
     steps:
