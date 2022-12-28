@@ -9,9 +9,9 @@ _Bad software is everywhere, and we're tired of it. Sentry is on a mission to he
 # Official Sentry SDK for Symfony
 
 [![Stable release][Last stable image]][Packagist link]
-[![License](https://poser.pugx.org/sentry/sentry/license)](https://packagist.org/packages/sentry/sentry)
-[![Total Downloads](https://poser.pugx.org/sentry/sentry/downloads)](https://packagist.org/packages/sentry/sentry)
-[![Monthly Downloads](https://poser.pugx.org/sentry/sentry/d/monthly)](https://packagist.org/packages/sentry/sentry)
+[![License](https://poser.pugx.org/sentry/sentry-symfony/license)](https://packagist.org/packages/sentry/sentry-symfony)
+[![Total Downloads](https://poser.pugx.org/sentry/sentry-symfony/downloads)](https://packagist.org/packages/sentry/sentry-symfony)
+[![Monthly Downloads](https://poser.pugx.org/sentry/sentry-symfony/d/monthly)](https://packagist.org/packages/sentry/sentry-symfony)
 
 ![CI](https://github.com/getsentry/sentry-symfony/workflows/CI/badge.svg) [![Coverage Status][Master Code Coverage Image]][Master Code Coverage]
 [![Discord](https://img.shields.io/discord/621778831602221064)](https://discord.gg/cWnMQeA)
