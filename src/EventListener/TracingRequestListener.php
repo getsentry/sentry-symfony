@@ -41,9 +41,18 @@ final class TracingRequestListener extends AbstractTracingRequestListener
             $request->headers->get('sentry-trace', ''),
             $request->headers->get('baggage', '')
         );
+
         $context->setOp('http.server');
-        $context->setName(sprintf('%s %s%s%s', $request->getMethod(), $request->getSchemeAndHttpHost(), $request->getBaseUrl(), $request->getPathInfo()));
-        $context->setSource(TransactionSource::url());
+
+        $routeName = $request->attributes->get('_route');
+        if (null !== $routeName && is_string($routeName)) {
+            $context->setName(sprintf('%s %s', $request->getMethod(), $routeName));
+            $context->setSource(TransactionSource::route());
+        } else {
+            $context->setName(sprintf('%s %s%s%s', $request->getMethod(), $request->getSchemeAndHttpHost(), $request->getBaseUrl(), $request->getPathInfo()));
+            $context->setSource(TransactionSource::url());
+        }
+
         $context->setStartTimestamp($requestStartTime);
         $context->setTags($this->getTags($request));
 
