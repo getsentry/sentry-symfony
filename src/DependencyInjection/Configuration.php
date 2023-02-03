@@ -37,6 +37,7 @@ final class Configuration implements ConfigurationInterface
                     ->info('If this value is not provided, the SDK will try to read it from the SENTRY_DSN environment variable. If that variable also does not exist, the SDK will just not send any events.')
                 ->end()
                 ->booleanNode('register_error_listener')->defaultTrue()->end()
+                ->booleanNode('register_error_handler')->defaultTrue()->end()
                 ->scalarNode('logger')
                     ->info('The service ID of the PSR-3 logger used to log messages coming from the SDK client. Be aware that setting the same logger of the application may create a circular loop when an event fails to be sent.')
                     ->defaultNull()

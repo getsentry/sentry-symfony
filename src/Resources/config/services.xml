@@ -121,6 +121,11 @@
             <argument /> <!-- $decoratedAdapter -->
         </service>
 
+        <service id="Sentry\SentryBundle\Integration\IntegrationConfigurator" class="Sentry\SentryBundle\Integration\IntegrationConfigurator">
+            <argument type="collection" /> <!-- $userIntegrations -->
+            <argument /> <!-- $registerErrorHandler -->
+        </service>
+
         <service id="Sentry\Integration\RequestFetcherInterface" class="Sentry\SentryBundle\Integration\RequestFetcher">
             <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack" />
             <argument type="service" id="Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface" on-invalid="null" />
