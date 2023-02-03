@@ -6,6 +6,7 @@ namespace Sentry\SentryBundle\Tests\EventListener;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Sentry\EventHint;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\State\HubInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -35,9 +36,23 @@ final class ErrorListenerTest extends TestCase
      */
     public function testHandleExceptionEvent(ExceptionEvent $event): void
     {
+        $expectedException = $event->getThrowable();
+
         $this->hub->expects($this->once())
-            ->method('captureException')
-            ->with($event->getThrowable());
+            ->method('captureEvent')
+            ->with(
+                $this->anything(),
+                $this->logicalAnd(
+                    $this->isInstanceOf(EventHint::class),
+                    $this->callback(function (EventHint $subject) use ($expectedException) {
+                        self::assertSame($expectedException, $subject->exception);
+                        self::assertNotNull($subject->mechanism);
+                        self::assertFalse($subject->mechanism->isHandled());
+
+                        return true;
+                    })
+                )
+            );
 
         $this->listener->handleExceptionEvent($event);
     }

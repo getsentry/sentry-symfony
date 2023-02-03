@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Report exceptions to Sentry as unhandled by default (#670)
+- Exceptions from messages which will be retried are sent to Sentry as handled (#670)
+
 ## 4.5.0 (2022-11-28)
 
 - Symfony version 3.4 is no longer supported

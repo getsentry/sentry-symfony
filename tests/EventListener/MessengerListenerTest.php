@@ -8,6 +8,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
 use Sentry\Event;
+use Sentry\EventHint;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
@@ -42,7 +43,7 @@ final class MessengerListenerTest extends TestCase
      * @param \Throwable[]          $exceptions
      * @param array<string, string> $expectedTags
      */
-    public function testHandleWorkerMessageFailedEvent(array $exceptions, WorkerMessageFailedEvent $event, array $expectedTags): void
+    public function testHandleWorkerMessageFailedEvent(array $exceptions, WorkerMessageFailedEvent $event, array $expectedTags, bool $expectedIsHandled): void
     {
         if (!$this->supportsMessenger()) {
             $this->markTestSkipped('Messenger not supported in this environment.');
@@ -57,9 +58,21 @@ final class MessengerListenerTest extends TestCase
             });
 
         $this->hub->expects($this->exactly(\count($exceptions)))
-            ->method('captureException')
-            ->withConsecutive(...array_map(static function (\Throwable $exception): array {
-                return [$exception];
+            ->method('captureEvent')
+            ->withConsecutive(...array_map(function (\Throwable $expectedException) use ($expectedIsHandled): array {
+                return [
+                    $this->anything(),
+                    $this->logicalAnd(
+                        $this->isInstanceOf(EventHint::class),
+                        $this->callback(function (EventHint $subject) use ($expectedException, $expectedIsHandled) {
+                            self::assertSame($expectedException, $subject->exception);
+                            self::assertNotNull($subject->mechanism);
+                            self::assertSame($expectedIsHandled, $subject->mechanism->isHandled());
+
+                            return true;
+                        })
+                    ),
+                ];
             }, $exceptions));
 
         $this->hub->expects($this->once())
@@ -97,6 +110,17 @@ final class MessengerListenerTest extends TestCase
                 'messenger.receiver_name' => 'receiver',
                 'messenger.message_class' => \get_class($envelope->getMessage()),
             ],
+            false,
+        ];
+
+        yield 'envelope.throwable INSTANCEOF HandlerFailedException - RETRYING' => [
+            $exceptions,
+            $this->getMessageFailedEvent($envelope, 'receiver', new HandlerFailedException($envelope, $exceptions), true),
+            [
+                'messenger.receiver_name' => 'receiver',
+                'messenger.message_class' => \get_class($envelope->getMessage()),
+            ],
+            true,
         ];
 
         yield 'envelope.throwable INSTANCEOF Exception' => [
@@ -106,6 +130,17 @@ final class MessengerListenerTest extends TestCase
                 'messenger.receiver_name' => 'receiver',
                 'messenger.message_class' => \get_class($envelope->getMessage()),
             ],
+            false,
+        ];
+
+        yield 'envelope.throwable INSTANCEOF Exception - RETRYING' => [
+            [$exceptions[0]],
+            $this->getMessageFailedEvent($envelope, 'receiver', $exceptions[0], true),
+            [
+                'messenger.receiver_name' => 'receiver',
+                'messenger.message_class' => \get_class($envelope->getMessage()),
+            ],
+            true,
         ];
 
         $envelope = new Envelope((object) [], [new BusNameStamp('bus.foo')]);
@@ -118,6 +153,7 @@ final class MessengerListenerTest extends TestCase
                 'messenger.message_class' => \get_class($envelope->getMessage()),
                 'messenger.message_bus' => 'bus.foo',
             ],
+            false,
         ];
     }
 
