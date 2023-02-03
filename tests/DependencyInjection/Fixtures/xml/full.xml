@@ -24,6 +24,7 @@
                         release="4.0.x-dev"
                         server-name="localhost"
                         before-send="App\Sentry\BeforeSendCallback"
+                        before-send-transaction="App\Sentry\BeforeSendTransactionCallback"
                         error-types="E_ALL"
                         max-breadcrumbs="1"
                         before-breadcrumb="App\Sentry\BeforeBreadcrumbCallback"

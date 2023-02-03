@@ -102,6 +102,10 @@ final class SentryExtension extends ConfigurableExtension
             $options['before_send'] = new Reference($options['before_send']);
         }
 
+        if (isset($options['before_send_transaction'])) {
+            $options['before_send_transaction'] = new Reference($options['before_send_transaction']);
+        }
+
         if (isset($options['before_breadcrumb'])) {
             $options['before_breadcrumb'] = new Reference($options['before_breadcrumb']);
         }

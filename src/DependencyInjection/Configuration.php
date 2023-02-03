@@ -92,6 +92,7 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                         ->scalarNode('server_name')->end()
                         ->scalarNode('before_send')->end()
+                        ->scalarNode('before_send_transaction')->end()
                         ->arrayNode('tags')
                             ->useAttributeAsKey('name')
                             ->normalizeKeys(false)

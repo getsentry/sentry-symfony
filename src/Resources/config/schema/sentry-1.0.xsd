@@ -45,6 +45,7 @@
         <xsd:attribute name="release" type="xsd:string" />
         <xsd:attribute name="server-name" type="xsd:string" />
         <xsd:attribute name="before-send" type="xsd:string" />
+        <xsd:attribute name="before-send-transaction" type="xsd:string" />
         <xsd:attribute name="error-types" type="xsd:string" />
         <xsd:attribute name="max-breadcrumbs" type="xsd:integer" />
         <xsd:attribute name="before-breadcrumb" type="xsd:string" />
