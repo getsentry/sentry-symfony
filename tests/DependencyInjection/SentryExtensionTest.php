@@ -214,6 +214,7 @@ abstract class SentryExtensionTest extends TestCase
             'release' => '4.0.x-dev',
             'server_name' => 'localhost',
             'before_send' => new Reference('App\\Sentry\\BeforeSendCallback'),
+            'before_send_transaction' => new Reference('App\\Sentry\\BeforeSendTransactionCallback'),
             'tags' => ['context' => 'development'],
             'error_types' => \E_ALL,
             'max_breadcrumbs' => 1,
