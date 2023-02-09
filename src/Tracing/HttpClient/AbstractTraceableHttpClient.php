@@ -53,11 +53,11 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
 
             $uri = new Uri($url);
             $partialUri = Uri::fromParts([
-                    'scheme' => $uri->getScheme(),
-                    'host' => $uri->getHost(),
-                    'port' => $uri->getPort(),
-                    'path' => $uri->getPath(),
-                ]);
+                'scheme' => $uri->getScheme(),
+                'host' => $uri->getHost(),
+                'port' => $uri->getPort(),
+                'path' => $uri->getPath(),
+            ]);
 
             // Check if the request destination is allow listed in the trace_propagation_targets option.
             $client = $this->hub->getClient();
