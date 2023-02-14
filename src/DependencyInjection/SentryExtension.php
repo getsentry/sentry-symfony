@@ -19,6 +19,7 @@ use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\EventListener\TracingConsoleListener;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
 use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
+use Sentry\SentryBundle\Integration\IntegrationConfigurator;
 use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
@@ -101,6 +102,10 @@ final class SentryExtension extends ConfigurableExtension
             $options['before_send'] = new Reference($options['before_send']);
         }
 
+        if (isset($options['before_send_transaction'])) {
+            $options['before_send_transaction'] = new Reference($options['before_send_transaction']);
+        }
+
         if (isset($options['before_breadcrumb'])) {
             $options['before_breadcrumb'] = new Reference($options['before_breadcrumb']);
         }
@@ -111,9 +116,10 @@ final class SentryExtension extends ConfigurableExtension
             }, $options['class_serializers']);
         }
 
-        if (isset($options['integrations'])) {
-            $options['integrations'] = $this->configureIntegrationsOption($options['integrations'], $config);
-        }
+        $container->getDefinition(IntegrationConfigurator::class)
+            ->setArgument(0, $this->configureIntegrationsOption($options['integrations'], $config))
+            ->setArgument(1, $config['register_error_handler']);
+        $options['integrations'] = new Reference(IntegrationConfigurator::class);
 
         $container
             ->register('sentry.client.options', Options::class)

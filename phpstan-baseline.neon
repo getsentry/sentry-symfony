@@ -21,6 +21,11 @@ parameters:
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
+			message: "#^Cannot access offset 'before_send…' on mixed\\.$#"
+			count: 3
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
 			message: "#^Cannot access offset 'class_serializers' on mixed\\.$#"
 			count: 3
 			path: src/DependencyInjection/SentryExtension.php
@@ -52,7 +57,7 @@ parameters:
 
 		-
 			message: "#^Cannot access offset 'integrations' on mixed\\.$#"
-			count: 3
+			count: 2
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
@@ -77,7 +82,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$id of class Symfony\\\\Component\\\\DependencyInjection\\\\Reference constructor expects string, mixed given\\.$#"
-			count: 5
+			count: 6
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
@@ -277,11 +282,6 @@ parameters:
 
 		-
 			message: "#^Cannot access offset 'error_types' on mixed\\.$#"
-			count: 1
-			path: tests/DependencyInjection/SentryExtensionTest.php
-
-		-
-			message: "#^Cannot access offset 'integrations' on mixed\\.$#"
 			count: 1
 			path: tests/DependencyInjection/SentryExtensionTest.php
 

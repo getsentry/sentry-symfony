@@ -1,6 +1,85 @@
 # Changelog
 
-## Unreleased
+## 4.6.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.6.0.
+This release contains a colorful bouquet of new features.
+
+### Features
+
+- Report exceptions to Sentry as unhandled by default [(#674)](https://github.com/getsentry/sentry-symfony/pull/674)
+
+  All unhandled exceptions will now be marked as `handled: false`. You can query for such events on the issues list page,
+  by searching for `error.handled:false`.
+
+- Exceptions from messages which will be retried are sent to Sentry as handled [(#674)](https://github.com/getsentry/sentry-symfony/pull/674)
+
+  All unhandled exceptions happening on the message bus will now be unpacked and reported individually.
+  The `WorkerMessageFailedEvent::willRetry` property is used to determine the `handled` value of the event sent to Sentry.
+
+- Add `register_error_handler` config option [(#687)](https://github.com/getsentry/sentry-symfony/pull/687)
+
+  With this option, you can disable the global error and exception handlers of the base PHP SDK.
+  If disabled, only events logged by Monolog will be sent to Sentry.
+
+  ```yaml
+    sentry:
+        dsn: '%env(SENTRY_DSN)%'
+        register_error_listener: false
+        register_error_handler: false
+
+    monolog:
+        handlers:
+            sentry:
+                type: sentry
+                level: !php/const Monolog\Logger::ERROR
+                hub_id: Sentry\State\HubInterface
+  ```
+
+- Add `before_send_transaction` [(#691)](https://github.com/getsentry/sentry-symfony/pull/691)
+
+  Similar to `before_send`, you can now apply additional logic for `transaction` events.
+  You can mutate the `transaction` event before it is sent to Sentry. If your callback returns `null`,
+  the event is dropped.
+
+  ```yaml
+    sentry:
+        options:
+            before_send_transaction: 'sentry.callback.before_send_transaction'
+
+    services:
+        sentry.callback.before_send_transaction:
+            class: 'App\Service\Sentry'
+            factory: [ '@App\Service\Sentry', 'getBeforeSendTransaction' ]
+  ```
+
+  ```php
+    <?php
+
+    namespace App\Service;
+
+    class Sentry
+    {
+        public function getBeforeSendTransaction(): callable
+        {
+            return function (\Sentry\Event $event): ?\Sentry\Event {
+                return $event;
+            };
+        }
+    }
+  ```
+
+- Use the `_route` attribute as the transaction name [(#692)](https://github.com/getsentry/sentry-symfony/pull/692)
+  
+  If you're using named routes, the SDK will default to use this attribute as the transaction name.
+  With this change, you should be able to see a full list of your transactions on the performance page,
+  instead of `<< unparameterized >>`.
+
+  You may need to update your starred transactions as well as your dashboards due to this change.
+
+### Bug Fixes
+
+- Sanatize HTTP client spans [(#690)](https://github.com/getsentry/sentry-symfony/pull/690)
 
 ## 4.5.0 (2022-11-28)
 

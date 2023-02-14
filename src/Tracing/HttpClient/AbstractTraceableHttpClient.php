@@ -52,6 +52,12 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
             $headers['sentry-trace'] = $parent->toTraceparent();
 
             $uri = new Uri($url);
+            $partialUri = Uri::fromParts([
+                'scheme' => $uri->getScheme(),
+                'host' => $uri->getHost(),
+                'port' => $uri->getPort(),
+                'path' => $uri->getPath(),
+            ]);
 
             // Check if the request destination is allow listed in the trace_propagation_targets option.
             $client = $this->hub->getClient();
@@ -65,14 +71,16 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
 
             $options['headers'] = $headers;
 
-            $formattedUri = $this->formatUri($uri);
-
             $context = new SpanContext();
             $context->setOp('http.client');
-            $context->setDescription($method . ' ' . $formattedUri);
+            $context->setDescription($method . ' ' . (string) $partialUri);
             $context->setTags([
                 'http.method' => $method,
-                'http.url' => $formattedUri,
+                'http.url' => (string) $partialUri,
+            ]);
+            $context->setData([
+                'http.query' => $uri->getQuery(),
+                'http.fragment' => $uri->getFragment(),
             ]);
 
             $span = $parent->startChild($context);
@@ -110,11 +118,5 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
         if ($this->client instanceof LoggerAwareInterface) {
             $this->client->setLogger($logger);
         }
-    }
-
-    private function formatUri(Uri $uri): string
-    {
-        // Instead of relying on Uri::__toString, we only use a sub set of the URI
-        return Uri::composeComponents($uri->getScheme(), $uri->getHost(), $uri->getPath(), null, null);
     }
 }
