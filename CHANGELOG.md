@@ -3,6 +3,9 @@
 ## 4.6.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.6.0.
+This release contains a colorful bouquet of new features.
+
+### Features
 
 - Report exceptions to Sentry as unhandled by default [(#674)](https://github.com/getsentry/sentry-symfony/pull/674)
 
@@ -33,7 +36,7 @@ The Sentry SDK team is happy to announce the immediate availability of Sentry Sy
                 hub_id: Sentry\State\HubInterface
   ```
 
-- feat: Add before_send_transaction (#691)
+- Add `before_send_transaction` [(#691)](https://github.com/getsentry/sentry-symfony/pull/691)
 
   Similar to `before_send`, you can now apply additional logic for `transaction` events.
   You can mutate the `transaction` event before it is sent to Sentry. If your callback returns `null`,
@@ -73,6 +76,10 @@ The Sentry SDK team is happy to announce the immediate availability of Sentry Sy
   instead of `<< unparameterized >>`.
 
   You may need to update your starred transactions as well as your dashboards due to this change.
+
+### Bug Fixes
+
+- Sanatize HTTP client spans [(#690)](https://github.com/getsentry/sentry-symfony/pull/690)
 
 ## 4.5.0 (2022-11-28)
 
