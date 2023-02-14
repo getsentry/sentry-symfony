@@ -78,12 +78,17 @@ final class TraceableHttpClientTest extends TestCase
             'http.method' => 'GET',
             'http.url' => 'https://www.example.com/test-page',
         ];
+        $expectedData = [
+            'http.query' => 'foo=bar',
+            'http.fragment' => 'baz',
+        ];
 
         $this->assertCount(2, $spans);
         $this->assertNull($spans[1]->getEndTimestamp());
         $this->assertSame('http.client', $spans[1]->getOp());
         $this->assertSame('GET https://www.example.com/test-page', $spans[1]->getDescription());
         $this->assertSame($expectedTags, $spans[1]->getTags());
+        $this->assertSame($expectedData, $spans[1]->getData());
     }
 
     public function testRequestDoesNotContainBaggageHeader(): void
