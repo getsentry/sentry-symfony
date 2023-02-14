@@ -217,8 +217,8 @@ final class TracingRequestListenerTest extends TestCase
         $request->attributes->set('_route', 'app_homepage');
 
         $transactionContext = new TransactionContext();
-        $transactionContext->setName('GET http://www.example.com/path');
-        $transactionContext->setSource(TransactionSource::url());
+        $transactionContext->setName('GET app_homepage');
+        $transactionContext->setSource(TransactionSource::route());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setTags([
