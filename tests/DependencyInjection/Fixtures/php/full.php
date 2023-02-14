@@ -26,6 +26,7 @@ $container->loadFromExtension('sentry', [
         'release' => '4.0.x-dev',
         'server_name' => 'localhost',
         'before_send' => 'App\\Sentry\\BeforeSendCallback',
+        'before_send_transaction' => 'App\\Sentry\\BeforeSendTransactionCallback',
         'tags' => [
             'context' => 'development',
         ],

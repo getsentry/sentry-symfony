@@ -1,0 +1,2 @@
+sentry:
+    register_error_handler: false

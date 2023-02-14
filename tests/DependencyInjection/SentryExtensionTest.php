@@ -19,6 +19,7 @@ use Sentry\SentryBundle\EventListener\SubRequestListener;
 use Sentry\SentryBundle\EventListener\TracingConsoleListener;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
 use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
+use Sentry\SentryBundle\Integration\IntegrationConfigurator;
 use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
@@ -62,6 +63,18 @@ abstract class SentryExtensionTest extends TestCase
         $container = $this->createContainerFromFixture('error_listener_disabled');
 
         $this->assertFalse($container->hasDefinition(ErrorListener::class));
+    }
+
+    /**
+     * @testWith ["full", true]
+     *           ["error_handler_disabled", false]
+     */
+    public function testIntegrationConfiguratorRegisterErrorHandlerArgument(string $fixtureFile, bool $expected): void
+    {
+        $container = $this->createContainerFromFixture($fixtureFile);
+        $definition = $container->getDefinition(IntegrationConfigurator::class);
+
+        $this->assertSame($expected, $definition->getArgument(1));
     }
 
     public function testConsoleCommandListener(): void
@@ -185,17 +198,7 @@ abstract class SentryExtensionTest extends TestCase
         $container = $this->createContainerFromFixture('full');
         $optionsDefinition = $container->getDefinition('sentry.client.options');
         $expectedOptions = [
-            'integrations' => [
-                new Definition(IgnoreErrorsIntegration::class, [
-                    [
-                        'ignore_exceptions' => [
-                            FatalError::class,
-                            FatalErrorException::class,
-                        ],
-                    ],
-                ]),
-                new Reference('App\\Sentry\\Integration\\FooIntegration'),
-            ],
+            'integrations' => new Reference(IntegrationConfigurator::class),
             'default_integrations' => false,
             'send_attempts' => 1,
             'prefixes' => [$container->getParameter('kernel.project_dir')],
@@ -211,6 +214,7 @@ abstract class SentryExtensionTest extends TestCase
             'release' => '4.0.x-dev',
             'server_name' => 'localhost',
             'before_send' => new Reference('App\\Sentry\\BeforeSendCallback'),
+            'before_send_transaction' => new Reference('App\\Sentry\\BeforeSendTransactionCallback'),
             'tags' => ['context' => 'development'],
             'error_types' => \E_ALL,
             'max_breadcrumbs' => 1,
@@ -232,6 +236,22 @@ abstract class SentryExtensionTest extends TestCase
 
         $this->assertSame(Options::class, $optionsDefinition->getClass());
         $this->assertEquals($expectedOptions, $optionsDefinition->getArgument(0));
+
+        $integrationConfiguratorDefinition = $container->getDefinition(IntegrationConfigurator::class);
+        $expectedIntegrations = [
+            new Definition(IgnoreErrorsIntegration::class, [
+                [
+                    'ignore_exceptions' => [
+                        FatalError::class,
+                        FatalErrorException::class,
+                    ],
+                ],
+            ]),
+            new Reference('App\\Sentry\\Integration\\FooIntegration'),
+        ];
+
+        $this->assertSame(IntegrationConfigurator::class, $integrationConfiguratorDefinition->getClass());
+        $this->assertEquals($expectedIntegrations, $integrationConfiguratorDefinition->getArgument(0));
 
         $clientDefinition = $container->findDefinition(ClientInterface::class);
         $factory = $clientDefinition->getFactory();
@@ -281,7 +301,7 @@ abstract class SentryExtensionTest extends TestCase
     public function testIgnoreErrorsIntegrationIsNotAddedTwiceIfAlreadyConfigured(): void
     {
         $container = $this->createContainerFromFixture('ignore_errors_integration_overridden');
-        $integrations = $container->getDefinition('sentry.client.options')->getArgument(0)['integrations'];
+        $integrations = $container->getDefinition(IntegrationConfigurator::class)->getArgument(0);
         $ignoreErrorsIntegrationsCount = 0;
 
         foreach ($integrations as $integration) {
