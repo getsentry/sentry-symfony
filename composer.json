@@ -4,7 +4,7 @@
     "description": "Symfony integration for Sentry (http://getsentry.com)",
     "keywords": ["logging", "errors", "symfony", "sentry"],
     "homepage": "http://getsentry.com",
-    "license": "Apache-2.0",
+    "license": "MIT",
     "authors": [
         {
             "name": "David Cramer",
