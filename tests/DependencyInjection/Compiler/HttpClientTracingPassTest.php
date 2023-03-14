@@ -75,9 +75,11 @@ final class HttpClientTracingPassTest extends TestCase
 
         $reflection = new \ReflectionProperty(\get_class($parentClient), 'client');
         $reflection->setAccessible(true);
-        $thirdClient = $reflection->getValue($service);
+        $thirdClient = $reflection->getValue($parentClient);
         // Failing check
         $this->assertNotInstanceOf(AbstractTraceableHttpClient::class, $thirdClient);
+
+        // $this->assertInstanceOf(CurlHttpClient::class, $thirdClient);
     }
 
     /**
