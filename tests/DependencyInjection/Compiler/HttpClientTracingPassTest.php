@@ -6,10 +6,14 @@ namespace Sentry\SentryBundle\Tests\DependencyInjection\Compiler;
 
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\Compiler\HttpClientTracingPass;
+use Sentry\SentryBundle\Tracing\HttpClient\AbstractTraceableHttpClient;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableHttpClient;
+use Sentry\State\Hub;
 use Sentry\State\HubInterface;
+use Symfony\Bundle\FrameworkBundle\DependencyInjection\FrameworkExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\HttpClient\ScopingHttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 final class HttpClientTracingPassTest extends TestCase
@@ -27,6 +31,53 @@ final class HttpClientTracingPassTest extends TestCase
         $container->compile();
 
         $this->assertSame(TraceableHttpClient::class, $container->findDefinition('http.client')->getClass());
+    }
+
+    public function testScopedClients(): void
+    {
+        $container = $this->createContainerBuilder(true, true);
+
+        $container->setParameter('kernel.debug', false);
+        $container->setParameter('kernel.project_dir', '');
+        $container->setParameter('kernel.container_class', '');
+        $container->setParameter('kernel.build_dir', '');
+        $container->setParameter('kernel.charset', '');
+        $container->setParameter('kernel.cache_dir', '');
+        $container->setParameter('kernel.logs_dir', '');
+        $container->setParameter('kernel.runtime_environment', 'dev');
+
+        $frameworkExtension = new FrameworkExtension();
+        $frameworkExtension->load(
+            [
+                'framework' => [
+                    'http_client' => [
+                        'scoped_clients' => [
+                            'scoped.http.client' => [
+                                'base_uri' => 'https://example.com',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            $container
+        );
+
+        $container->getDefinition('scoped.http.client')->setPublic(true);
+        $container->compile();
+
+        $service = $container->get('scoped.http.client');
+        $this->assertInstanceOf(AbstractTraceableHttpClient::class, $service);
+
+        $reflection = new \ReflectionProperty(AbstractTraceableHttpClient::class, 'client');
+        $reflection->setAccessible(true);
+        $parentClient = $reflection->getValue($service);
+        $this->assertInstanceOf(ScopingHttpClient::class, $parentClient);
+
+        $reflection = new \ReflectionProperty(\get_class($parentClient), 'client');
+        $reflection->setAccessible(true);
+        $thirdClient = $reflection->getValue($service);
+        // Failing check
+        $this->assertNotInstanceOf(AbstractTraceableHttpClient::class, $thirdClient);
     }
 
     /**
@@ -68,7 +119,7 @@ final class HttpClientTracingPassTest extends TestCase
         $container->setParameter('sentry.tracing.enabled', $isTracingEnabled);
         $container->setParameter('sentry.tracing.http_client.enabled', $isHttpClientTracingEnabled);
 
-        $container->register(HubInterface::class, HubInterface::class)
+        $container->register(HubInterface::class, Hub::class)
             ->setPublic(true);
 
         $container->register('http.client', HttpClient::class)
