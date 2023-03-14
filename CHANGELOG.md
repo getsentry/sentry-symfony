@@ -1,5 +1,16 @@
 # Changelog
 
+## 4.7.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.7.0.
+
+### Features
+
+- Add `profiles_sample_rate` config option [(#698)](https://github.com/getsentry/sentry-symfony/pull/698)
+
+  With this new config option, you can now use our new profiling feature in Symfony as well.
+  Please consult https://github.com/getsentry/sentry-php/releases/3.15.0 for setup instructions.
+
 ## 4.6.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.6.0.
