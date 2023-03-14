@@ -36,6 +36,7 @@
         <xsd:attribute name="send-attempts" type="xsd:integer" />
         <xsd:attribute name="sample-rate" type="xsd:float" />
         <xsd:attribute name="traces-sample-rate" type="xsd:float" />
+        <xsd:attribute name="profiles-sample-rate" type="xsd:float" />
         <xsd:attribute name="traces-sampler" type="xsd:string" />
         <xsd:attribute name="attach-stacktrace" type="xsd:boolean" />
         <xsd:attribute name="context-lines" type="xsd:integer" />

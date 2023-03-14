@@ -204,6 +204,7 @@ abstract class SentryExtensionTest extends TestCase
             'prefixes' => [$container->getParameter('kernel.project_dir')],
             'sample_rate' => 1,
             'traces_sample_rate' => 1,
+            'profiles_sample_rate' => 1,
             'traces_sampler' => new Reference('App\\Sentry\\Tracing\\TracesSampler'),
             'trace_propagation_targets' => ['website.invalid'],
             'attach_stacktrace' => true,
