@@ -196,6 +196,70 @@ final class ConfigurationTest extends TestCase
     }
 
     /**
+     * @param int|float $value
+     *
+     * @dataProvider profilesSampleRateOptionDataProvider
+     */
+    public function testProfilesSampleRateOption($value): void
+    {
+        $config = $this->processConfiguration(['options' => ['profiles_sample_rate' => $value]]);
+
+        $this->assertSame($value, $config['options']['profiles_sample_rate']);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function profilesSampleRateOptionDataProvider(): \Generator
+    {
+        yield [0];
+        yield [1];
+        yield [0.0];
+        yield [1.0];
+        yield [0.01];
+        yield [0.9];
+    }
+
+    /**
+     * @param int|float $value
+     *
+     * @dataProvider profilesSampleRateOptionWithInvalidValuesDataProvider
+     */
+    public function testProfilesSampleRateOptionWithInvalidValues($value, string $exceptionMessage): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage($exceptionMessage);
+
+        $this->processConfiguration(['options' => ['profiles_sample_rate' => $value]]);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function profilesSampleRateOptionWithInvalidValuesDataProvider(): \Generator
+    {
+        yield [
+            -1,
+            'The value -1 is too small for path "sentry.options.profiles_sample_rate". Should be greater than or equal to 0',
+        ];
+
+        yield [
+            2,
+            'The value 2 is too big for path "sentry.options.profiles_sample_rate". Should be less than or equal to 1',
+        ];
+
+        yield [
+            -0.1,
+            'The value -0.1 is too small for path "sentry.options.profiles_sample_rate". Should be greater than or equal to 0',
+        ];
+
+        yield [
+            1.01,
+            'The value 1.01 is too big for path "sentry.options.profiles_sample_rate". Should be less than or equal to 1',
+        ];
+    }
+
+    /**
      * @param array<string, mixed> $values
      *
      * @return array<string, mixed>

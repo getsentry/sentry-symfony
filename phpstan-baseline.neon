@@ -261,6 +261,11 @@ parameters:
 			path: src/Tracing/HttpClient/TraceableResponseForV6.php
 
 		-
+			message: "#^Cannot access offset 'profiles_sample_rate' on mixed\\.$#"
+			count: 1
+			path: tests/DependencyInjection/ConfigurationTest.php
+
+		-
 			message: "#^Cannot access offset 'sample_rate' on mixed\\.$#"
 			count: 1
 			path: tests/DependencyInjection/ConfigurationTest.php
