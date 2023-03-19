@@ -187,7 +187,7 @@ If you need help setting up or configuring the Symfony SDK (or anything else in 
 
 ## License
 
-Licensed under the Apache 2.0 license, see [`LICENSE`](LICENSE)
+Licensed under the MIT license, see [`LICENSE`](LICENSE)
 
 [Last stable image]: https://poser.pugx.org/sentry/sentry-symfony/version.svg
 [Packagist link]: https://packagist.org/packages/sentry/sentry-symfony
