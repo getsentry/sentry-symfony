@@ -265,7 +265,9 @@ final class SentryExtension extends ConfigurableExtension
             throw new \LogicException('Http client tracing support cannot be enabled because the symfony/http-client Composer package is not installed.');
         }
 
-        $container->setParameter('sentry.tracing.http_client.enabled', $isConfigEnabled);
+        if (!$isConfigEnabled) {
+            $container->removeDefinition('sentry.tracing.traceable_http_client');
+        }
     }
 
     /**
