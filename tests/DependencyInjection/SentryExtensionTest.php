@@ -411,7 +411,7 @@ abstract class SentryExtensionTest extends TestCase
 
         $container = $this->createContainerFromFixture('http_client_tracing_enabled');
 
-        $this->assertTrue($container->getParameter('sentry.tracing.http_client.enabled'));
+        $this->assertTrue($container->hasDefinition('sentry.tracing.traceable_http_client'));
     }
 
     public function testTwigTracingExtensionIsRemovedWhenTwigTracingIsDisabled(): void
