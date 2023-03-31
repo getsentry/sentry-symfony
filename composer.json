@@ -19,11 +19,13 @@
         "sort-packages": true,
         "allow-plugins": {
             "composer/package-versions-deprecated": true,
-            "phpstan/extension-installer": true
+            "phpstan/extension-installer": true,
+            "php-http/discovery": false
         }
     },
     "require": {
         "php": "^7.2||^8.0",
+        "guzzlehttp/psr7": "^1.7 || ^2.0",
         "jean85/pretty-package-versions": "^1.5 || ^2.0",
         "sentry/sdk": "^3.3",
         "sentry/sentry": "^3.15",
