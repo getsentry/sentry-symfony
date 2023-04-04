@@ -13,6 +13,7 @@ use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final class ConfigurationTest extends TestCase
@@ -33,8 +34,8 @@ final class ConfigurationTest extends TestCase
                 'tags' => [],
                 'in_app_exclude' => [
                     '%kernel.cache_dir%',
-                    '%kernel.build_dir%',
                     '%kernel.project_dir%/vendor',
+                    '%kernel.build_dir%',
                 ],
                 'in_app_include' => [],
                 'class_serializers' => [],
@@ -63,6 +64,11 @@ final class ConfigurationTest extends TestCase
                 ],
             ],
         ];
+
+        if (Kernel::VERSION_ID < 50200) {
+            array_pop($expectedBundleDefaultConfig['options']['in_app_exclude']);
+            $this->assertNotContains('%kernel.build_dir%', $expectedBundleDefaultConfig['options']['in_app_exclude'], 'Precondition failed, wrong default removed');
+        }
 
         $this->assertSame($expectedBundleDefaultConfig, $this->processConfiguration([]));
     }

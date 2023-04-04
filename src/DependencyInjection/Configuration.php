@@ -15,6 +15,7 @@ use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final class Configuration implements ConfigurationInterface
@@ -30,6 +31,15 @@ final class Configuration implements ConfigurationInterface
         $rootNode = method_exists(TreeBuilder::class, 'getRootNode')
             ? $treeBuilder->getRootNode()
             : $treeBuilder->root('sentry');
+
+        $inAppExcludes = [
+            '%kernel.cache_dir%',
+            '%kernel.project_dir%/vendor',
+        ];
+
+        if (Kernel::VERSION_ID >= 50200) {
+            $inAppExcludes[] = '%kernel.build_dir%';
+        }
 
         $rootNode
             ->children()
@@ -116,11 +126,7 @@ final class Configuration implements ConfigurationInterface
                         ->arrayNode('in_app_exclude')
                             ->scalarPrototype()->end()
                             ->beforeNormalization()->castToArray()->end()
-                            ->defaultValue([
-                                '%kernel.cache_dir%',
-                                '%kernel.build_dir%',
-                                '%kernel.project_dir%/vendor',
-                            ])
+                            ->defaultValue($inAppExcludes)
                         ->end()
                         ->arrayNode('in_app_include')
                             ->scalarPrototype()->end()
