@@ -56,7 +56,7 @@
         "symfony/cache": "^4.4.20||^5.0.11||^6.0",
         "symfony/dom-crawler": "^4.4.20||^5.0.11||^6.0",
         "symfony/framework-bundle": "^4.4.20||^5.0.11||^6.0",
-        "symfony/http-client": "^4.4.20||^5.0.11||^6.0",
+        "symfony/http-client": "^4.4.20||^5.0.11 <5.4.22||^6.0 <6.2.8",
         "symfony/messenger": "^4.4.20||^5.0.11||^6.0",
         "symfony/monolog-bundle": "^3.4",
         "symfony/phpunit-bridge": "^5.2.6||^6.0",
