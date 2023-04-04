@@ -119,7 +119,7 @@ jobs:
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
       - name: Remove optional packages
-        run: composer remove doctrine/dbal doctrine/doctrine-bundle symfony/messenger symfony/twig-bundle symfony/cache symfony/http-client --dev --no-update
+        run: composer remove doctrine/dbal doctrine/doctrine-bundle symfony/messenger symfony/twig-bundle symfony/cache --dev --no-update
 
       - name: Install dependencies
         uses: ramsey/composer-install@v1
