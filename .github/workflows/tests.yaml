@@ -6,7 +6,7 @@ on:
     branches:
       - master
       - develop
-      - 3.5.x
+      - release/**
 
 jobs:
   tests:
@@ -23,6 +23,7 @@ jobs:
           - '7.4'
           - '8.0'
           - '8.1'
+          - '8.2'
         symfony-version:
           - 4.4.*
           - 5.*
@@ -100,6 +101,8 @@ jobs:
             symfony-version: 4.4.*
           - php: '8.1'
             dependencies: highest
+          - php: '8.2'
+            dependencies: highest
 
     steps:
       - name: Checkout
@@ -116,7 +119,7 @@ jobs:
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
       - name: Remove optional packages
-        run: composer remove doctrine/dbal doctrine/doctrine-bundle symfony/messenger symfony/twig-bundle symfony/cache symfony/http-client --dev --no-update
+        run: composer remove doctrine/dbal doctrine/doctrine-bundle symfony/messenger symfony/twig-bundle symfony/cache --dev --no-update
 
       - name: Install dependencies
         uses: ramsey/composer-install@v1

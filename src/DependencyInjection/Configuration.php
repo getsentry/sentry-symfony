@@ -15,6 +15,7 @@ use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final class Configuration implements ConfigurationInterface
@@ -31,12 +32,22 @@ final class Configuration implements ConfigurationInterface
             ? $treeBuilder->getRootNode()
             : $treeBuilder->root('sentry');
 
+        $inAppExcludes = [
+            '%kernel.cache_dir%',
+            '%kernel.project_dir%/vendor',
+        ];
+
+        if (Kernel::VERSION_ID >= 50200) {
+            $inAppExcludes[] = '%kernel.build_dir%';
+        }
+
         $rootNode
             ->children()
                 ->scalarNode('dsn')
                     ->info('If this value is not provided, the SDK will try to read it from the SENTRY_DSN environment variable. If that variable also does not exist, the SDK will just not send any events.')
                 ->end()
                 ->booleanNode('register_error_listener')->defaultTrue()->end()
+                ->booleanNode('register_error_handler')->defaultTrue()->end()
                 ->scalarNode('logger')
                     ->info('The service ID of the PSR-3 logger used to log messages coming from the SDK client. Be aware that setting the same logger of the application may create a circular loop when an event fails to be sent.')
                     ->defaultNull()
@@ -72,6 +83,11 @@ final class Configuration implements ConfigurationInterface
                             ->max(1.0)
                             ->info('The sampling factor to apply to transactions. A value of 0 will deny sending any transaction, and a value of 1 will send all transactions.')
                         ->end()
+                        ->floatNode('profiles_sample_rate')
+                            ->min(0.0)
+                            ->max(1.0)
+                            ->info('The sampling factor to apply to profiles. A value of 0 will deny sending any profiles, and a value of 1 will send all profiles. Profiles are sampled in relation to traces_sample_rate')
+                        ->end()
                         ->scalarNode('traces_sampler')->end()
                         ->arrayNode('trace_propagation_targets')
                             ->scalarPrototype()->end()
@@ -91,6 +107,7 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                         ->scalarNode('server_name')->end()
                         ->scalarNode('before_send')->end()
+                        ->scalarNode('before_send_transaction')->end()
                         ->arrayNode('tags')
                             ->useAttributeAsKey('name')
                             ->normalizeKeys(false)
@@ -109,11 +126,7 @@ final class Configuration implements ConfigurationInterface
                         ->arrayNode('in_app_exclude')
                             ->scalarPrototype()->end()
                             ->beforeNormalization()->castToArray()->end()
-                            ->defaultValue([
-                                '%kernel.cache_dir%',
-                                '%kernel.build_dir%',
-                                '%kernel.project_dir%/vendor',
-                            ])
+                            ->defaultValue($inAppExcludes)
                         ->end()
                         ->arrayNode('in_app_include')
                             ->scalarPrototype()->end()

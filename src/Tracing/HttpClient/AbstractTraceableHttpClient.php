@@ -51,11 +51,18 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
             $headers = $options['headers'] ?? [];
             $headers['sentry-trace'] = $parent->toTraceparent();
 
+            $uri = new Uri($url);
+            $partialUri = Uri::fromParts([
+                'scheme' => $uri->getScheme(),
+                'host' => $uri->getHost(),
+                'port' => $uri->getPort(),
+                'path' => $uri->getPath(),
+            ]);
+
             // Check if the request destination is allow listed in the trace_propagation_targets option.
             $client = $this->hub->getClient();
             if (null !== $client) {
                 $sdkOptions = $client->getOptions();
-                $uri = new Uri($url);
 
                 if (\in_array($uri->getHost(), $sdkOptions->getTracePropagationTargets())) {
                     $headers['baggage'] = $parent->toBaggage();
@@ -66,10 +73,14 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
 
             $context = new SpanContext();
             $context->setOp('http.client');
-            $context->setDescription('HTTP ' . $method);
+            $context->setDescription($method . ' ' . (string) $partialUri);
             $context->setTags([
                 'http.method' => $method,
-                'http.url' => $url,
+                'http.url' => (string) $partialUri,
+            ]);
+            $context->setData([
+                'http.query' => $uri->getQuery(),
+                'http.fragment' => $uri->getFragment(),
             ]);
 
             $span = $parent->startChild($context);

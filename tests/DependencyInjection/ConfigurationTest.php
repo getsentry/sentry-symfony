@@ -13,6 +13,7 @@ use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final class ConfigurationTest extends TestCase
@@ -21,6 +22,7 @@ final class ConfigurationTest extends TestCase
     {
         $expectedBundleDefaultConfig = [
             'register_error_listener' => true,
+            'register_error_handler' => true,
             'logger' => null,
             'transport_factory' => 'Sentry\\Transport\\TransportFactoryInterface',
             'options' => [
@@ -32,8 +34,8 @@ final class ConfigurationTest extends TestCase
                 'tags' => [],
                 'in_app_exclude' => [
                     '%kernel.cache_dir%',
-                    '%kernel.build_dir%',
                     '%kernel.project_dir%/vendor',
+                    '%kernel.build_dir%',
                 ],
                 'in_app_include' => [],
                 'class_serializers' => [],
@@ -62,6 +64,11 @@ final class ConfigurationTest extends TestCase
                 ],
             ],
         ];
+
+        if (Kernel::VERSION_ID < 50200) {
+            array_pop($expectedBundleDefaultConfig['options']['in_app_exclude']);
+            $this->assertNotContains('%kernel.build_dir%', $expectedBundleDefaultConfig['options']['in_app_exclude'], 'Precondition failed, wrong default removed');
+        }
 
         $this->assertSame($expectedBundleDefaultConfig, $this->processConfiguration([]));
     }
@@ -191,6 +198,70 @@ final class ConfigurationTest extends TestCase
         yield [
             1.01,
             'The value 1.01 is too big for path "sentry.options.traces_sample_rate". Should be less than or equal to 1',
+        ];
+    }
+
+    /**
+     * @param int|float $value
+     *
+     * @dataProvider profilesSampleRateOptionDataProvider
+     */
+    public function testProfilesSampleRateOption($value): void
+    {
+        $config = $this->processConfiguration(['options' => ['profiles_sample_rate' => $value]]);
+
+        $this->assertSame($value, $config['options']['profiles_sample_rate']);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function profilesSampleRateOptionDataProvider(): \Generator
+    {
+        yield [0];
+        yield [1];
+        yield [0.0];
+        yield [1.0];
+        yield [0.01];
+        yield [0.9];
+    }
+
+    /**
+     * @param int|float $value
+     *
+     * @dataProvider profilesSampleRateOptionWithInvalidValuesDataProvider
+     */
+    public function testProfilesSampleRateOptionWithInvalidValues($value, string $exceptionMessage): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage($exceptionMessage);
+
+        $this->processConfiguration(['options' => ['profiles_sample_rate' => $value]]);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function profilesSampleRateOptionWithInvalidValuesDataProvider(): \Generator
+    {
+        yield [
+            -1,
+            'The value -1 is too small for path "sentry.options.profiles_sample_rate". Should be greater than or equal to 0',
+        ];
+
+        yield [
+            2,
+            'The value 2 is too big for path "sentry.options.profiles_sample_rate". Should be less than or equal to 1',
+        ];
+
+        yield [
+            -0.1,
+            'The value -0.1 is too small for path "sentry.options.profiles_sample_rate". Should be greater than or equal to 0',
+        ];
+
+        yield [
+            1.01,
+            'The value 1.01 is too big for path "sentry.options.profiles_sample_rate". Should be less than or equal to 1',
         ];
     }
 

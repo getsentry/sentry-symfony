@@ -19,7 +19,6 @@ If you feel that you can fix or implement it yourself, please read on to learn h
 - Add tests for your changes to `tests/`.
 - Run tests and make sure all of them pass.
 - Submit a pull request, referencing any issues it addresses.
-- Make sure to update the `CHANGELOG.md` file below the `Unreleased` heading.
 
 We will review your pull request as soon as possible.
 Thank you for contributing!

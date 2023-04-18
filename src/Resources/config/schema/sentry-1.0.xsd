@@ -15,6 +15,7 @@
         </xsd:choice>
 
         <xsd:attribute name="register-error-listener" type="xsd:boolean" />
+        <xsd:attribute name="register-error-handler" type="xsd:boolean" />
         <xsd:attribute name="transport-factory" type="xsd:string" />
         <xsd:attribute name="dsn" type="xsd:string" />
         <xsd:attribute name="logger" type="xsd:string" />
@@ -35,6 +36,7 @@
         <xsd:attribute name="send-attempts" type="xsd:integer" />
         <xsd:attribute name="sample-rate" type="xsd:float" />
         <xsd:attribute name="traces-sample-rate" type="xsd:float" />
+        <xsd:attribute name="profiles-sample-rate" type="xsd:float" />
         <xsd:attribute name="traces-sampler" type="xsd:string" />
         <xsd:attribute name="attach-stacktrace" type="xsd:boolean" />
         <xsd:attribute name="context-lines" type="xsd:integer" />
@@ -44,6 +46,7 @@
         <xsd:attribute name="release" type="xsd:string" />
         <xsd:attribute name="server-name" type="xsd:string" />
         <xsd:attribute name="before-send" type="xsd:string" />
+        <xsd:attribute name="before-send-transaction" type="xsd:string" />
         <xsd:attribute name="error-types" type="xsd:string" />
         <xsd:attribute name="max-breadcrumbs" type="xsd:integer" />
         <xsd:attribute name="before-breadcrumb" type="xsd:string" />

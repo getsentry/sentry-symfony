@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\Event;
+use Sentry\EventHint;
+use Sentry\ExceptionMechanism;
 use Sentry\State\HubInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 
@@ -34,6 +37,11 @@ final class ErrorListener
      */
     public function handleExceptionEvent(ExceptionEvent $event): void
     {
-        $this->hub->captureException($event->getThrowable());
+        $hint = EventHint::fromArray([
+            'exception' => $event->getThrowable(),
+            'mechanism' => new ExceptionMechanism(ExceptionMechanism::TYPE_GENERIC, false),
+        ]);
+
+        $this->hub->captureEvent(Event::createEvent(), $hint);
     }
 }
