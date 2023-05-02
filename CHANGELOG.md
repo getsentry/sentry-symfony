@@ -1,5 +1,20 @@
 # Changelog
 
+## 4.8.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.8.0.
+
+### Features
+
+- Set cache keys as span descriptions [(#677)](https://github.com/getsentry/sentry-symfony/pull/677)
+
+  To better identify the source of a cache operation, we now set the cache key as the description of `cache` op spans.
+
+### Bug Fixes
+
+- Add direct dependency for `guzzlehttp/psr7` [(#708)](https://github.com/getsentry/sentry-symfony/pull/708)
+- Drop `kernel.build_dir` param below Symfony 5.2 [(#711)](https://github.com/getsentry/sentry-symfony/pull/711)
+
 ## 4.7.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.7.0.
