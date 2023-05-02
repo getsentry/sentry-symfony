@@ -47,7 +47,7 @@ final class TraceableTagAwareCacheAdapterForV3 implements TagAwareAdapterInterfa
             }
 
             return $this->decoratedAdapter->get($key, $callback, $beta, $metadata);
-        });
+        }, $key);
     }
 
     /**

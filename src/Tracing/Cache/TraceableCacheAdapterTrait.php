@@ -40,7 +40,7 @@ trait TraceableCacheAdapterTrait
     {
         return $this->traceFunction('cache.get_item', function () use ($key): CacheItem {
             return $this->decoratedAdapter->getItem($key);
-        });
+        }, $key);
     }
 
     /**
@@ -60,7 +60,7 @@ trait TraceableCacheAdapterTrait
     {
         return $this->traceFunction('cache.clear', function () use ($prefix): bool {
             return $this->decoratedAdapter->clear($prefix);
-        });
+        }, $prefix);
     }
 
     /**
@@ -74,7 +74,7 @@ trait TraceableCacheAdapterTrait
             }
 
             return $this->decoratedAdapter->delete($key);
-        });
+        }, $key);
     }
 
     /**
@@ -84,7 +84,7 @@ trait TraceableCacheAdapterTrait
     {
         return $this->traceFunction('cache.has_item', function () use ($key): bool {
             return $this->decoratedAdapter->hasItem($key);
-        });
+        }, $key);
     }
 
     /**
@@ -94,7 +94,7 @@ trait TraceableCacheAdapterTrait
     {
         return $this->traceFunction('cache.delete_item', function () use ($key): bool {
             return $this->decoratedAdapter->deleteItem($key);
-        });
+        }, $key);
     }
 
     /**
@@ -168,13 +168,16 @@ trait TraceableCacheAdapterTrait
      *
      * @phpstan-return TResult
      */
-    private function traceFunction(string $spanOperation, \Closure $callback)
+    private function traceFunction(string $spanOperation, \Closure $callback, string $spanDescription = null)
     {
         $span = $this->hub->getSpan();
 
         if (null !== $span) {
             $spanContext = new SpanContext();
             $spanContext->setOp($spanOperation);
+            if (null !== $spanDescription) {
+                $spanContext->setDescription(urldecode($spanDescription));
+            }
 
             $span = $span->startChild($spanContext);
         }
