@@ -13,6 +13,8 @@ use Sentry\Integration\IntegrationInterface;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\Integration\RequestIntegration;
 use Sentry\Options;
+use Sentry\SentryBundle\Cron\CronJobFactory;
+use Sentry\SentryBundle\Cron\CronJobFactoryInterface;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
@@ -154,6 +156,23 @@ final class SentryExtension extends ConfigurableExtension
             ->setDefinition('sentry.client', new Definition(Client::class))
             ->setPublic(false)
             ->setFactory([$clientBuilderDefinition, 'getClient']);
+
+        // Setup Cronjob.
+        $environment = '';
+        if (isset($options['environment'])) {
+            $environment = $options['environment'];
+        }
+
+        $release = null;
+        if (isset($options['release'])) {
+            $release = $options['release'];
+        }
+
+        $container
+            ->register(CronJobFactoryInterface::class, CronJobFactory::class)
+            ->setPublic(true)
+            ->setArgument(0, $environment)
+            ->setArgument(1, $release);
     }
 
     /**
