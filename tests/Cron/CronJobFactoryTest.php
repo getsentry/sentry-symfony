@@ -8,7 +8,7 @@ use Sentry\SentryBundle\Cron\CronJobInterface;
 
 class CronJobFactoryTest extends TestCase
 {
-    public function testCronJob()
+    public function testCronJob(): void
     {
         // Setup test
         $factory = new CronJobFactory('test', 'test-release');
