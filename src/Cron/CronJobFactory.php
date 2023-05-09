@@ -13,14 +13,14 @@ class CronJobFactory implements CronJobFactoryInterface
      */
     private $environment;
     /**
-     * @var string
+     * @var string|null
      */
     private $release;
 
     /**
      * @param string $environment the configured environment
      */
-    public function __construct(string $environment, string $release)
+    public function __construct(string $environment, ?string $release = null)
     {
         $this->environment = $environment;
         $this->release = $release;
