@@ -321,6 +321,26 @@ parameters:
 			path: tests/EventListener/LoginListenerTest.php
 
 		-
+			message: "#^Parameter \\#2 \\$firewallName of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects string, null given\\.$#"
+			count: 1
+			path: tests/EventListener/LoginListenerTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$roles of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects array\\<string\\>, string given\\.$#"
+			count: 1
+			path: tests/EventListener/LoginListenerTest.php
+
+		-
+			message: "#^Parameter \\#4 \\$originalToken of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\TokenInterface, array\\<int, string\\> given\\.$#"
+			count: 1
+			path: tests/EventListener/LoginListenerTest.php
+
+		-
+			message: "#^Parameter \\#5 \\$originatedFromUri of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects string\\|null, Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\AuthenticatedTokenStub given\\.$#"
+			count: 1
+			path: tests/EventListener/LoginListenerTest.php
+
+		-
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
 			count: 1
 			path: tests/EventListener/SubRequestListenerTest.php
