@@ -61,6 +61,7 @@
         "symfony/monolog-bundle": "^3.4",
         "symfony/phpunit-bridge": "^5.2.6||^6.0",
         "symfony/process": "^4.4.20||^5.0.11||^6.0",
+        "symfony/security-http": "^4.4.20||^5.0.11||^6.0",
         "symfony/twig-bundle": "^4.4.20||^5.0.11||^6.0",
         "symfony/yaml": "^4.4.20||^5.0.11||^6.0",
         "vimeo/psalm": "^4.3"

@@ -87,6 +87,12 @@
             <tag name="kernel.event_listener" event="Symfony\Component\Messenger\Event\WorkerMessageHandledEvent" method="handleWorkerMessageHandledEvent" priority="50" />
         </service>
 
+        <service id="Sentry\SentryBundle\EventListener\LoginListener" class="Sentry\SentryBundle\EventListener\LoginListener">
+            <argument type="service" id="Sentry\State\HubInterface" />
+
+            <tag name="kernel.event_listener" event="Symfony\Component\Security\Http\Event\LoginSuccessEvent" method="handleLoginSuccessEvent" />
+        </service>
+
         <service id="Sentry\SentryBundle\Command\SentryTestCommand" class="Sentry\SentryBundle\Command\SentryTestCommand">
             <tag name="console.command" command="sentry:test" />
         </service>
