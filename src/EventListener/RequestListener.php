@@ -9,10 +9,6 @@ use Sentry\State\Scope;
 use Sentry\UserDataBag;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Core\Authentication\Token\SwitchUserToken;
-use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * This listener ensures that a new {@see \Sentry\State\Scope} is created for
@@ -29,20 +25,13 @@ final class RequestListener
     private $hub;
 
     /**
-     * @var TokenStorageInterface|null The token storage
-     */
-    private $tokenStorage;
-
-    /**
      * Constructor.
      *
-     * @param HubInterface               $hub          The current hub
-     * @param TokenStorageInterface|null $tokenStorage The token storage
+     * @param HubInterface $hub The current hub
      */
-    public function __construct(HubInterface $hub, ?TokenStorageInterface $tokenStorage)
+    public function __construct(HubInterface $hub/* , ?TokenStorageInterface $tokenStorage */)
     {
         $this->hub = $hub;
-        $this->tokenStorage = $tokenStorage;
     }
 
     /**
@@ -63,14 +52,10 @@ final class RequestListener
             return;
         }
 
-        $userData = new UserDataBag();
-        $userData->setIpAddress($event->getRequest()->getClientIp());
+        $this->hub->configureScope(static function (Scope $scope) use ($event): void {
+            $userData = new UserDataBag();
+            $userData->setIpAddress($event->getRequest()->getClientIp());
 
-        if (null !== $this->tokenStorage) {
-            $this->setUserData($userData, $this->tokenStorage->getToken());
-        }
-
-        $this->hub->configureScope(static function (Scope $scope) use ($userData): void {
             $scope->setUser($userData);
         });
     }
@@ -96,64 +81,5 @@ final class RequestListener
         $this->hub->configureScope(static function (Scope $scope) use ($route): void {
             $scope->setTag('route', $route);
         });
-    }
-
-    /**
-     * @param UserInterface|object|string|null $user
-     */
-    private function getUsername($user): ?string
-    {
-        if ($user instanceof UserInterface) {
-            if (method_exists($user, 'getUserIdentifier')) {
-                return $user->getUserIdentifier();
-            }
-
-            if (method_exists($user, 'getUsername')) {
-                return $user->getUsername();
-            }
-        }
-
-        if (\is_string($user)) {
-            return $user;
-        }
-
-        if (\is_object($user) && method_exists($user, '__toString')) {
-            return (string) $user;
-        }
-
-        return null;
-    }
-
-    private function getImpersonatorUser(TokenInterface $token): ?string
-    {
-        if (!$token instanceof SwitchUserToken) {
-            return null;
-        }
-
-        return $this->getUsername($token->getOriginalToken()->getUser());
-    }
-
-    private function setUserData(UserDataBag $userData, ?TokenInterface $token): void
-    {
-        if (null === $token || !$this->isTokenAuthenticated($token)) {
-            return;
-        }
-
-        $userData->setUsername($this->getUsername($token->getUser()));
-
-        $impersonatorUser = $this->getImpersonatorUser($token);
-
-        if (null !== $impersonatorUser) {
-            $userData->setMetadata('impersonator_username', $impersonatorUser);
-        }
-    }
-
-    private function isTokenAuthenticated(TokenInterface $token): bool
-    {
-        if (method_exists($token, 'isAuthenticated') && !$token->isAuthenticated(false)) {
-            return false;
-        }
-
-        return null !== $token->getUser();
     }
 }

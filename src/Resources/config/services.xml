@@ -43,7 +43,6 @@
 
         <service id="Sentry\SentryBundle\EventListener\RequestListener" class="Sentry\SentryBundle\EventListener\RequestListener">
             <argument type="service" id="Sentry\State\HubInterface" />
-            <argument type="service" id="security.token_storage" on-invalid="ignore" />
 
             <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" priority="5" />
             <tag name="kernel.event_listener" event="kernel.controller" method="handleKernelControllerEvent" priority="10" />
