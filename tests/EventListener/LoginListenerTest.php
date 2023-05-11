@@ -20,7 +20,6 @@ use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
 use Symfony\Component\Security\Core\Authentication\Token\SwitchUserToken;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
-use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Event\AuthenticationSuccessEvent;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
@@ -49,7 +48,7 @@ final class LoginListenerTest extends TestCase
     /**
      * @dataProvider handleLoginSuccessEventDataProvider
      */
-    public function testHandleLoginSuccessEvent(TokenInterface $token, ?UserDataBag $user, UserDataBag $expectedUser): void
+    public function testHandleLoginSuccessEvent(TokenInterface $token, ?UserDataBag $user, ?UserDataBag $expectedUser): void
     {
         if (!class_exists(LoginSuccessEvent::class)) {
             $this->markTestSkipped('This test is incompatible with versions of Symfony where the LoginSuccessEvent event does not exist.');
@@ -95,7 +94,7 @@ final class LoginListenerTest extends TestCase
      * @dataProvider handleLoginSuccessEventDataProvider
      * @dataProvider handleLoginSuccessEventForSymfonyVersionLowerThan54DataProvider
      */
-    public function testHandleAuthenticationSuccessEvent(TokenInterface $token, ?UserDataBag $user, UserDataBag $expectedUser): void
+    public function testHandleAuthenticationSuccessEvent(TokenInterface $token, ?UserDataBag $user, ?UserDataBag $expectedUser): void
     {
         if (class_exists(LoginSuccessEvent::class)) {
             $this->markTestSkipped('This test is incompatible with versions of Symfony where the LoginSuccessEvent event exists.');
@@ -133,19 +132,36 @@ final class LoginListenerTest extends TestCase
     public function handleLoginSuccessEventDataProvider(): \Generator
     {
         yield 'If the username is already set on the User context, then it is not overridden' => [
-            new UsernamePasswordToken(new UserWithIdentifierStub(), 'main'),
+            new AuthenticatedTokenStub(new UserWithIdentifierStub()),
             new UserDataBag('bar_user'),
             new UserDataBag('bar_user'),
         ];
 
         yield 'If the username is not set on the User context, then it is retrieved from the token' => [
-            new UsernamePasswordToken(new UserWithIdentifierStub(), 'main'),
+            new AuthenticatedTokenStub(new UserWithIdentifierStub()),
             null,
             new UserDataBag('foo_user'),
         ];
 
         yield 'If the user is being impersonated, then the username of the impersonator is set on the User context' => [
-            new SwitchUserToken(new UserWithIdentifierStub(), 'main', [], new AuthenticatedTokenStub(new UserWithIdentifierStub('bar_user'))),
+            (static function (): SwitchUserToken {
+                if (version_compare(Kernel::VERSION, '5.0.0', '<')) {
+                    return new SwitchUserToken(
+                        new UserWithIdentifierStub(),
+                        null,
+                        'foo_provider',
+                        ['ROLE_USER'],
+                        new AuthenticatedTokenStub(new UserWithIdentifierStub('bar_user'))
+                    );
+                }
+
+                return new SwitchUserToken(
+                    new UserWithIdentifierStub(),
+                    'main',
+                    ['ROLE_USER'],
+                    new AuthenticatedTokenStub(new UserWithIdentifierStub('bar_user'))
+                );
+            })(),
             null,
             UserDataBag::createFromArray([
                 'id' => 'foo_user',
@@ -159,12 +175,6 @@ final class LoginListenerTest extends TestCase
         if (version_compare(Kernel::VERSION, '5.4.0', '>=')) {
             return;
         }
-
-        yield 'Given an authenticated token, if the user is not set, then the User context is not populated' => [
-            new AuthenticatedTokenStub(null),
-            null,
-            null,
-        ];
 
         yield 'Given an authenticated token, if the user is a string, then the User context is populated' => [
             new AuthenticatedTokenStub('foo_user'),
