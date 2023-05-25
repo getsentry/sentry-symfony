@@ -27,7 +27,7 @@ final class ConnectionConfigurator
     }
 
     /**
-     * Configures the given connecton by wrapping its driver into an instance
+     * Configures the given connection by wrapping its driver into an instance
      * of the {@see TracingDriver} class. This is done using the reflection,
      * and as such should be limited only to the versions of Doctrine DBAL that
      * are lower than 3.0. Since 3.0 onwards, the concept of driver middlewares
