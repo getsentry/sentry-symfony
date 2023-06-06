@@ -11,7 +11,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class MainCommand extends Command
 {
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->addOption('option1', null, InputOption::VALUE_NONE)
