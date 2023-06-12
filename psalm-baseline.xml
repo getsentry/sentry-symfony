@@ -50,6 +50,17 @@
       <code>$params</code>
     </MoreSpecificImplementedParamType>
   </file>
+  <file src="src/Tracing/Doctrine/DBAL/TracingDriverForV32.php">
+    <InvalidReturnStatement occurrences="1">
+      <code>$this-&gt;decoratedDriver-&gt;getSchemaManager($conn, $platform)</code>
+    </InvalidReturnStatement>
+    <InvalidReturnType occurrences="1">
+      <code>AbstractSchemaManager&lt;T&gt;</code>
+    </InvalidReturnType>
+    <MoreSpecificImplementedParamType occurrences="1">
+      <code>$params</code>
+    </MoreSpecificImplementedParamType>
+  </file>
   <file src="src/Tracing/HttpClient/TraceableResponseForV5.php">
     <UndefinedInterfaceMethod occurrences="1">
       <code>toStream</code>

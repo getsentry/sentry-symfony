@@ -55,6 +55,9 @@ final class TracingStatementForV3Test extends DoctrineTestCase
         $this->assertTrue($this->statement->bindValue('foo', 'bar', ParameterType::INTEGER));
     }
 
+    /**
+     * @group legacy
+     */
     public function testBindParam(): void
     {
         $variable = 'bar';
