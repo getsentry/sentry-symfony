@@ -69,7 +69,7 @@ final class SentryExtension extends ConfigurableExtension
 
         $this->registerConfiguration($container, $mergedConfig);
         $this->registerErrorListenerConfiguration($container, $mergedConfig);
-        $this->registerMessengerListenerConfiguration($container, $mergedConfig['messenger']);
+        $this->registerMessengerListenerConfiguration($container, $mergedConfig);
         $this->registerTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerDbalTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerTwigTracingConfiguration($container, $mergedConfig['tracing']);
@@ -173,13 +173,14 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function registerMessengerListenerConfiguration(ContainerBuilder $container, array $config): void
     {
-        if (!$this->isConfigEnabled($container, $config)) {
+        if (!$this->isConfigEnabled($container, $config['messenger'])) {
             $container->removeDefinition(MessengerListener::class);
 
             return;
         }
 
-        $container->getDefinition(MessengerListener::class)->setArgument(1, $config['capture_soft_fails']);
+        $container->getDefinition(MessengerListener::class)->setArgument(1, $config['messenger']['capture_soft_fails']);
+        $container->getDefinition(MessengerListener::class)->setArgument(3, isset($config['options']['send_default_pii']) ? $config['options']['send_default_pii'] : false);
     }
 
     /**

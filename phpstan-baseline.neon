@@ -26,6 +26,11 @@ parameters:
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
+			message: "#^Cannot access offset 'capture_soft_fails' on mixed\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
 			message: "#^Cannot access offset 'class_serializers' on mixed\\.$#"
 			count: 3
 			path: src/DependencyInjection/SentryExtension.php
@@ -57,6 +62,11 @@ parameters:
 
 		-
 			message: "#^Cannot access offset 'integrations' on mixed\\.$#"
+			count: 2
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
+			message: "#^Cannot access offset 'send_default_pii' on mixed\\.$#"
 			count: 2
 			path: src/DependencyInjection/SentryExtension.php
 
@@ -116,11 +126,6 @@ parameters:
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
-			message: "#^Parameter \\#2 \\$config of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:registerMessengerListenerConfiguration\\(\\) expects array\\<string, mixed\\>, mixed given\\.$#"
-			count: 1
-			path: src/DependencyInjection/SentryExtension.php
-
-		-
 			message: "#^Parameter \\#2 \\$config of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:registerTracingConfiguration\\(\\) expects array\\<string, mixed\\>, mixed given\\.$#"
 			count: 1
 			path: src/DependencyInjection/SentryExtension.php
@@ -132,7 +137,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#2 \\$config of method Symfony\\\\Component\\\\DependencyInjection\\\\Extension\\\\Extension\\:\\:isConfigEnabled\\(\\) expects array, mixed given\\.$#"
-			count: 4
+			count: 5
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
@@ -159,6 +164,11 @@ parameters:
 			message: "#^Class Sentry\\\\SentryBundle\\\\EventListener\\\\ConsoleCommandListener extends @final class Sentry\\\\SentryBundle\\\\EventListener\\\\ConsoleListener\\.$#"
 			count: 1
 			path: src/EventListener/ConsoleCommandListener.php
+
+		-
+			message: "#^Method Sentry\\\\SentryBundle\\\\EventListener\\\\MessengerListener\\:\\:isContextValueWithinSizeLimits\\(\\) has parameter \\$value with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/EventListener/MessengerListener.php
 
 		-
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"

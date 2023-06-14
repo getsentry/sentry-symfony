@@ -13,9 +13,17 @@ use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
+use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 
 final class MessengerListener
 {
+    /**
+     * Context objects are limited to 8kB.
+     *
+     * @see https://develop.sentry.dev/sdk/data-handling/#variable-size
+     */
+    private const MAX_CONTEXT_SIZE_IN_BYTES = 8192;
+
     /**
      * @var HubInterface The current hub
      */
@@ -28,15 +36,30 @@ final class MessengerListener
     private $captureSoftFails;
 
     /**
-     * @param HubInterface $hub              The current hub
-     * @param bool         $captureSoftFails Whether to capture errors thrown
-     *                                       while processing a message that
-     *                                       will be retried
+     * @var SerializerInterface|null The serializer used to encode the envelope
      */
-    public function __construct(HubInterface $hub, bool $captureSoftFails = true)
+    private $serializer;
+
+    /**
+     * @var bool Whether personally identifiable information should be added by default
+     */
+    private $sendDefaultPii;
+
+    /**
+     * @param HubInterface             $hub              The current hub
+     * @param bool                     $captureSoftFails Whether to capture errors thrown
+     *                                                   while processing a message that
+     *                                                   will be retried
+     * @param SerializerInterface|null $serializer       The serializer used to encode the envelope
+     * @param bool                     $sendDefaultPii   Whether personally identifiable information should be added by
+     *                                                   default
+     */
+    public function __construct(HubInterface $hub, bool $captureSoftFails = true, ?SerializerInterface $serializer = null, bool $sendDefaultPii = false)
     {
         $this->hub = $hub;
         $this->captureSoftFails = $captureSoftFails;
+        $this->serializer = $serializer;
+        $this->sendDefaultPii = $sendDefaultPii;
     }
 
     /**
@@ -62,6 +85,13 @@ final class MessengerListener
 
             if (null !== $messageBusStamp) {
                 $scope->setTag('messenger.message_bus', $messageBusStamp->getBusName());
+            }
+
+            if ($this->sendDefaultPii && null !== $this->serializer) {
+                $value = $this->serializer->encode($event->getEnvelope());
+                if ($this->isContextValueWithinSizeLimits($value)) {
+                    $scope->setContext('messenger.envelope', $value);
+                }
             }
 
             $this->captureException($exception, $event->willRetry());
@@ -116,5 +146,10 @@ final class MessengerListener
         if (null !== $client) {
             $client->flush();
         }
+    }
+
+    private function isContextValueWithinSizeLimits(array $value): bool
+    {
+        return mb_strlen(serialize($value), '8bit') <= self::MAX_CONTEXT_SIZE_IN_BYTES;
     }
 }
