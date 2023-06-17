@@ -109,4 +109,40 @@ final class TracingDriverForV32Test extends DoctrineTestCase
 
         $this->assertSame($exceptionConverter, $driver->getExceptionConverter());
     }
+
+    public function testCreateDatabasePlatform(): void
+    {
+        $databasePlatform = $this->createMock(AbstractPlatform::class);
+
+        $decoratedDriver = $this->createMock(DriverInterface::class);
+        $decoratedDriver->expects($this->once())
+            ->method('getDatabasePlatform')
+            ->willReturn($databasePlatform);
+
+        $driver = new TracingDriverForV32($this->connectionFactory, $decoratedDriver);
+
+        $this->assertSame($databasePlatform, $driver->createDatabasePlatformForVersion('5.7'));
+    }
+
+    public function testCreateDatabasePlatformForVersionWhenDriverDefinedCreateDatabasePlatformForVersion(): void
+    {
+        $databasePlatform = $this->createMock(AbstractPlatform::class);
+
+        $decoratedDriver = $this->createMock(StubCreateDatabasePlatformForVersionDriver::class);
+        $decoratedDriver->expects($this->once())
+            ->method('createDatabasePlatformForVersion')
+            ->with('5.7')
+            ->willReturn($databasePlatform);
+
+        $driver = new TracingDriverForV32($this->connectionFactory, $decoratedDriver);
+
+        $this->assertSame($databasePlatform, $driver->createDatabasePlatformForVersion('5.7'));
+    }
+}
+
+if (interface_exists(DriverInterface::class)) {
+    interface StubCreateDatabasePlatformForVersionDriver extends DriverInterface
+    {
+        public function createDatabasePlatformForVersion(string $version): AbstractPlatform;
+    }
 }

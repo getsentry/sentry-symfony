@@ -86,4 +86,20 @@ final class TracingDriverForV32 implements Driver
     {
         return $this->decoratedDriver->getExceptionConverter();
     }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @phpstan-param string $version
+     *
+     * @phpstan-return AbstractPlatform
+     */
+    public function createDatabasePlatformForVersion($version): AbstractPlatform
+    {
+        if (method_exists($this->decoratedDriver, 'createDatabasePlatformForVersion')) {
+            return $this->decoratedDriver->createDatabasePlatformForVersion($version);
+        }
+
+        return $this->getDatabasePlatform();
+    }
 }
