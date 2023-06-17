@@ -47,10 +47,6 @@ final class LoginListener
      */
     public function handleAuthenticationSuccessEvent(AuthenticationSuccessEvent $event): void
     {
-        if (class_exists(LoginSuccessEvent::class)) {
-            return;
-        }
-
         $this->updateUserContext($event->getAuthenticationToken());
     }
 
