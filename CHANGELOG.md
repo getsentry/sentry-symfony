@@ -1,5 +1,13 @@
 # Changelog
 
+## 4.9.1
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.9.1.
+
+### Bug Fixes
+
+- Fix a regression in `TracingDriverForV32` by adding `VersionAwarePlatformDriver::createDatabasePlatformForVersion` [(#731)](https://github.com/getsentry/sentry-symfony/pull/731)
+
 ## 4.9.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.9.0.
