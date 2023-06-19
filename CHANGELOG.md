@@ -1,5 +1,18 @@
 # Changelog
 
+## 4.9.2
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.9.2.
+
+### Bug Fixes
+
+- We decided to revert two previous PRs that aimed to remove deprecation warnings during test runs [(#736)](https://github.com/getsentry/sentry-symfony/pull/736)
+
+  - Revert: Add a new Doctrine DBAL tracing driver that does not implement the deprecated `VersionAwarePlatformDriver` [(#723)](https://github.com/getsentry/sentry-symfony/pull/723)
+  - Revert: Fix a regression in `TracingDriverForV32` by adding `VersionAwarePlatformDriver::createDatabasePlatformForVersion` [(#731)](https://github.com/getsentry/sentry-symfony/pull/731)
+
+We are sorry for the inconvenience caused by these changes.
+
 ## 4.9.1
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.9.1.
