@@ -7,7 +7,6 @@ namespace Sentry\SentryBundle\Tests;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\ResultStatement;
-use Doctrine\DBAL\Exception\SchemaDoesNotExist;
 use PHPUnit\Framework\TestCase;
 
 abstract class DoctrineTestCase extends TestCase
@@ -27,12 +26,6 @@ abstract class DoctrineTestCase extends TestCase
     {
         return self::isDoctrineDBALInstalled()
             && !self::isDoctrineDBALVersion2Installed();
-    }
-
-    protected static function isDoctrineDBALVersion32Installed(): bool
-    {
-        return self::isDoctrineDBALInstalled()
-            && class_exists(SchemaDoesNotExist::class);
     }
 
     protected static function isDoctrineBundlePackageInstalled(): bool

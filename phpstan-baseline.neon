@@ -231,7 +231,7 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
 
 		-
-			message: "#^Parameter \\#2 \\$callback of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\AbstractTracingStatement\\:\\:traceFunction\\(\\) expects callable\\(mixed \\.\\.\\.\\)\\: Doctrine\\\\DBAL\\\\Driver\\\\Result, array\\{Doctrine\\\\DBAL\\\\Driver\\\\Statement, 'execute'\\} given\\.$#"
+			message: "#^Parameter \\#2 \\$callback of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\AbstractTracingStatement\\:\\:traceFunction\\(\\) expects callable\\(\\.\\.\\.mixed\\)\\: Doctrine\\\\DBAL\\\\Driver\\\\Result, array\\{Doctrine\\\\DBAL\\\\Driver\\\\Statement, 'execute'\\} given\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingStatementForV3.php
 
