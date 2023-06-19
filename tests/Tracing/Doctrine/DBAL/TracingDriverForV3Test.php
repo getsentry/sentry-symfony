@@ -26,8 +26,8 @@ final class TracingDriverForV3Test extends DoctrineTestCase
 
     public static function setUpBeforeClass(): void
     {
-        if (!self::isDoctrineDBALVersion3Installed() || self::isDoctrineDBALVersion32Installed()) {
-            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.0 <= 3.2.');
+        if (!self::isDoctrineDBALVersion3Installed()) {
+            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.0.');
         }
     }
 

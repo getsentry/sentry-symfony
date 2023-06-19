@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle;
 
-use Doctrine\DBAL\Exception\SchemaDoesNotExist;
 use Doctrine\DBAL\Result;
 use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapter;
 use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapterForV2;
@@ -15,7 +14,6 @@ use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapterForV3;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriver;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverForV2;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverForV3;
-use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverForV32;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatement;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatementForV2;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatementForV3;
@@ -55,12 +53,7 @@ if (interface_exists(AdapterInterface::class)) {
 if (!class_exists(TracingStatement::class)) {
     if (class_exists(Result::class)) {
         class_alias(TracingStatementForV3::class, TracingStatement::class);
-
-        if (class_exists(SchemaDoesNotExist::class)) {
-            class_alias(TracingDriverForV32::class, TracingDriver::class);
-        } else {
-            class_alias(TracingDriverForV3::class, TracingDriver::class);
-        }
+        class_alias(TracingDriverForV3::class, TracingDriver::class);
     } elseif (interface_exists(Result::class)) {
         class_alias(TracingStatementForV2::class, TracingStatement::class);
         class_alias(TracingDriverForV2::class, TracingDriver::class);
