@@ -46,6 +46,21 @@ class TracingEnd2EndTest extends WebTestCase
         $this->assertTracingEventCount(1);
     }
 
+    public function testTracingWithIgnoredTransaction(): void
+    {
+        $client = static::createClient(['debug' => false]);
+
+        $client->request('GET', '/tracing/ignored-transaction');
+
+        $response = $client->getResponse();
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
+
+        $this->assertLastEventIdIsNull($client);
+        $this->assertTracingEventCount(1);
+    }
+
     private function assertLastEventIdIsNotNull(KernelBrowser $client): void
     {
         $container = $client->getContainer();
@@ -55,6 +70,17 @@ class TracingEnd2EndTest extends WebTestCase
         $this->assertInstanceOf(HubInterface::class, $hub);
 
         $this->assertNotNull($hub->getLastEventId(), 'Last error not captured');
+    }
+
+    private function assertLastEventIdIsNull(KernelBrowser $client): void
+    {
+        $container = $client->getContainer();
+        $this->assertNotNull($container);
+
+        $hub = $container->get('test.hub');
+        $this->assertInstanceOf(HubInterface::class, $hub);
+
+        $this->assertNull($hub->getLastEventId(), 'Some error was captured');
     }
 
     private function assertTracingEventCount(int $expectedCount): void

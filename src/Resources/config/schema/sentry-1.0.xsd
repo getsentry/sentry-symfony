@@ -30,6 +30,8 @@
             <xsd:element name="in-app-exclude" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
             <xsd:element name="in-app-include" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
             <xsd:element name="class-serializer" type="class-serializer" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="ignore-exception" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="ignore-transaction" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
         </xsd:sequence>
 
         <xsd:attribute name="default-integrations" type="xsd:boolean" />

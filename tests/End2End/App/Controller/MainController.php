@@ -8,6 +8,7 @@ use Sentry\State\HubInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 class MainController
@@ -44,6 +45,11 @@ class MainController
         $foo = eval("return new class() implements \JsonSerializable {};");
 
         return new Response('This response should not happen: ' . json_encode($foo));
+    }
+
+    public function badRequest(): Response
+    {
+        throw new BadRequestHttpException('Parameter "foo" not allowed');
     }
 
     public function index(): Response
