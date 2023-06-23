@@ -64,7 +64,7 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
             if (null !== $client) {
                 $sdkOptions = $client->getOptions();
 
-                if (\in_array($uri->getHost(), $sdkOptions->getTracePropagationTargets())) {
+                if (\in_array($uri->getHost(), (array) $sdkOptions->getTracePropagationTargets())) {
                     $headers['baggage'] = $parent->toBaggage();
                 }
             }
