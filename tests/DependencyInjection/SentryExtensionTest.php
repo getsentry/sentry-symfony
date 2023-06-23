@@ -233,6 +233,12 @@ abstract class SentryExtensionTest extends TestCase
                 'App\\FooClass' => new Reference('App\\Sentry\\Serializer\\FooClassSerializer'),
             ],
             'dsn' => 'https://examplePublicKey@o0.ingest.sentry.io/0',
+            'ignore_exceptions' => [
+                'Symfony\Component\HttpKernel\Exception\BadRequestHttpException',
+            ],
+            'ignore_transactions' => [
+                'GET tracing_ignored_transaction',
+            ],
         ];
 
         $this->assertSame(Options::class, $optionsDefinition->getClass());

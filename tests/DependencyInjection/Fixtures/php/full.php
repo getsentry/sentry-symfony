@@ -44,6 +44,8 @@ $container->loadFromExtension('sentry', [
         'capture_silenced_errors' => true,
         'max_request_body_size' => 'none',
         'class_serializers' => ['App\\FooClass' => 'App\\Sentry\\Serializer\\FooClassSerializer'],
+        'ignore_exceptions' => ['Symfony\Component\HttpKernel\Exception\BadRequestHttpException'],
+        'ignore_transactions' => ['GET tracing_ignored_transaction'],
     ],
     'messenger' => [
         'enabled' => true,

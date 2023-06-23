@@ -6,6 +6,10 @@ fatal:
   path:  /fatal
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::fatal' }
 
+invalid_csrf:
+  path:  /bad-request
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::badRequest' }
+
 success:
   path:  /200
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::index' }
@@ -33,3 +37,7 @@ dispatch_unrecoverable:
 tracing_ping_database:
   path: /tracing/ping-database
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::pingDatabase' }
+
+tracing_ignored_transaction:
+  path: /tracing/ignored-transaction
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::ignoredTransaction' }

@@ -39,6 +39,8 @@ final class ConfigurationTest extends TestCase
                 ],
                 'in_app_include' => [],
                 'class_serializers' => [],
+                'ignore_exceptions' => [],
+                'ignore_transactions' => [],
             ],
             'messenger' => [
                 'enabled' => interface_exists(MessageBusInterface::class),

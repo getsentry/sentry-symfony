@@ -6,6 +6,8 @@ sentry:
     capture_silenced_errors: false
     error_types: E_ALL & ~E_USER_DEPRECATED
     traces_sample_rate: 0
+    ignore_exceptions: 'Symfony\Component\HttpKernel\Exception\BadRequestHttpException'
+    ignore_transactions: 'GET tracing_ignored_transaction'
 
 framework:
   router: { resource: "%routing_config_dir%/routing.yml" }

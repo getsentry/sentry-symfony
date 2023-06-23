@@ -109,6 +109,20 @@ class End2EndTest extends WebTestCase
         $this->assertEventCount(1);
     }
 
+    public function testGetBadRequest(): void
+    {
+        $client = static::createClient(['debug' => false]);
+
+        $client->request('GET', '/bad-request');
+
+        $response = $client->getResponse();
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(400, $response->getStatusCode());
+
+        $this->assertLastEventIdIsNull($client);
+    }
+
     public function testGet500(): void
     {
         $client = static::createClient();
