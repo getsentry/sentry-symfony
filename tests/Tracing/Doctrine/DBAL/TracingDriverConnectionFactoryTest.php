@@ -47,13 +47,9 @@ final class TracingDriverConnectionFactoryTest extends DoctrineTestCase
 
     public function testCreate(): void
     {
-        $this->databasePlatform->expects($this->once())
-            ->method('getName')
-            ->willReturn('foo_platform');
-
         $connection = $this->createMock(Connection::class);
         $driverConnection = $this->tracingDriverConnectionFactory->create($connection, $this->databasePlatform, []);
-        $expectedDriverConnection = new TracingDriverConnection($this->hub, $connection, 'foo_platform', []);
+        $expectedDriverConnection = new TracingDriverConnection($this->hub, $connection, 'other_sql', []);
 
         $this->assertEquals($expectedDriverConnection, $driverConnection);
     }
@@ -64,13 +60,9 @@ final class TracingDriverConnectionFactoryTest extends DoctrineTestCase
             self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.0.');
         }
 
-        $this->databasePlatform->expects($this->once())
-            ->method('getName')
-            ->willReturn('foo_platform');
-
         $connection = $this->createMock(ServerInfoAwareConnectionStub::class);
         $driverConnection = $this->tracingDriverConnectionFactory->create($connection, $this->databasePlatform, []);
-        $expectedDriverConnection = new TracingServerInfoAwareDriverConnection(new TracingDriverConnection($this->hub, $connection, 'foo_platform', []));
+        $expectedDriverConnection = new TracingServerInfoAwareDriverConnection(new TracingDriverConnection($this->hub, $connection, 'other_sql', []));
 
         $this->assertEquals($expectedDriverConnection, $driverConnection);
     }
