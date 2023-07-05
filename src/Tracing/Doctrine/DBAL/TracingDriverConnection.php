@@ -61,6 +61,13 @@ final class TracingDriverConnection implements TracingDriverConnectionInterface
     private $decoratedConnection;
 
     /**
+     * @var array<string, string> The span tags
+     *
+     * @deprecated since version 4.10, to be removed in 5.0. Use $spanData instead.
+     */
+    private $spanTags = [];
+
+    /**
      * @var array<string, string> The data to attach to the span
      */
     private $spanData;
