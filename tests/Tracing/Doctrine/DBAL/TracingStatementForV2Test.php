@@ -195,7 +195,7 @@ final class TracingStatementForV2Test extends DoctrineTestCase
         $this->assertCount(2, $spans);
         $this->assertSame(TracingStatementForV2::SPAN_OP_STMT_EXECUTE, $spans[1]->getOp());
         $this->assertSame('SELECT 1', $spans[1]->getDescription());
-        $this->assertSame(['db.system' => 'sqlite'], $spans[1]->getTags());
+        $this->assertSame(['db.system' => 'sqlite'], $spans[1]->getData());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 

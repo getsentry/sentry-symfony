@@ -119,7 +119,7 @@ final class TracingStatementForV2 extends AbstractTracingStatement implements \I
         $spanContext = new SpanContext();
         $spanContext->setOp(self::SPAN_OP_STMT_EXECUTE);
         $spanContext->setDescription($this->sqlQuery);
-        $spanContext->setTags($this->spanTags);
+        $spanContext->setData($this->spanData);
 
         return $this->traceFunction($spanContext, [$this->decoratedStatement, 'execute'], $params);
     }
