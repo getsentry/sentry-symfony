@@ -5,7 +5,13 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\Tracing\Doctrine\DBAL;
 
 use Doctrine\DBAL\Driver\Connection;
+use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Platforms\DB2Platform;
+use Doctrine\DBAL\Platforms\OraclePlatform;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Doctrine\DBAL\Platforms\SqlitePlatform;
+use Doctrine\DBAL\Platforms\SQLServerPlatform;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tests\Tracing\Doctrine\DBAL\Fixture\ServerInfoAwareConnectionStub;
@@ -45,13 +51,57 @@ final class TracingDriverConnectionFactoryTest extends DoctrineTestCase
         $this->tracingDriverConnectionFactory = new TracingDriverConnectionFactory($this->hub);
     }
 
-    public function testCreate(): void
+    /**
+     * @dataProvider createDataProvider
+     *
+     * @param class-string<AbstractPlatform> $databasePlatformFqcn
+     */
+    public function testCreate(string $databasePlatformFqcn, string $expectedDatabasePlatform): void
     {
         $connection = $this->createMock(Connection::class);
-        $driverConnection = $this->tracingDriverConnectionFactory->create($connection, $this->databasePlatform, []);
-        $expectedDriverConnection = new TracingDriverConnection($this->hub, $connection, 'other_sql', []);
+        $databasePlatform = $this->createMock($databasePlatformFqcn);
+        $driverConnection = $this->tracingDriverConnectionFactory->create($connection, $databasePlatform, []);
+        $expectedDriverConnection = new TracingDriverConnection($this->hub, $connection, $expectedDatabasePlatform, []);
 
         $this->assertEquals($expectedDriverConnection, $driverConnection);
+    }
+
+    public static function createDataProvider(): \Generator
+    {
+        yield [
+            AbstractMySQLPlatform::class,
+            'mysql',
+        ];
+
+        yield [
+            DB2Platform::class,
+            'db2',
+        ];
+
+        yield [
+            OraclePlatform::class,
+            'oracle',
+        ];
+
+        yield [
+            PostgreSQLPlatform::class,
+            'postgresql',
+        ];
+
+        yield [
+            SqlitePlatform::class,
+            'sqlite',
+        ];
+
+        yield [
+            SQLServerPlatform::class,
+            'mssql',
+        ];
+
+        yield [
+            AbstractPlatform::class,
+            'other_sql',
+        ];
     }
 
     public function testCreateWithServerInfoAwareConnection(): void

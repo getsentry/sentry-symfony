@@ -57,25 +57,27 @@ final class TracingDriverConnectionFactory implements TracingDriverConnectionFac
     private function getDatabasePlatform(AbstractPlatform $databasePlatform): string
     {
         // https://github.com/open-telemetry/opentelemetry-specification/blob/33113489fb5a1b6da563abb4ffa541447b87f515/specification/trace/semantic_conventions/database.md#connection-level-attributes
-        if ($databasePlatform instanceof AbstractMySQLPlatform) {
-            return 'mysql';
-        }
-        if ($databasePlatform instanceof DB2Platform) {
-            return 'db2';
-        }
-        if ($databasePlatform instanceof OraclePlatform) {
-            return 'oracle';
-        }
-        if ($databasePlatform instanceof PostgreSQLPlatform) {
-            return 'postgresql';
-        }
-        if ($databasePlatform instanceof SqlitePlatform) {
-            return 'sqlite';
-        }
-        if ($databasePlatform instanceof SQLServerPlatform) {
-            return 'mssql';
-        }
+        switch (true) {
+            case $databasePlatform instanceof AbstractMySQLPlatform:
+                return 'mysql';
 
-        return 'other_sql';
+            case $databasePlatform instanceof DB2Platform:
+                return 'db2';
+
+            case $databasePlatform instanceof OraclePlatform:
+                return 'oracle';
+
+            case $databasePlatform instanceof PostgreSQLPlatform:
+                return 'postgresql';
+
+            case $databasePlatform instanceof SqlitePlatform:
+                return 'sqlite';
+
+            case $databasePlatform instanceof SQLServerPlatform:
+                return 'mssql';
+
+            default:
+                return 'other_sql';
+        }
     }
 }
