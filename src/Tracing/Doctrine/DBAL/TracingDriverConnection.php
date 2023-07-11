@@ -61,9 +61,16 @@ final class TracingDriverConnection implements TracingDriverConnectionInterface
     private $decoratedConnection;
 
     /**
-     * @var array<string, string> The tags to attach to the span
+     * @var array<string, string> The span tags
+     *
+     * @deprecated since version 4.10, to be removed in 5.0. Use $spanData instead.
      */
-    private $spanTags;
+    private $spanTags = [];
+
+    /**
+     * @var array<string, string> The data to attach to the span
+     */
+    private $spanData;
 
     /**
      * Constructor.
@@ -83,7 +90,7 @@ final class TracingDriverConnection implements TracingDriverConnectionInterface
     ) {
         $this->hub = $hub;
         $this->decoratedConnection = $decoratedConnection;
-        $this->spanTags = $this->getSpanTags($databasePlatform, $params);
+        $this->spanData = $this->getSpanTags($databasePlatform, $params);
     }
 
     /**
@@ -95,7 +102,7 @@ final class TracingDriverConnection implements TracingDriverConnectionInterface
             return $this->decoratedConnection->prepare($sql);
         });
 
-        return new TracingStatement($this->hub, $statement, $sql, $this->spanTags);
+        return new TracingStatement($this->hub, $statement, $sql, $this->spanData);
     }
 
     /**
@@ -226,7 +233,7 @@ final class TracingDriverConnection implements TracingDriverConnectionInterface
             $spanContext = new SpanContext();
             $spanContext->setOp($spanOperation);
             $spanContext->setDescription($spanDescription);
-            $spanContext->setTags($this->spanTags);
+            $spanContext->setData($this->spanData);
 
             $span = $span->startChild($spanContext);
         }
@@ -241,10 +248,9 @@ final class TracingDriverConnection implements TracingDriverConnectionInterface
     }
 
     /**
-     * Gets a map of key-value pairs that will be set as tags of the span.
+     * Gets a map of key-value pairs that will be set as the span data.
      *
-     * @param string               $databasePlatform The database platform
-     * @param array<string, mixed> $params           The connection params
+     * @param array<string, mixed> $params The connection params
      *
      * @return array<string, string>
      *
@@ -254,34 +260,34 @@ final class TracingDriverConnection implements TracingDriverConnectionInterface
      */
     private function getSpanTags(string $databasePlatform, array $params): array
     {
-        $tags = ['db.system' => $databasePlatform];
+        $data = ['db.system' => $databasePlatform];
 
         if (isset($params['user'])) {
-            $tags['db.user'] = $params['user'];
+            $data['db.user'] = $params['user'];
         }
 
         if (isset($params['dbname'])) {
-            $tags['db.name'] = $params['dbname'];
+            $data['db.name'] = $params['dbname'];
         }
 
         if (isset($params['host']) && !empty($params['host']) && !isset($params['memory'])) {
             if (false === filter_var($params['host'], \FILTER_VALIDATE_IP)) {
-                $tags['net.peer.name'] = $params['host'];
+                $data['net.peer.name'] = $params['host'];
             } else {
-                $tags['net.peer.ip'] = $params['host'];
+                $data['net.peer.ip'] = $params['host'];
             }
         }
 
         if (isset($params['port'])) {
-            $tags['net.peer.port'] = (string) $params['port'];
+            $data['net.peer.port'] = (string) $params['port'];
         }
 
         if (isset($params['unix_socket'])) {
-            $tags['net.transport'] = 'Unix';
+            $data['net.transport'] = 'Unix';
         } elseif (isset($params['memory'])) {
-            $tags['net.transport'] = 'inproc';
+            $data['net.transport'] = 'inproc';
         }
 
-        return $tags;
+        return $data;
     }
 }
