@@ -261,6 +261,11 @@ parameters:
 			path: src/Tracing/HttpClient/TraceableResponseForV6.php
 
 		-
+			message: "#^Constructor of class Sentry\\\\SentryBundle\\\\Twig\\\\SentryExtension has an unused parameter \\$hub\\.$#"
+			count: 1
+			path: src/Twig/SentryExtension.php
+
+		-
 			message: "#^Cannot access offset 'profiles_sample_rate' on mixed\\.$#"
 			count: 1
 			path: tests/DependencyInjection/ConfigurationTest.php
