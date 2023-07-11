@@ -8,19 +8,16 @@ use Sentry\State\HubInterface;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
+use function Sentry\getBaggage;
+use function Sentry\getTraceparent;
+
 final class SentryExtension extends AbstractExtension
 {
     /**
-     * @var HubInterface The current hub
-     */
-    private $hub;
-
-    /**
      * @param HubInterface $hub The current hub
      */
-    public function __construct(HubInterface $hub)
+    public function __construct(HubInterface $hub = null)
     {
-        $this->hub = $hub;
     }
 
     /**
@@ -39,9 +36,7 @@ final class SentryExtension extends AbstractExtension
      */
     public function getTraceMeta(): string
     {
-        $span = $this->hub->getSpan();
-
-        return sprintf('<meta name="sentry-trace" content="%s" />', null !== $span ? $span->toTraceparent() : '');
+        return sprintf('<meta name="sentry-trace" content="%s" />', getTraceparent());
     }
 
     /**
@@ -49,8 +44,6 @@ final class SentryExtension extends AbstractExtension
      */
     public function getBaggageMeta(): string
     {
-        $span = $this->hub->getSpan();
-
-        return sprintf('<meta name="baggage" content="%s" />', null !== $span ? $span->toBaggage() : '');
+        return sprintf('<meta name="baggage" content="%s" />', getBaggage());
     }
 }

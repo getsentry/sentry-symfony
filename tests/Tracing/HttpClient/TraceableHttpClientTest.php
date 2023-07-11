@@ -8,13 +8,21 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\NullLogger;
+use Sentry\Client;
 use Sentry\ClientInterface;
 use Sentry\Options;
 use Sentry\SentryBundle\Tracing\HttpClient\AbstractTraceableResponse;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableHttpClient;
+use Sentry\SentrySdk;
+use Sentry\State\Hub;
 use Sentry\State\HubInterface;
+use Sentry\State\Scope;
+use Sentry\Tracing\PropagationContext;
+use Sentry\Tracing\SpanId;
+use Sentry\Tracing\TraceId;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
+use Sentry\Transport\NullTransport;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -53,24 +61,40 @@ final class TraceableHttpClientTest extends TestCase
 
     public function testRequest(): void
     {
+        $options = new Options([
+            'dsn' => 'http://public:secret@example.com/sentry/1',
+        ]);
+        $client = $this->createMock(ClientInterface::class);
+        $client
+            ->expects($this->once())
+            ->method('getOptions')
+            ->willReturn($options);
+
         $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
         $this->hub->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
+        $this->hub->expects($this->once())
+            ->method('getClient')
+            ->willReturn($client);
 
         $mockResponse = new MockResponse();
         $decoratedHttpClient = new MockHttpClient($mockResponse);
         $httpClient = new TraceableHttpClient($decoratedHttpClient, $this->hub);
         $response = $httpClient->request('GET', 'https://username:password@www.example.com/test-page?foo=bar#baz');
 
+        $this->assertNotNull($transaction->getSpanRecorder());
+
+        $spans = $transaction->getSpanRecorder()->getSpans();
+
         $this->assertInstanceOf(AbstractTraceableResponse::class, $response);
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame('GET', $response->getInfo('http_method'));
         $this->assertSame('https://username:password@www.example.com/test-page?foo=bar#baz', $response->getInfo('url'));
-        $this->assertSame(['sentry-trace: ' . $transaction->toTraceparent()], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
-        $this->assertArrayNotHasKey('baggage', $mockResponse->getRequestOptions()['normalized_headers']);
+        $this->assertSame(['sentry-trace: ' . $spans[1]->toTraceparent()], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
+        $this->assertSame(['baggage: ' . $transaction->toBaggage()], $mockResponse->getRequestOptions()['normalized_headers']['baggage']);
         $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
@@ -91,15 +115,14 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame($expectedData, $spans[1]->getData());
     }
 
-    public function testRequestDoesNotContainBaggageHeader(): void
+    public function testRequestDoesNotContainTracingHeaders(): void
     {
         $options = new Options([
             'dsn' => 'http://public:secret@example.com/sentry/1',
-            'trace_propagation_targets' => ['non-matching-host.invalid'],
+            'trace_propagation_targets' => null,
         ]);
         $client = $this->createMock(ClientInterface::class);
-        $client
-            ->expects($this->once())
+        $client->expects($this->once())
             ->method('getOptions')
             ->willReturn($options);
 
@@ -122,7 +145,7 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame('PUT', $response->getInfo('http_method'));
         $this->assertSame('https://www.example.com/test-page', $response->getInfo('url'));
-        $this->assertSame(['sentry-trace: ' . $transaction->toTraceparent()], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
+        $this->assertArrayNotHasKey('sentry-trace', $mockResponse->getRequestOptions()['normalized_headers']);
         $this->assertArrayNotHasKey('baggage', $mockResponse->getRequestOptions()['normalized_headers']);
         $this->assertNotNull($transaction->getSpanRecorder());
 
@@ -139,52 +162,36 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame($expectedTags, $spans[1]->getTags());
     }
 
-    public function testRequestDoesContainBaggageHeader(): void
+    public function testRequestDoesContainsTracingHeadersWithoutTransaction(): void
     {
-        $options = new Options([
+        $client = new Client(new Options([
             'dsn' => 'http://public:secret@example.com/sentry/1',
+            'release' => '1.0.0',
+            'environment' => 'test',
             'trace_propagation_targets' => ['www.example.com'],
-        ]);
-        $client = $this->createMock(ClientInterface::class);
-        $client
-            ->expects($this->once())
-            ->method('getOptions')
-            ->willReturn($options);
+        ]), new NullTransport());
 
-        $transaction = new Transaction(new TransactionContext());
-        $transaction->initSpanRecorder();
+        $propagationContext = PropagationContext::fromDefaults();
+        $propagationContext->setTraceId(new TraceId('566e3688a61d4bc888951642d6f14a19'));
+        $propagationContext->setSpanId(new SpanId('566e3688a61d4bc8'));
 
-        $this->hub->expects($this->once())
-            ->method('getSpan')
-            ->willReturn($transaction);
-        $this->hub->expects($this->once())
-            ->method('getClient')
-            ->willReturn($client);
+        $scope = new Scope($propagationContext);
+
+        $hub = new Hub($client, $scope);
+
+        SentrySdk::setCurrentHub($hub);
 
         $mockResponse = new MockResponse();
         $decoratedHttpClient = new MockHttpClient($mockResponse);
-        $httpClient = new TraceableHttpClient($decoratedHttpClient, $this->hub);
+        $httpClient = new TraceableHttpClient($decoratedHttpClient, $hub);
         $response = $httpClient->request('POST', 'https://www.example.com/test-page');
 
         $this->assertInstanceOf(AbstractTraceableResponse::class, $response);
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame('POST', $response->getInfo('http_method'));
         $this->assertSame('https://www.example.com/test-page', $response->getInfo('url'));
-        $this->assertSame(['sentry-trace: ' . $transaction->toTraceparent()], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
-        $this->assertSame(['baggage: ' . $transaction->toBaggage()], $mockResponse->getRequestOptions()['normalized_headers']['baggage']);
-        $this->assertNotNull($transaction->getSpanRecorder());
-
-        $spans = $transaction->getSpanRecorder()->getSpans();
-        $expectedTags = [
-            'http.method' => 'POST',
-            'http.url' => 'https://www.example.com/test-page',
-        ];
-
-        $this->assertCount(2, $spans);
-        $this->assertNull($spans[1]->getEndTimestamp());
-        $this->assertSame('http.client', $spans[1]->getOp());
-        $this->assertSame('POST https://www.example.com/test-page', $spans[1]->getDescription());
-        $this->assertSame($expectedTags, $spans[1]->getTags());
+        $this->assertSame(['sentry-trace: 566e3688a61d4bc888951642d6f14a19-566e3688a61d4bc8'], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
+        $this->assertSame(['baggage: sentry-trace_id=566e3688a61d4bc888951642d6f14a19,sentry-public_key=public,sentry-release=1.0.0,sentry-environment=test'], $mockResponse->getRequestOptions()['normalized_headers']['baggage']);
     }
 
     public function testStream(): void
@@ -217,6 +224,7 @@ final class TraceableHttpClientTest extends TestCase
 
         $this->assertSame('foobar', implode('', $chunks));
         $this->assertCount(2, $spans);
+
         $this->assertNotNull($spans[1]->getEndTimestamp());
         $this->assertSame('http.client', $spans[1]->getOp());
         $this->assertSame('GET https://www.example.com/test-page', $spans[1]->getDescription());
