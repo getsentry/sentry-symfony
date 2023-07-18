@@ -53,10 +53,13 @@ final class RequestListener
         }
 
         $this->hub->configureScope(static function (Scope $scope) use ($event): void {
-            $userData = new UserDataBag();
-            $userData->setIpAddress($event->getRequest()->getClientIp());
+            $user = $scope->getUser() ?? new UserDataBag();
 
-            $scope->setUser($userData);
+            if (null === $user->getIpAddress()) {
+                $user->setIpAddress($event->getRequest()->getClientIp());
+            }
+
+            $scope->setUser($user);
         });
     }
 
