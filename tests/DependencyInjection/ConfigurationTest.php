@@ -28,7 +28,6 @@ final class ConfigurationTest extends TestCase
             'options' => [
                 'integrations' => [],
                 'prefixes' => array_merge(['%kernel.project_dir%'], array_filter(explode(\PATH_SEPARATOR, get_include_path() ?: ''))),
-                'trace_propagation_targets' => [],
                 'environment' => '%kernel.environment%',
                 'release' => PrettyVersions::getRootPackageVersion()->getPrettyVersion(),
                 'tags' => [],
@@ -39,6 +38,8 @@ final class ConfigurationTest extends TestCase
                 ],
                 'in_app_include' => [],
                 'class_serializers' => [],
+                'ignore_exceptions' => [],
+                'ignore_transactions' => [],
             ],
             'messenger' => [
                 'enabled' => interface_exists(MessageBusInterface::class),

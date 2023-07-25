@@ -206,6 +206,11 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
+			message: "#^Property Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:\\$spanTags is never read, only written\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
+
+		-
 			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:errorInfo\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
@@ -231,7 +236,7 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
 
 		-
-			message: "#^Parameter \\#2 \\$callback of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\AbstractTracingStatement\\:\\:traceFunction\\(\\) expects callable\\(\\.\\.\\.mixed\\)\\: Doctrine\\\\DBAL\\\\Driver\\\\Result, array\\{Doctrine\\\\DBAL\\\\Driver\\\\Statement, 'execute'\\} given\\.$#"
+			message: "#^Parameter \\#2 \\$callback of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\AbstractTracingStatement\\:\\:traceFunction\\(\\) expects callable\\(mixed \\.\\.\\.\\)\\: Doctrine\\\\DBAL\\\\Driver\\\\Result, array\\{Doctrine\\\\DBAL\\\\Driver\\\\Statement, 'execute'\\} given\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingStatementForV3.php
 
@@ -259,6 +264,11 @@ parameters:
 			message: "#^Call to an undefined method Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface\\:\\:toStream\\(\\)\\.$#"
 			count: 1
 			path: src/Tracing/HttpClient/TraceableResponseForV6.php
+
+		-
+			message: "#^Constructor of class Sentry\\\\SentryBundle\\\\Twig\\\\SentryExtension has an unused parameter \\$hub\\.$#"
+			count: 1
+			path: src/Twig/SentryExtension.php
 
 		-
 			message: "#^Cannot access offset 'profiles_sample_rate' on mixed\\.$#"

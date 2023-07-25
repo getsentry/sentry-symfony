@@ -41,6 +41,16 @@ class TracingController
         return new Response('Success');
     }
 
+    public function ignoredTransaction(): Response
+    {
+        $this->hub->setSpan(
+            $this->hub->getSpan()
+                ->startChild($this->createSpan())
+        );
+
+        return new Response('Success');
+    }
+
     private function createSpan(): SpanContext
     {
         $spanContext = new SpanContext();

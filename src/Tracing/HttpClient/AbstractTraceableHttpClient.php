@@ -7,6 +7,7 @@ namespace Sentry\SentryBundle\Tracing\HttpClient;
 use GuzzleHttp\Psr7\Uri;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
+use Sentry\ClientInterface;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\SpanContext;
 use Symfony\Component\HttpClient\Response\ResponseStream;
@@ -14,6 +15,9 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 use Symfony\Contracts\HttpClient\ResponseStreamInterface;
 use Symfony\Contracts\Service\ResetInterface;
+
+use function Sentry\getBaggage;
+use function Sentry\getTraceparent;
 
 /**
  * This is an implementation of the {@see HttpClientInterface} that decorates
@@ -44,49 +48,52 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
      */
     public function request(string $method, string $url, array $options = []): ResponseInterface
     {
-        $span = null;
-        $parent = $this->hub->getSpan();
+        $uri = new Uri($url);
+        $headers = $options['headers'] ?? [];
 
-        if (null !== $parent) {
-            $headers = $options['headers'] ?? [];
-            $headers['sentry-trace'] = $parent->toTraceparent();
+        $span = $this->hub->getSpan();
+        $client = $this->hub->getClient();
 
-            $uri = new Uri($url);
-            $partialUri = Uri::fromParts([
-                'scheme' => $uri->getScheme(),
-                'host' => $uri->getHost(),
-                'port' => $uri->getPort(),
-                'path' => $uri->getPath(),
-            ]);
-
-            // Check if the request destination is allow listed in the trace_propagation_targets option.
-            $client = $this->hub->getClient();
-            if (null !== $client) {
-                $sdkOptions = $client->getOptions();
-
-                if (\in_array($uri->getHost(), $sdkOptions->getTracePropagationTargets())) {
-                    $headers['baggage'] = $parent->toBaggage();
-                }
+        if (null === $span) {
+            if (self::shouldAttachTracingHeaders($client, $uri)) {
+                $headers['baggage'] = getBaggage();
+                $headers['sentry-trace'] = getTraceparent();
             }
 
             $options['headers'] = $headers;
 
-            $context = new SpanContext();
-            $context->setOp('http.client');
-            $context->setDescription($method . ' ' . (string) $partialUri);
-            $context->setTags([
-                'http.method' => $method,
-                'http.url' => (string) $partialUri,
-            ]);
-            $context->setData([
-                'http.query' => $uri->getQuery(),
-                'http.fragment' => $uri->getFragment(),
-            ]);
-
-            $span = $parent->startChild($context);
+            return new TraceableResponse($this->client, $this->client->request($method, $url, $options), $span);
         }
 
-        return new TraceableResponse($this->client, $this->client->request($method, $url, $options), $span);
+        $partialUri = Uri::fromParts([
+            'scheme' => $uri->getScheme(),
+            'host' => $uri->getHost(),
+            'port' => $uri->getPort(),
+            'path' => $uri->getPath(),
+        ]);
+
+        $context = new SpanContext();
+        $context->setOp('http.client');
+        $context->setDescription($method . ' ' . (string) $partialUri);
+        $context->setTags([
+            'http.method' => $method,
+            'http.url' => (string) $partialUri,
+        ]);
+        $context->setData([
+            'http.query' => $uri->getQuery(),
+            'http.fragment' => $uri->getFragment(),
+        ]);
+
+        $childSpan = $span->startChild($context);
+
+        if (self::shouldAttachTracingHeaders($client, $uri)) {
+            $headers['baggage'] = $childSpan->toBaggage();
+            $headers['sentry-trace'] = $childSpan->toTraceparent();
+        }
+
+        $options['headers'] = $headers;
+
+        return new TraceableResponse($this->client, $this->client->request($method, $url, $options), $childSpan);
     }
 
     /**
@@ -118,5 +125,26 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
         if ($this->client instanceof LoggerAwareInterface) {
             $this->client->setLogger($logger);
         }
+    }
+
+    private static function shouldAttachTracingHeaders(?ClientInterface $client, Uri $uri): bool
+    {
+        if (null !== $client) {
+            $sdkOptions = $client->getOptions();
+
+            // Check if the request destination is allow listed in the trace_propagation_targets option.
+            if (
+                null !== $sdkOptions->getTracePropagationTargets() &&
+                // Due to BC, we treat an empty array (the default) as all hosts are allow listed
+                (
+                    [] === $sdkOptions->getTracePropagationTargets() ||
+                    \in_array($uri->getHost(), $sdkOptions->getTracePropagationTargets())
+                )
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

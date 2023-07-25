@@ -44,6 +44,8 @@
             <sentry:in-app-exclude>%kernel.cache_dir%</sentry:in-app-exclude>
             <sentry:in-app-include>%kernel.project_dir%</sentry:in-app-include>
             <sentry:class-serializer class="App\FooClass">App\Sentry\Serializer\FooClassSerializer</sentry:class-serializer>
+            <sentry:ignore-exception>Symfony\Component\HttpKernel\Exception\BadRequestHttpException</sentry:ignore-exception>
+            <sentry:ignore-transaction>GET tracing_ignored_transaction</sentry:ignore-transaction>
         </sentry:options>
         <sentry:messenger enabled="true" capture-soft-fails="false" />
         <sentry:tracing>
