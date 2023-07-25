@@ -2,15 +2,25 @@
 
 declare(strict_types=1);
 
-namespace Sentry\SentryBundle\Cron;
+namespace Sentry\SentryBundle\Monitor;
 
 use Sentry\CheckIn;
 use Sentry\CheckInStatus;
 use Sentry\Event;
+use Sentry\MonitorConfig;
 use Sentry\State\HubInterface;
 
-class CronJob implements CronJobInterface
+class Monitor implements MonitorInterface
 {
+    /**
+     * @var HubInterface
+     */
+    private $hub;
+
+    /**
+     * @var MonitorConfig
+     */
+    private $monitorConfig;
     /**
      * @var string
      */
@@ -20,23 +30,25 @@ class CronJob implements CronJobInterface
      */
     private $slug;
     /**
-     * @var HubInterface
-     */
-    private $hub;
-    /**
      * @var string|null
      */
     private $release;
 
-    public function __construct(HubInterface $hub, string $slug, string $environment, ?string $release = null)
-    {
+    public function __construct(
+        HubInterface $hub,
+        MonitorConfig $monitorConfig,
+        string $slug,
+        string $environment,
+        string $release = null
+    ) {
+        $this->monitorConfig = $monitorConfig;
         $this->environment = $environment;
         $this->slug = $slug;
         $this->hub = $hub;
         $this->release = $release;
     }
 
-    public function inProgress(?CheckIn $previous = null): CheckIn
+    public function inProgress(CheckIn $previous = null): CheckIn
     {
         $event = Event::createCheckIn();
         $checkIn = new CheckIn(
@@ -44,7 +56,9 @@ class CronJob implements CronJobInterface
             CheckInStatus::inProgress(),
             $previous ? $previous->getId() : null,
             $this->release,
-            $this->environment
+            $this->environment,
+            null,
+            $this->monitorConfig
         );
         $event->setCheckIn($checkIn);
         $this->hub->captureEvent($event);
@@ -52,7 +66,7 @@ class CronJob implements CronJobInterface
         return $checkIn;
     }
 
-    public function error(?CheckIn $previous = null): CheckIn
+    public function error(CheckIn $previous = null): CheckIn
     {
         $event = Event::createCheckIn();
         $checkIn = new CheckIn(
@@ -60,7 +74,9 @@ class CronJob implements CronJobInterface
             CheckInStatus::error(),
             $previous ? $previous->getId() : null,
             $this->release,
-            $this->environment
+            $this->environment,
+            null,
+            $this->monitorConfig
         );
         $event->setCheckIn($checkIn);
         $this->hub->captureEvent($event);
@@ -68,7 +84,7 @@ class CronJob implements CronJobInterface
         return $checkIn;
     }
 
-    public function ok(?CheckIn $previous = null): CheckIn
+    public function ok(CheckIn $previous = null): CheckIn
     {
         $event = Event::createCheckIn();
         $checkIn = new CheckIn(
@@ -76,7 +92,9 @@ class CronJob implements CronJobInterface
             CheckInStatus::ok(),
             $previous ? $previous->getId() : null,
             $this->release,
-            $this->environment
+            $this->environment,
+            null,
+            $this->monitorConfig
         );
         $event->setCheckIn($checkIn);
         $this->hub->captureEvent($event);

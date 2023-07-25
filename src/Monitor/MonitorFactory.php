@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Sentry\SentryBundle\Cron;
+namespace Sentry\SentryBundle\Monitor;
 
+use Sentry\MonitorConfig;
 use Sentry\SentrySdk;
 
-class CronJobFactory implements CronJobFactoryInterface
+class MonitorFactory implements MonitorFactoryInterface
 {
     /**
      * @var string
@@ -20,18 +21,16 @@ class CronJobFactory implements CronJobFactoryInterface
     /**
      * @param string $environment the configured environment
      */
-    public function __construct(string $environment, ?string $release = null)
+    public function __construct(string $environment, string $release = null)
     {
         $this->environment = $environment;
         $this->release = $release;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getCronJob(string $slug): CronJobInterface
+    public function getMonitor(string $slug, MonitorConfig $monitorConfig): MonitorInterface
     {
         $hub = SentrySdk::getCurrentHub();
-        return new CronJob($hub, $slug, $this->environment, $this->release);
+
+        return new Monitor($hub, $monitorConfig, $slug, $this->environment, $this->release);
     }
 }

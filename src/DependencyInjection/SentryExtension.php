@@ -13,8 +13,6 @@ use Sentry\Integration\IntegrationInterface;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\Integration\RequestIntegration;
 use Sentry\Options;
-use Sentry\SentryBundle\Cron\CronJobFactory;
-use Sentry\SentryBundle\Cron\CronJobFactoryInterface;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
@@ -22,6 +20,8 @@ use Sentry\SentryBundle\EventListener\TracingConsoleListener;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
 use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
 use Sentry\SentryBundle\Integration\IntegrationConfigurator;
+use Sentry\SentryBundle\Monitor\MonitorFactory;
+use Sentry\SentryBundle\Monitor\MonitorFactoryInterface;
 use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
@@ -43,25 +43,17 @@ use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
 final class SentryExtension extends ConfigurableExtension
 {
-    /**
-     * {@inheritdoc}
-     */
     public function getXsdValidationBasePath(): string
     {
         return __DIR__ . '/../Resources/config/schema';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getNamespace(): string
     {
         return 'https://sentry.io/schema/dic/sentry-symfony';
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @param array<array-key, mixed> $mergedConfig
      */
     protected function loadInternal(array $mergedConfig, ContainerBuilder $container): void
@@ -157,22 +149,22 @@ final class SentryExtension extends ConfigurableExtension
             ->setPublic(false)
             ->setFactory([$clientBuilderDefinition, 'getClient']);
 
-        // Setup Cronjob.
+        // Setup Monitors.
         $environment = '';
-        if (isset($options['environment'])) {
+        if (\is_array($options) && isset($options['environment'])) {
             $environment = $options['environment'];
         }
 
         $release = null;
-        if (isset($options['release'])) {
+        if (\is_array($options) && isset($options['release'])) {
             $release = $options['release'];
         }
 
         $container
-            ->register(CronJobFactoryInterface::class, CronJobFactory::class)
+            ->register(MonitorFactoryInterface::class, MonitorFactory::class)
             ->setPublic(true)
-            ->setArgument(0, $environment)
-            ->setArgument(1, $release);
+            ->setArguments([$environment, $release])
+        ;
     }
 
     /**
