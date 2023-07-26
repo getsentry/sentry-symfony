@@ -55,8 +55,8 @@ final class LoginListenerTest extends TestCase
     }
 
     /**
-     * @dataProvider handleLoginSuccessEventDataProvider
-     * @dataProvider handleLoginSuccessEventForSymfonyVersionLowerThan54DataProvider
+     * @dataProvider authenticationTokenDataProvider
+     * @dataProvider authenticationTokenForSymfonyVersionLowerThan54DataProvider
      */
     public function testHandleKernelRequestEvent(TokenInterface $token, ?UserDataBag $user, ?UserDataBag $expectedUser): void
     {
@@ -98,7 +98,7 @@ final class LoginListenerTest extends TestCase
     }
 
     /**
-     * @dataProvider handleLoginSuccessEventDataProvider
+     * @dataProvider authenticationTokenDataProvider
      */
     public function testHandleLoginSuccessEvent(TokenInterface $token, ?UserDataBag $user, ?UserDataBag $expectedUser): void
     {
@@ -143,8 +143,8 @@ final class LoginListenerTest extends TestCase
     }
 
     /**
-     * @dataProvider handleLoginSuccessEventDataProvider
-     * @dataProvider handleLoginSuccessEventForSymfonyVersionLowerThan54DataProvider
+     * @dataProvider authenticationTokenDataProvider
+     * @dataProvider authenticationTokenForSymfonyVersionLowerThan54DataProvider
      */
     public function testHandleAuthenticationSuccessEvent(TokenInterface $token, ?UserDataBag $user, ?UserDataBag $expectedUser): void
     {
@@ -181,7 +181,7 @@ final class LoginListenerTest extends TestCase
         $this->assertEquals($expectedUser, $event->getUser());
     }
 
-    public function handleLoginSuccessEventDataProvider(): \Generator
+    public function authenticationTokenDataProvider(): \Generator
     {
         yield 'If the username is already set on the User context, then it is not overridden' => [
             new AuthenticatedTokenStub(new UserWithIdentifierStub()),
@@ -222,25 +222,25 @@ final class LoginListenerTest extends TestCase
         ];
     }
 
-    public function handleLoginSuccessEventForSymfonyVersionLowerThan54DataProvider(): \Generator
+    public function authenticationTokenForSymfonyVersionLowerThan54DataProvider(): \Generator
     {
         if (version_compare(Kernel::VERSION, '5.4.0', '>=')) {
             return;
         }
 
-        yield 'Given an authenticated token, if the user is a string, then the User context is populated' => [
+        yield 'If the user is a string, then the value is used as-is' => [
             new AuthenticatedTokenStub('foo_user'),
             null,
             new UserDataBag('foo_user'),
         ];
 
-        yield 'Given an authenticated token, if the user is an instance of the UserInterface interface but the getUserIdentifier() method does not exist, then the User context is populated by calling the getUsername() method' => [
+        yield 'If the user is an instance of the UserInterface interface but the getUserIdentifier() method does not exist, then the getUsername() method is invoked' => [
             new AuthenticatedTokenStub(new UserWithoutIdentifierStub()),
             null,
             new UserDataBag('foo_user'),
         ];
 
-        yield 'Given an authenticated token, if the user is an object implementing the Stringable interface, then the User context is populated by calling the __toString() method' => [
+        yield 'If the user is an object implementing the Stringable interface, then the __toString() method is invoked' => [
             new AuthenticatedTokenStub(new class() implements \Stringable {
                 public function __toString(): string
                 {
