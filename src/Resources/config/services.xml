@@ -88,7 +88,9 @@
 
         <service id="Sentry\SentryBundle\EventListener\LoginListener" class="Sentry\SentryBundle\EventListener\LoginListener">
             <argument type="service" id="Sentry\State\HubInterface" />
+            <argument type="service" id="security.token_storage" on-invalid="ignore" />
 
+            <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" />
             <tag name="kernel.event_listener" event="Symfony\Component\Security\Http\Event\LoginSuccessEvent" method="handleLoginSuccessEvent" />
         </service>
 
