@@ -25,7 +25,7 @@ final class LoginListener
     private $hub;
 
     /**
-     * @var TokenStorageInterface The token storage
+     * @var TokenStorageInterface|null The token storage
      */
     private $tokenStorage;
 
