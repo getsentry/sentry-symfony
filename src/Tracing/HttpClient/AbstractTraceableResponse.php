@@ -139,7 +139,7 @@ abstract class AbstractTraceableResponse implements ResponseInterface
         // If the returned status code is 0, it means that this info isn't available
         // yet (e.g. an error happened before the request was sent), hence we cannot
         // determine what happened.
-        if ($statusCode === 0) {
+        if (0 === $statusCode) {
             $this->span->setStatus(SpanStatus::unknownError());
         } else {
             $this->span->setStatus(SpanStatus::createFromHttpStatusCode($statusCode));
