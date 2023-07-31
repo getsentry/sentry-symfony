@@ -19,6 +19,7 @@ use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Sentry\Tracing\PropagationContext;
 use Sentry\Tracing\SpanId;
+use Sentry\Tracing\SpanStatus;
 use Sentry\Tracing\TraceId;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
@@ -107,10 +108,17 @@ final class TraceableHttpClientTest extends TestCase
             'http.fragment' => 'baz',
         ];
 
+        // Call gc to invoke destructors at the right time.
+        unset($response);
+
+        gc_mem_caches();
+        gc_collect_cycles();
+
         $this->assertCount(2, $spans);
-        $this->assertNull($spans[1]->getEndTimestamp());
+        $this->assertNotNull($spans[1]->getEndTimestamp());
         $this->assertSame('http.client', $spans[1]->getOp());
         $this->assertSame('GET https://www.example.com/test-page', $spans[1]->getDescription());
+        $this->assertSame(SpanStatus::ok(), $spans[1]->getStatus());
         $this->assertSame($expectedTags, $spans[1]->getTags());
         $this->assertSame($expectedData, $spans[1]->getData());
     }
@@ -192,6 +200,50 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame('https://www.example.com/test-page', $response->getInfo('url'));
         $this->assertSame(['sentry-trace: 566e3688a61d4bc888951642d6f14a19-566e3688a61d4bc8'], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
         $this->assertSame(['baggage: sentry-trace_id=566e3688a61d4bc888951642d6f14a19,sentry-public_key=public,sentry-release=1.0.0,sentry-environment=test'], $mockResponse->getRequestOptions()['normalized_headers']['baggage']);
+    }
+
+    public function testRequestSetsUnknownErrorAsSpanStatusIfResponseStatusCodeIsUnavailable(): void
+    {
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->once())
+            ->method('getOptions')
+            ->willReturn(new Options(['dsn' => 'http://public:secret@example.com/sentry/1']));
+
+        $transaction = new Transaction(new TransactionContext());
+        $transaction->initSpanRecorder();
+
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn($transaction);
+
+        $this->hub->expects($this->once())
+            ->method('getClient')
+            ->willReturn($client);
+
+        $decoratedHttpClient = new MockHttpClient(new MockResponse());
+        $httpClient = new TraceableHttpClient($decoratedHttpClient, $this->hub);
+
+        // Cancelling the response is the only way that does not override in any
+        // way the status code and leave it set to 0. This is a required precondition
+        // for the span status to be set to the expected value.
+        $response = $httpClient->request('GET', 'https://www.example.com/test-page');
+        $response->cancel();
+
+        $this->assertNotNull($transaction->getSpanRecorder());
+        $this->assertInstanceOf(AbstractTraceableResponse::class, $response);
+
+        // Call gc to invoke destructors at the right time.
+        unset($response);
+
+        gc_mem_caches();
+        gc_collect_cycles();
+
+        $spans = $transaction->getSpanRecorder()->getSpans();
+
+        $this->assertCount(2, $spans);
+        $this->assertNotNull($spans[1]->getEndTimestamp());
+        $this->assertSame('GET https://www.example.com/test-page', $spans[1]->getDescription());
+        $this->assertSame(SpanStatus::unknownError(), $spans[1]->getStatus());
     }
 
     public function testStream(): void
