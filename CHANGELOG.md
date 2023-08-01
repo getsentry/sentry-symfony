@@ -1,5 +1,25 @@
 # Changelog
 
+## 4.10.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.10.0.
+
+### Features
+
+- Tracing without Performance [(#742)](https://github.com/getsentry/sentry-symfony/pull/742)
+
+  The SDK will now continue a trace from incoming HTTP requests, even if performance is not enabled.
+  To continue a trace outward, you may attach the Sentry tracing headers to any HTTP client request.
+  You can fetch the required header values by calling \Sentry\getBaggage() and \Sentry\getTraceparent().
+
+- Add `ignore_exceptions` and `ignore_transactions` options [(#724)](https://github.com/getsentry/sentry-symfony/pull/724)
+
+### Misc
+
+- Improve setting logged-in users on the scope [(#720)](https://github.com/getsentry/sentry-symfony/pull/720)
+- Move DB span tags to span data [(#743)](https://github.com/getsentry/sentry-symfony/pull/743)
+- Set the span status when tracing an HTTP client request [(#748)](https://github.com/getsentry/sentry-symfony/pull/748)
+
 ## 4.9.2
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.9.2.
