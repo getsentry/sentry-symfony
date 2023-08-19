@@ -306,6 +306,11 @@ parameters:
 			path: tests/DependencyInjection/SentryExtensionTest.php
 
 		-
+			message: "#^Cannot access offset 'release' on mixed\\.$#"
+			count: 1
+			path: tests/DependencyInjection/SentryExtensionTest.php
+
+		-
 			message: "#^Class Symfony\\\\Component\\\\Debug\\\\Exception\\\\FatalErrorException not found\\.$#"
 			count: 1
 			path: tests/DependencyInjection/SentryExtensionTest.php

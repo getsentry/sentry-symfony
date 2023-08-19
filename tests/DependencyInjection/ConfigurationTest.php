@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
-use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
 use Symfony\Bundle\TwigBundle\TwigBundle;
@@ -29,7 +28,7 @@ final class ConfigurationTest extends TestCase
                 'integrations' => [],
                 'prefixes' => array_merge(['%kernel.project_dir%'], array_filter(explode(\PATH_SEPARATOR, get_include_path() ?: ''))),
                 'environment' => '%kernel.environment%',
-                'release' => PrettyVersions::getRootPackageVersion()->getPrettyVersion(),
+                'release' => '%env(default::SENTRY_RELEASE)%',
                 'tags' => [],
                 'in_app_exclude' => [
                     '%kernel.cache_dir%',

@@ -1,0 +1,5 @@
+parameters:
+    env(SENTRY_RELEASE): 1.0.x-dev
+
+sentry:
+    options: ~
