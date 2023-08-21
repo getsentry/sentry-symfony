@@ -32,6 +32,7 @@ use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\Debug\Exception\FatalErrorException;
 use Symfony\Component\DependencyInjection\Compiler\ResolveParameterPlaceHoldersPass;
+use Symfony\Component\DependencyInjection\Compiler\ResolveTaggedIteratorArgumentPass;
 use Symfony\Component\DependencyInjection\Compiler\ValidateEnvPlaceholdersPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -503,6 +504,7 @@ abstract class SentryExtensionTest extends TestCase
         $container->getCompilerPassConfig()->setOptimizationPasses([
             new ValidateEnvPlaceholdersPass(),
             new ResolveParameterPlaceHoldersPass(),
+            new ResolveTaggedIteratorArgumentPass(),
         ]);
 
         $this->loadFixture($container, $fixtureFile);
