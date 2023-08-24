@@ -109,7 +109,7 @@ final class LoginListener
 
     private function isTokenAuthenticated(TokenInterface $token): bool
     {
-        if (method_exists($token, 'isAuthenticated') && !$token->isAuthenticated()) {
+        if (method_exists($token, 'isAuthenticated') && !$token->isAuthenticated(false)) {
             return false;
         }
 
