@@ -80,6 +80,8 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
             'http.url' => (string) $partialUri,
         ]);
         $context->setData([
+            'http.url' => (string) $partialUri,
+            'http.request.method' => $method,
             'http.query' => $uri->getQuery(),
             'http.fragment' => $uri->getFragment(),
         ]);
