@@ -90,7 +90,7 @@ final class TracingDriverConnection implements TracingDriverConnectionInterface
     ) {
         $this->hub = $hub;
         $this->decoratedConnection = $decoratedConnection;
-        $this->spanData = $this->getSpanTags($databasePlatform, $params);
+        $this->spanData = $this->getSpanData($databasePlatform, $params);
     }
 
     /**
@@ -258,7 +258,7 @@ final class TracingDriverConnection implements TracingDriverConnectionInterface
      *
      * @see https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
      */
-    private function getSpanTags(string $databasePlatform, array $params): array
+    private function getSpanData(string $databasePlatform, array $params): array
     {
         $data = ['db.system' => $databasePlatform];
 
