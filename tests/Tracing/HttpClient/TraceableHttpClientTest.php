@@ -104,6 +104,8 @@ final class TraceableHttpClientTest extends TestCase
             'http.url' => 'https://www.example.com/test-page',
         ];
         $expectedData = [
+            'http.url' => 'https://www.example.com/test-page',
+            'http.request.method' => 'GET',
             'http.query' => 'foo=bar',
             'http.fragment' => 'baz',
         ];
