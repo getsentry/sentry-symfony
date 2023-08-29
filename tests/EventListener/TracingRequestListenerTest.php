@@ -98,9 +98,9 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
-        $transactionContext->setTags([
+        $transactionContext->setData([
             'net.host.port' => '80',
-            'http.method' => 'GET',
+            'http.request.method' => 'GET',
             'http.url' => 'http://www.example.com/',
             'http.flavor' => '1.1',
             'route' => '<unknown>',
@@ -135,9 +135,9 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
-        $transactionContext->setTags([
+        $transactionContext->setData([
             'net.host.port' => '80',
-            'http.method' => 'GET',
+            'http.request.method' => 'GET',
             'http.url' => 'http://www.example.com/',
             'http.flavor' => '1.1',
             'route' => '<unknown>',
@@ -167,9 +167,9 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
-        $transactionContext->setTags([
+        $transactionContext->setData([
             'net.host.port' => '80',
-            'http.method' => 'GET',
+            'http.request.method' => 'GET',
             'http.url' => 'http://www.example.com/',
             'http.flavor' => '1.1',
             'route' => '<unknown>',
@@ -190,9 +190,9 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
-        $transactionContext->setTags([
+        $transactionContext->setData([
             'net.host.port' => '80',
-            'http.method' => 'GET',
+            'http.request.method' => 'GET',
             'http.url' => 'http://127.0.0.1/',
             'http.flavor' => '1.1',
             'route' => '<unknown>',
@@ -221,9 +221,9 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setSource(TransactionSource::route());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
-        $transactionContext->setTags([
+        $transactionContext->setData([
             'net.host.port' => '80',
-            'http.method' => 'GET',
+            'http.request.method' => 'GET',
             'http.url' => 'http://www.example.com/path',
             'http.flavor' => '1.1',
             'route' => 'app_homepage',
@@ -245,9 +245,9 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
-        $transactionContext->setTags([
+        $transactionContext->setData([
             'net.host.port' => '80',
-            'http.method' => 'GET',
+            'http.request.method' => 'GET',
             'http.url' => 'http://www.example.com/path',
             'http.flavor' => '1.1',
             'route' => '/path',
@@ -269,9 +269,9 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
-        $transactionContext->setTags([
+        $transactionContext->setData([
             'net.host.port' => '80',
-            'http.method' => 'GET',
+            'http.request.method' => 'GET',
             'http.url' => 'http://www.example.com/',
             'http.flavor' => '1.1',
             'route' => 'App\\Controller::indexAction',
@@ -293,9 +293,9 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
-        $transactionContext->setTags([
+        $transactionContext->setData([
             'net.host.port' => '80',
-            'http.method' => 'GET',
+            'http.request.method' => 'GET',
             'http.url' => 'http://www.example.com/',
             'http.flavor' => '1.1',
             'route' => 'App\\Controller::indexAction',
@@ -317,9 +317,9 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
-        $transactionContext->setTags([
+        $transactionContext->setData([
             'net.host.port' => '80',
-            'http.method' => 'GET',
+            'http.request.method' => 'GET',
             'http.url' => 'http://www.example.com/',
             'http.flavor' => '1.1',
             'route' => 'class@anonymous::indexAction',
@@ -341,9 +341,9 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
-        $transactionContext->setTags([
+        $transactionContext->setData([
             'net.host.port' => '80',
-            'http.method' => 'GET',
+            'http.request.method' => 'GET',
             'http.url' => 'http://www.example.com/',
             'http.flavor' => '1.1',
             'route' => '<unknown>',
@@ -365,9 +365,9 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
-        $transactionContext->setTags([
+        $transactionContext->setData([
             'net.host.port' => '80',
-            'http.method' => 'GET',
+            'http.request.method' => 'GET',
             'http.url' => 'http://www.example.com/',
             'http.flavor' => '1.1',
             'route' => '<unknown>',
@@ -389,9 +389,9 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
-        $transactionContext->setTags([
+        $transactionContext->setData([
             'net.host.port' => '',
-            'http.method' => 'GET',
+            'http.request.method' => 'GET',
             'http.url' => 'http://:/',
             'route' => '<unknown>',
             'net.host.name' => '',

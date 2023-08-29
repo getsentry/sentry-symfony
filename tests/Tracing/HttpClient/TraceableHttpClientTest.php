@@ -99,10 +99,6 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
-        $expectedTags = [
-            'http.method' => 'GET',
-            'http.url' => 'https://www.example.com/test-page',
-        ];
         $expectedData = [
             'http.url' => 'https://www.example.com/test-page',
             'http.request.method' => 'GET',
@@ -121,7 +117,6 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame('http.client', $spans[1]->getOp());
         $this->assertSame('GET https://www.example.com/test-page', $spans[1]->getDescription());
         $this->assertSame(SpanStatus::ok(), $spans[1]->getStatus());
-        $this->assertSame($expectedTags, $spans[1]->getTags());
         $this->assertSame($expectedData, $spans[1]->getData());
     }
 
@@ -160,16 +155,16 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
-        $expectedTags = [
-            'http.method' => 'PUT',
+        $expectedData = [
             'http.url' => 'https://www.example.com/test-page',
+            'http.request.method' => 'PUT',
         ];
 
         $this->assertCount(2, $spans);
         $this->assertNull($spans[1]->getEndTimestamp());
         $this->assertSame('http.client', $spans[1]->getOp());
         $this->assertSame('PUT https://www.example.com/test-page', $spans[1]->getDescription());
-        $this->assertSame($expectedTags, $spans[1]->getTags());
+        $this->assertSame($expectedData, $spans[1]->getData());
     }
 
     public function testRequestDoesContainsTracingHeadersWithoutTransaction(): void
@@ -271,9 +266,9 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
-        $expectedTags = [
-            'http.method' => 'GET',
+        $expectedData = [
             'http.url' => 'https://www.example.com/test-page',
+            'http.request.method' => 'GET',
         ];
 
         $this->assertSame('foobar', implode('', $chunks));
@@ -282,7 +277,7 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertNotNull($spans[1]->getEndTimestamp());
         $this->assertSame('http.client', $spans[1]->getOp());
         $this->assertSame('GET https://www.example.com/test-page', $spans[1]->getDescription());
-        $this->assertSame($expectedTags, $spans[1]->getTags());
+        $this->assertSame($expectedData, $spans[1]->getData());
 
         $loopIndex = 0;
 
