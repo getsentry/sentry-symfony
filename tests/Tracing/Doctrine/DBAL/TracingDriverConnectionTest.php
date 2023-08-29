@@ -466,8 +466,8 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
                 'db.system' => 'foo_platform',
                 'db.user' => 'root',
                 'db.name' => 'INFORMATION_SCHEMA',
-                'net.peer.port' => '3306',
-                'net.transport' => 'Unix',
+                'server.port' => '3306',
+                'server.socket.address' => 'Unix',
             ],
         ];
 
@@ -482,8 +482,8 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
                 'db.system' => 'foo_platform',
                 'db.user' => 'root',
                 'db.name' => 'INFORMATION_SCHEMA',
-                'net.peer.port' => '3306',
-                'net.transport' => 'inproc',
+                'server.port' => '3306',
+                'server.socket.address' => 'inproc',
             ],
         ];
 
@@ -493,7 +493,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ],
             [
                 'db.system' => 'foo_platform',
-                'net.peer.name' => 'localhost',
+                'server.address' => 'localhost',
             ],
         ];
 
@@ -503,7 +503,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ],
             [
                 'db.system' => 'foo_platform',
-                'net.peer.ip' => '127.0.0.1',
+                'server.address' => '127.0.0.1',
             ],
         ];
     }

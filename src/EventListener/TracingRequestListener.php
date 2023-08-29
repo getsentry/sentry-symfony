@@ -53,7 +53,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
         }
 
         $context->setStartTimestamp($requestStartTime);
-        $context->setTags($this->getTags($request));
+        $context->setData($this->getData($request));
 
         $this->hub->setSpan($this->hub->startTransaction($context));
     }
@@ -76,19 +76,19 @@ final class TracingRequestListener extends AbstractTracingRequestListener
     }
 
     /**
-     * Gets the tags to attach to the transaction.
+     * Gets the data to attach to the transaction.
      *
      * @param Request $request The HTTP request
      *
      * @return array<string, string>
      */
-    private function getTags(Request $request): array
+    private function getData(Request $request): array
     {
         $client = $this->hub->getClient();
         $httpFlavor = $this->getHttpFlavor($request);
         $tags = [
             'net.host.port' => (string) $request->getPort(),
-            'http.method' => $request->getMethod(),
+            'http.request.method' => $request->getMethod(),
             'http.url' => $request->getUri(),
             'route' => $this->getRouteName($request),
         ];

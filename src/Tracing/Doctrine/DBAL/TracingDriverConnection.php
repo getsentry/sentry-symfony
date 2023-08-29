@@ -90,7 +90,7 @@ final class TracingDriverConnection implements TracingDriverConnectionInterface
     ) {
         $this->hub = $hub;
         $this->decoratedConnection = $decoratedConnection;
-        $this->spanData = $this->getSpanTags($databasePlatform, $params);
+        $this->spanData = $this->getSpanData($databasePlatform, $params);
     }
 
     /**
@@ -258,7 +258,7 @@ final class TracingDriverConnection implements TracingDriverConnectionInterface
      *
      * @see https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
      */
-    private function getSpanTags(string $databasePlatform, array $params): array
+    private function getSpanData(string $databasePlatform, array $params): array
     {
         $data = ['db.system' => $databasePlatform];
 
@@ -272,20 +272,20 @@ final class TracingDriverConnection implements TracingDriverConnectionInterface
 
         if (isset($params['host']) && !empty($params['host']) && !isset($params['memory'])) {
             if (false === filter_var($params['host'], \FILTER_VALIDATE_IP)) {
-                $data['net.peer.name'] = $params['host'];
+                $data['server.address'] = $params['host'];
             } else {
-                $data['net.peer.ip'] = $params['host'];
+                $data['server.address'] = $params['host'];
             }
         }
 
         if (isset($params['port'])) {
-            $data['net.peer.port'] = (string) $params['port'];
+            $data['server.port'] = (string) $params['port'];
         }
 
         if (isset($params['unix_socket'])) {
-            $data['net.transport'] = 'Unix';
+            $data['server.socket.address'] = 'Unix';
         } elseif (isset($params['memory'])) {
-            $data['net.transport'] = 'inproc';
+            $data['server.socket.address'] = 'inproc';
         }
 
         return $data;
