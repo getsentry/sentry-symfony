@@ -1,0 +1,16 @@
+services:
+    Sentry\SentryBundle\Tests\DependencyInjection\Fixtures\StubEnvVarLoader:
+        arguments:
+            - { SENTRY_RELEASE: 1.0.x-dev }
+        tags:
+            - { name: container.env_var_loader }
+
+    Symfony\Component\DependencyInjection\EnvVarProcessor:
+        arguments:
+            - '@service_container'
+            - !tagged_iterator container.env_var_loader
+        tags:
+            - { name: container.env_var_processor }
+
+sentry:
+    options: ~

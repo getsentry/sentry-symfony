@@ -1,0 +1,6 @@
+parameters:
+    env(APP_RELEASE): 1.0.x-dev
+
+sentry:
+    options:
+        release: '%env(APP_RELEASE)%'
