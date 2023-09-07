@@ -1,5 +1,17 @@
 # Changelog
 
+## 4.11.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.11.0.
+
+### Bug Fixes
+
+- Silence `TokenInterface::isAuthenticated` deprecation in `LoginListener` [(#755)](https://github.com/getsentry/sentry-symfony/pull/755)
+
+### Misc
+
+- Prefer the `SENTRY_RELEASE` environment variable over the package root version [(#753)](https://github.com/getsentry/sentry-symfony/pull/753)
+
 ## 4.10.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.10.0.
