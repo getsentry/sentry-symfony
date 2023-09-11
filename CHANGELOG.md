@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.12.0
+
+### Features
+
+- Report individual exceptions from `DelayedMessageHandlingException` [(#760)](https://github.com/getsentry/sentry-symfony/pull/760)
+
 ## 4.11.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.11.0.
@@ -167,7 +173,7 @@ This release contains a colorful bouquet of new features.
   ```
 
 - Use the `_route` attribute as the transaction name [(#692)](https://github.com/getsentry/sentry-symfony/pull/692)
-  
+
   If you're using named routes, the SDK will default to use this attribute as the transaction name.
   With this change, you should be able to see a full list of your transactions on the performance page,
   instead of `<< unparameterized >>`.
