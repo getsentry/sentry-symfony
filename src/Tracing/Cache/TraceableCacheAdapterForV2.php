@@ -40,7 +40,7 @@ final class TraceableCacheAdapterForV2 implements AdapterInterface, CacheInterfa
      *
      * @return mixed
      */
-    public function get(string $key, callable $callback, float $beta = null, array &$metadata = null)
+    public function get(string $key, callable $callback, float $beta = null, array &$metadata = null): mixed
     {
         return $this->traceFunction('cache.get_item', function () use ($key, $callback, $beta, &$metadata) {
             if (!$this->decoratedAdapter instanceof CacheInterface) {
