@@ -116,7 +116,7 @@ final class MessengerListenerTest extends TestCase
 
         yield 'envelope.throwable INSTANCEOF DelayedMessageHandlingException' => [
             $exceptions,
-            $this->getMessageFailedEvent($envelope, 'receiver', new DelayedMessageHandlingException($exceptions), false),
+            $this->getMessageFailedEvent($envelope, 'receiver', new DelayedMessageHandlingException($exceptions, $envelope), false),
             [
                 'messenger.receiver_name' => 'receiver',
                 'messenger.message_class' => \get_class($envelope->getMessage()),
