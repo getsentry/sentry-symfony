@@ -95,6 +95,8 @@
         </service>
 
         <service id="Sentry\SentryBundle\Command\SentryTestCommand" class="Sentry\SentryBundle\Command\SentryTestCommand">
+            <argument type="service" id="Sentry\State\HubInterface" />
+
             <tag name="console.command" command="sentry:test" />
         </service>
 
