@@ -15,7 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Release version
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_RELEASE_PAT }}
           fetch-depth: 0
