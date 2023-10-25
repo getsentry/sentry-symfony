@@ -8,6 +8,9 @@ on:
       - develop
       - release/**
 
+permissions:
+  contents: read
+
 jobs:
   tests:
     name: Tests
