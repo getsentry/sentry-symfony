@@ -143,5 +143,8 @@
         <service id="Sentry\SentryBundle\Twig\SentryExtension" class="Sentry\SentryBundle\Twig\SentryExtension">
             <tag name="twig.extension" />
         </service>
+
+        <service id="Sentry\SentryBundle\CronMonitoring\CronMonitorFactory" class="Sentry\SentryBundle\CronMonitoring\CronMonitorFactory" autowire="true" />
+        <service id="Sentry\SentryBundle\CronMonitoring\EventSubscriber\CronMonitorSubscriber" class="Sentry\SentryBundle\CronMonitoring\EventSubscriber\CronMonitorSubscriber" autowire="true" autoconfigure="true" />
     </services>
 </container>

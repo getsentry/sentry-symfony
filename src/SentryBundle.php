@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle;
 
+use Sentry\SentryBundle\DependencyInjection\Compiler\AddCronMonitorOptionsCompilerPass;
 use Sentry\SentryBundle\DependencyInjection\Compiler\AddLoginListenerTagPass;
 use Sentry\SentryBundle\DependencyInjection\Compiler\CacheTracingPass;
 use Sentry\SentryBundle\DependencyInjection\Compiler\DbalTracingPass;
@@ -25,5 +26,6 @@ final class SentryBundle extends Bundle
         $container->addCompilerPass(new CacheTracingPass());
         $container->addCompilerPass(new HttpClientTracingPass());
         $container->addCompilerPass(new AddLoginListenerTagPass());
+        $container->addCompilerPass(new AddCronMonitorOptionsCompilerPass());
     }
 }

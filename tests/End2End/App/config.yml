@@ -19,6 +19,10 @@ services:
     alias: Sentry\State\HubInterface
     public: true
 
+  test.Sentry\SentryBundle\CronMonitoring\CronMonitorFactory:
+    alias: Sentry\SentryBundle\CronMonitoring\CronMonitorFactory
+    public: true
+
   Sentry\SentryBundle\Tests\End2End\StubTransportFactory: ~
 
   Sentry\Transport\TransportFactoryInterface:
@@ -31,6 +35,9 @@ services:
 
   Sentry\SentryBundle\Tests\End2End\App\Command\MainCommand:
     tags: [{ name: 'console.command', command: 'main-command' }]
+
+  Sentry\SentryBundle\Tests\End2End\App\Command\SuccessCommand:
+    tags: [{ name: 'console.command', command: 'success-command' }]
 
 monolog:
   handlers:
