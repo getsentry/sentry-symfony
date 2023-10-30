@@ -4,6 +4,7 @@
 
 ### Features
 
+- Add support for `symfony/psr-http-message-bridge: ^6.4` [(#750)](https://github.com/getsentry/sentry-symfony/pull/750)
 - Report individual exceptions from `DelayedMessageHandlingException` [(#760)](https://github.com/getsentry/sentry-symfony/pull/760)
 
 ## 4.11.0
