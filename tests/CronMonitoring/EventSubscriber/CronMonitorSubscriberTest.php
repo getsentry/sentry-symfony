@@ -28,14 +28,20 @@ class CronMonitorSubscriberTest extends TestCase
     {
         // Arrange
         $cronMonitor = $this->createMock(CronMonitor::class);
-        //$cronMonitor->expects($this->once())->method('start');
+        $cronMonitor->expects($this->once())->method('start');
 
         $cronMonitorFactory = $this->createMock(CronMonitorFactory::class);
         $cronMonitorFactory
             ->expects($this->once())
             ->method('create')
-            ->with($slug, $schedule, $checkMargin, $maxTime)
-            ->willReturn($cronMonitor);
+            ->willReturnCallback(function ($slugParam, $scheduleParam, $checkMarginParam, $maxTimeParam) use ($cronMonitor, $slug, $schedule, $checkMargin, $maxTime, ) {
+                // unfortunately cannot use ->with() because it does == instead of === check
+                // this allowed bug in CronMonitorSubscriber where empty string cron-monitor-check-margin would be passed as 0 instead of null
+                if ($slugParam === $slug && $scheduleParam === $schedule && $checkMarginParam === $checkMargin && $maxTime === $maxTimeParam) {
+                    return $cronMonitor;
+                }
+                $this->fail('Invalid arguments passed to CronMonitorFactory::create');
+            });
 
         $eventDispatcher = new EventDispatcher();
         $eventDispatcher->addSubscriber(new CronMonitorSubscriber($cronMonitorFactory));

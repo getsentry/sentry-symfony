@@ -40,7 +40,7 @@ class CronMonitorSubscriber implements EventSubscriberInterface
         $checkMargin = $event->getInput()->getOption('cron-monitor-check-margin');
 
         if ($slug && $schedule) {
-            $this->cronMonitor = $this->cronMonitorFactory->create($slug, $schedule, (int) $checkMargin, (int) $maxTime);
+            $this->cronMonitor = $this->cronMonitorFactory->create($slug, $schedule, $checkMargin ? (int) $checkMargin : null, $maxTime ? (int) $maxTime : null);
             $this->cronMonitor->start();
         }
     }
