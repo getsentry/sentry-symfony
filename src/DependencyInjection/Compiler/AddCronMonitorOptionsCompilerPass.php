@@ -13,10 +13,10 @@ class AddCronMonitorOptionsCompilerPass implements CompilerPassInterface
     public function process(ContainerBuilder $container)
     {
         $optionsArguments = [
-            ['--cron-monitor-slug', '-cm', InputOption::VALUE_REQUIRED, 'if command should be monitored then pass cron monitor slug'],
-            ['--cron-monitor-schedule', '-cms', InputOption::VALUE_REQUIRED, 'if command should be monitored then pass cron monitor schedule'],
-            ['--cron-monitor-max-time', '-cmt', InputOption::VALUE_REQUIRED, 'if command should be monitored then pass cron monitor max execution time'],
-            ['--cron-monitor-check-margin', '-cmcm', InputOption::VALUE_REQUIRED, 'if command should be monitored then pass cron monitor check margin'],
+            ['--cron-monitor-slug', null, InputOption::VALUE_REQUIRED, 'if command should be monitored then pass cron monitor slug'],
+            ['--cron-monitor-schedule', null, InputOption::VALUE_REQUIRED, 'if command should be monitored then pass cron monitor schedule'],
+            ['--cron-monitor-max-time', null, InputOption::VALUE_REQUIRED, 'if command should be monitored then pass cron monitor max execution time'],
+            ['--cron-monitor-check-margin', null, InputOption::VALUE_REQUIRED, 'if command should be monitored then pass cron monitor check margin'],
         ];
 
         $consoleCommands = $container->findTaggedServiceIds('console.command');

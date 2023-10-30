@@ -22,10 +22,10 @@ final class AddCronMonitorOptionsCompilerPassTest extends TestCase
         $commandDefinition = $container->getDefinition(SentryTestCommand::class);
 
         $this->assertSame([
-            ['addOption', ['--cron-monitor-slug', '-cm', InputOption::VALUE_REQUIRED, 'if command should be monitored then pass cron monitor slug']],
-            ['addOption', ['--cron-monitor-schedule', '-cms', InputOption::VALUE_REQUIRED, 'if command should be monitored then pass cron monitor schedule']],
-            ['addOption', ['--cron-monitor-max-time', '-cmt', InputOption::VALUE_REQUIRED, 'if command should be monitored then pass cron monitor max execution time']],
-            ['addOption', ['--cron-monitor-check-margin', '-cmcm', InputOption::VALUE_REQUIRED, 'if command should be monitored then pass cron monitor check margin']],
+            ['addOption', ['--cron-monitor-slug', null, InputOption::VALUE_REQUIRED, 'if command should be monitored then pass cron monitor slug']],
+            ['addOption', ['--cron-monitor-schedule', null, InputOption::VALUE_REQUIRED, 'if command should be monitored then pass cron monitor schedule']],
+            ['addOption', ['--cron-monitor-max-time', null, InputOption::VALUE_REQUIRED, 'if command should be monitored then pass cron monitor max execution time']],
+            ['addOption', ['--cron-monitor-check-margin', null, InputOption::VALUE_REQUIRED, 'if command should be monitored then pass cron monitor check margin']],
         ], $commandDefinition->getMethodCalls());
     }
 }
