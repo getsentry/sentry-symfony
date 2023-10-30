@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
@@ -30,6 +31,9 @@ use Sentry\Transport\TransportFactoryInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\Debug\Exception\FatalErrorException;
+use Symfony\Component\DependencyInjection\Compiler\ResolveParameterPlaceHoldersPass;
+use Symfony\Component\DependencyInjection\Compiler\ResolveTaggedIteratorArgumentPass;
+use Symfony\Component\DependencyInjection\Compiler\ValidateEnvPlaceholdersPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\EnvPlaceholderParameterBag;
@@ -448,20 +452,60 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertDefinitionMethodCallAt($methodCalls[5], 'setLogger', [new Reference(NullLogger::class, ContainerBuilder::IGNORE_ON_INVALID_REFERENCE)]);
     }
 
+    /**
+     * @dataProvider releaseOptionDataProvider
+     */
+    public function testReleaseOption(string $fixtureFile, string $expectedRelease): void
+    {
+        $container = $this->createContainerFromFixture($fixtureFile);
+        $optionsDefinition = $container->getDefinition('sentry.client.options');
+
+        $this->assertSame(Options::class, $optionsDefinition->getClass());
+        $this->assertSame($expectedRelease, $container->resolveEnvPlaceholders($optionsDefinition->getArgument(0)['release'], true));
+    }
+
+    public function releaseOptionDataProvider(): \Generator
+    {
+        yield 'If the release option is set to a concrete value, then no fallback occurs' => [
+            'release_option_from_config',
+            '1.0.x-dev',
+        ];
+
+        yield 'If the release option is set and references an environment variable, then no fallback occurs' => [
+            'release_option_from_env_var',
+            '1.0.x-dev',
+        ];
+
+        yield 'If the release option is unset and the SENTRY_RELEASE environment variable is set, then the latter is used as fallback' => [
+            'release_option_fallback_to_env_var',
+            '1.0.x-dev',
+        ];
+
+        yield 'If both the release option and the SENTRY_RELEASE environment variable are unset, then the root package version is used as fallback' => [
+            'release_option_fallback_to_composer_version',
+            PrettyVersions::getRootPackageVersion()->getPrettyVersion(),
+        ];
+    }
+
     private function createContainerFromFixture(string $fixtureFile): ContainerBuilder
     {
         $container = new ContainerBuilder(new EnvPlaceholderParameterBag([
             'kernel.cache_dir' => __DIR__,
             'kernel.build_dir' => __DIR__,
             'kernel.project_dir' => __DIR__,
+            'kernel.environment' => 'dev',
             'doctrine.default_connection' => 'default',
             'doctrine.connections' => ['default'],
         ]));
 
         $container->registerExtension(new SentryExtension());
-        $container->getCompilerPassConfig()->setOptimizationPasses([]);
         $container->getCompilerPassConfig()->setRemovingPasses([]);
         $container->getCompilerPassConfig()->setAfterRemovingPasses([]);
+        $container->getCompilerPassConfig()->setOptimizationPasses([
+            new ValidateEnvPlaceholdersPass(),
+            new ResolveParameterPlaceHoldersPass(),
+            new ResolveTaggedIteratorArgumentPass(),
+        ]);
 
         $this->loadFixture($container, $fixtureFile);
 

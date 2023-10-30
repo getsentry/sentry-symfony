@@ -75,14 +75,18 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
         $context = new SpanContext();
         $context->setOp('http.client');
         $context->setDescription($method . ' ' . (string) $partialUri);
-        $context->setTags([
-            'http.method' => $method,
+
+        $contextData = [
             'http.url' => (string) $partialUri,
-        ]);
-        $context->setData([
-            'http.query' => $uri->getQuery(),
-            'http.fragment' => $uri->getFragment(),
-        ]);
+            'http.request.method' => $method,
+        ];
+        if ('' !== $uri->getQuery()) {
+            $contextData['http.query'] = $uri->getQuery();
+        }
+        if ('' !== $uri->getFragment()) {
+            $contextData['http.fragment'] = $uri->getFragment();
+        }
+        $context->setData($contextData);
 
         $childSpan = $span->startChild($context);
 

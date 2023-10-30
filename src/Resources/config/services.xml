@@ -43,7 +43,6 @@
 
         <service id="Sentry\SentryBundle\EventListener\RequestListener" class="Sentry\SentryBundle\EventListener\RequestListener">
             <argument type="service" id="Sentry\State\HubInterface" />
-            <argument type="service" id="security.token_storage" on-invalid="ignore" />
 
             <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" priority="5" />
             <tag name="kernel.event_listener" event="kernel.controller" method="handleKernelControllerEvent" priority="10" />
@@ -87,7 +86,17 @@
             <tag name="kernel.event_listener" event="Symfony\Component\Messenger\Event\WorkerMessageHandledEvent" method="handleWorkerMessageHandledEvent" priority="50" />
         </service>
 
+        <service id="Sentry\SentryBundle\EventListener\LoginListener" class="Sentry\SentryBundle\EventListener\LoginListener">
+            <argument type="service" id="Sentry\State\HubInterface" />
+            <argument type="service" id="security.token_storage" on-invalid="ignore" />
+
+            <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" />
+            <tag name="kernel.event_listener" event="Symfony\Component\Security\Http\Event\LoginSuccessEvent" method="handleLoginSuccessEvent" />
+        </service>
+
         <service id="Sentry\SentryBundle\Command\SentryTestCommand" class="Sentry\SentryBundle\Command\SentryTestCommand">
+            <argument type="service" id="Sentry\State\HubInterface" />
+
             <tag name="console.command" command="sentry:test" />
         </service>
 

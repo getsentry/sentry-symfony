@@ -75,8 +75,8 @@ final class TracingSubRequestListenerTest extends TestCase
         $span = new Span();
         $span->setOp('http.server');
         $span->setDescription('GET http://www.example.com/path');
-        $span->setTags([
-            'http.method' => 'GET',
+        $span->setData([
+            'http.request.method' => 'GET',
             'http.url' => 'http://www.example.com/path',
             'route' => 'App\\Controller::indexAction',
         ]);
@@ -92,8 +92,8 @@ final class TracingSubRequestListenerTest extends TestCase
         $span = new Span();
         $span->setOp('http.server');
         $span->setDescription('GET http://www.example.com/');
-        $span->setTags([
-            'http.method' => 'GET',
+        $span->setData([
+            'http.request.method' => 'GET',
             'http.url' => 'http://www.example.com/',
             'route' => 'App\\Controller::indexAction',
         ]);
@@ -109,8 +109,8 @@ final class TracingSubRequestListenerTest extends TestCase
         $span = new Span();
         $span->setOp('http.server');
         $span->setDescription('GET http://www.example.com/');
-        $span->setTags([
-            'http.method' => 'GET',
+        $span->setData([
+            'http.request.method' => 'GET',
             'http.url' => 'http://www.example.com/',
             'route' => 'class@anonymous::indexAction',
         ]);
@@ -126,8 +126,8 @@ final class TracingSubRequestListenerTest extends TestCase
         $span = new Span();
         $span->setOp('http.server');
         $span->setDescription('GET http://www.example.com/');
-        $span->setTags([
-            'http.method' => 'GET',
+        $span->setData([
+            'http.request.method' => 'GET',
             'http.url' => 'http://www.example.com/',
             'route' => '<unknown>',
         ]);
