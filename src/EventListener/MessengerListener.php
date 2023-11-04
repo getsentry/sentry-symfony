@@ -11,6 +11,7 @@ use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
+use Symfony\Component\Messenger\Exception\DelayedMessageHandlingException;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
 
@@ -94,7 +95,13 @@ final class MessengerListener
     private function captureException(\Throwable $exception, bool $willRetry): void
     {
         if ($exception instanceof HandlerFailedException) {
-            foreach ($exception->getNestedExceptions() as $nestedException) {
+            $exception = $exception->getNestedExceptions();
+        } elseif ($exception instanceof DelayedMessageHandlingException) {
+            $exception = $exception->getExceptions();
+        }
+
+        if (\is_array($exception)) {
+            foreach ($exception as $nestedException) {
                 $this->captureException($nestedException, $willRetry);
             }
 
