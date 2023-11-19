@@ -40,6 +40,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\EnvPlaceholderParameterBa
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\ErrorHandler\Error\FatalError;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\HttpClient\TraceableHttpClient;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
@@ -373,6 +374,7 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertFalse($container->hasDefinition(TracingDriverMiddleware::class));
         $this->assertFalse($container->hasDefinition(ConnectionConfigurator::class));
         $this->assertFalse($container->hasDefinition(TwigTracingExtension::class));
+        $this->assertFalse($container->hasDefinition(TraceableHttpClient::class));
         $this->assertFalse($container->getParameter('sentry.tracing.enabled'));
         $this->assertEmpty($container->getParameter('sentry.tracing.dbal.connections'));
     }
