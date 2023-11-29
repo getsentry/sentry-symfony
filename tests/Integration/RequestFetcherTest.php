@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\Integration;
 
-use GuzzleHttp\Psr7\ServerRequest;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
@@ -37,16 +36,16 @@ final class RequestFetcherTest extends TestCase
         $this->requestFetcher = new RequestFetcher($this->requestStack, $this->httpMessageFactory);
     }
 
-    /**
-     * @dataProvider fetchRequestDataProvider
-     */
-    public function testFetchRequest(?Request $request, ?ServerRequestInterface $expectedRequest): void
+    public function testFetchRequest(): void
     {
+        $request = Request::create('https://www.example.com');
+        $expectedRequest = $this->createMock(ServerRequestInterface::class);
+
         $this->requestStack->expects($this->once())
             ->method('getCurrentRequest')
             ->willReturn($request);
 
-        $this->httpMessageFactory->expects(null !== $expectedRequest ? $this->once() : $this->never())
+        $this->httpMessageFactory->expects($this->once())
             ->method('createRequest')
             ->with($request)
             ->willReturn($expectedRequest);
@@ -54,7 +53,19 @@ final class RequestFetcherTest extends TestCase
         $this->assertSame($expectedRequest, $this->requestFetcher->fetchRequest());
     }
 
-    public function testFetchRequestFailsSilently(): void
+    public function testFetchRequestReturnsNullIfTheRequestStackIsEmpty(): void
+    {
+        $this->requestStack->expects($this->once())
+            ->method('getCurrentRequest')
+            ->willReturn(null);
+
+        $this->httpMessageFactory->expects($this->never())
+            ->method('createRequest');
+
+        $this->assertNull($this->requestFetcher->fetchRequest());
+    }
+
+    public function testFetchRequestReturnsNullIfTheRequestFactoryThrowsAnException(): void
     {
         $this->requestStack->expects($this->once())
             ->method('getCurrentRequest')
@@ -65,21 +76,5 @@ final class RequestFetcherTest extends TestCase
             ->willThrowException(new \Exception());
 
         $this->assertNull($this->requestFetcher->fetchRequest());
-    }
-
-    /**
-     * @return \Generator<array{Request|null,ServerRequest|null}>
-     */
-    public function fetchRequestDataProvider(): \Generator
-    {
-        yield [
-            null,
-            null,
-        ];
-
-        yield [
-            Request::create('http://www.example.com'),
-            new ServerRequest('GET', 'http://www.example.com'),
-        ];
     }
 }
