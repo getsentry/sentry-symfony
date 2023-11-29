@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sentry\SentryBundle\Test\Integration;
+namespace Sentry\SentryBundle\Tests\Integration;
 
 use GuzzleHttp\Psr7\ServerRequest;
 use PHPUnit\Framework\MockObject\MockObject;
