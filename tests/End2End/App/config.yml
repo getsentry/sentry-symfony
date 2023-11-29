@@ -13,6 +13,9 @@ framework:
   router: { resource: "%routing_config_dir%/routing.yml" }
   secret: secret
   test: ~
+  annotations: false
+  php_errors:
+    log: true
 
 services:
   test.hub:
