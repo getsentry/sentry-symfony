@@ -48,6 +48,10 @@ class Kernel extends SymfonyKernel
             $loader->load(__DIR__ . '/deprecations_for_6.yml');
         }
 
+        if (self::VERSION_ID >= 60400) {
+            $loader->load(__DIR__ . '/deprecations_for_64.yml');
+        }
+
         if (interface_exists(MessageBusInterface::class) && self::VERSION_ID >= 40300) {
             $loader->load(__DIR__ . '/messenger.yml');
         }
