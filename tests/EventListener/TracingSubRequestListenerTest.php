@@ -146,7 +146,7 @@ final class TracingSubRequestListenerTest extends TestCase
         $this->listener->handleKernelRequestEvent(new RequestEvent(
             $this->createMock(HttpKernelInterface::class),
             new Request(),
-            HttpKernelInterface::MASTER_REQUEST
+            defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
         ));
     }
 
@@ -191,7 +191,7 @@ final class TracingSubRequestListenerTest extends TestCase
         $this->listener->handleKernelFinishRequestEvent(new FinishRequestEvent(
             $this->createMock(HttpKernelInterface::class),
             new Request(),
-            HttpKernelInterface::MASTER_REQUEST
+            defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
         ));
     }
 
