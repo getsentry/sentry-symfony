@@ -331,6 +331,16 @@ parameters:
 			path: tests/End2End/TracingEnd2EndTest.php
 
 		-
+			message: "#^Access to undefined constant Symfony\\\\Component\\\\HttpKernel\\\\HttpKernelInterface\\:\\:MASTER_REQUEST\\.$#"
+			count: 1
+			path: tests/EventListener/ErrorListenerTest.php
+
+		-
+			message: "#^Access to undefined constant Symfony\\\\Component\\\\HttpKernel\\\\HttpKernelInterface\\:\\:MASTER_REQUEST\\.$#"
+			count: 2
+			path: tests/EventListener/LoginListenerTest.php
+
+		-
 			message: "#^Call to function method_exists\\(\\) with \\$this\\(Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\AuthenticatedTokenStub\\) and 'setAuthenticated' will always evaluate to false\\.$#"
 			count: 1
 			path: tests/EventListener/LoginListenerTest.php
@@ -361,9 +371,29 @@ parameters:
 			path: tests/EventListener/LoginListenerTest.php
 
 		-
+			message: "#^Access to undefined constant Symfony\\\\Component\\\\HttpKernel\\\\HttpKernelInterface\\:\\:MASTER_REQUEST\\.$#"
+			count: 6
+			path: tests/EventListener/RequestListenerTest.php
+
+		-
+			message: "#^Access to undefined constant Symfony\\\\Component\\\\HttpKernel\\\\HttpKernelInterface\\:\\:MASTER_REQUEST\\.$#"
+			count: 2
+			path: tests/EventListener/SubRequestListenerTest.php
+
+		-
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
 			count: 1
 			path: tests/EventListener/SubRequestListenerTest.php
+
+		-
+			message: "#^Access to undefined constant Symfony\\\\Component\\\\HttpKernel\\\\HttpKernelInterface\\:\\:MASTER_REQUEST\\.$#"
+			count: 3
+			path: tests/EventListener/TracingRequestListenerTest.php
+
+		-
+			message: "#^Access to undefined constant Symfony\\\\Component\\\\HttpKernel\\\\HttpKernelInterface\\:\\:MASTER_REQUEST\\.$#"
+			count: 2
+			path: tests/EventListener/TracingSubRequestListenerTest.php
 
 		-
 			message: "#^Call to an undefined method TCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface\\:\\:delete\\(\\)\\.$#"
