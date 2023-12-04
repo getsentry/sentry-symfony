@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\End2End\App\Messenger;
 
 use Symfony\Component\Messenger\Exception\UnrecoverableExceptionInterface;
-use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 
-class FooMessageHandler implements MessageHandlerInterface
+class FooMessageHandler
 {
     public function __invoke(FooMessage $message): void
     {
