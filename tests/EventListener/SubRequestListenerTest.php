@@ -53,7 +53,7 @@ class SubRequestListenerTest extends TestCase
     public function handleKernelRequestEventDataProvider(): \Generator
     {
         yield [
-            new RequestEvent($this->createMock(HttpKernelInterface::class), new Request(), defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST),
+            new RequestEvent($this->createMock(HttpKernelInterface::class), new Request(), \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST),
         ];
 
         yield [
@@ -80,7 +80,7 @@ class SubRequestListenerTest extends TestCase
     public function handleKernelFinishRequestEventDataProvider(): \Generator
     {
         yield [
-            new FinishRequestEvent($this->createMock(HttpKernelInterface::class), new Request(), defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST),
+            new FinishRequestEvent($this->createMock(HttpKernelInterface::class), new Request(), \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST),
         ];
 
         yield [
