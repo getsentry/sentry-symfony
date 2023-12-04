@@ -13,8 +13,8 @@ use Sentry\State\HubInterface;
 use Symfony\Bundle\FrameworkBundle\DependencyInjection\FrameworkExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Component\HttpClient\ScopingHttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Component\HttpClient\ScopingHttpClient;
 
 final class HttpClientTracingPassTest extends TestCase
 {
@@ -25,12 +25,38 @@ final class HttpClientTracingPassTest extends TestCase
         }
     }
 
-    public function testProcess(): void
+    /**
+     * @dataProvider processDataProvider
+     */
+    public function testProcess(string $httpClientServiceId): void
     {
-        $container = $this->createContainerBuilder(true, true);
+        $container = $this->createContainerBuilder(true, true, $httpClientServiceId);
         $container->compile();
 
-        $this->assertSame(TraceableHttpClient::class, $container->findDefinition('http.client')->getClass());
+        $this->assertSame(TraceableHttpClient::class, $container->getDefinition($httpClientServiceId)->getClass());
+    }
+
+    public function processDataProvider(): \Generator
+    {
+        yield 'The framework version is >=6.3' => [
+            'http_client.transport',
+        ];
+
+        yield 'The framework version is <6.3 and the mocked HTTP client is decorated by the retryable client' => [
+            'http_client.retryable.inner.mock_client',
+        ];
+
+        yield 'The framework version is <6.3 and the mocked HTTP client is decorated by the profiler' => [
+            '.debug.http_client.inner.mock_client',
+        ];
+
+        yield 'The framework version is <6.3 and the mocked HTTP client is not decorated' => [
+            'http_client.mock_client',
+        ];
+
+        yield 'The framework version is <6.3 and the HTTP client is not mocked' => [
+            'http_client',
+        ];
     }
 
     public function testScopedClients(): void
@@ -87,10 +113,10 @@ final class HttpClientTracingPassTest extends TestCase
      */
     public function testProcessDoesNothingIfConditionsForEnablingTracingAreMissing(bool $isTracingEnabled, bool $isHttpClientTracingEnabled): void
     {
-        $container = $this->createContainerBuilder($isTracingEnabled, $isHttpClientTracingEnabled);
+        $container = $this->createContainerBuilder($isTracingEnabled, $isHttpClientTracingEnabled, 'http_client.transport');
         $container->compile();
 
-        $this->assertSame(HttpClient::class, $container->getDefinition('http.client')->getClass());
+        $this->assertSame(HttpClientInterface::class, $container->getDefinition('http_client.transport')->getClass());
     }
 
     /**
@@ -114,7 +140,7 @@ final class HttpClientTracingPassTest extends TestCase
         ];
     }
 
-    private function createContainerBuilder(bool $isTracingEnabled, bool $isHttpClientTracingEnabled): ContainerBuilder
+    private function createContainerBuilder(bool $isTracingEnabled, bool $isHttpClientTracingEnabled, string $httpClientServiceId): ContainerBuilder
     {
         $container = new ContainerBuilder();
         $container->addCompilerPass(new HttpClientTracingPass());
@@ -124,9 +150,8 @@ final class HttpClientTracingPassTest extends TestCase
         $container->register(HubInterface::class, Hub::class)
             ->setPublic(true);
 
-        $container->register('http.client', HttpClient::class)
-            ->setPublic(true)
-            ->addTag('http_client.client');
+        $container->register($httpClientServiceId, HttpClientInterface::class)
+            ->setPublic(true);
 
         return $container;
     }

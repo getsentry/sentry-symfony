@@ -12,22 +12,22 @@ parameters:
 
 		-
 			message: "#^Cannot access offset 'before_breadcrumb' on mixed\\.$#"
-			count: 3
+			count: 1
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
 			message: "#^Cannot access offset 'before_send' on mixed\\.$#"
-			count: 3
+			count: 1
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
 			message: "#^Cannot access offset 'before_send…' on mixed\\.$#"
-			count: 3
+			count: 1
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
 			message: "#^Cannot access offset 'class_serializers' on mixed\\.$#"
-			count: 3
+			count: 1
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
@@ -62,7 +62,7 @@ parameters:
 
 		-
 			message: "#^Cannot access offset 'traces_sampler' on mixed\\.$#"
-			count: 3
+			count: 1
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
@@ -96,7 +96,7 @@ parameters:
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
-			message: "#^Parameter \\#2 \\$callback of function array_filter expects callable\\(mixed\\)\\: mixed, Closure\\(string\\)\\: bool given\\.$#"
+			message: "#^Parameter \\#2 \\$callback of function array_filter expects \\(callable\\(mixed\\)\\: mixed\\)\\|null, Closure\\(string\\)\\: bool given\\.$#"
 			count: 1
 			path: src/DependencyInjection/SentryExtension.php
 
@@ -163,6 +163,11 @@ parameters:
 		-
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
 			count: 1
+			path: src/EventListener/LoginListener.php
+
+		-
+			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
+			count: 1
 			path: src/EventListener/RequestListener.php
 
 		-
@@ -206,6 +211,11 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
 
 		-
+			message: "#^Property Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:\\$spanTags is never read, only written\\.$#"
+			count: 1
+			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
+
+		-
 			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:errorInfo\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
@@ -231,7 +241,7 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
 
 		-
-			message: "#^Parameter \\#2 \\$callback of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\AbstractTracingStatement\\:\\:traceFunction\\(\\) expects callable\\(\\.\\.\\.mixed\\)\\: Doctrine\\\\DBAL\\\\Driver\\\\Result, array\\{Doctrine\\\\DBAL\\\\Driver\\\\Statement, 'execute'\\} given\\.$#"
+			message: "#^Parameter \\#2 \\$callback of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\AbstractTracingStatement\\:\\:traceFunction\\(\\) expects callable\\(mixed \\.\\.\\.\\)\\: Doctrine\\\\DBAL\\\\Driver\\\\Result, array\\{Doctrine\\\\DBAL\\\\Driver\\\\Statement, 'execute'\\} given\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingStatementForV3.php
 
@@ -261,6 +271,11 @@ parameters:
 			path: src/Tracing/HttpClient/TraceableResponseForV6.php
 
 		-
+			message: "#^Constructor of class Sentry\\\\SentryBundle\\\\Twig\\\\SentryExtension has an unused parameter \\$hub\\.$#"
+			count: 1
+			path: src/Twig/SentryExtension.php
+
+		-
 			message: "#^Cannot access offset 'profiles_sample_rate' on mixed\\.$#"
 			count: 1
 			path: tests/DependencyInjection/ConfigurationTest.php
@@ -274,6 +289,16 @@ parameters:
 			message: "#^Cannot access offset 'traces_sample_rate' on mixed\\.$#"
 			count: 1
 			path: tests/DependencyInjection/ConfigurationTest.php
+
+		-
+			message: "#^Function Symfony\\\\Component\\\\DependencyInjection\\\\Loader\\\\Configurator\\\\ref not found\\.$#"
+			count: 1
+			path: tests/DependencyInjection/Fixtures/php/release_option_fallback_to_env_var.php
+
+		-
+			message: "#^Used function Symfony\\\\Component\\\\DependencyInjection\\\\Loader\\\\Configurator\\\\ref not found\\.$#"
+			count: 1
+			path: tests/DependencyInjection/Fixtures/php/release_option_fallback_to_env_var.php
 
 		-
 			message: "#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\\.$#"
@@ -291,6 +316,11 @@ parameters:
 			path: tests/DependencyInjection/SentryExtensionTest.php
 
 		-
+			message: "#^Cannot access offset 'release' on mixed\\.$#"
+			count: 1
+			path: tests/DependencyInjection/SentryExtensionTest.php
+
+		-
 			message: "#^Class Symfony\\\\Component\\\\Debug\\\\Exception\\\\FatalErrorException not found\\.$#"
 			count: 1
 			path: tests/DependencyInjection/SentryExtensionTest.php
@@ -303,27 +333,32 @@ parameters:
 		-
 			message: "#^Call to function method_exists\\(\\) with \\$this\\(Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\AuthenticatedTokenStub\\) and 'setAuthenticated' will always evaluate to false\\.$#"
 			count: 1
-			path: tests/EventListener/RequestListenerTest.php
+			path: tests/EventListener/LoginListenerTest.php
 
 		-
 			message: "#^Parameter \\#1 \\$user of method Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\AbstractToken\\:\\:setUser\\(\\) expects Symfony\\\\Component\\\\Security\\\\Core\\\\User\\\\UserInterface, string\\|Stringable\\|Symfony\\\\Component\\\\Security\\\\Core\\\\User\\\\UserInterface given\\.$#"
 			count: 1
-			path: tests/EventListener/RequestListenerTest.php
+			path: tests/EventListener/LoginListenerTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$firewallName of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects string, null given\\.$#"
+			count: 1
+			path: tests/EventListener/LoginListenerTest.php
 
 		-
 			message: "#^Parameter \\#3 \\$roles of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects array\\<string\\>, string given\\.$#"
 			count: 1
-			path: tests/EventListener/RequestListenerTest.php
+			path: tests/EventListener/LoginListenerTest.php
 
 		-
 			message: "#^Parameter \\#4 \\$originalToken of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\TokenInterface, array\\<int, string\\> given\\.$#"
 			count: 1
-			path: tests/EventListener/RequestListenerTest.php
+			path: tests/EventListener/LoginListenerTest.php
 
 		-
 			message: "#^Parameter \\#5 \\$originatedFromUri of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects string\\|null, Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\AuthenticatedTokenStub given\\.$#"
 			count: 1
-			path: tests/EventListener/RequestListenerTest.php
+			path: tests/EventListener/LoginListenerTest.php
 
 		-
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"

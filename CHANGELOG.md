@@ -1,5 +1,98 @@
 # Changelog
 
+## 4.12.0
+
+### Features
+
+- Add support for `symfony/psr-http-message-bridge: ^6.4` [(#750)](https://github.com/getsentry/sentry-symfony/pull/750)
+- Report individual exceptions from `DelayedMessageHandlingException` [(#760)](https://github.com/getsentry/sentry-symfony/pull/760)
+
+## 4.11.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.11.0.
+
+### Bug Fixes
+
+- Silence `TokenInterface::isAuthenticated` deprecation in `LoginListener` [(#755)](https://github.com/getsentry/sentry-symfony/pull/755)
+
+### Misc
+
+- Prefer the `SENTRY_RELEASE` environment variable over the package root version [(#753)](https://github.com/getsentry/sentry-symfony/pull/753)
+
+## 4.10.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.10.0.
+
+### Features
+
+- Tracing without Performance [(#742)](https://github.com/getsentry/sentry-symfony/pull/742)
+
+  The SDK will now continue a trace from incoming HTTP requests, even if performance is not enabled.
+  To continue a trace outward, you may attach the Sentry tracing headers to any HTTP client request.
+  You can fetch the required header values by calling \Sentry\getBaggage() and \Sentry\getTraceparent().
+
+- Add `ignore_exceptions` and `ignore_transactions` options [(#724)](https://github.com/getsentry/sentry-symfony/pull/724)
+
+### Misc
+
+- Improve setting logged-in users on the scope [(#720)](https://github.com/getsentry/sentry-symfony/pull/720)
+- Move DB span tags to span data [(#743)](https://github.com/getsentry/sentry-symfony/pull/743)
+- Set the span status when tracing an HTTP client request [(#748)](https://github.com/getsentry/sentry-symfony/pull/748)
+
+## 4.9.2
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.9.2.
+
+### Bug Fixes
+
+- We decided to revert two previous PRs that aimed to remove deprecation warnings during test runs [(#736)](https://github.com/getsentry/sentry-symfony/pull/736)
+
+  - Revert: Add a new Doctrine DBAL tracing driver that does not implement the deprecated `VersionAwarePlatformDriver` [(#723)](https://github.com/getsentry/sentry-symfony/pull/723)
+  - Revert: Fix a regression in `TracingDriverForV32` by adding `VersionAwarePlatformDriver::createDatabasePlatformForVersion` [(#731)](https://github.com/getsentry/sentry-symfony/pull/731)
+
+We are sorry for the inconvenience caused by these changes.
+
+## 4.9.1
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.9.1.
+
+### Bug Fixes
+
+- Fix a regression in `TracingDriverForV32` by adding `VersionAwarePlatformDriver::createDatabasePlatformForVersion` [(#731)](https://github.com/getsentry/sentry-symfony/pull/731)
+
+## 4.9.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.9.0.
+
+### Features
+
+- Add a new Doctrine DBAL tracing driver that does not implement the deprecated `VersionAwarePlatformDriver` [(#723)](https://github.com/getsentry/sentry-symfony/pull/723)
+
+  The driver is automatically picked if `doctrine/dbal` version `3.2.0` or higher is installed.
+
+### Bug Fixes
+
+-  Fix config type of `http_connect_timeout`and `http_timeout` options [(#721)](https://github.com/getsentry/sentry-symfony/pull/721)
+
+### Misc
+
+- Bump the underlying PHP SDK to version `^3.19` [(#725)](https://github.com/getsentry/sentry-symfony/pull/725)
+
+## 4.8.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.8.0.
+
+### Features
+
+- Set cache keys as span descriptions [(#677)](https://github.com/getsentry/sentry-symfony/pull/677)
+
+  To better identify the source of a cache operation, we now set the cache key as the description of `cache` op spans.
+
+### Bug Fixes
+
+- Add direct dependency for `guzzlehttp/psr7` [(#708)](https://github.com/getsentry/sentry-symfony/pull/708)
+- Drop `kernel.build_dir` param below Symfony 5.2 [(#711)](https://github.com/getsentry/sentry-symfony/pull/711)
+
 ## 4.7.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.7.0.
@@ -81,7 +174,7 @@ This release contains a colorful bouquet of new features.
   ```
 
 - Use the `_route` attribute as the transaction name [(#692)](https://github.com/getsentry/sentry-symfony/pull/692)
-  
+
   If you're using named routes, the SDK will default to use this attribute as the transaction name.
   With this change, you should be able to see a full list of your transactions on the performance page,
   instead of `<< unparameterized >>`.

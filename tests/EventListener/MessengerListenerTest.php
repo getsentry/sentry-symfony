@@ -15,6 +15,7 @@ use Sentry\State\Scope;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
+use Symfony\Component\Messenger\Exception\DelayedMessageHandlingException;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
@@ -106,6 +107,16 @@ final class MessengerListenerTest extends TestCase
         yield 'envelope.throwable INSTANCEOF HandlerFailedException' => [
             $exceptions,
             $this->getMessageFailedEvent($envelope, 'receiver', new HandlerFailedException($envelope, $exceptions), false),
+            [
+                'messenger.receiver_name' => 'receiver',
+                'messenger.message_class' => \get_class($envelope->getMessage()),
+            ],
+            false,
+        ];
+
+        yield 'envelope.throwable INSTANCEOF DelayedMessageHandlingException' => [
+            $exceptions,
+            $this->getMessageFailedEvent($envelope, 'receiver', new DelayedMessageHandlingException($exceptions, $envelope), false),
             [
                 'messenger.receiver_name' => 'receiver',
                 'messenger.message_class' => \get_class($envelope->getMessage()),

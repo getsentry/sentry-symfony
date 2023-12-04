@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle;
 
+use Sentry\SentryBundle\DependencyInjection\Compiler\AddLoginListenerTagPass;
 use Sentry\SentryBundle\DependencyInjection\Compiler\CacheTracingPass;
 use Sentry\SentryBundle\DependencyInjection\Compiler\DbalTracingPass;
 use Sentry\SentryBundle\DependencyInjection\Compiler\HttpClientTracingPass;
@@ -14,7 +15,7 @@ final class SentryBundle extends Bundle
 {
     public const SDK_IDENTIFIER = 'sentry.php.symfony';
 
-    public const SDK_VERSION = '4.7.0';
+    public const SDK_VERSION = '4.12.0';
 
     public function build(ContainerBuilder $container): void
     {
@@ -23,5 +24,6 @@ final class SentryBundle extends Bundle
         $container->addCompilerPass(new DbalTracingPass());
         $container->addCompilerPass(new CacheTracingPass());
         $container->addCompilerPass(new HttpClientTracingPass());
+        $container->addCompilerPass(new AddLoginListenerTagPass());
     }
 }

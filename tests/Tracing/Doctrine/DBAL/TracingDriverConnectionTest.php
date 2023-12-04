@@ -53,18 +53,18 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
     }
 
     /**
-     * @dataProvider tagsDataProvider
+     * @dataProvider spanDataDataProvider
      *
      * @param array<string, mixed>  $params
-     * @param array<string, string> $expectedTags
+     * @param array<string, string> $expectedData
      *
      * @phpstan-param ConnectionParams $params
      */
-    public function testPrepare(array $params, array $expectedTags): void
+    public function testPrepare(array $params, array $expectedData): void
     {
         $sql = 'SELECT 1 + 1';
         $statement = $this->createMock(DriverStatementInterface::class);
-        $resultStatement = new TracingStatement($this->hub, $statement, $sql, $expectedTags);
+        $resultStatement = new TracingStatement($this->hub, $statement, $sql, $expectedData);
         $connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', $params);
 
         $transaction = new Transaction(new TransactionContext(), $this->hub);
@@ -87,7 +87,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
         $this->assertCount(2, $spans);
         $this->assertSame(TracingDriverConnection::SPAN_OP_CONN_PREPARE, $spans[1]->getOp());
         $this->assertSame($sql, $spans[1]->getDescription());
-        $this->assertSame($expectedTags, $spans[1]->getTags());
+        $this->assertSame($expectedData, $spans[1]->getData());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
@@ -110,14 +110,14 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
     }
 
     /**
-     * @dataProvider tagsDataProvider
+     * @dataProvider spanDataDataProvider
      *
      * @param array<string, mixed>  $params
-     * @param array<string, string> $expectedTags
+     * @param array<string, string> $expectedData
      *
      * @phpstan-param ConnectionParams $params
      */
-    public function testQuery(array $params, array $expectedTags): void
+    public function testQuery(array $params, array $expectedData): void
     {
         $result = $this->createMock(DriverResultInterface::class);
         $connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', $params);
@@ -143,7 +143,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
         $this->assertCount(2, $spans);
         $this->assertSame(TracingDriverConnection::SPAN_OP_CONN_QUERY, $spans[1]->getOp());
         $this->assertSame($sql, $spans[1]->getDescription());
-        $this->assertSame($expectedTags, $spans[1]->getTags());
+        $this->assertSame($expectedData, $spans[1]->getData());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
@@ -175,14 +175,14 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
     }
 
     /**
-     * @dataProvider tagsDataProvider
+     * @dataProvider spanDataDataProvider
      *
      * @param array<string, mixed>  $params
-     * @param array<string, string> $expectedTags
+     * @param array<string, string> $expectedData
      *
      * @phpstan-param ConnectionParams $params
      */
-    public function testExec(array $params, array $expectedTags): void
+    public function testExec(array $params, array $expectedData): void
     {
         $connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', $params);
         $sql = 'SELECT 1 + 1';
@@ -207,7 +207,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
         $this->assertCount(2, $spans);
         $this->assertSame(TracingDriverConnection::SPAN_OP_CONN_EXEC, $spans[1]->getOp());
         $this->assertSame($sql, $spans[1]->getDescription());
-        $this->assertSame($expectedTags, $spans[1]->getTags());
+        $this->assertSame($expectedData, $spans[1]->getData());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
@@ -222,14 +222,14 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
     }
 
     /**
-     * @dataProvider tagsDataProvider
+     * @dataProvider spanDataDataProvider
      *
      * @param array<string, mixed>  $params
-     * @param array<string, string> $expectedTags
+     * @param array<string, string> $expectedData
      *
      * @phpstan-param ConnectionParams $params
      */
-    public function testBeginTransaction(array $params, array $expectedTags): void
+    public function testBeginTransaction(array $params, array $expectedData): void
     {
         $connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', $params);
         $transaction = new Transaction(new TransactionContext(), $this->hub);
@@ -251,7 +251,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
         $this->assertCount(2, $spans);
         $this->assertSame(TracingDriverConnection::SPAN_OP_CONN_BEGIN_TRANSACTION, $spans[1]->getOp());
         $this->assertSame('BEGIN TRANSACTION', $spans[1]->getDescription());
-        $this->assertSame($expectedTags, $spans[1]->getTags());
+        $this->assertSame($expectedData, $spans[1]->getData());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
@@ -269,14 +269,14 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
     }
 
     /**
-     * @dataProvider tagsDataProvider
+     * @dataProvider spanDataDataProvider
      *
      * @param array<string, mixed>  $params
-     * @param array<string, string> $expectedTags
+     * @param array<string, string> $expectedData
      *
      * @phpstan-param ConnectionParams $params
      */
-    public function testCommit(array $params, array $expectedTags): void
+    public function testCommit(array $params, array $expectedData): void
     {
         $connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', $params);
         $transaction = new Transaction(new TransactionContext(), $this->hub);
@@ -298,7 +298,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
         $this->assertCount(2, $spans);
         $this->assertSame(TracingDriverConnection::SPAN_OP_TRANSACTION_COMMIT, $spans[1]->getOp());
         $this->assertSame('COMMIT', $spans[1]->getDescription());
-        $this->assertSame($expectedTags, $spans[1]->getTags());
+        $this->assertSame($expectedData, $spans[1]->getData());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
@@ -316,14 +316,14 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
     }
 
     /**
-     * @dataProvider tagsDataProvider
+     * @dataProvider spanDataDataProvider
      *
      * @param array<string, mixed>  $params
-     * @param array<string, string> $expectedTags
+     * @param array<string, string> $expectedData
      *
      * @phpstan-param ConnectionParams $params
      */
-    public function testRollBack(array $params, array $expectedTags): void
+    public function testRollBack(array $params, array $expectedData): void
     {
         $connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', $params);
         $transaction = new Transaction(new TransactionContext(), $this->hub);
@@ -345,7 +345,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
         $this->assertCount(2, $spans);
         $this->assertSame(TracingDriverConnection::SPAN_OP_TRANSACTION_ROLLBACK, $spans[1]->getOp());
         $this->assertSame('ROLLBACK', $spans[1]->getDescription());
-        $this->assertSame($expectedTags, $spans[1]->getTags());
+        $this->assertSame($expectedData, $spans[1]->getData());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
@@ -448,7 +448,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
     /**
      * @return \Generator<mixed>
      */
-    public function tagsDataProvider(): \Generator
+    public function spanDataDataProvider(): \Generator
     {
         yield [
             [],
@@ -466,8 +466,8 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
                 'db.system' => 'foo_platform',
                 'db.user' => 'root',
                 'db.name' => 'INFORMATION_SCHEMA',
-                'net.peer.port' => '3306',
-                'net.transport' => 'Unix',
+                'server.port' => '3306',
+                'server.socket.address' => 'Unix',
             ],
         ];
 
@@ -482,8 +482,8 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
                 'db.system' => 'foo_platform',
                 'db.user' => 'root',
                 'db.name' => 'INFORMATION_SCHEMA',
-                'net.peer.port' => '3306',
-                'net.transport' => 'inproc',
+                'server.port' => '3306',
+                'server.socket.address' => 'inproc',
             ],
         ];
 
@@ -493,7 +493,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ],
             [
                 'db.system' => 'foo_platform',
-                'net.peer.name' => 'localhost',
+                'server.address' => 'localhost',
             ],
         ];
 
@@ -503,7 +503,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ],
             [
                 'db.system' => 'foo_platform',
-                'net.peer.ip' => '127.0.0.1',
+                'server.address' => '127.0.0.1',
             ],
         ];
     }

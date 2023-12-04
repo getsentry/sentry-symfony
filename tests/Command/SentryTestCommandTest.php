@@ -4,129 +4,134 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\Command;
 
-use Prophecy\Argument;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
 use Sentry\EventId;
 use Sentry\Options;
 use Sentry\SentryBundle\Command\SentryTestCommand;
-use Sentry\SentryBundle\Tests\BaseTestCase;
-use Sentry\SentrySdk;
 use Sentry\State\HubInterface;
-use Symfony\Component\Console\Application;
+use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;
 use Symfony\Component\Console\Tester\CommandTester;
 
-class SentryTestCommandTest extends BaseTestCase
+final class SentryTestCommandTest extends TestCase
 {
-    protected function tearDown(): void
-    {
-        parent::tearDown();
+    use ExpectDeprecationTrait;
 
-        // reset current Hub to avoid leaking the mock outside of this tests
-        SentrySdk::init();
+    /**
+     * @var HubInterface&MockObject
+     */
+    private $hub;
+
+    /**
+     * @var ClientInterface&MockObject
+     */
+    private $client;
+
+    /**
+     * @var CommandTester
+     */
+    private $command;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->hub = $this->createMock(HubInterface::class);
+        $this->client = $this->createMock(ClientInterface::class);
+        $this->command = new CommandTester(new SentryTestCommand($this->hub));
     }
 
-    public function testExecuteSuccessfully(): void
+    public function testExecute(): void
     {
-        $options = new Options(['dsn' => 'http://public:secret@example.com/sentry/1']);
-        $client = $this->prophesize(ClientInterface::class);
-        $client->getOptions()
-            ->willReturn($options);
-
-        $hub = $this->prophesize(HubInterface::class);
-        $hub->getClient()
-            ->willReturn($client->reveal());
         $lastEventId = EventId::generate();
-        $hub->captureMessage(Argument::containingString('test'), Argument::cetera())
-            ->shouldBeCalled()
+
+        $this->client->expects($this->once())
+            ->method('getOptions')
+            ->willReturn(new Options(['dsn' => 'https://public:secret@example.com/sentry/1']));
+
+        $this->hub->expects($this->once())
+            ->method('getClient')
+            ->willReturn($this->client);
+
+        $this->hub->expects($this->once())
+            ->method('captureMessage')
+            ->with('This is a test message from the Sentry bundle')
             ->willReturn($lastEventId);
 
-        SentrySdk::setCurrentHub($hub->reveal());
+        $exitCode = $this->command->execute([]);
+        $output = $this->command->getDisplay();
 
-        $commandTester = $this->executeCommand();
-
-        $output = $commandTester->getDisplay();
-        $this->assertStringContainsString('DSN correctly configured', $output);
-        $this->assertStringContainsString('Sending test message', $output);
-        $this->assertStringContainsString('Message sent', $output);
-        $this->assertStringContainsString((string) $lastEventId, $output);
-        $this->assertSame(0, $commandTester->getStatusCode());
+        $this->assertSame(0, $exitCode);
+        $this->assertStringContainsString('DSN correctly configured in the current client', $output);
+        $this->assertStringContainsString('Sending test message...', $output);
+        $this->assertStringContainsString("Message sent successfully with ID $lastEventId", $output);
     }
 
     public function testExecuteFailsDueToMissingDSN(): void
     {
-        $client = $this->prophesize(ClientInterface::class);
-        $client->getOptions()
+        $this->client->expects($this->once())
+            ->method('getOptions')
             ->willReturn(new Options());
 
-        $hub = $this->prophesize(HubInterface::class);
-        $hub->getClient()
-            ->willReturn($client->reveal());
+        $this->hub->expects($this->once())
+            ->method('getClient')
+            ->willReturn($this->client);
 
-        SentrySdk::setCurrentHub($hub->reveal());
+        $exitCode = $this->command->execute([]);
+        $output = $this->command->getDisplay();
 
-        $commandTester = $this->executeCommand();
-
-        $this->assertNotSame(0, $commandTester->getStatusCode());
-        $output = $commandTester->getDisplay();
-        $this->assertStringContainsString('No DSN configured', $output);
-        $this->assertStringContainsString('try bin/console debug:config sentry', $output);
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('No DSN configured in the current client, please check your configuration', $output);
+        $this->assertStringContainsString('To debug further, try bin/console debug:config sentry', $output);
     }
 
     public function testExecuteFailsDueToMessageNotSent(): void
     {
-        $options = new Options(['dsn' => 'http://public:secret@example.com/sentry/1']);
-        $client = $this->prophesize(ClientInterface::class);
-        $client->getOptions()
-            ->willReturn($options);
+        $this->client->expects($this->once())
+            ->method('getOptions')
+            ->willReturn(new Options(['dsn' => 'https://public:secret@example.com/sentry/1']));
 
-        $hub = $this->prophesize(HubInterface::class);
-        $hub->getClient()
-            ->willReturn($client->reveal());
-        $hub->captureMessage(Argument::containingString('test'), Argument::cetera())
-            ->shouldBeCalled()
+        $this->hub->expects($this->once())
+            ->method('getClient')
+            ->willReturn($this->client);
+
+        $this->hub->expects($this->once())
+            ->method('captureMessage')
+            ->with('This is a test message from the Sentry bundle')
             ->willReturn(null);
 
-        SentrySdk::setCurrentHub($hub->reveal());
+        $exitCode = $this->command->execute([]);
+        $output = $this->command->getDisplay();
 
-        $commandTester = $this->executeCommand();
-
-        $this->assertNotSame(0, $commandTester->getStatusCode());
-        $output = $commandTester->getDisplay();
-        $this->assertStringContainsString('DSN correctly configured', $output);
-        $this->assertStringContainsString('Sending test message', $output);
-        $this->assertStringContainsString('Message not sent', $output);
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('DSN correctly configured in the current client', $output);
+        $this->assertStringContainsString('Sending test message...', $output);
+        $this->assertStringContainsString('Message not sent!', $output);
+        $this->assertStringContainsString('Check your DSN or your before_send callback if used', $output);
     }
 
     public function testExecuteFailsDueToMissingClient(): void
     {
-        $hub = $this->prophesize(HubInterface::class);
-        $hub->getClient()
+        $this->hub->expects($this->once())
+            ->method('getClient')
             ->willReturn(null);
 
-        SentrySdk::setCurrentHub($hub->reveal());
+        $exitCode = $this->command->execute([]);
+        $output = $this->command->getDisplay();
 
-        $commandTester = $this->executeCommand();
-
-        $this->assertNotSame(0, $commandTester->getStatusCode());
-        $output = $commandTester->getDisplay();
+        $this->assertSame(1, $exitCode);
         $this->assertStringContainsString('No client found', $output);
-        $this->assertStringContainsString('DSN is probably missing', $output);
+        $this->assertStringContainsString('Your DSN is probably missing, check your configuration', $output);
     }
 
-    private function executeCommand(): CommandTester
+    /**
+     * @group legacy
+     */
+    public function testConstructorTriggersDeprecationErrorIfHubIsNotPassedToConstructor(): void
     {
-        $command = new SentryTestCommand();
-        $command->setName('sentry:test');
+        $this->expectDeprecation('Not passing an instance of the "Sentry\State\HubInterface" interface as argument of the constructor is deprecated since version 4.12 and will not work since version 5.0.');
 
-        $application = new Application();
-        $application->add($command);
-
-        $command = $application->find('sentry:test');
-        $commandTester = new CommandTester($command);
-        $commandTester->execute([
-            'command' => $command->getName(),
-        ]);
-
-        return $commandTester;
+        new SentryTestCommand();
     }
 }

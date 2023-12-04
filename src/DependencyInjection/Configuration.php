@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
-use Jean85\PrettyVersions;
 use Sentry\Options;
 use Sentry\SentryBundle\ErrorTypesParser;
 use Sentry\Transport\TransportFactoryInterface;
@@ -15,6 +14,7 @@ use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final class Configuration implements ConfigurationInterface
@@ -30,6 +30,15 @@ final class Configuration implements ConfigurationInterface
         $rootNode = method_exists(TreeBuilder::class, 'getRootNode')
             ? $treeBuilder->getRootNode()
             : $treeBuilder->root('sentry');
+
+        $inAppExcludes = [
+            '%kernel.cache_dir%',
+            '%kernel.project_dir%/vendor',
+        ];
+
+        if (Kernel::VERSION_ID >= 50200) {
+            $inAppExcludes[] = '%kernel.build_dir%';
+        }
 
         $rootNode
             ->children()
@@ -52,6 +61,8 @@ final class Configuration implements ConfigurationInterface
                     ->fixXmlConfig('trace_propagation_target')
                     ->fixXmlConfig('tag')
                     ->fixXmlConfig('class_serializer')
+                    ->fixXmlConfig('ignore_exception')
+                    ->fixXmlConfig('ignore_transaction')
                     ->fixXmlConfig('prefix', 'prefixes')
                     ->children()
                         ->arrayNode('integrations')
@@ -79,10 +90,7 @@ final class Configuration implements ConfigurationInterface
                             ->info('The sampling factor to apply to profiles. A value of 0 will deny sending any profiles, and a value of 1 will send all profiles. Profiles are sampled in relation to traces_sample_rate')
                         ->end()
                         ->scalarNode('traces_sampler')->end()
-                        ->arrayNode('trace_propagation_targets')
-                            ->scalarPrototype()->end()
-                            ->beforeNormalization()->castToArray()->end()
-                        ->end()
+                        ->variableNode('trace_propagation_targets')->end()
                         ->booleanNode('attach_stacktrace')->end()
                         ->integerNode('context_lines')->min(0)->end()
                         ->booleanNode('enable_compression')->end()
@@ -93,7 +101,7 @@ final class Configuration implements ConfigurationInterface
                         ->scalarNode('logger')->end()
                         ->scalarNode('release')
                             ->cannotBeEmpty()
-                            ->defaultValue(PrettyVersions::getRootPackageVersion()->getPrettyVersion())
+                            ->defaultValue('%env(default::SENTRY_RELEASE)%')
                         ->end()
                         ->scalarNode('server_name')->end()
                         ->scalarNode('before_send')->end()
@@ -116,11 +124,7 @@ final class Configuration implements ConfigurationInterface
                         ->arrayNode('in_app_exclude')
                             ->scalarPrototype()->end()
                             ->beforeNormalization()->castToArray()->end()
-                            ->defaultValue([
-                                '%kernel.cache_dir%',
-                                '%kernel.build_dir%',
-                                '%kernel.project_dir%/vendor',
-                            ])
+                            ->defaultValue($inAppExcludes)
                         ->end()
                         ->arrayNode('in_app_include')
                             ->scalarPrototype()->end()
@@ -129,11 +133,11 @@ final class Configuration implements ConfigurationInterface
                         ->booleanNode('send_default_pii')->end()
                         ->integerNode('max_value_length')->min(0)->end()
                         ->scalarNode('http_proxy')->end()
-                        ->integerNode('http_connect_timeout')
+                        ->floatNode('http_connect_timeout')
                             ->min(0)
                             ->info('The maximum number of seconds to wait while trying to connect to a server. It works only when using the default transport.')
                         ->end()
-                        ->integerNode('http_timeout')
+                        ->floatNode('http_timeout')
                             ->min(0)
                             ->info('The maximum execution time for the request+response as a whole. It works only when using the default transport.')
                         ->end()
@@ -150,6 +154,14 @@ final class Configuration implements ConfigurationInterface
                             ->useAttributeAsKey('class')
                             ->normalizeKeys(false)
                             ->scalarPrototype()->end()
+                        ->end()
+                        ->arrayNode('ignore_exceptions')
+                            ->scalarPrototype()->end()
+                            ->beforeNormalization()->castToArray()->end()
+                        ->end()
+                        ->arrayNode('ignore_transactions')
+                            ->scalarPrototype()->end()
+                            ->beforeNormalization()->castToArray()->end()
                         ->end()
                     ->end()
                 ->end()

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
-use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
 use Symfony\Bundle\TwigBundle\TwigBundle;
@@ -13,6 +12,7 @@ use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final class ConfigurationTest extends TestCase
@@ -27,17 +27,18 @@ final class ConfigurationTest extends TestCase
             'options' => [
                 'integrations' => [],
                 'prefixes' => array_merge(['%kernel.project_dir%'], array_filter(explode(\PATH_SEPARATOR, get_include_path() ?: ''))),
-                'trace_propagation_targets' => [],
                 'environment' => '%kernel.environment%',
-                'release' => PrettyVersions::getRootPackageVersion()->getPrettyVersion(),
+                'release' => '%env(default::SENTRY_RELEASE)%',
                 'tags' => [],
                 'in_app_exclude' => [
                     '%kernel.cache_dir%',
-                    '%kernel.build_dir%',
                     '%kernel.project_dir%/vendor',
+                    '%kernel.build_dir%',
                 ],
                 'in_app_include' => [],
                 'class_serializers' => [],
+                'ignore_exceptions' => [],
+                'ignore_transactions' => [],
             ],
             'messenger' => [
                 'enabled' => interface_exists(MessageBusInterface::class),
@@ -63,6 +64,11 @@ final class ConfigurationTest extends TestCase
                 ],
             ],
         ];
+
+        if (Kernel::VERSION_ID < 50200) {
+            array_pop($expectedBundleDefaultConfig['options']['in_app_exclude']);
+            $this->assertNotContains('%kernel.build_dir%', $expectedBundleDefaultConfig['options']['in_app_exclude'], 'Precondition failed, wrong default removed');
+        }
 
         $this->assertSame($expectedBundleDefaultConfig, $this->processConfiguration([]));
     }

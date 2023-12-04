@@ -32,9 +32,9 @@ abstract class AbstractTracingStatement
     protected $sqlQuery;
 
     /**
-     * @var array<string, string> The span tags
+     * @var array<string, string> The span data
      */
-    protected $spanTags;
+    protected $spanData;
 
     /**
      * Constructor.
@@ -42,14 +42,14 @@ abstract class AbstractTracingStatement
      * @param HubInterface          $hub                The current hub
      * @param Statement             $decoratedStatement The decorated statement
      * @param string                $sqlQuery           The SQL query executed by the decorated statement
-     * @param array<string, string> $spanTags           The span tags
+     * @param array<string, string> $spanData           The span data
      */
-    public function __construct(HubInterface $hub, Statement $decoratedStatement, string $sqlQuery, array $spanTags)
+    public function __construct(HubInterface $hub, Statement $decoratedStatement, string $sqlQuery, array $spanData)
     {
         $this->hub = $hub;
         $this->decoratedStatement = $decoratedStatement;
         $this->sqlQuery = $sqlQuery;
-        $this->spanTags = $spanTags;
+        $this->spanData = $spanData;
     }
 
     /**

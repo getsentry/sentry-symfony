@@ -23,7 +23,7 @@ This is the official Symfony SDK for [Sentry](https://getsentry.com/).
 Using this `sentry-symfony` SDK provides you with the following benefits:
 
  * Quickly integrate and configure Sentry for your Symfony app
- * Out of the box, each event will contain the following data by default 
+ * Out of the box, each event will contain the following data by default
    - The currently authenticated user
    - The Symfony environment
 
@@ -92,7 +92,7 @@ Keep in mind that by leaving the `dsn` value empty (or undeclared), you will dis
 ```yaml
 sentry:
     dsn: "https://public:secret@sentry.example.com/1"
-    messenger: 
+    messenger:
         enabled: true # flushes Sentry messages at the end of each message handling
         capture_soft_fails: true # captures exceptions marked for retry too
     options:
@@ -106,38 +106,35 @@ the [PHP specific](https://docs.sentry.io/platforms/php/#php-specific-options) o
 
 #### Optional: use custom HTTP factory/transport
 
-Since the SDK 2.0 uses HTTPlug to remain transport-agnostic, you need to install two packages that provide 
+Since the SDK 2.0 uses HTTPlug to remain transport-agnostic, you need to install two packages that provide
 [`php-http/async-client-implementation`](https://packagist.org/providers/php-http/async-client-implementation)
 and [`psr/http-message-implementation`](https://packagist.org/providers/psr/http-message-implementation).
 
 This bundle depends on `sentry/sdk`, which is a metapackage that already solves this need, requiring our suggested HTTP
-packages: the Curl client and Guzzle's message factories.
+packages: the Symfony HTTP client (`symfony/http-client`) and Guzzle's message factories (`http-interop/http-factory-guzzle`).
 
-Instead, if you want to use a different HTTP client or message factory, you can override the ``sentry/sdk`` package by adding the following to your ``composer.json`` after the ``require`` section:
+If you want to use a different HTTP client or message factory, you can override the `sentry/sdk` package by adding the following to your `composer.json` after the `require` section:
+
 ```json
     "replace": {
         "sentry/sdk": "*"
     }
 ```
 
-For example for using Guzzle's components: 
+For example when you want to use Guzzle's components:
 
 ```bash
 composer require php-http/guzzle6-adapter guzzlehttp/psr7
 ```
 
-A possible alternate solution is using `pugx/sentry-sdk`, a metapackage that replaces `sentry/sdk` and uses `symfony/http-client` instead of `guzzlehttp/guzzle`:
-
-```bash
-composer require pugx/sentry-sdk
-```
+If you don't have a compatible HTTP client and/or message factory implementation installed `php-http/discovery` will try to install it for you using a Composer plugin.
 
 ## Maintained versions
 
  * 4.x is actively maintained and developed on the master branch, and uses Sentry SDK 3.0;
  * 3.x is supported only for fixes and uses Sentry SDK 2.0;
  * 2.x is no longer maintained; from this version onwards it requires Symfony 3+ and PHP 7.1+;
- * 1.x is no longer maintained; you can use it for Symfony < 2.8 and PHP 5.6/7.0; 
+ * 1.x is no longer maintained; you can use it for Symfony < 2.8 and PHP 5.6/7.0;
  * 0.8.x is no longer maintained.
 
 ### Upgrading to 4.0
@@ -187,7 +184,7 @@ If you need help setting up or configuring the Symfony SDK (or anything else in 
 
 ## License
 
-Licensed under the Apache 2.0 license, see [`LICENSE`](LICENSE)
+Licensed under the MIT license, see [`LICENSE`](LICENSE)
 
 [Last stable image]: https://poser.pugx.org/sentry/sentry-symfony/version.svg
 [Packagist link]: https://packagist.org/packages/sentry/sentry-symfony

@@ -64,6 +64,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
         $this->assertCount(2, $spans);
         $this->assertSame('cache.get_item', $spans[1]->getOp());
+        $this->assertSame('foo', $spans[1]->getDescription());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
@@ -119,6 +120,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
         $this->assertCount(2, $spans);
         $this->assertSame('cache.clear', $spans[1]->getOp());
+        $this->assertSame('foo', $spans[1]->getDescription());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
@@ -148,6 +150,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
         $this->assertCount(2, $spans);
         $this->assertSame('cache.get_item', $spans[1]->getOp());
+        $this->assertSame('foo', $spans[1]->getDescription());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
@@ -185,6 +188,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
         $this->assertCount(2, $spans);
         $this->assertSame('cache.delete_item', $spans[1]->getOp());
+        $this->assertSame('foo', $spans[1]->getDescription());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
@@ -222,6 +226,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
         $this->assertCount(2, $spans);
         $this->assertSame('cache.has_item', $spans[1]->getOp());
+        $this->assertSame('foo', $spans[1]->getDescription());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
@@ -249,6 +254,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
         $this->assertCount(2, $spans);
         $this->assertSame('cache.delete_item', $spans[1]->getOp());
+        $this->assertSame('foo', $spans[1]->getDescription());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
