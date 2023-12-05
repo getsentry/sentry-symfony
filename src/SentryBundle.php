@@ -15,7 +15,7 @@ final class SentryBundle extends Bundle
 {
     public const SDK_IDENTIFIER = 'sentry.php.symfony';
 
-    public const SDK_VERSION = '4.12.0';
+    public const SDK_VERSION = '4.13.0';
 
     public function build(ContainerBuilder $container): void
     {
