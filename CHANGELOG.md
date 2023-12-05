@@ -1,5 +1,17 @@
 # Changelog
 
+## 4.13.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.13.0.
+
+### Features
+
+- Add support for Symfony 7 [(#761)](https://github.com/getsentry/sentry-symfony/pull/761)
+
+### Bug Fixes
+
+- Fix the decoration of the HTTP client when tracing is enabled [(#786)](https://github.com/getsentry/sentry-symfony/pull/786)
+
 ## 4.12.0
 
 ### Features
