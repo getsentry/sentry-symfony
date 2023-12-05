@@ -198,8 +198,7 @@ class End2EndTest extends WebTestCase
 
     public function testCommand(): void
     {
-        self::bootKernel();
-        $application = new Application(self::$kernel);
+        $application = new Application(self::bootKernel());
 
         try {
             $application->doRun(new ArgvInput(['bin/console', 'main-command', '--option1', '--option2=foo', 'bar']), new NullOutput());

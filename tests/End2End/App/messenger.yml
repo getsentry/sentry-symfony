@@ -7,6 +7,8 @@ services:
 
   Sentry\SentryBundle\Tests\End2End\App\Messenger\FooMessageHandler:
     class: \Sentry\SentryBundle\Tests\End2End\App\Messenger\FooMessageHandler
+    tags:
+      - { name: messenger.message_handler }
 
   Sentry\SentryBundle\Tests\End2End\App\Controller\MessengerController:
     autowire: true

@@ -88,7 +88,7 @@ final class LoginListenerTest extends TestCase
         $this->listener->handleKernelRequestEvent(new RequestEvent(
             $this->createMock(HttpKernelInterface::class),
             new Request(),
-            HttpKernelInterface::MASTER_REQUEST
+            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
         ));
 
         $event = $scope->applyToEvent(Event::createEvent());
@@ -273,7 +273,7 @@ final class LoginListenerTest extends TestCase
         $this->listener->handleKernelRequestEvent(new RequestEvent(
             $this->createMock(HttpKernelInterface::class),
             new Request(),
-            HttpKernelInterface::MASTER_REQUEST
+            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
         ));
     }
 

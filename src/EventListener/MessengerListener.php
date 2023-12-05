@@ -13,6 +13,7 @@ use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Exception\DelayedMessageHandlingException;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
+use Symfony\Component\Messenger\Exception\WrappedExceptionsInterface;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
 
 final class MessengerListener
@@ -94,9 +95,11 @@ final class MessengerListener
      */
     private function captureException(\Throwable $exception, bool $willRetry): void
     {
-        if ($exception instanceof HandlerFailedException) {
+        if ($exception instanceof WrappedExceptionsInterface) {
+            $exception = $exception->getWrappedExceptions();
+        } elseif ($exception instanceof HandlerFailedException && method_exists($exception, 'getNestedExceptions')) {
             $exception = $exception->getNestedExceptions();
-        } elseif ($exception instanceof DelayedMessageHandlingException) {
+        } elseif ($exception instanceof DelayedMessageHandlingException && method_exists($exception, 'getExceptions')) {
             $exception = $exception->getExceptions();
         }
 
