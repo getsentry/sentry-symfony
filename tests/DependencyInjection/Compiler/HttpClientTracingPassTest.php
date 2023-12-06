@@ -54,6 +54,14 @@ final class HttpClientTracingPassTest extends TestCase
         ];
     }
 
+    public function testProcessDoesNothingIfHttpClientServiceCannotBeFound(): void
+    {
+        $container = $this->createContainerBuilder(true, true, null);
+        $container->compile();
+
+        $this->assertFalse($container->hasDefinition('http_client'));
+    }
+
     /**
      * @dataProvider processDoesNothingIfConditionsForEnablingTracingAreMissingDataProvider
      */
@@ -86,7 +94,7 @@ final class HttpClientTracingPassTest extends TestCase
         ];
     }
 
-    private function createContainerBuilder(bool $isTracingEnabled, bool $isHttpClientTracingEnabled, string $httpClientServiceId): ContainerBuilder
+    private function createContainerBuilder(bool $isTracingEnabled, bool $isHttpClientTracingEnabled, ?string $httpClientServiceId): ContainerBuilder
     {
         $container = new ContainerBuilder();
         $container->addCompilerPass(new HttpClientTracingPass());
@@ -96,8 +104,10 @@ final class HttpClientTracingPassTest extends TestCase
         $container->register(HubInterface::class, HubInterface::class)
             ->setPublic(true);
 
-        $container->register($httpClientServiceId, HttpClientInterface::class)
-            ->setPublic(true);
+        if (null !== $httpClientServiceId) {
+            $container->register($httpClientServiceId, HttpClientInterface::class)
+                ->setPublic(true);
+        }
 
         return $container;
     }
