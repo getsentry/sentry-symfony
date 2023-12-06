@@ -1,5 +1,13 @@
 # Changelog
 
+## 4.13.1
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.13.1.
+
+### Bug Fixes
+
+- Fix the HTTP client decoration when no `http_client` service is registered [(#792)](https://github.com/getsentry/sentry-symfony/pull/792)
+
 ## 4.13.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.13.0.
