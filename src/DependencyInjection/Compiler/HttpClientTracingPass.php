@@ -34,6 +34,10 @@ final class HttpClientTracingPass implements CompilerPassInterface
 
         $decoratedService = $this->getDecoratedService($container);
 
+        if (null === $decoratedService) {
+            return;
+        }
+
         $container->register(TraceableHttpClient::class, TraceableHttpClient::class)
             ->setArgument(0, new Reference(TraceableHttpClient::class . '.inner'))
             ->setArgument(1, new Reference(HubInterface::class))
@@ -41,9 +45,9 @@ final class HttpClientTracingPass implements CompilerPassInterface
     }
 
     /**
-     * @return array{string, int}
+     * @return array{string, int}|null
      */
-    private function getDecoratedService(ContainerBuilder $container): array
+    private function getDecoratedService(ContainerBuilder $container): ?array
     {
         // Starting from Symfony 6.3, the raw HTTP client that serves as adapter
         // for the transport is registered as a separate service, so that the
@@ -66,6 +70,10 @@ final class HttpClientTracingPass implements CompilerPassInterface
             }
         }
 
-        return ['http_client', 15];
+        if ($container->hasDefinition('http_client')) {
+            return ['http_client', 15];
+        }
+
+        return null;
     }
 }
