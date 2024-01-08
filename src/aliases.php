@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle;
 
-use Composer\InstalledVersions;
 use Doctrine\DBAL\Result;
 use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapter;
 use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapterForV2;
@@ -28,7 +27,8 @@ use Sentry\SentryBundle\Tracing\HttpClient\TraceableResponseForV5;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableResponseForV6;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\DoctrineProvider;
-use Symfony\Contracts\HttpClient\ResponseInterface;
+use Symfony\Component\HttpClient\Response\StreamableInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 if (interface_exists(AdapterInterface::class)) {
     if (!class_exists(DoctrineProvider::class, false) && version_compare(\PHP_VERSION, '8.0.0', '>=')) {
@@ -60,16 +60,15 @@ if (!class_exists(TracingStatement::class)) {
     }
 }
 
-if (!class_exists(TraceableResponse::class) && interface_exists(ResponseInterface::class)) {
-    $httpClientVersion = InstalledVersions::getVersion('symfony/http-client');
-    if (version_compare($httpClientVersion, '6.0', '>=')) {
-        class_alias(TraceableResponseForV6::class, TraceableResponse::class);
-        class_alias(TraceableHttpClientForV6::class, TraceableHttpClient::class);
-    } elseif (version_compare($httpClientVersion, '5.0', '>=')) {
-        class_alias(TraceableResponseForV5::class, TraceableResponse::class);
-        class_alias(TraceableHttpClientForV5::class, TraceableHttpClient::class);
-    } else {
+if (!class_exists(TraceableResponse::class) && interface_exists(HttpClientInterface::class)) {
+    if (!interface_exists(StreamableInterface::class)) {
         class_alias(TraceableResponseForV4::class, TraceableResponse::class);
         class_alias(TraceableHttpClientForV4::class, TraceableHttpClient::class);
+    } elseif (method_exists(HttpClientInterface::class, 'withOptions')) {
+        class_alias(TraceableResponseForV6::class, TraceableResponse::class);
+        class_alias(TraceableHttpClientForV6::class, TraceableHttpClient::class);
+    } else {
+        class_alias(TraceableResponseForV5::class, TraceableResponse::class);
+        class_alias(TraceableHttpClientForV5::class, TraceableHttpClient::class);
     }
 }
