@@ -28,7 +28,7 @@ use Sentry\SentryBundle\Tracing\HttpClient\TraceableResponseForV6;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\DoctrineProvider;
 use Symfony\Component\HttpClient\Response\StreamableInterface;
-use Symfony\Contracts\HttpClient\ResponseInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 if (interface_exists(AdapterInterface::class)) {
     if (!class_exists(DoctrineProvider::class, false) && version_compare(\PHP_VERSION, '8.0.0', '>=')) {
@@ -60,11 +60,11 @@ if (!class_exists(TracingStatement::class)) {
     }
 }
 
-if (!class_exists(TraceableResponse::class) && interface_exists(ResponseInterface::class)) {
+if (!class_exists(TraceableResponse::class) && interface_exists(HttpClientInterface::class)) {
     if (!interface_exists(StreamableInterface::class)) {
         class_alias(TraceableResponseForV4::class, TraceableResponse::class);
         class_alias(TraceableHttpClientForV4::class, TraceableHttpClient::class);
-    } elseif (version_compare(\PHP_VERSION, '8.0', '>=')) {
+    } elseif (method_exists(HttpClientInterface::class, 'withOptions')) {
         class_alias(TraceableResponseForV6::class, TraceableResponse::class);
         class_alias(TraceableHttpClientForV6::class, TraceableHttpClient::class);
     } else {
