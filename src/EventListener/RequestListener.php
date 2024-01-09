@@ -11,7 +11,7 @@ use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 
 /**
- * This listener ensures that a new {@see \Sentry\State\Scope} is created for
+ * This listener ensures that a new {@see Scope} is created for
  * each request and that it is filled with useful information, e.g. the IP
  * address of the client.
  */
