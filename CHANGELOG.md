@@ -1,5 +1,13 @@
 # Changelog
 
+## 4.13.2
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.13.2.
+
+### Bug Fixes
+
+- Fix detection of the installed version of `symfony/http-client` [(#797)](https://github.com/getsentry/sentry-symfony/pull/797)
+
 ## 4.13.1
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.13.1.
