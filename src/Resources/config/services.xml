@@ -106,6 +106,7 @@
             <argument type="service" id="Sentry\State\HubInterface" />
         </service>
 
+        <!-- TODO: make this service abstract (see DoctrineBundle MiddlewarePass) when DBAL 2.x support is dropped -->
         <service id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware" class="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware">
             <argument type="service" id="Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryInterface" />
         </service>
