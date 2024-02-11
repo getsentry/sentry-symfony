@@ -23,62 +23,15 @@ final class DbalTracingPassTest extends DoctrineTestCase
         }
 
         $container = $this->createContainerBuilder();
-        $container->setParameter('sentry.tracing.dbal.connections', ['foo', 'bar', 'baz']);
-
-        $container
-            ->register('foo.service', \stdClass::class)
-            ->setPublic(true);
-
-        $container
-            ->register('doctrine.dbal.foo_connection.configuration', Configuration::class)
-            ->setPublic(true);
-
-        $container
-            ->register('doctrine.dbal.bar_connection.configuration', Configuration::class)
-            ->addMethodCall('setMiddlewares', [[]])
-            ->setPublic(true);
-
-        $container
-            ->register('doctrine.dbal.baz_connection.configuration', Configuration::class)
-            ->addMethodCall('setMiddlewares', [[new Reference('foo.service')]])
-            ->setPublic(true);
-
+        $container->setParameter('sentry.tracing.dbal.connections', ['foo', 'bar']);
         $container->compile();
 
-        $this->assertEquals(
-            [
-                [
-                    'setMiddlewares',
-                    [[new Reference(TracingDriverMiddleware::class)]],
-                ],
-            ],
-            $container->getDefinition('doctrine.dbal.foo_connection.configuration')->getMethodCalls()
-        );
+        $tracingMiddlewareDefinition = $container->getDefinition(TracingDriverMiddleware::class);
+        $doctrineMiddlewareTags = $tracingMiddlewareDefinition->getTag('doctrine.middleware');
 
-        $this->assertEquals(
-            [
-                [
-                    'setMiddlewares',
-                    [[new Reference(TracingDriverMiddleware::class)]],
-                ],
-            ],
-            $container->getDefinition('doctrine.dbal.bar_connection.configuration')->getMethodCalls()
-        );
-
-        $this->assertEquals(
-            [
-                [
-                    'setMiddlewares',
-                    [
-                        [
-                            new Reference('foo.service'),
-                            new Reference(TracingDriverMiddleware::class),
-                        ],
-                    ],
-                ],
-            ],
-            $container->getDefinition('doctrine.dbal.baz_connection.configuration')->getMethodCalls()
-        );
+        $this->assertCount(2, $doctrineMiddlewareTags);
+        $this->assertSame(['connection' => 'foo'], $doctrineMiddlewareTags[0]);
+        $this->assertSame(['connection' => 'bar'], $doctrineMiddlewareTags[1]);
     }
 
     public function testProcessWithDoctrineDBALVersionLowerThan30(): void

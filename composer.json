@@ -42,7 +42,7 @@
     },
     "require-dev": {
         "doctrine/dbal": "^2.13||^3.0",
-        "doctrine/doctrine-bundle": "^1.12||^2.5",
+        "doctrine/doctrine-bundle": "^2.6",
         "friendsofphp/php-cs-fixer": "^2.19||^3.40",
         "masterminds/html5": "^2.8",
         "phpstan/extension-installer": "^1.0",
