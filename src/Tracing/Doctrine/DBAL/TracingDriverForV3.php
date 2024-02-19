@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tracing\Doctrine\DBAL;
 
-use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\Middleware\AbstractDriverMiddleware;
 
@@ -33,6 +32,7 @@ final class TracingDriverForV3 extends AbstractDriverMiddleware
     public function __construct(TracingDriverConnectionFactoryInterface $connectionFactory, Driver $decoratedDriver)
     {
         parent::__construct($decoratedDriver);
+
         $this->connectionFactory = $connectionFactory;
     }
 
