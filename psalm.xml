@@ -13,8 +13,8 @@
             <file name="src/Tracing/Doctrine/DBAL/TracingDriverConnectionFactoryForV2V3.php" />
             <file name="src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php" />
             <file name="src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV2V3.php" />
-            <file name="src/Tracing/Doctrine/DBAL/TracingDriverForv2.php" />
-            <file name="src/Tracing/Doctrine/DBAL/TracingDriverForv3.php" />
+            <file name="src/Tracing/Doctrine/DBAL/TracingDriverForV2.php" />
+            <file name="src/Tracing/Doctrine/DBAL/TracingDriverForV3.php" />
             <file name="src/Tracing/Doctrine/DBAL/TracingStatementForV2.php" />
             <file name="src/Tracing/Doctrine/DBAL/TracingStatementForV3.php" />
             <file name="src/Tracing/HttpClient/TraceableHttpClientForV4.php" />
