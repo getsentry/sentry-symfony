@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle;
 
-use Doctrine\DBAL\VersionAwarePlatformDriver;
 use Doctrine\DBAL\Result;
+use Doctrine\DBAL\VersionAwarePlatformDriver;
 use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapter;
 use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapterForV2;
 use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapterForV3;
