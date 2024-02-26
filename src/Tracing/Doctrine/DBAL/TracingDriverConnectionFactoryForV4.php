@@ -5,20 +5,19 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tracing\Doctrine\DBAL;
 
 use Doctrine\DBAL\Driver\Connection;
-use Doctrine\DBAL\Driver\ServerInfoAwareConnection;
 use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\DB2Platform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
-use Doctrine\DBAL\Platforms\SqlitePlatform;
+use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Doctrine\DBAL\Platforms\SQLServerPlatform;
 use Sentry\State\HubInterface;
 
 /**
  * @internal
  */
-final class TracingDriverConnectionFactory implements TracingDriverConnectionFactoryInterface
+final class TracingDriverConnectionFactoryForV4 implements TracingDriverConnectionFactoryInterface
 {
     /**
      * @var HubInterface The current hub
@@ -47,10 +46,6 @@ final class TracingDriverConnectionFactory implements TracingDriverConnectionFac
             $params
         );
 
-        if ($connection instanceof ServerInfoAwareConnection) {
-            $tracingDriverConnection = new TracingServerInfoAwareDriverConnection($tracingDriverConnection);
-        }
-
         return $tracingDriverConnection;
     }
 
@@ -70,7 +65,7 @@ final class TracingDriverConnectionFactory implements TracingDriverConnectionFac
             case $databasePlatform instanceof PostgreSQLPlatform:
                 return 'postgresql';
 
-            case $databasePlatform instanceof SqlitePlatform:
+            case $databasePlatform instanceof SQLitePlatform:
                 return 'sqlite';
 
             case $databasePlatform instanceof SQLServerPlatform:

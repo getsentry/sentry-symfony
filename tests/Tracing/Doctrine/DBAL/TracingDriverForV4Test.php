@@ -11,9 +11,9 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryInterface;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionInterface;
-use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverForV3;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverForV4;
 
-final class TracingDriverForV3Test extends DoctrineTestCase
+final class TracingDriverForV4Test extends DoctrineTestCase
 {
     /**
      * @var MockObject&TracingDriverConnectionFactoryInterface
@@ -22,8 +22,8 @@ final class TracingDriverForV3Test extends DoctrineTestCase
 
     public static function setUpBeforeClass(): void
     {
-        if (!self::isDoctrineDBALVersion3Installed()) {
-            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.3.');
+        if (!self::isDoctrineDBALVersion4Installed()) {
+            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 4.0.');
         }
     }
 
@@ -54,7 +54,7 @@ final class TracingDriverForV3Test extends DoctrineTestCase
             ->with($driverConnection, $databasePlatform, $params)
             ->willReturn($tracingDriverConnection);
 
-        $driver = new TracingDriverForV3($this->connectionFactory, $decoratedDriver);
+        $driver = new TracingDriverForV4($this->connectionFactory, $decoratedDriver);
 
         $this->assertSame($tracingDriverConnection, $driver->connect($params));
     }

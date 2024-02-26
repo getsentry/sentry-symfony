@@ -179,7 +179,7 @@ final class TracingDriverForV2Test extends DoctrineTestCase
     }
 }
 
-if (interface_exists(Driver::class)) {
+if (interface_exists(Driver::class) && interface_exists(VersionAwarePlatformDriver::class)) {
     interface StubVersionAwarePlatformDriver extends Driver, VersionAwarePlatformDriver
     {
     }

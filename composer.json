@@ -41,7 +41,7 @@
         "symfony/security-http": "^4.4.20||^5.0.11||^6.0||^7.0"
     },
     "require-dev": {
-        "doctrine/dbal": "^2.13||^3.3",
+        "doctrine/dbal": "^2.13||^3.3||^4.0",
         "doctrine/doctrine-bundle": "^2.6",
         "friendsofphp/php-cs-fixer": "^2.19||^3.40",
         "masterminds/html5": "^2.8",
