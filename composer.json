@@ -7,28 +7,15 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "David Cramer",
-            "email": "dcramer@gmail.com"
-        },
-        {
-            "name": "Alessandro Lai",
-            "email": "alessandro.lai85@gmail.com"
+            "name": "Sentry",
+            "email": "accounts@sentry.io"
         }
     ],
-    "config": {
-        "sort-packages": true,
-        "allow-plugins": {
-            "composer/package-versions-deprecated": true,
-            "phpstan/extension-installer": true,
-            "php-http/discovery": false
-        }
-    },
     "require": {
         "php": "^7.2||^8.0",
         "guzzlehttp/psr7": "^1.7 || ^2.0",
         "jean85/pretty-package-versions": "^1.5 || ^2.0",
-        "sentry/sdk": "^3.6",
-        "sentry/sentry": "^3.22.1",
+        "sentry/sentry": "^4.6",
         "symfony/cache-contracts": "^1.1||^2.4||^3.0",
         "symfony/config": "^4.4.20||^5.0.11||^6.0||^7.0",
         "symfony/console": "^4.4.20||^5.0.11||^6.0||^7.0",
@@ -61,7 +48,7 @@
         "symfony/process": "^4.4.20||^5.0.11||^6.0||^7.0",
         "symfony/twig-bundle": "^4.4.20||^5.0.11||^6.0||^7.0",
         "symfony/yaml": "^4.4.20||^5.0.11||^6.0||^7.0",
-        "vimeo/psalm": "^4.3||^5.16.0"
+        "vimeo/psalm": "^5.16.0"
     },
     "suggest": {
         "monolog/monolog": "Allow sending log messages to Sentry by using the included Monolog handler.",
@@ -83,24 +70,23 @@
         }
     },
     "scripts": {
-        "tests": [
-            "vendor/bin/phpunit --verbose"
+        "check": [
+            "@cs-check",
+            "@phpstan",
+            "@psalm",
+            "@tests"
         ],
-        "phpcs": [
-            "vendor/bin/php-cs-fixer fix --verbose --diff --dry-run"
-        ],
-        "phpstan": [
-            "vendor/bin/phpstan analyse"
-        ],
-        "psalm": [
-            "vendor/bin/psalm"
-        ]
+        "tests": "vendor/bin/phpunit --verbose",
+        "cs-check": "vendor/bin/php-cs-fixer fix --verbose --diff --dry-run",
+        "cs-fix": "vendor/bin/php-cs-fixer fix --verbose --diff",
+        "phpstan": "vendor/bin/phpstan analyse",
+        "psalm": "vendor/bin/psalm"
     },
-    "extra": {
-        "branch-alias": {
-            "releases/3.2.x": "3.2.x-dev",
-            "releases/2.x": "2.x-dev",
-            "releases/1.x": "1.x-dev"
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "phpstan/extension-installer": true
         }
     }
 }

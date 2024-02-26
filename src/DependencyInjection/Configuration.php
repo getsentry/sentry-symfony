@@ -7,7 +7,6 @@ namespace Sentry\SentryBundle\DependencyInjection;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Sentry\Options;
 use Sentry\SentryBundle\ErrorTypesParser;
-use Sentry\Transport\TransportFactoryInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
@@ -50,10 +49,6 @@ final class Configuration implements ConfigurationInterface
                 ->scalarNode('logger')
                     ->info('The service ID of the PSR-3 logger used to log messages coming from the SDK client. Be aware that setting the same logger of the application may create a circular loop when an event fails to be sent.')
                     ->defaultNull()
-                ->end()
-                ->scalarNode('transport_factory')
-                    ->info('The service ID of the transport factory used by the default SDK client.')
-                    ->defaultValue(TransportFactoryInterface::class)
                 ->end()
                 ->arrayNode('options')
                     ->addDefaultsIfNotSet()
@@ -104,6 +99,14 @@ final class Configuration implements ConfigurationInterface
                             ->defaultValue('%env(default::SENTRY_RELEASE)%')
                         ->end()
                         ->scalarNode('server_name')->end()
+                        ->arrayNode('ignore_exceptions')
+                            ->scalarPrototype()->end()
+                            ->beforeNormalization()->castToArray()->end()
+                        ->end()
+                        ->arrayNode('ignore_transactions')
+                            ->scalarPrototype()->end()
+                            ->beforeNormalization()->castToArray()->end()
+                        ->end()
                         ->scalarNode('before_send')->end()
                         ->scalarNode('before_send_transaction')->end()
                         ->arrayNode('tags')
@@ -132,7 +135,10 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                         ->booleanNode('send_default_pii')->end()
                         ->integerNode('max_value_length')->min(0)->end()
+                        ->scalarNode('transport')->end()
+                        ->scalarNode('http_client')->end()
                         ->scalarNode('http_proxy')->end()
+                        ->scalarNode('http_proxy_authentication')->end()
                         ->floatNode('http_connect_timeout')
                             ->min(0)
                             ->info('The maximum number of seconds to wait while trying to connect to a server. It works only when using the default transport.')
@@ -141,6 +147,8 @@ final class Configuration implements ConfigurationInterface
                             ->min(0)
                             ->info('The maximum execution time for the request+response as a whole. It works only when using the default transport.')
                         ->end()
+                        ->booleanNode('http_ssl_verify_peer')->end()
+                        ->booleanNode('http_compression')->end()
                         ->booleanNode('capture_silenced_errors')->end()
                         ->enumNode('max_request_body_size')
                             ->values([
@@ -154,14 +162,6 @@ final class Configuration implements ConfigurationInterface
                             ->useAttributeAsKey('class')
                             ->normalizeKeys(false)
                             ->scalarPrototype()->end()
-                        ->end()
-                        ->arrayNode('ignore_exceptions')
-                            ->scalarPrototype()->end()
-                            ->beforeNormalization()->castToArray()->end()
-                        ->end()
-                        ->arrayNode('ignore_transactions')
-                            ->scalarPrototype()->end()
-                            ->beforeNormalization()->castToArray()->end()
                         ->end()
                     ->end()
                 ->end()

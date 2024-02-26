@@ -17,7 +17,8 @@ use Sentry\Tracing\SpanId;
 use Sentry\Tracing\TraceId;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
-use Sentry\Transport\NullTransport;
+use Sentry\Transport\HttpTransport;
+use Sentry\Transport\Transport;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
@@ -103,11 +104,14 @@ final class SentryExtensionTest extends TestCase
         $environment = new Environment(new ArrayLoader(['foo.twig' => '{{ sentry_baggage_meta() }}']));
         $environment->addExtension(new SentryExtension());
 
-        $client = new Client(new Options([
-            'traces_sample_rate' => 1.0,
-            'release' => '1.0.0',
-            'environment' => 'development',
-        ]), new NullTransport());
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->atLeastOnce())
+            ->method('getOptions')
+            ->willReturn(new Options([
+                'traces_sample_rate' => 1.0,
+                'release' => '1.0.0',
+                'environment' => 'development',
+            ]));
 
         $hub = new Hub($client);
 

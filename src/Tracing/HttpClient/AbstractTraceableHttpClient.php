@@ -138,12 +138,8 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
 
             // Check if the request destination is allow listed in the trace_propagation_targets option.
             if (
-                null !== $sdkOptions->getTracePropagationTargets()
-                // Due to BC, we treat an empty array (the default) as all hosts are allow listed
-                && (
-                    [] === $sdkOptions->getTracePropagationTargets()
-                    || \in_array($uri->getHost(), $sdkOptions->getTracePropagationTargets())
-                )
+                null === $sdkOptions->getTracePropagationTargets()
+                || \in_array($uri->getHost(), $sdkOptions->getTracePropagationTargets())
             ) {
                 return true;
             }

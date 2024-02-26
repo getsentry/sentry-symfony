@@ -432,7 +432,6 @@ final class TracingRequestListenerTest extends TestCase
         ));
 
         $this->assertSame(SpanStatus::ok(), $transaction->getStatus());
-        $this->assertSame(['http.status_code' => '200'], $transaction->getTags());
     }
 
     public function testHandleResponseRequestEventDoesNothingIfNoTransactionIsSetOnHub(): void

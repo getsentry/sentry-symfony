@@ -9,7 +9,6 @@ use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
-use Sentry\Integration\IgnoreErrorsIntegration;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
@@ -27,10 +26,8 @@ use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
-use Sentry\Transport\TransportFactoryInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Console\ConsoleEvents;
-use Symfony\Component\Debug\Exception\FatalErrorException;
 use Symfony\Component\DependencyInjection\Compiler\ResolveParameterPlaceHoldersPass;
 use Symfony\Component\DependencyInjection\Compiler\ResolveTaggedIteratorArgumentPass;
 use Symfony\Component\DependencyInjection\Compiler\ValidateEnvPlaceholdersPass;
@@ -38,7 +35,6 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\EnvPlaceholderParameterBag;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\ErrorHandler\Error\FatalError;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\TraceableHttpClient;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -251,14 +247,6 @@ abstract class SentryExtensionTest extends TestCase
 
         $integrationConfiguratorDefinition = $container->getDefinition(IntegrationConfigurator::class);
         $expectedIntegrations = [
-            new Definition(IgnoreErrorsIntegration::class, [
-                [
-                    'ignore_exceptions' => [
-                        FatalError::class,
-                        FatalErrorException::class,
-                    ],
-                ],
-            ]),
             new Reference('App\\Sentry\\Integration\\FooIntegration'),
         ];
 
@@ -274,32 +262,16 @@ abstract class SentryExtensionTest extends TestCase
 
         $methodCalls = $factory[0]->getMethodCalls();
 
-        $this->assertCount(6, $methodCalls);
+        $this->assertCount(4, $methodCalls);
         $this->assertDefinitionMethodCallAt($methodCalls[0], 'setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER]);
         $this->assertDefinitionMethodCallAt($methodCalls[1], 'setSdkVersion', [SentryBundle::SDK_VERSION]);
-        $this->assertDefinitionMethodCallAt($methodCalls[2], 'setTransportFactory', [new Reference('App\\Sentry\\Transport\\TransportFactory')]);
-        $this->assertDefinitionMethodCallAt($methodCalls[5], 'setLogger', [new Reference('app.logger')]);
 
-        $this->assertSame('setSerializer', $methodCalls[3][0]);
-        $this->assertInstanceOf(Definition::class, $methodCalls[3][1][0]);
-        $this->assertSame(Serializer::class, $methodCalls[3][1][0]->getClass());
-        $this->assertEquals($methodCalls[3][1][0]->getArgument(0), new Reference('sentry.client.options'));
+        $this->assertSame('setRepresentationSerializer', $methodCalls[2][0]);
+        $this->assertInstanceOf(Definition::class, $methodCalls[2][1][0]);
+        $this->assertSame(RepresentationSerializer::class, $methodCalls[2][2][0]->getClass());
+        $this->assertEquals($methodCalls[2][1][0]->getArgument(0), new Reference('sentry.client.options'));
 
-        $this->assertSame('setRepresentationSerializer', $methodCalls[4][0]);
-        $this->assertInstanceOf(Definition::class, $methodCalls[4][1][0]);
-        $this->assertSame(RepresentationSerializer::class, $methodCalls[4][1][0]->getClass());
-        $this->assertEquals($methodCalls[4][1][0]->getArgument(0), new Reference('sentry.client.options'));
-    }
-
-    public function testLoggerIsPassedToTransportFactory(): void
-    {
-        $container = $this->createContainerFromFixture('full');
-
-        $transportFactoryDefinition = $container->findDefinition(TransportFactoryInterface::class);
-        $logger = $transportFactoryDefinition->getArgument('$logger');
-
-        $this->assertInstanceOf(Reference::class, $logger);
-        $this->assertSame('app.logger', $logger->__toString());
+        $this->assertDefinitionMethodCallAt($methodCalls[3], 'setLogger', [new Reference('app.logger')]);
     }
 
     public function testErrorTypesOptionIsParsedFromStringToIntegerValue(): void
@@ -308,25 +280,6 @@ abstract class SentryExtensionTest extends TestCase
         $optionsDefinition = $container->getDefinition('sentry.client.options');
 
         $this->assertSame(\E_ALL & ~(\E_NOTICE | \E_STRICT | \E_DEPRECATED), $optionsDefinition->getArgument(0)['error_types']);
-    }
-
-    public function testIgnoreErrorsIntegrationIsNotAddedTwiceIfAlreadyConfigured(): void
-    {
-        $container = $this->createContainerFromFixture('ignore_errors_integration_overridden');
-        $integrations = $container->getDefinition(IntegrationConfigurator::class)->getArgument(0);
-        $ignoreErrorsIntegrationsCount = 0;
-
-        foreach ($integrations as $integration) {
-            if ($integration instanceof Reference && IgnoreErrorsIntegration::class === (string) $integration) {
-                ++$ignoreErrorsIntegrationsCount;
-            }
-
-            if ($integration instanceof Definition && IgnoreErrorsIntegration::class === $integration->getClass()) {
-                ++$ignoreErrorsIntegrationsCount;
-            }
-        }
-
-        $this->assertSame(1, $ignoreErrorsIntegrationsCount);
     }
 
     /**
@@ -451,7 +404,7 @@ abstract class SentryExtensionTest extends TestCase
 
         $methodCalls = $factory[0]->getMethodCalls();
 
-        $this->assertDefinitionMethodCallAt($methodCalls[5], 'setLogger', [new Reference(NullLogger::class, ContainerBuilder::IGNORE_ON_INVALID_REFERENCE)]);
+        $this->assertDefinitionMethodCallAt($methodCalls[3], 'setLogger', [new Reference(NullLogger::class, ContainerBuilder::IGNORE_ON_INVALID_REFERENCE)]);
     }
 
     /**

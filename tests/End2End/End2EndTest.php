@@ -207,10 +207,10 @@ class End2EndTest extends WebTestCase
         }
 
         $this->assertEventCount(1);
-        $this->assertCount(1, StubTransportFactory::$events);
+        $this->assertCount(1, StubTransport::$events);
         $this->assertSame(
             ['Full command' => 'main-command --option1 --option2=foo bar'],
-            StubTransportFactory::$events[0]->getExtra()
+            StubTransport::$events[0]->getExtra()
         );
     }
 
@@ -281,7 +281,7 @@ class End2EndTest extends WebTestCase
     {
         $events = file_get_contents(self::SENT_EVENTS_LOG);
         $this->assertNotFalse($events, 'Cannot read sent events log');
-        $listOfEvents = array_filter(explode(StubTransportFactory::SEPARATOR, trim($events)));
+        $listOfEvents = array_filter(explode(StubTransport::SEPARATOR, trim($events)));
         $this->assertCount($expectedCount, $listOfEvents, 'Wrong number of events sent: ' . \PHP_EOL . $events);
     }
 

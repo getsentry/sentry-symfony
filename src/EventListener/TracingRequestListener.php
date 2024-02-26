@@ -86,7 +86,8 @@ final class TracingRequestListener extends AbstractTracingRequestListener
     {
         $client = $this->hub->getClient();
         $httpFlavor = $this->getHttpFlavor($request);
-        $tags = [
+
+        $data = [
             'net.host.port' => (string) $request->getPort(),
             'http.request.method' => $request->getMethod(),
             'http.url' => $request->getUri(),
@@ -94,20 +95,20 @@ final class TracingRequestListener extends AbstractTracingRequestListener
         ];
 
         if (null !== $httpFlavor) {
-            $tags['http.flavor'] = $httpFlavor;
+            $data['http.flavor'] = $httpFlavor;
         }
 
         if (false !== filter_var($request->getHost(), \FILTER_VALIDATE_IP)) {
-            $tags['net.host.ip'] = $request->getHost();
+            $data['net.host.ip'] = $request->getHost();
         } else {
-            $tags['net.host.name'] = $request->getHost();
+            $data['net.host.name'] = $request->getHost();
         }
 
         if (null !== $request->getClientIp() && null !== $client && $client->getOptions()->shouldSendDefaultPii()) {
-            $tags['net.peer.ip'] = $request->getClientIp();
+            $data['net.peer.ip'] = $request->getClientIp();
         }
 
-        return $tags;
+        return $data;
     }
 
     /**

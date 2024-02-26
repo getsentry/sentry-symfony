@@ -9,7 +9,6 @@ use Jean85\PrettyVersions;
 use Psr\Log\NullLogger;
 use Sentry\Client;
 use Sentry\ClientBuilder;
-use Sentry\Integration\IgnoreErrorsIntegration;
 use Sentry\Integration\IntegrationInterface;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\Integration\RequestIntegration;
@@ -27,16 +26,13 @@ use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
 use Sentry\Serializer\Serializer;
-use Sentry\Transport\TransportFactoryInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\Debug\Exception\FatalErrorException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\ErrorHandler\Error\FatalError;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
@@ -121,6 +117,14 @@ final class SentryExtension extends ConfigurableExtension
             }, $options['class_serializers']);
         }
 
+        if (isset($options['transport'])) {
+            $options['transport'] = new Reference($options['transport']);
+        }
+
+        if (isset($options['http_client'])) {
+            $options['http_client'] = new Reference($options['http_client']);
+        }
+
         $container->getDefinition(IntegrationConfigurator::class)
             ->setArgument(0, $this->configureIntegrationsOption($options['integrations'], $config))
             ->setArgument(1, $config['register_error_handler']);
@@ -131,10 +135,6 @@ final class SentryExtension extends ConfigurableExtension
             ->setPublic(false)
             ->setArgument(0, $options);
 
-        $serializer = (new Definition(Serializer::class))
-            ->setPublic(false)
-            ->setArgument(0, new Reference('sentry.client.options'));
-
         $representationSerializerDefinition = (new Definition(RepresentationSerializer::class))
             ->setPublic(false)
             ->setArgument(0, new Reference('sentry.client.options'));
@@ -143,15 +143,10 @@ final class SentryExtension extends ConfigurableExtension
             ? new Reference(NullLogger::class, ContainerBuilder::IGNORE_ON_INVALID_REFERENCE)
             : new Reference($config['logger']);
 
-        $factoryBuilderDefinition = $container->getDefinition(TransportFactoryInterface::class);
-        $factoryBuilderDefinition->setArgument('$logger', $loggerReference);
-
         $clientBuilderDefinition = (new Definition(ClientBuilder::class))
             ->setArgument(0, new Reference('sentry.client.options'))
             ->addMethodCall('setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER])
             ->addMethodCall('setSdkVersion', [SentryBundle::SDK_VERSION])
-            ->addMethodCall('setTransportFactory', [new Reference($config['transport_factory'])])
-            ->addMethodCall('setSerializer', [$serializer])
             ->addMethodCall('setRepresentationSerializer', [$representationSerializerDefinition])
             ->addMethodCall('setLogger', [$loggerReference]);
 
@@ -285,32 +280,7 @@ final class SentryExtension extends ConfigurableExtension
             return new Reference($value);
         }, $integrations);
 
-        $integrations = $this->configureErrorListenerIntegration($integrations, $config['register_error_listener']);
         $integrations = $this->configureRequestIntegration($integrations, $config['options']['default_integrations'] ?? true);
-
-        return $integrations;
-    }
-
-    /**
-     * @param array<Reference|Definition> $integrations
-     *
-     * @return array<Reference|Definition>
-     */
-    private function configureErrorListenerIntegration(array $integrations, bool $registerErrorListener): array
-    {
-        if ($registerErrorListener && !$this->isIntegrationEnabled(IgnoreErrorsIntegration::class, $integrations)) {
-            // Prepend this integration to the beginning of the array so that
-            // we can save some performance by skipping the rest of the integrations
-            // if the error must be ignored
-            array_unshift($integrations, new Definition(IgnoreErrorsIntegration::class, [
-                [
-                    'ignore_exceptions' => [
-                        FatalError::class,
-                        FatalErrorException::class,
-                    ],
-                ],
-            ]));
-        }
 
         return $integrations;
     }

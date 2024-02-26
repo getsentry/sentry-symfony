@@ -9,15 +9,6 @@
 
         <service id="Sentry\ClientInterface" alias="sentry.client" />
 
-        <service id="Sentry\Transport\TransportFactoryInterface" class="Sentry\SentryBundle\Transport\TransportFactory">
-            <argument type="service" id="Psr\Http\Message\UriFactoryInterface" on-invalid="ignore" />
-            <argument type="service" id="Psr\Http\Message\RequestFactoryInterface" on-invalid="ignore" />
-            <argument type="service" id="Psr\Http\Message\ResponseFactoryInterface" on-invalid="ignore" />
-            <argument type="service" id="Psr\Http\Message\StreamFactoryInterface" on-invalid="ignore" />
-            <argument>null</argument>
-            <argument /> <!-- $logger -->
-        </service>
-
         <service id="Sentry\State\HubInterface">
             <factory class="Sentry\State\HubAdapter" method="getInstance" />
             <call method="bindClient">
@@ -136,7 +127,7 @@
             <argument /> <!-- $registerErrorHandler -->
         </service>
 
-        <service id="Sentry\Integration\RequestFetcherInterface" class="Sentry\SentryBundle\Integration\RequestFetcher">
+        <service id="Sentry\Integration\RequestFetcherInterface" class="Sentry\Integration\RequestFetcher">
             <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack" />
             <argument type="service" id="Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface" on-invalid="null" />
         </service>
