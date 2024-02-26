@@ -60,7 +60,7 @@ if (interface_exists(AdapterInterface::class)) {
 }
 
 if (!class_exists(TracingStatement::class)) {
-    if (!interface_exists(VersionAwarePlatformDriver::class)) {
+    if (class_exists(Result::class) && !interface_exists(VersionAwarePlatformDriver::class)) {
         class_alias(TracingStatementForV4::class, TracingStatement::class);
         class_alias(TracingDriverForV4::class, TracingDriver::class);
         class_alias(TracingDriverConnectionForV4::class, TracingDriverConnection::class);
