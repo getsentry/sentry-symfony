@@ -1,5 +1,18 @@
 # Changelog
 
+## 4.14.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.14.0.
+
+### Features
+
+- Add support for `doctrine/dabl: ^4.0` [(#811)](https://github.com/getsentry/sentry-symfony/pull/811)
+
+### Bug Fixes
+
+- Fix overwritting `DbalTracingPass` [(#808)](https://github.com/getsentry/sentry-symfony/pull/808)
+- Use `AbstractDriverMiddleware` [(#810)](https://github.com/getsentry/sentry-symfony/pull/810)
+
 ## 4.13.2
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v4.13.2.
