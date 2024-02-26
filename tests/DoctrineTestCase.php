@@ -7,7 +7,7 @@ namespace Sentry\SentryBundle\Tests;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\ResultStatement;
-use Doctrine\DBAL\Platforms\AbstractPlatform\VersionAwarePlatformDriver;
+use Doctrine\DBAL\VersionAwarePlatformDriver;
 use PHPUnit\Framework\TestCase;
 
 abstract class DoctrineTestCase extends TestCase
