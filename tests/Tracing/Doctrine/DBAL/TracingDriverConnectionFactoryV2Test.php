@@ -14,13 +14,11 @@ use Doctrine\DBAL\Platforms\SqlitePlatform;
 use Doctrine\DBAL\Platforms\SQLServerPlatform;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
-use Sentry\SentryBundle\Tests\Tracing\Doctrine\DBAL\Fixture\ServerInfoAwareConnectionStub;
-use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnection;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactory;
-use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingServerInfoAwareDriverConnection;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionForV2V3;
 use Sentry\State\HubInterface;
 
-final class TracingDriverConnectionFactoryTest extends DoctrineTestCase
+final class TracingDriverConnectionFactoryV2Test extends DoctrineTestCase
 {
     /**
      * @var MockObject&HubInterface
@@ -39,8 +37,8 @@ final class TracingDriverConnectionFactoryTest extends DoctrineTestCase
 
     public static function setUpBeforeClass(): void
     {
-        if (!self::isDoctrineDBALInstalled()) {
-            self::markTestSkipped('This test requires the "doctrine/dbal" Composer package.');
+        if (!self::isDoctrineDBALVersion2Installed()) {
+            self::markTestSkipped('This test requires the "doctrine/dbal: ^2.13" Composer package.');
         }
     }
 
@@ -61,7 +59,7 @@ final class TracingDriverConnectionFactoryTest extends DoctrineTestCase
         $connection = $this->createMock(Connection::class);
         $databasePlatform = $this->createMock($databasePlatformFqcn);
         $driverConnection = $this->tracingDriverConnectionFactory->create($connection, $databasePlatform, []);
-        $expectedDriverConnection = new TracingDriverConnection($this->hub, $connection, $expectedDatabasePlatform, []);
+        $expectedDriverConnection = new TracingDriverConnectionForV2V3($this->hub, $connection, $expectedDatabasePlatform, []);
 
         $this->assertEquals($expectedDriverConnection, $driverConnection);
     }
@@ -102,18 +100,5 @@ final class TracingDriverConnectionFactoryTest extends DoctrineTestCase
             AbstractPlatform::class,
             'other_sql',
         ];
-    }
-
-    public function testCreateWithServerInfoAwareConnection(): void
-    {
-        if (!self::isDoctrineDBALVersion3Installed()) {
-            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.0.');
-        }
-
-        $connection = $this->createMock(ServerInfoAwareConnectionStub::class);
-        $driverConnection = $this->tracingDriverConnectionFactory->create($connection, $this->databasePlatform, []);
-        $expectedDriverConnection = new TracingServerInfoAwareDriverConnection(new TracingDriverConnection($this->hub, $connection, 'other_sql', []));
-
-        $this->assertEquals($expectedDriverConnection, $driverConnection);
     }
 }

@@ -11,7 +11,7 @@ use Doctrine\DBAL\ParameterType;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tests\Tracing\Doctrine\DBAL\Fixture\NativeDriverConnectionInterfaceStub;
-use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnection;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionForV4 as TracingDriverConnection;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionInterface;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatement;
 use Sentry\State\HubInterface;
@@ -21,7 +21,7 @@ use Sentry\Tracing\TransactionContext;
 /**
  * @phpstan-import-type Params from \Doctrine\DBAL\DriverManager as ConnectionParams
  */
-final class TracingDriverConnectionTest extends DoctrineTestCase
+final class TracingDriverConnectionForV2V3Test extends DoctrineTestCase
 {
     /**
      * @var MockObject&HubInterface
@@ -40,7 +40,10 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
 
     public static function setUpBeforeClass(): void
     {
-        if (!self::isDoctrineBundlePackageInstalled()) {
+        if (
+            !self::isDoctrineDBALVersion2Installed()
+            || !self::isDoctrineDBALVersion3Installed()
+        ) {
             self::markTestSkipped();
         }
     }
@@ -240,8 +243,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->willReturn($transaction);
 
         $this->decoratedConnection->expects($this->once())
-            ->method('beginTransaction')
-            ->willReturn(false);
+            ->method('beginTransaction');
 
         $this->assertFalse($connection->beginTransaction());
         $this->assertNotNull($transaction->getSpanRecorder());
@@ -262,8 +264,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->willReturn(null);
 
         $this->decoratedConnection->expects($this->once())
-            ->method('beginTransaction')
-            ->willReturn(false);
+            ->method('beginTransaction');
 
         $this->assertFalse($this->connection->beginTransaction());
     }
@@ -287,8 +288,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->willReturn($transaction);
 
         $this->decoratedConnection->expects($this->once())
-            ->method('commit')
-            ->willReturn(false);
+            ->method('commit');
 
         $this->assertFalse($connection->commit());
         $this->assertNotNull($transaction->getSpanRecorder());
@@ -309,8 +309,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->willReturn(null);
 
         $this->decoratedConnection->expects($this->once())
-            ->method('commit')
-            ->willReturn(false);
+            ->method('commit');
 
         $this->assertFalse($this->connection->commit());
     }
@@ -334,8 +333,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->willReturn($transaction);
 
         $this->decoratedConnection->expects($this->once())
-            ->method('rollBack')
-            ->willReturn(false);
+            ->method('rollBack');
 
         $this->assertFalse($connection->rollBack());
         $this->assertNotNull($transaction->getSpanRecorder());
@@ -356,8 +354,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
             ->willReturn(null);
 
         $this->decoratedConnection->expects($this->once())
-            ->method('rollBack')
-            ->willReturn(false);
+            ->method('rollBack');
 
         $this->assertFalse($this->connection->rollBack());
     }
@@ -378,7 +375,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
     public function testErrorCodeThrowsExceptionIfDecoratedConnectionDoesNotImplementMethod(): void
     {
         if (!self::isDoctrineDBALVersion3Installed()) {
-            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.0.');
+            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.3.');
         }
 
         $this->expectException(\BadMethodCallException::class);
@@ -403,7 +400,7 @@ final class TracingDriverConnectionTest extends DoctrineTestCase
     public function testErrorInfoThrowsExceptionIfDecoratedConnectionDoesNotImplementMethod(): void
     {
         if (!self::isDoctrineDBALVersion3Installed()) {
-            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.0.');
+            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.3.');
         }
 
         $this->expectException(\BadMethodCallException::class);

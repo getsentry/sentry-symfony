@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle;
 
 use Doctrine\DBAL\Result;
+use Doctrine\DBAL\VersionAwarePlatformDriver;
 use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapter;
 use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapterForV2;
 use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapterForV3;
@@ -12,11 +13,19 @@ use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapter;
 use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapterForV2;
 use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapterForV3;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriver;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnection;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactory;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryForV2V3;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryForV4;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionForV2V3;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionForV4;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverForV2;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverForV3;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverForV4;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatement;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatementForV2;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatementForV3;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatementForV4;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableHttpClient;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableHttpClientForV4;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableHttpClientForV5;
@@ -51,12 +60,21 @@ if (interface_exists(AdapterInterface::class)) {
 }
 
 if (!class_exists(TracingStatement::class)) {
-    if (class_exists(Result::class)) {
+    if (class_exists(Result::class) && !interface_exists(VersionAwarePlatformDriver::class)) {
+        class_alias(TracingStatementForV4::class, TracingStatement::class);
+        class_alias(TracingDriverForV4::class, TracingDriver::class);
+        class_alias(TracingDriverConnectionForV4::class, TracingDriverConnection::class);
+        class_alias(TracingDriverConnectionFactoryForV4::class, TracingDriverConnectionFactory::class);
+    } elseif (class_exists(Result::class)) {
         class_alias(TracingStatementForV3::class, TracingStatement::class);
         class_alias(TracingDriverForV3::class, TracingDriver::class);
+        class_alias(TracingDriverConnectionForV2V3::class, TracingDriverConnection::class);
+        class_alias(TracingDriverConnectionFactoryForV2V3::class, TracingDriverConnectionFactory::class);
     } elseif (interface_exists(Result::class)) {
         class_alias(TracingStatementForV2::class, TracingStatement::class);
         class_alias(TracingDriverForV2::class, TracingDriver::class);
+        class_alias(TracingDriverConnectionForV2V3::class, TracingDriverConnection::class);
+        class_alias(TracingDriverConnectionFactoryForV2V3::class, TracingDriverConnectionFactory::class);
     }
 }
 

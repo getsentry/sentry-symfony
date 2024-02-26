@@ -29,7 +29,10 @@ final class TracingServerInfoAwareDriverConnectionTest extends DoctrineTestCase
 
     public static function setUpBeforeClass(): void
     {
-        if (!self::isDoctrineBundlePackageInstalled()) {
+        if (
+            !self::isDoctrineDBALVersion2Installed()
+            && !self::isDoctrineDBALVersion3Installed()
+        ) {
             self::markTestSkipped();
         }
     }
@@ -185,7 +188,7 @@ final class TracingServerInfoAwareDriverConnectionTest extends DoctrineTestCase
     public function testRequiresQueryForServerVersionThrowsExceptionIfWrappedConnectionDoesNotImplementMethod(): void
     {
         if (!self::isDoctrineDBALVersion3Installed()) {
-            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.0.');
+            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.3.');
         }
 
         $this->decoratedConnection->expects($this->once())
@@ -214,7 +217,7 @@ final class TracingServerInfoAwareDriverConnectionTest extends DoctrineTestCase
     public function testErrorCodeThrowsExceptionIfDecoratedConnectionDoesNotImplementMethod(): void
     {
         if (!self::isDoctrineDBALVersion3Installed()) {
-            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.0.');
+            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.3.');
         }
 
         $this->expectException(\BadMethodCallException::class);
@@ -239,7 +242,7 @@ final class TracingServerInfoAwareDriverConnectionTest extends DoctrineTestCase
     public function testErrorInfoThrowsExceptionIfDecoratedConnectionDoesNotImplementMethod(): void
     {
         if (!self::isDoctrineDBALVersion3Installed()) {
-            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.0.');
+            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.3.');
         }
 
         $this->expectException(\BadMethodCallException::class);

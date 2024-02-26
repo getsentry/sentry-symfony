@@ -176,74 +176,34 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/ConnectionConfigurator.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:errorInfo\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionForV4\\:\\:errorInfo\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
+			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:exec\\(\\) has parameter \\$sql with no type specified\\.$#"
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionForV4\\:\\:exec\\(\\) should return int\\|numeric\\-string but returns int\\|string\\.$#"
 			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
+			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:prepare\\(\\) has parameter \\$sql with no type specified\\.$#"
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionForV4\\:\\:prepare\\(\\) has parameter \\$sql with no type specified\\.$#"
 			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
+			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:query\\(\\) has parameter \\$args with no type specified\\.$#"
+			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionForV4\\:\\:query\\(\\) has parameter \\$args with no type specified\\.$#"
 			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
-
-		-
-			message: "#^Parameter \\#1 \\$sql of method Doctrine\\\\DBAL\\\\Driver\\\\Connection\\:\\:query\\(\\) expects string, string\\|null given\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
-
-		-
-			message: "#^Parameter \\#2 \\$spanDescription of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:traceFunction\\(\\) expects string, string\\|null given\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
-
-		-
-			message: "#^Property Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnection\\:\\:\\$spanTags is never read, only written\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnection.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:errorInfo\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:exec\\(\\) has parameter \\$sql with no type specified\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:prepare\\(\\) has parameter \\$sql with no type specified\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingServerInfoAwareDriverConnection\\:\\:query\\(\\) has parameter \\$args with no type specified\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
+			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
 
 		-
 			message: "#^Parameter \\#1 \\$sql of method Doctrine\\\\DBAL\\\\Driver\\\\Connection\\:\\:query\\(\\) expects string, string\\|null given\\.$#"
 			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnection.php
+			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
 
 		-
-			message: "#^Parameter \\#2 \\$callback of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\AbstractTracingStatement\\:\\:traceFunction\\(\\) expects callable\\(mixed \\.\\.\\.\\)\\: Doctrine\\\\DBAL\\\\Driver\\\\Result, array\\{Doctrine\\\\DBAL\\\\Driver\\\\Statement, 'execute'\\} given\\.$#"
+			message: "#^Parameter \\#2 \\$spanDescription of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionForV4\\:\\:traceFunction\\(\\) expects string, string\\|null given\\.$#"
 			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingStatementForV3.php
-
-		-
-			message: "#^Parameter \\#4 \\$length of method Doctrine\\\\DBAL\\\\Driver\\\\Statement\\:\\:bindParam\\(\\) expects int\\|null, mixed given\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingStatementForV3.php
+			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
 
 		-
 			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableHttpClient\\:\\:request\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
@@ -426,89 +386,24 @@ parameters:
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
 
 		-
+			message: "#^Property Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionFactoryV4Test\\:\\:\\$databasePlatform is never read, only written\\.$#"
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionFactoryV4Test.php
+
+		-
 			message: "#^Trying to mock an undefined method errorCode\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Connection\\.$#"
 			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionTest.php
+			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4Test.php
 
 		-
 			message: "#^Trying to mock an undefined method errorInfo\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Connection\\.$#"
 			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionTest.php
+			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4Test.php
 
 		-
 			message: "#^Parameter \\#1 \\$hubOrConnectionFactory of class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverMiddleware constructor expects Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionFactoryInterface\\|Sentry\\\\State\\\\HubInterface, null given\\.$#"
 			count: 1
 			path: tests/Tracing/Doctrine/DBAL/TracingDriverMiddlewareTest.php
-
-		-
-			message: "#^Trying to mock an undefined method errorCode\\(\\) on class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionInterface\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnectionTest.php
-
-		-
-			message: "#^Trying to mock an undefined method errorInfo\\(\\) on class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionInterface\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnectionTest.php
-
-		-
-			message: "#^Trying to mock an undefined method requiresQueryForServerVersion\\(\\) on class Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\Fixture\\\\ServerInfoAwareConnectionStub\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingServerInfoAwareDriverConnectionTest.php
-
-		-
-			message: "#^Parameter \\#2 \\$decoratedStatement of class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatementForV2 constructor expects Doctrine\\\\DBAL\\\\Driver\\\\Statement, PHPUnit\\\\Framework\\\\MockObject\\\\MockObject&Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatementForV2Stub given\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
-
-		-
-			message: "#^Parameter \\#4 \\$length of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingStatementForV2\\:\\:bindParam\\(\\) expects int\\|null, mixed given\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
-
-		-
-			message: "#^Trying to mock an undefined method closeCursor\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
-
-		-
-			message: "#^Trying to mock an undefined method columnCount\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
-
-		-
-			message: "#^Trying to mock an undefined method errorCode\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
-
-		-
-			message: "#^Trying to mock an undefined method errorInfo\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
-
-		-
-			message: "#^Trying to mock an undefined method fetch\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
-
-		-
-			message: "#^Trying to mock an undefined method fetchAll\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
-
-		-
-			message: "#^Trying to mock an undefined method fetchColumn\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
-
-		-
-			message: "#^Trying to mock an undefined method rowCount\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
-
-		-
-			message: "#^Trying to mock an undefined method setFetchMode\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Statement\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingStatementForV2Test.php
 
 		-
 			message: "#^Parameter \\#1 \\$responses of method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableHttpClient\\:\\:stream\\(\\) expects iterable\\<\\(int\\|string\\), Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface\\>\\|Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface, stdClass given\\.$#"

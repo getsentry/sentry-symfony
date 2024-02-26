@@ -16,10 +16,10 @@ use Symfony\Component\DependencyInjection\Reference;
 
 final class DbalTracingPassTest extends DoctrineTestCase
 {
-    public function testProcessWithDoctrineDBALVersionAtLeast30(): void
+    public function testProcessWithDoctrineDBALVersion4(): void
     {
-        if (!self::isDoctrineDBALVersion3Installed()) {
-            $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.0.');
+        if (!self::isDoctrineDBALVersion4Installed()) {
+            $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 4.0.');
         }
 
         $container = $this->createContainerBuilder();
@@ -34,7 +34,25 @@ final class DbalTracingPassTest extends DoctrineTestCase
         $this->assertSame(['connection' => 'bar'], $doctrineMiddlewareTags[1]);
     }
 
-    public function testProcessWithDoctrineDBALVersionLowerThan30(): void
+    public function testProcessWithDoctrineDBALVersion3(): void
+    {
+        if (!self::isDoctrineDBALVersion3Installed()) {
+            $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.3.');
+        }
+
+        $container = $this->createContainerBuilder();
+        $container->setParameter('sentry.tracing.dbal.connections', ['foo', 'bar']);
+        $container->compile();
+
+        $tracingMiddlewareDefinition = $container->getDefinition(TracingDriverMiddleware::class);
+        $doctrineMiddlewareTags = $tracingMiddlewareDefinition->getTag('doctrine.middleware');
+
+        $this->assertCount(2, $doctrineMiddlewareTags);
+        $this->assertSame(['connection' => 'foo'], $doctrineMiddlewareTags[0]);
+        $this->assertSame(['connection' => 'bar'], $doctrineMiddlewareTags[1]);
+    }
+
+    public function testProcessWithDoctrineDBALVersion2(): void
     {
         if (!self::isDoctrineDBALVersion2Installed()) {
             $this->markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be ^2.13.');

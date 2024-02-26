@@ -14,11 +14,11 @@ use Sentry\Tracing\SpanContext;
 /**
  * This implementation wraps a driver connection and adds distributed tracing
  * capabilities to Doctrine DBAL. This implementation IS and MUST be compatible
- * with all versions of Doctrine DBAL >= 2.10.
+ * with all versions of Doctrine DBAL >= 2.10 and >= 3.3.
  *
  * @phpstan-import-type Params from \Doctrine\DBAL\DriverManager as ConnectionParams
  */
-final class TracingDriverConnection implements TracingDriverConnectionInterface
+final class TracingDriverConnectionForV2V3 implements TracingDriverConnectionInterface
 {
     /**
      * @internal
