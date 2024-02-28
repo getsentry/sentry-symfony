@@ -6,7 +6,7 @@ The Sentry SDK team is happy to announce the immediate availability of Sentry Sy
 
 ### Features
 
-- Add support for `doctrine/dabl: ^4.0` [(#811)](https://github.com/getsentry/sentry-symfony/pull/811)
+- Add support for `doctrine/dbal: ^4.0` [(#811)](https://github.com/getsentry/sentry-symfony/pull/811)
 
 ### Bug Fixes
 
