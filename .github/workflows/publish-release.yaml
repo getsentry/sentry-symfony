@@ -25,7 +25,7 @@ jobs:
           fetch-depth: 0
 
       - name: Prepare release
-        uses: getsentry/action-prepare-release@d2cc2db3db92bc5b79a90c316f588f2b13626a2b #v1.5.6
+        uses: getsentry/action-prepare-release@375d991fcf5ba8af4d0182ed685ee9a270b4fe8c #v1.6.3
         env:
           GITHUB_TOKEN: ${{ secrets.GH_RELEASE_PAT }}
         with:
