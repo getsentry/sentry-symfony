@@ -265,13 +265,12 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertCount(4, $methodCalls);
         $this->assertDefinitionMethodCallAt($methodCalls[0], 'setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER]);
         $this->assertDefinitionMethodCallAt($methodCalls[1], 'setSdkVersion', [SentryBundle::SDK_VERSION]);
+        $this->assertDefinitionMethodCallAt($methodCalls[3], 'setLogger', [new Reference('app.logger')]);
 
         $this->assertSame('setRepresentationSerializer', $methodCalls[2][0]);
         $this->assertInstanceOf(Definition::class, $methodCalls[2][1][0]);
-        $this->assertSame(RepresentationSerializer::class, $methodCalls[2][2][0]->getClass());
+        $this->assertSame(RepresentationSerializer::class, $methodCalls[2][1][0]->getClass());
         $this->assertEquals($methodCalls[2][1][0]->getArgument(0), new Reference('sentry.client.options'));
-
-        $this->assertDefinitionMethodCallAt($methodCalls[3], 'setLogger', [new Reference('app.logger')]);
     }
 
     public function testErrorTypesOptionIsParsedFromStringToIntegerValue(): void
