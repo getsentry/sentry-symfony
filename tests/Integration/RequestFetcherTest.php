@@ -7,7 +7,7 @@ namespace Sentry\SentryBundle\Tests\Integration;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
-use Sentry\Integration\RequestFetcher;
+use Sentry\SentryBundle\Integration\RequestFetcher;
 use Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
