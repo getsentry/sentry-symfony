@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Integration;
 
+use GuzzleHttp\Psr7\HttpFactory;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Psr\Http\Message\ServerRequestInterface;
 use Sentry\Integration\RequestFetcherInterface;
@@ -38,10 +39,10 @@ final class RequestFetcher implements RequestFetcherInterface
     {
         $this->requestStack = $requestStack;
         $this->httpMessageFactory = $httpMessageFactory ?? new PsrHttpFactory(
-            Psr17FactoryDiscovery::findServerRequestFactory(),
-            Psr17FactoryDiscovery::findStreamFactory(),
-            Psr17FactoryDiscovery::findUploadedFileFactory(),
-            Psr17FactoryDiscovery::findResponseFactory()
+            new HttpFactory(),
+            new HttpFactory(),
+            new HttpFactory(),
+            new HttpFactory()
         );
     }
 

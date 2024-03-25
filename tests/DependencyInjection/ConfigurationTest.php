@@ -23,12 +23,13 @@ final class ConfigurationTest extends TestCase
             'register_error_listener' => true,
             'register_error_handler' => true,
             'logger' => null,
-            'transport_factory' => 'Sentry\\Transport\\TransportFactoryInterface',
             'options' => [
                 'integrations' => [],
                 'prefixes' => array_merge(['%kernel.project_dir%'], array_filter(explode(\PATH_SEPARATOR, get_include_path() ?: ''))),
                 'environment' => '%kernel.environment%',
                 'release' => '%env(default::SENTRY_RELEASE)%',
+                'ignore_exceptions' => [],
+                'ignore_transactions' => [],
                 'tags' => [],
                 'in_app_exclude' => [
                     '%kernel.cache_dir%',
@@ -37,8 +38,6 @@ final class ConfigurationTest extends TestCase
                 ],
                 'in_app_include' => [],
                 'class_serializers' => [],
-                'ignore_exceptions' => [],
-                'ignore_transactions' => [],
             ],
             'messenger' => [
                 'enabled' => interface_exists(MessageBusInterface::class),

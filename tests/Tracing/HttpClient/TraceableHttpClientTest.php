@@ -66,8 +66,7 @@ final class TraceableHttpClientTest extends TestCase
             'dsn' => 'http://public:secret@example.com/sentry/1',
         ]);
         $client = $this->createMock(ClientInterface::class);
-        $client
-            ->expects($this->once())
+        $client->expects($this->once())
             ->method('getOptions')
             ->willReturn($options);
 
@@ -124,7 +123,7 @@ final class TraceableHttpClientTest extends TestCase
     {
         $options = new Options([
             'dsn' => 'http://public:secret@example.com/sentry/1',
-            'trace_propagation_targets' => null,
+            'trace_propagation_targets' => [],
         ]);
         $client = $this->createMock(ClientInterface::class);
         $client->expects($this->once())
@@ -169,12 +168,16 @@ final class TraceableHttpClientTest extends TestCase
 
     public function testRequestDoesContainsTracingHeadersWithoutTransaction(): void
     {
-        $client = new Client(new Options([
+        $options = new Options([
             'dsn' => 'http://public:secret@example.com/sentry/1',
             'release' => '1.0.0',
             'environment' => 'test',
             'trace_propagation_targets' => ['www.example.com'],
-        ]), new NullTransport());
+        ]);
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->exactly(4))
+            ->method('getOptions')
+            ->willReturn($options);
 
         $propagationContext = PropagationContext::fromDefaults();
         $propagationContext->setTraceId(new TraceId('566e3688a61d4bc888951642d6f14a19'));
@@ -201,10 +204,13 @@ final class TraceableHttpClientTest extends TestCase
 
     public function testRequestSetsUnknownErrorAsSpanStatusIfResponseStatusCodeIsUnavailable(): void
     {
+        $options = new Options([
+            'dsn' => 'http://public:secret@example.com/sentry/1',
+        ]);
         $client = $this->createMock(ClientInterface::class);
         $client->expects($this->once())
             ->method('getOptions')
-            ->willReturn(new Options(['dsn' => 'http://public:secret@example.com/sentry/1']));
+            ->willReturn($options);
 
         $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
