@@ -208,18 +208,18 @@ final class TraceableHttpClientTest extends TestCase
             'dsn' => 'http://public:secret@example.com/sentry/1',
         ]);
         $client = $this->createMock(ClientInterface::class);
-        $client->expects($this->once())
+        $client->expects($this->exactly(2))
             ->method('getOptions')
             ->willReturn($options);
 
-        $transaction = new Transaction(new TransactionContext());
+        $transaction = new Transaction(new TransactionContext(), $this->hub);
         $transaction->initSpanRecorder();
 
         $this->hub->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
-        $this->hub->expects($this->once())
+        $this->hub->expects($this->exactly(2))
             ->method('getClient')
             ->willReturn($client);
 
