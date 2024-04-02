@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\Twig;
 
 use PHPUnit\Framework\TestCase;
-use Sentry\Client;
 use Sentry\ClientInterface;
 use Sentry\Options;
 use Sentry\SentryBundle\Twig\SentryExtension;
@@ -17,8 +16,6 @@ use Sentry\Tracing\SpanId;
 use Sentry\Tracing\TraceId;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
-use Sentry\Transport\HttpTransport;
-use Sentry\Transport\Transport;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;

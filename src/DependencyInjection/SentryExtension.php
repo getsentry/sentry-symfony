@@ -25,7 +25,6 @@ use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
-use Sentry\Serializer\Serializer;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\FileLocator;

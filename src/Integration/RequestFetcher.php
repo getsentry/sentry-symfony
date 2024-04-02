@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Integration;
 
 use GuzzleHttp\Psr7\HttpFactory;
-use Http\Discovery\Psr17FactoryDiscovery;
 use Psr\Http\Message\ServerRequestInterface;
 use Sentry\Integration\RequestFetcherInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
