@@ -228,7 +228,7 @@ abstract class SentryExtensionTest extends TestCase
             'before_send_metrics' => new Reference('App\\Sentry\\BeforeSendMetricsCallback'),
             'trace_propagation_targets' => ['website.invalid'],
             'tags' => [
-                'context' => 'development'
+                'context' => 'development',
             ],
             'error_types' => \E_ALL,
             'max_breadcrumbs' => 1,

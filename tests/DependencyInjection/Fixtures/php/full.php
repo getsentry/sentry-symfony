@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Sentry\Transport\HttpTransport;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /** @var ContainerBuilder $container */
