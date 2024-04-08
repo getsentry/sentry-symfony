@@ -12,6 +12,7 @@ use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -27,6 +28,13 @@ final class TraceableResponseTest extends TestCase
      * @var MockObject&HubInterface
      */
     private $hub;
+
+    public static function setUpBeforeClass(): void
+    {
+        if (!class_exists(HttpClient::class)) {
+            self::markTestSkipped('This test requires the "symfony/http-client" Composer package to be installed.');
+        }
+    }
 
     protected function setUp(): void
     {

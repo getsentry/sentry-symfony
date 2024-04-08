@@ -22,6 +22,7 @@ use Sentry\Tracing\SpanStatus;
 use Sentry\Tracing\TraceId;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -46,7 +47,7 @@ final class TraceableHttpClientTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        if (!self::isHttpClientPackageInstalled()) {
+        if (!class_exists(HttpClient::class)) {
             self::markTestSkipped('This test requires the "symfony/http-client" Composer package to be installed.');
         }
     }
@@ -357,13 +358,10 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame('GET', $response->getInfo('http_method'));
         $this->assertSame('https://www.example.org/test-page', $response->getInfo('url'));
     }
-
-    private static function isHttpClientPackageInstalled(): bool
-    {
-        return interface_exists(HttpClientInterface::class);
-    }
 }
 
-interface TestableHttpClientInterface extends HttpClientInterface, LoggerAwareInterface, ResetInterface
-{
+if (interface_exists(HttpClientInterface::class)) {
+    interface TestableHttpClientInterface extends HttpClientInterface, LoggerAwareInterface, ResetInterface
+    {
+    }
 }
