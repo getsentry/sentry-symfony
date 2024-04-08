@@ -10,6 +10,7 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
 use function Sentry\continueTrace;
+use function Sentry\metrics;
 
 /**
  * This event listener acts on the master requests and starts a transaction
@@ -73,6 +74,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
         }
 
         $transaction->finish();
+        metrics()->flush();
     }
 
     /**
