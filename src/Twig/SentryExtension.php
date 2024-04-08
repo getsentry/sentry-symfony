@@ -10,6 +10,7 @@ use Twig\TwigFunction;
 
 use function Sentry\getBaggage;
 use function Sentry\getTraceparent;
+use function Sentry\getW3CTraceparent;
 
 final class SentryExtension extends AbstractExtension
 {
@@ -27,6 +28,7 @@ final class SentryExtension extends AbstractExtension
     {
         return [
             new TwigFunction('sentry_trace_meta', [$this, 'getTraceMeta'], ['is_safe' => ['html']]),
+            new TwigFunction('sentry_w3c_trace_meta', [$this, 'getW3CTraceMeta'], ['is_safe' => ['html']]),
             new TwigFunction('sentry_baggage_meta', [$this, 'getBaggageMeta'], ['is_safe' => ['html']]),
         ];
     }
@@ -37,6 +39,14 @@ final class SentryExtension extends AbstractExtension
     public function getTraceMeta(): string
     {
         return sprintf('<meta name="sentry-trace" content="%s" />', getTraceparent());
+    }
+
+    /**
+     * Returns an HTML meta tag named `traceparent`.
+     */
+    public function getW3CTraceMeta(): string
+    {
+        return sprintf('<meta name="traceparent" content="%s" />', getW3CTraceparent());
     }
 
     /**

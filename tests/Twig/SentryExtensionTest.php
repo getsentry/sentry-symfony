@@ -66,10 +66,55 @@ final class SentryExtensionTest extends TestCase
         $transaction = new Transaction(new TransactionContext());
         $transaction->setTraceId(new TraceId('a3c01c41d7b94b90aee23edac90f4319'));
         $transaction->setSpanId(new SpanId('e69c2aef0ec34f2a'));
+        $transaction->setSampled(true);
 
         $hub->setSpan($transaction);
 
-        $this->assertSame('<meta name="sentry-trace" content="a3c01c41d7b94b90aee23edac90f4319-e69c2aef0ec34f2a" />', $environment->render('foo.twig'));
+        $this->assertSame('<meta name="sentry-trace" content="a3c01c41d7b94b90aee23edac90f4319-e69c2aef0ec34f2a-1" />', $environment->render('foo.twig'));
+    }
+
+    public function testW3CTraceMetaFunctionWithNoActiveSpan(): void
+    {
+        $environment = new Environment(new ArrayLoader(['foo.twig' => '{{ sentry_w3c_trace_meta() }}']));
+        $environment->addExtension(new SentryExtension());
+
+        $propagationContext = PropagationContext::fromDefaults();
+        $propagationContext->setTraceId(new TraceId('566e3688a61d4bc888951642d6f14a19'));
+        $propagationContext->setSpanId(new SpanId('566e3688a61d4bc8'));
+
+        $hub = new Hub(null, new Scope($propagationContext));
+
+        SentrySdk::setCurrentHub($hub);
+
+        $this->assertSame('<meta name="traceparent" content="00-566e3688a61d4bc888951642d6f14a19-566e3688a61d4bc8-00" />', $environment->render('foo.twig'));
+    }
+
+    public function testW3CTraceMetaFunctionWithActiveSpan(): void
+    {
+        $environment = new Environment(new ArrayLoader(['foo.twig' => '{{ sentry_w3c_trace_meta() }}']));
+        $environment->addExtension(new SentryExtension());
+
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->atLeastOnce())
+            ->method('getOptions')
+            ->willReturn(new Options([
+                'traces_sample_rate' => 1.0,
+                'release' => '1.0.0',
+                'environment' => 'development',
+            ]));
+
+        $hub = new Hub($client);
+
+        SentrySdk::setCurrentHub($hub);
+
+        $transaction = new Transaction(new TransactionContext());
+        $transaction->setTraceId(new TraceId('a3c01c41d7b94b90aee23edac90f4319'));
+        $transaction->setSpanId(new SpanId('e69c2aef0ec34f2a'));
+        $transaction->setSampled(true);
+
+        $hub->setSpan($transaction);
+
+        $this->assertSame('<meta name="traceparent" content="00-a3c01c41d7b94b90aee23edac90f4319-e69c2aef0ec34f2a-01" />', $environment->render('foo.twig'));
     }
 
     public function testBaggageMetaFunctionWithNoActiveSpan(): void

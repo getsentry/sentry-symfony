@@ -39,7 +39,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
         $requestStartTime = $request->server->get('REQUEST_TIME_FLOAT', microtime(true));
 
         $context = continueTrace(
-            $request->headers->get('sentry-trace', ''),
+            $request->headers->get('sentry-trace') ?? $request->headers->get('traceparent', ''),
             $request->headers->get('baggage', '')
         );
         $context->setOp('http.server');

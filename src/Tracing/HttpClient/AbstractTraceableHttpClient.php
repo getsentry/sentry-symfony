@@ -18,6 +18,7 @@ use Symfony\Contracts\Service\ResetInterface;
 
 use function Sentry\getBaggage;
 use function Sentry\getTraceparent;
+use function Sentry\getW3CTraceparent;
 
 /**
  * This is an implementation of the {@see HttpClientInterface} that decorates
@@ -58,6 +59,7 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
             if (self::shouldAttachTracingHeaders($client, $uri)) {
                 $headers['baggage'] = getBaggage();
                 $headers['sentry-trace'] = getTraceparent();
+                $headers['traceparent'] = getW3CTraceparent();
             }
 
             $options['headers'] = $headers;
@@ -93,6 +95,7 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
         if (self::shouldAttachTracingHeaders($client, $uri)) {
             $headers['baggage'] = $childSpan->toBaggage();
             $headers['sentry-trace'] = $childSpan->toTraceparent();
+            $headers['traceparent'] = $childSpan->toW3CTraceparent();
         }
 
         $options['headers'] = $headers;
