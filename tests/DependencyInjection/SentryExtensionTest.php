@@ -198,25 +198,38 @@ abstract class SentryExtensionTest extends TestCase
         $container = $this->createContainerFromFixture('full');
         $optionsDefinition = $container->getDefinition('sentry.client.options');
         $expectedOptions = [
+            'dsn' => 'https://examplePublicKey@o0.ingest.sentry.io/0',
             'integrations' => new Reference(IntegrationConfigurator::class),
             'default_integrations' => false,
-            'send_attempts' => 1,
             'prefixes' => [$container->getParameter('kernel.project_dir')],
             'sample_rate' => 1,
+            'enable_tracing' => true,
             'traces_sample_rate' => 1,
-            'profiles_sample_rate' => 1,
             'traces_sampler' => new Reference('App\\Sentry\\Tracing\\TracesSampler'),
-            'trace_propagation_targets' => ['website.invalid'],
+            'profiles_sample_rate' => 1,
             'attach_stacktrace' => true,
+            'attach_metric_code_locations' => true,
             'context_lines' => 0,
-            'enable_compression' => true,
             'environment' => 'development',
             'logger' => 'php',
+            'spotlight' => true,
+            'spotlight_url' => 'http://localhost:8969',
             'release' => '4.0.x-dev',
             'server_name' => 'localhost',
+            'ignore_exceptions' => [
+                'Symfony\Component\HttpKernel\Exception\BadRequestHttpException',
+            ],
+            'ignore_transactions' => [
+                'GET tracing_ignored_transaction',
+            ],
             'before_send' => new Reference('App\\Sentry\\BeforeSendCallback'),
             'before_send_transaction' => new Reference('App\\Sentry\\BeforeSendTransactionCallback'),
-            'tags' => ['context' => 'development'],
+            'before_send_check_in' => new Reference('App\\Sentry\\BeforeSendCheckInCallback'),
+            'before_send_metrics' => new Reference('App\\Sentry\\BeforeSendMetricsCallback'),
+            'trace_propagation_targets' => ['website.invalid'],
+            'tags' => [
+                'context' => 'development'
+            ],
             'error_types' => \E_ALL,
             'max_breadcrumbs' => 1,
             'before_breadcrumb' => new Reference('App\\Sentry\\BeforeBreadcrumbCallback'),
@@ -224,20 +237,18 @@ abstract class SentryExtensionTest extends TestCase
             'in_app_include' => [$container->getParameter('kernel.project_dir')],
             'send_default_pii' => true,
             'max_value_length' => 255,
+            'transport' => new Reference('App\\Sentry\\Transport'),
+            'http_client' => new Reference('App\\Sentry\\HttpClient'),
             'http_proxy' => 'proxy.example.com:8080',
+            'http_proxy_authentication' => 'user:password',
             'http_timeout' => 10,
             'http_connect_timeout' => 15,
+            'http_ssl_verify_peer' => true,
+            'http_compression' => true,
             'capture_silenced_errors' => true,
             'max_request_body_size' => 'none',
             'class_serializers' => [
                 'App\\FooClass' => new Reference('App\\Sentry\\Serializer\\FooClassSerializer'),
-            ],
-            'dsn' => 'https://examplePublicKey@o0.ingest.sentry.io/0',
-            'ignore_exceptions' => [
-                'Symfony\Component\HttpKernel\Exception\BadRequestHttpException',
-            ],
-            'ignore_transactions' => [
-                'GET tracing_ignored_transaction',
             ],
         ];
 

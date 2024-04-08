@@ -8,6 +8,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 /** @var ContainerBuilder $container */
 $container->loadFromExtension('sentry', [
     'dsn' => 'https://examplePublicKey@o0.ingest.sentry.io/0',
+    'logger' => 'app.logger',
     'options' => [
         'integrations' => ['App\\Sentry\\Integration\\FooIntegration'],
         'default_integrations' => false,
