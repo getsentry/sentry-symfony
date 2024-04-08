@@ -8,7 +8,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\NullLogger;
-use Sentry\Client;
 use Sentry\ClientInterface;
 use Sentry\Options;
 use Sentry\SentryBundle\Tracing\HttpClient\AbstractTraceableResponse;
@@ -23,7 +22,7 @@ use Sentry\Tracing\SpanStatus;
 use Sentry\Tracing\TraceId;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
-use Sentry\Transport\NullTransport;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -48,7 +47,7 @@ final class TraceableHttpClientTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        if (!self::isHttpClientPackageInstalled()) {
+        if (!class_exists(HttpClient::class)) {
             self::markTestSkipped('This test requires the "symfony/http-client" Composer package to be installed.');
         }
     }
@@ -66,8 +65,7 @@ final class TraceableHttpClientTest extends TestCase
             'dsn' => 'http://public:secret@example.com/sentry/1',
         ]);
         $client = $this->createMock(ClientInterface::class);
-        $client
-            ->expects($this->once())
+        $client->expects($this->once())
             ->method('getOptions')
             ->willReturn($options);
 
@@ -95,6 +93,7 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame('GET', $response->getInfo('http_method'));
         $this->assertSame('https://username:password@www.example.com/test-page?foo=bar#baz', $response->getInfo('url'));
         $this->assertSame(['sentry-trace: ' . $spans[1]->toTraceparent()], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
+        $this->assertSame(['traceparent: ' . $spans[1]->toW3CTraceparent()], $mockResponse->getRequestOptions()['normalized_headers']['traceparent']);
         $this->assertSame(['baggage: ' . $transaction->toBaggage()], $mockResponse->getRequestOptions()['normalized_headers']['baggage']);
         $this->assertNotNull($transaction->getSpanRecorder());
 
@@ -124,7 +123,7 @@ final class TraceableHttpClientTest extends TestCase
     {
         $options = new Options([
             'dsn' => 'http://public:secret@example.com/sentry/1',
-            'trace_propagation_targets' => null,
+            'trace_propagation_targets' => [],
         ]);
         $client = $this->createMock(ClientInterface::class);
         $client->expects($this->once())
@@ -151,6 +150,7 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame('PUT', $response->getInfo('http_method'));
         $this->assertSame('https://www.example.com/test-page', $response->getInfo('url'));
         $this->assertArrayNotHasKey('sentry-trace', $mockResponse->getRequestOptions()['normalized_headers']);
+        $this->assertArrayNotHasKey('traceparent', $mockResponse->getRequestOptions()['normalized_headers']);
         $this->assertArrayNotHasKey('baggage', $mockResponse->getRequestOptions()['normalized_headers']);
         $this->assertNotNull($transaction->getSpanRecorder());
 
@@ -169,12 +169,16 @@ final class TraceableHttpClientTest extends TestCase
 
     public function testRequestDoesContainsTracingHeadersWithoutTransaction(): void
     {
-        $client = new Client(new Options([
+        $options = new Options([
             'dsn' => 'http://public:secret@example.com/sentry/1',
             'release' => '1.0.0',
             'environment' => 'test',
             'trace_propagation_targets' => ['www.example.com'],
-        ]), new NullTransport());
+        ]);
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->exactly(5))
+            ->method('getOptions')
+            ->willReturn($options);
 
         $propagationContext = PropagationContext::fromDefaults();
         $propagationContext->setTraceId(new TraceId('566e3688a61d4bc888951642d6f14a19'));
@@ -196,24 +200,28 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame('POST', $response->getInfo('http_method'));
         $this->assertSame('https://www.example.com/test-page', $response->getInfo('url'));
         $this->assertSame(['sentry-trace: 566e3688a61d4bc888951642d6f14a19-566e3688a61d4bc8'], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
+        $this->assertSame(['traceparent: 00-566e3688a61d4bc888951642d6f14a19-566e3688a61d4bc8-00'], $mockResponse->getRequestOptions()['normalized_headers']['traceparent']);
         $this->assertSame(['baggage: sentry-trace_id=566e3688a61d4bc888951642d6f14a19,sentry-public_key=public,sentry-release=1.0.0,sentry-environment=test'], $mockResponse->getRequestOptions()['normalized_headers']['baggage']);
     }
 
     public function testRequestSetsUnknownErrorAsSpanStatusIfResponseStatusCodeIsUnavailable(): void
     {
+        $options = new Options([
+            'dsn' => 'http://public:secret@example.com/sentry/1',
+        ]);
         $client = $this->createMock(ClientInterface::class);
-        $client->expects($this->once())
+        $client->expects($this->exactly(2))
             ->method('getOptions')
-            ->willReturn(new Options(['dsn' => 'http://public:secret@example.com/sentry/1']));
+            ->willReturn($options);
 
-        $transaction = new Transaction(new TransactionContext());
+        $transaction = new Transaction(new TransactionContext(), $this->hub);
         $transaction->initSpanRecorder();
 
         $this->hub->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
-        $this->hub->expects($this->once())
+        $this->hub->expects($this->exactly(2))
             ->method('getClient')
             ->willReturn($client);
 
@@ -353,13 +361,10 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame('GET', $response->getInfo('http_method'));
         $this->assertSame('https://www.example.org/test-page', $response->getInfo('url'));
     }
-
-    private static function isHttpClientPackageInstalled(): bool
-    {
-        return interface_exists(HttpClientInterface::class);
-    }
 }
 
-interface TestableHttpClientInterface extends HttpClientInterface, LoggerAwareInterface, ResetInterface
-{
+if (interface_exists(HttpClientInterface::class)) {
+    interface TestableHttpClientInterface extends HttpClientInterface, LoggerAwareInterface, ResetInterface
+    {
+    }
 }

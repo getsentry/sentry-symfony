@@ -6,8 +6,12 @@ sentry:
     capture_silenced_errors: false
     error_types: E_ALL & ~E_USER_DEPRECATED
     traces_sample_rate: 0
-    ignore_exceptions: 'Symfony\Component\HttpKernel\Exception\BadRequestHttpException'
+    ignore_exceptions:
+      - 'Symfony\Component\HttpKernel\Exception\BadRequestHttpException'
+      - 'Symfony\Component\ErrorHandler\Error\FatalError'
+      - 'Symfony\Component\Debug\Exception\FatalErrorException'
     ignore_transactions: 'GET tracing_ignored_transaction'
+    transport: 'Sentry\SentryBundle\Tests\End2End\StubTransport'
 
 framework:
   router: { resource: "%routing_config_dir%/routing.yml" }
@@ -22,10 +26,7 @@ services:
     alias: Sentry\State\HubInterface
     public: true
 
-  Sentry\SentryBundle\Tests\End2End\StubTransportFactory: ~
-
-  Sentry\Transport\TransportFactoryInterface:
-    alias: Sentry\SentryBundle\Tests\End2End\StubTransportFactory
+  Sentry\SentryBundle\Tests\End2End\StubTransport: ~
 
   Sentry\SentryBundle\Tests\End2End\App\Controller\MainController:
     autowire: true

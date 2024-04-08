@@ -18,6 +18,7 @@ use Symfony\Contracts\Service\ResetInterface;
 
 use function Sentry\getBaggage;
 use function Sentry\getTraceparent;
+use function Sentry\getW3CTraceparent;
 
 /**
  * This is an implementation of the {@see HttpClientInterface} that decorates
@@ -58,6 +59,7 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
             if (self::shouldAttachTracingHeaders($client, $uri)) {
                 $headers['baggage'] = getBaggage();
                 $headers['sentry-trace'] = getTraceparent();
+                $headers['traceparent'] = getW3CTraceparent();
             }
 
             $options['headers'] = $headers;
@@ -93,6 +95,7 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
         if (self::shouldAttachTracingHeaders($client, $uri)) {
             $headers['baggage'] = $childSpan->toBaggage();
             $headers['sentry-trace'] = $childSpan->toTraceparent();
+            $headers['traceparent'] = $childSpan->toW3CTraceparent();
         }
 
         $options['headers'] = $headers;
@@ -138,12 +141,8 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
 
             // Check if the request destination is allow listed in the trace_propagation_targets option.
             if (
-                null !== $sdkOptions->getTracePropagationTargets()
-                // Due to BC, we treat an empty array (the default) as all hosts are allow listed
-                && (
-                    [] === $sdkOptions->getTracePropagationTargets()
-                    || \in_array($uri->getHost(), $sdkOptions->getTracePropagationTargets())
-                )
+                null === $sdkOptions->getTracePropagationTargets()
+                || \in_array($uri->getHost(), $sdkOptions->getTracePropagationTargets())
             ) {
                 return true;
             }

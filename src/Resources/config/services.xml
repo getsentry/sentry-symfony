@@ -9,15 +9,6 @@
 
         <service id="Sentry\ClientInterface" alias="sentry.client" />
 
-        <service id="Sentry\Transport\TransportFactoryInterface" class="Sentry\SentryBundle\Transport\TransportFactory">
-            <argument type="service" id="Psr\Http\Message\UriFactoryInterface" on-invalid="ignore" />
-            <argument type="service" id="Psr\Http\Message\RequestFactoryInterface" on-invalid="ignore" />
-            <argument type="service" id="Psr\Http\Message\ResponseFactoryInterface" on-invalid="ignore" />
-            <argument type="service" id="Psr\Http\Message\StreamFactoryInterface" on-invalid="ignore" />
-            <argument>null</argument>
-            <argument /> <!-- $logger -->
-        </service>
-
         <service id="Sentry\State\HubInterface">
             <factory class="Sentry\State\HubAdapter" method="getInstance" />
             <call method="bindClient">

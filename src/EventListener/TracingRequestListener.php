@@ -10,6 +10,7 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
 use function Sentry\continueTrace;
+use function Sentry\metrics;
 
 /**
  * This event listener acts on the master requests and starts a transaction
@@ -38,7 +39,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
         $requestStartTime = $request->server->get('REQUEST_TIME_FLOAT', microtime(true));
 
         $context = continueTrace(
-            $request->headers->get('sentry-trace', ''),
+            $request->headers->get('sentry-trace') ?? $request->headers->get('traceparent', ''),
             $request->headers->get('baggage', '')
         );
         $context->setOp('http.server');
@@ -73,6 +74,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
         }
 
         $transaction->finish();
+        metrics()->flush();
     }
 
     /**
@@ -86,7 +88,8 @@ final class TracingRequestListener extends AbstractTracingRequestListener
     {
         $client = $this->hub->getClient();
         $httpFlavor = $this->getHttpFlavor($request);
-        $tags = [
+
+        $data = [
             'net.host.port' => (string) $request->getPort(),
             'http.request.method' => $request->getMethod(),
             'http.url' => $request->getUri(),
@@ -94,20 +97,20 @@ final class TracingRequestListener extends AbstractTracingRequestListener
         ];
 
         if (null !== $httpFlavor) {
-            $tags['http.flavor'] = $httpFlavor;
+            $data['http.flavor'] = $httpFlavor;
         }
 
         if (false !== filter_var($request->getHost(), \FILTER_VALIDATE_IP)) {
-            $tags['net.host.ip'] = $request->getHost();
+            $data['net.host.ip'] = $request->getHost();
         } else {
-            $tags['net.host.name'] = $request->getHost();
+            $data['net.host.name'] = $request->getHost();
         }
 
         if (null !== $request->getClientIp() && null !== $client && $client->getOptions()->shouldSendDefaultPii()) {
-            $tags['net.peer.ip'] = $request->getClientIp();
+            $data['net.peer.ip'] = $request->getClientIp();
         }
 
-        return $tags;
+        return $data;
     }
 
     /**

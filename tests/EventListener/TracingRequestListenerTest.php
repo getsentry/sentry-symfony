@@ -124,6 +124,43 @@ final class TracingRequestListenerTest extends TestCase
             $transactionContext,
         ];
 
+        $samplingContext = DynamicSamplingContext::fromHeader('');
+        $samplingContext->freeze();
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setTraceId(new TraceId('566e3688a61d4bc888951642d6f14a19'));
+        $transactionContext->setParentSpanId(new SpanId('566e3688a61d4bc8'));
+        $transactionContext->setParentSampled(true);
+        $transactionContext->setName('GET http://www.example.com/');
+        $transactionContext->setSource(TransactionSource::url());
+        $transactionContext->setOp('http.server');
+        $transactionContext->setStartTimestamp(1613493597.010275);
+        $transactionContext->setData([
+            'net.host.port' => '80',
+            'http.request.method' => 'GET',
+            'http.url' => 'http://www.example.com/',
+            'http.flavor' => '1.1',
+            'route' => '<unknown>',
+            'net.host.name' => 'www.example.com',
+        ]);
+        $transactionContext->getMetadata()->setDynamicSamplingContext($samplingContext);
+
+        yield 'request.headers.traceparent EXISTS' => [
+            new Options(),
+            Request::create(
+                'http://www.example.com',
+                'GET',
+                [],
+                [],
+                [],
+                [
+                    'REQUEST_TIME_FLOAT' => 1613493597.010275,
+                    'HTTP_traceparent' => '00-566e3688a61d4bc888951642d6f14a19-566e3688a61d4bc8-01',
+                ]
+            ),
+            $transactionContext,
+        ];
+
         $samplingContext = DynamicSamplingContext::fromHeader('sentry-trace_id=566e3688a61d4bc888951642d6f14a19,sentry-public_key=public,sentry-sample_rate=1');
         $samplingContext->freeze();
 
@@ -432,7 +469,6 @@ final class TracingRequestListenerTest extends TestCase
         ));
 
         $this->assertSame(SpanStatus::ok(), $transaction->getStatus());
-        $this->assertSame(['http.status_code' => '200'], $transaction->getTags());
     }
 
     public function testHandleResponseRequestEventDoesNothingIfNoTransactionIsSetOnHub(): void

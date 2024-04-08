@@ -30,7 +30,7 @@ jobs:
           composer-options: --prefer-dist
 
       - name: Run script
-        run: composer phpcs
+        run: vendor/bin/php-cs-fixer fix --verbose --diff --dry-run
 
   phpstan:
     name: PHPStan
@@ -50,7 +50,7 @@ jobs:
           composer-options: --prefer-dist
 
       - name: Run script
-        run: composer phpstan
+        run: vendor/bin/phpstan analyse
 
   psalm:
     name: Psalm
@@ -70,4 +70,4 @@ jobs:
           composer-options: --prefer-dist
 
       - name: Run script
-        run: composer psalm -- --php-version=8.0
+        run: vendor/bin/psalm --php-version=8.0

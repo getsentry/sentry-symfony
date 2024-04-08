@@ -9,7 +9,6 @@ use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
-use Sentry\Integration\IgnoreErrorsIntegration;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
@@ -26,11 +25,8 @@ use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
-use Sentry\Serializer\Serializer;
-use Sentry\Transport\TransportFactoryInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Console\ConsoleEvents;
-use Symfony\Component\Debug\Exception\FatalErrorException;
 use Symfony\Component\DependencyInjection\Compiler\ResolveParameterPlaceHoldersPass;
 use Symfony\Component\DependencyInjection\Compiler\ResolveTaggedIteratorArgumentPass;
 use Symfony\Component\DependencyInjection\Compiler\ValidateEnvPlaceholdersPass;
@@ -38,7 +34,6 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\EnvPlaceholderParameterBag;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\ErrorHandler\Error\FatalError;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\TraceableHttpClient;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -203,25 +198,38 @@ abstract class SentryExtensionTest extends TestCase
         $container = $this->createContainerFromFixture('full');
         $optionsDefinition = $container->getDefinition('sentry.client.options');
         $expectedOptions = [
+            'dsn' => 'https://examplePublicKey@o0.ingest.sentry.io/0',
             'integrations' => new Reference(IntegrationConfigurator::class),
             'default_integrations' => false,
-            'send_attempts' => 1,
             'prefixes' => [$container->getParameter('kernel.project_dir')],
             'sample_rate' => 1,
+            'enable_tracing' => true,
             'traces_sample_rate' => 1,
-            'profiles_sample_rate' => 1,
             'traces_sampler' => new Reference('App\\Sentry\\Tracing\\TracesSampler'),
-            'trace_propagation_targets' => ['website.invalid'],
+            'profiles_sample_rate' => 1,
             'attach_stacktrace' => true,
+            'attach_metric_code_locations' => true,
             'context_lines' => 0,
-            'enable_compression' => true,
             'environment' => 'development',
             'logger' => 'php',
+            'spotlight' => true,
+            'spotlight_url' => 'http://localhost:8969',
             'release' => '4.0.x-dev',
             'server_name' => 'localhost',
+            'ignore_exceptions' => [
+                'Symfony\Component\HttpKernel\Exception\BadRequestHttpException',
+            ],
+            'ignore_transactions' => [
+                'GET tracing_ignored_transaction',
+            ],
             'before_send' => new Reference('App\\Sentry\\BeforeSendCallback'),
             'before_send_transaction' => new Reference('App\\Sentry\\BeforeSendTransactionCallback'),
-            'tags' => ['context' => 'development'],
+            'before_send_check_in' => new Reference('App\\Sentry\\BeforeSendCheckInCallback'),
+            'before_send_metrics' => new Reference('App\\Sentry\\BeforeSendMetricsCallback'),
+            'trace_propagation_targets' => ['website.invalid'],
+            'tags' => [
+                'context' => 'development',
+            ],
             'error_types' => \E_ALL,
             'max_breadcrumbs' => 1,
             'before_breadcrumb' => new Reference('App\\Sentry\\BeforeBreadcrumbCallback'),
@@ -229,20 +237,18 @@ abstract class SentryExtensionTest extends TestCase
             'in_app_include' => [$container->getParameter('kernel.project_dir')],
             'send_default_pii' => true,
             'max_value_length' => 255,
+            'transport' => new Reference('App\\Sentry\\Transport'),
+            'http_client' => new Reference('App\\Sentry\\HttpClient'),
             'http_proxy' => 'proxy.example.com:8080',
+            'http_proxy_authentication' => 'user:password',
             'http_timeout' => 10,
             'http_connect_timeout' => 15,
+            'http_ssl_verify_peer' => true,
+            'http_compression' => true,
             'capture_silenced_errors' => true,
             'max_request_body_size' => 'none',
             'class_serializers' => [
                 'App\\FooClass' => new Reference('App\\Sentry\\Serializer\\FooClassSerializer'),
-            ],
-            'dsn' => 'https://examplePublicKey@o0.ingest.sentry.io/0',
-            'ignore_exceptions' => [
-                'Symfony\Component\HttpKernel\Exception\BadRequestHttpException',
-            ],
-            'ignore_transactions' => [
-                'GET tracing_ignored_transaction',
             ],
         ];
 
@@ -251,14 +257,6 @@ abstract class SentryExtensionTest extends TestCase
 
         $integrationConfiguratorDefinition = $container->getDefinition(IntegrationConfigurator::class);
         $expectedIntegrations = [
-            new Definition(IgnoreErrorsIntegration::class, [
-                [
-                    'ignore_exceptions' => [
-                        FatalError::class,
-                        FatalErrorException::class,
-                    ],
-                ],
-            ]),
             new Reference('App\\Sentry\\Integration\\FooIntegration'),
         ];
 
@@ -274,32 +272,15 @@ abstract class SentryExtensionTest extends TestCase
 
         $methodCalls = $factory[0]->getMethodCalls();
 
-        $this->assertCount(6, $methodCalls);
+        $this->assertCount(4, $methodCalls);
         $this->assertDefinitionMethodCallAt($methodCalls[0], 'setSdkIdentifier', [SentryBundle::SDK_IDENTIFIER]);
         $this->assertDefinitionMethodCallAt($methodCalls[1], 'setSdkVersion', [SentryBundle::SDK_VERSION]);
-        $this->assertDefinitionMethodCallAt($methodCalls[2], 'setTransportFactory', [new Reference('App\\Sentry\\Transport\\TransportFactory')]);
-        $this->assertDefinitionMethodCallAt($methodCalls[5], 'setLogger', [new Reference('app.logger')]);
+        $this->assertDefinitionMethodCallAt($methodCalls[3], 'setLogger', [new Reference('app.logger')]);
 
-        $this->assertSame('setSerializer', $methodCalls[3][0]);
-        $this->assertInstanceOf(Definition::class, $methodCalls[3][1][0]);
-        $this->assertSame(Serializer::class, $methodCalls[3][1][0]->getClass());
-        $this->assertEquals($methodCalls[3][1][0]->getArgument(0), new Reference('sentry.client.options'));
-
-        $this->assertSame('setRepresentationSerializer', $methodCalls[4][0]);
-        $this->assertInstanceOf(Definition::class, $methodCalls[4][1][0]);
-        $this->assertSame(RepresentationSerializer::class, $methodCalls[4][1][0]->getClass());
-        $this->assertEquals($methodCalls[4][1][0]->getArgument(0), new Reference('sentry.client.options'));
-    }
-
-    public function testLoggerIsPassedToTransportFactory(): void
-    {
-        $container = $this->createContainerFromFixture('full');
-
-        $transportFactoryDefinition = $container->findDefinition(TransportFactoryInterface::class);
-        $logger = $transportFactoryDefinition->getArgument('$logger');
-
-        $this->assertInstanceOf(Reference::class, $logger);
-        $this->assertSame('app.logger', $logger->__toString());
+        $this->assertSame('setRepresentationSerializer', $methodCalls[2][0]);
+        $this->assertInstanceOf(Definition::class, $methodCalls[2][1][0]);
+        $this->assertSame(RepresentationSerializer::class, $methodCalls[2][1][0]->getClass());
+        $this->assertEquals($methodCalls[2][1][0]->getArgument(0), new Reference('sentry.client.options'));
     }
 
     public function testErrorTypesOptionIsParsedFromStringToIntegerValue(): void
@@ -308,25 +289,6 @@ abstract class SentryExtensionTest extends TestCase
         $optionsDefinition = $container->getDefinition('sentry.client.options');
 
         $this->assertSame(\E_ALL & ~(\E_NOTICE | \E_STRICT | \E_DEPRECATED), $optionsDefinition->getArgument(0)['error_types']);
-    }
-
-    public function testIgnoreErrorsIntegrationIsNotAddedTwiceIfAlreadyConfigured(): void
-    {
-        $container = $this->createContainerFromFixture('ignore_errors_integration_overridden');
-        $integrations = $container->getDefinition(IntegrationConfigurator::class)->getArgument(0);
-        $ignoreErrorsIntegrationsCount = 0;
-
-        foreach ($integrations as $integration) {
-            if ($integration instanceof Reference && IgnoreErrorsIntegration::class === (string) $integration) {
-                ++$ignoreErrorsIntegrationsCount;
-            }
-
-            if ($integration instanceof Definition && IgnoreErrorsIntegration::class === $integration->getClass()) {
-                ++$ignoreErrorsIntegrationsCount;
-            }
-        }
-
-        $this->assertSame(1, $ignoreErrorsIntegrationsCount);
     }
 
     /**
@@ -451,7 +413,7 @@ abstract class SentryExtensionTest extends TestCase
 
         $methodCalls = $factory[0]->getMethodCalls();
 
-        $this->assertDefinitionMethodCallAt($methodCalls[5], 'setLogger', [new Reference(NullLogger::class, ContainerBuilder::IGNORE_ON_INVALID_REFERENCE)]);
+        $this->assertDefinitionMethodCallAt($methodCalls[3], 'setLogger', [new Reference(NullLogger::class, ContainerBuilder::IGNORE_ON_INVALID_REFERENCE)]);
     }
 
     /**

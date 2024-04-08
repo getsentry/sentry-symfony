@@ -87,7 +87,7 @@ class TracingEnd2EndTest extends WebTestCase
     {
         $events = file_get_contents(self::SENT_EVENTS_LOG);
         $this->assertNotFalse($events, 'Cannot read sent events log');
-        $listOfTracingEvents = array_filter(explode(StubTransportFactory::SEPARATOR, trim($events)), static function (string $elem) {
+        $listOfTracingEvents = array_filter(explode(StubTransport::SEPARATOR, trim($events)), static function (string $elem) {
             return str_contains('TRACING', $elem);
         });
 

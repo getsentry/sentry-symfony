@@ -35,28 +35,38 @@
         </xsd:sequence>
 
         <xsd:attribute name="default-integrations" type="xsd:boolean" />
-        <xsd:attribute name="send-attempts" type="xsd:integer" />
         <xsd:attribute name="sample-rate" type="xsd:float" />
+        <xsd:attribute name="enable-tracing" type="xsd:boolean" />
         <xsd:attribute name="traces-sample-rate" type="xsd:float" />
         <xsd:attribute name="profiles-sample-rate" type="xsd:float" />
         <xsd:attribute name="traces-sampler" type="xsd:string" />
         <xsd:attribute name="attach-stacktrace" type="xsd:boolean" />
+        <xsd:attribute name="attach-metric-code-locations" type="xsd:boolean" />
         <xsd:attribute name="context-lines" type="xsd:integer" />
         <xsd:attribute name="enable-compression" type="xsd:boolean" />
         <xsd:attribute name="environment" type="xsd:string" />
         <xsd:attribute name="logger" type="xsd:string" />
+        <xsd:attribute name="spotlight" type="xsd:boolean" />
+        <xsd:attribute name="spotlight-url" type="xsd:string" />
         <xsd:attribute name="release" type="xsd:string" />
         <xsd:attribute name="server-name" type="xsd:string" />
         <xsd:attribute name="before-send" type="xsd:string" />
         <xsd:attribute name="before-send-transaction" type="xsd:string" />
+        <xsd:attribute name="before-send-check-in" type="xsd:string" />
+        <xsd:attribute name="before-send-metrics" type="xsd:string" />
         <xsd:attribute name="error-types" type="xsd:string" />
         <xsd:attribute name="max-breadcrumbs" type="xsd:integer" />
         <xsd:attribute name="before-breadcrumb" type="xsd:string" />
         <xsd:attribute name="send-default-pii" type="xsd:boolean" />
         <xsd:attribute name="max-value-length" type="xsd:integer" />
+        <xsd:attribute name="transport" type="xsd:string" />
+        <xsd:attribute name="http-client" type="xsd:string" />
         <xsd:attribute name="http-proxy" type="xsd:string" />
-        <xsd:attribute name="http-timeout" type="xsd:integer" />
+        <xsd:attribute name="http-proxy-authentication" type="xsd:string" />
         <xsd:attribute name="http-connect-timeout" type="xsd:integer" />
+        <xsd:attribute name="http-timeout" type="xsd:integer" />
+        <xsd:attribute name="http-ssl-verify-peer" type="xsd:boolean" />
+        <xsd:attribute name="http-compression" type="xsd:boolean" />
         <xsd:attribute name="capture-silenced-errors" type="xsd:boolean" />
         <xsd:attribute name="max-request-body-size" type="max-request-body-size" />
     </xsd:complexType>
