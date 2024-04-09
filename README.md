@@ -13,7 +13,8 @@ _Bad software is everywhere, and we're tired of it. Sentry is on a mission to he
 [![Total Downloads](https://poser.pugx.org/sentry/sentry-symfony/downloads)](https://packagist.org/packages/sentry/sentry-symfony)
 [![Monthly Downloads](https://poser.pugx.org/sentry/sentry-symfony/d/monthly)](https://packagist.org/packages/sentry/sentry-symfony)
 
-![CI](https://github.com/getsentry/sentry-symfony/workflows/CI/badge.svg) [![Coverage Status][Master Code Coverage Image]][Master Code Coverage]
+[![CI](https://github.com/getsentry/sentry-symfony/actions/workflows/tests.yaml/badge.svg)](https://github.com/getsentry/sentry-symfony/actions/workflows/tests.yaml)
+[![Coverage Status][Master Code Coverage Image]][Master Code Coverage]
 [![Discord](https://img.shields.io/discord/621778831602221064)](https://discord.gg/cWnMQeA)
 
 This is the official Symfony SDK for [Sentry](https://getsentry.com/).
