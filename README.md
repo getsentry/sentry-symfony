@@ -39,7 +39,7 @@ SENTRY_DSN="https://public@sentry.example.com/1"
 ###< sentry/sentry-symfony ###
 ```
 
-### Usgae
+### Usage
 
 ```php
 use function Sentry\captureException;
