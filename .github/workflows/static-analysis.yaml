@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@8872c784b04a1420e81191df5d64fbd59d3d3033 # v2.30.2
+        uses: shivammathur/setup-php@efffd0e4f2504f936fcfe3b69293d31ce0e2fd7a # v2.30.3
         with:
           php-version: '8.2'
 
@@ -40,7 +40,7 @@ jobs:
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@8872c784b04a1420e81191df5d64fbd59d3d3033 # v2.30.2
+        uses: shivammathur/setup-php@efffd0e4f2504f936fcfe3b69293d31ce0e2fd7a # v2.30.3
         with:
           php-version: '8.3'
 
@@ -60,7 +60,7 @@ jobs:
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@8872c784b04a1420e81191df5d64fbd59d3d3033 # v2.30.2
+        uses: shivammathur/setup-php@efffd0e4f2504f936fcfe3b69293d31ce0e2fd7a # v2.30.3
         with:
           php-version: '8.3'
 
