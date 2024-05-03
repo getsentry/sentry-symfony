@@ -195,12 +195,13 @@ trait TraceableCacheAdapterTrait
      * @phpstan-template TResult
      *
      * @phpstan-param \Closure(): TResult $callback
+     * @phpstan-param string $key
      *
-     * @phpstan-return TResult
+     * @phpstan-return callable(): CacheItem
      */
     private function setCallbackWrapper(callable $callback, string $key): callable
     {
-        return function () use ($callback, $key) {
+        return function () use ($callback, $key): CacheItem {
             return $callback($this->decoratedAdapter->getItem($key));
         };
     }
