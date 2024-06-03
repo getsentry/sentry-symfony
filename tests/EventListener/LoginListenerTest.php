@@ -418,6 +418,8 @@ final class UnauthenticatedTokenStub extends AbstractToken
 
 final class AuthenticatedTokenStub extends AbstractToken
 {
+    private bool $authenticated = true;
+
     /**
      * @param UserInterface|\Stringable|string|null $user
      */
@@ -429,9 +431,16 @@ final class AuthenticatedTokenStub extends AbstractToken
             $this->setUser($user);
         }
 
-        if (version_compare(Kernel::VERSION, '5.4', '<=') && method_exists($this, 'setAuthenticated')) {
+        if (version_compare(Kernel::VERSION, '5.4', '>') && method_exists($this, 'setAuthenticated')) {
+            $this->authenticated = true;
+        } else {
             $this->setAuthenticated(true);
         }
+    }
+
+    public function isAuthenticated(): bool
+    {
+        return $this->authenticated;
     }
 
     public function getCredentials(): ?string
