@@ -55,7 +55,24 @@ final class ErrorTypesParser
         $output = preg_replace_callback('/(E_[A-Z_]+)/', static function (array $matches) {
             if (\defined($matches[1])) {
                 $constant = \constant($matches[1]);
-                return \is_string($constant) ? $constant : (string) $constant;
+
+                if (\is_string($constant)) {
+                    return $constant;
+                }
+                elseif (\is_int($constant)) {
+                    return (string) $constant;
+                }
+                elseif (\is_array($constant)) {
+                    return implode(' | ', array_map(static function ($value) {
+                        return \is_string($value) ? $value : (string) $value;
+                    }, $constant));
+                }
+                elseif (\is_object($constant)) {
+                    return get_class($constant);
+                }
+                else { // Non-scalar values
+                    return '';
+                }
             }
 
             return $matches[0];
