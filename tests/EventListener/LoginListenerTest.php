@@ -496,6 +496,7 @@ class LegacyAuthenticatedTokenStub extends AbstractToken
 {
     /**
      * @var bool
+     *
      * @phpstan-ignore-next-line
      */
     private $authenticated = false;
