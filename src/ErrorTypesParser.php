@@ -58,19 +58,15 @@ final class ErrorTypesParser
 
                 if (\is_string($constant)) {
                     return $constant;
-                }
-                elseif (\is_int($constant)) {
+                } elseif (\is_int($constant)) {
                     return (string) $constant;
-                }
-                elseif (\is_array($constant)) {
+                } elseif (\is_array($constant)) {
                     return implode(' | ', array_map(static function ($value) {
                         return \is_string($value) ? $value : (string) $value;
                     }, $constant));
-                }
-                elseif (\is_object($constant)) {
-                    return get_class($constant);
-                }
-                else { // Non-scalar values
+                } elseif (\is_object($constant)) {
+                    return \get_class($constant);
+                } else { // Non-scalar values
                     return '';
                 }
             }
