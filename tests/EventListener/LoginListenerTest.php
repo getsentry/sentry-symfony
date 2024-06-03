@@ -285,6 +285,7 @@ final class LoginListenerTest extends TestCase
             ];
         } else {
             yield 'If the user is an object implementing the Stringable interface, then the __toString() method is invoked' => [
+                // @phpstan-ignore-next-line
                 new AuthenticatedTokenStub(new class() implements \Stringable {
                     public function __toString(): string
                     {
@@ -495,10 +496,12 @@ class LegacyAuthenticatedTokenStub extends AbstractToken
 {
     /**
      * @var bool
+     * @phpstan-ignore-next-line
      */
     private $authenticated = false;
 
     /**
+     * @phpstan-ignore-next-line
      * @param UserInterface|\Stringable|string|null $user
      */
     public function __construct($user)
@@ -526,10 +529,12 @@ final class AuthenticatedTokenStub extends AbstractToken
 {
     /**
      * @var bool
+     * @phpstan-ignore-next-line
      */
     private $authenticated = false;
 
     /**
+     * @phpstan-ignore-next-line
      * @param UserInterface|\Stringable|string|null $user
      */
     public function __construct($user)
