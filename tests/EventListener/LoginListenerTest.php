@@ -418,6 +418,9 @@ final class UnauthenticatedTokenStub extends AbstractToken
 
 final class AuthenticatedTokenStub extends AbstractToken
 {
+    /**
+     * @var boolean
+     */
     private $authenticated = false;
 
     /**
