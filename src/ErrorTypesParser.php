@@ -55,7 +55,7 @@ final class ErrorTypesParser
         $output = preg_replace_callback('/(E_[A-Z_]+)/', static function (array $matches) {
             if (\defined($matches[1])) {
                 $constant = \constant($matches[1]);
-                return is_string($constant) ? $constant : (string) $constant;
+                return \is_string($constant) ? $constant : (string) $constant;
             }
 
             return $matches[0];
