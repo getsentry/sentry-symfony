@@ -183,14 +183,13 @@ final class LoginListenerTest extends TestCase
 
     public function authenticationTokenDataProvider(): \Generator
     {
-        if(version_compare(Kernel::VERSION, '5.4', '<')) {
+        if (version_compare(Kernel::VERSION, '5.4', '<')) {
             yield 'If the username is already set on the User context, then it is not overridden' => [
                 new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub()),
                 new UserDataBag('bar_user'),
                 new UserDataBag('bar_user'),
             ];
-        }
-        else {
+        } else {
             yield 'If the username is already set on the User context, then it is not overridden' => [
                 new AuthenticatedTokenStub(new UserWithIdentifierStub()),
                 new UserDataBag('bar_user'),
@@ -198,14 +197,13 @@ final class LoginListenerTest extends TestCase
             ];
         }
 
-        if(version_compare(Kernel::VERSION, '5.4', '<')) {
+        if (version_compare(Kernel::VERSION, '5.4', '<')) {
             yield 'If the username is not set on the User context, then it is retrieved from the token' => [
                 new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub()),
                 null,
                 new UserDataBag('foo_user'),
             ];
-        }
-        else {
+        } else {
             yield 'If the username is not set on the User context, then it is retrieved from the token' => [
                 new AuthenticatedTokenStub(new UserWithIdentifierStub()),
                 null,
@@ -246,14 +244,13 @@ final class LoginListenerTest extends TestCase
             return;
         }
 
-        if(version_compare(Kernel::VERSION, '5.0', '<')) {
+        if (version_compare(Kernel::VERSION, '5.0', '<')) {
             yield 'If the user is a string, then the value is used as-is' => [
                 new LegacyAuthenticatedTokenStub('foo_user'),
                 null,
                 new UserDataBag('foo_user'),
             ];
-        }
-        else {
+        } else {
             yield 'If the user is a string, then the value is used as-is' => [
                 new AuthenticatedTokenStub('foo_user'),
                 null,
@@ -261,14 +258,13 @@ final class LoginListenerTest extends TestCase
             ];
         }
 
-        if(version_compare(Kernel::VERSION, '5.0', '<')) {
+        if (version_compare(Kernel::VERSION, '5.0', '<')) {
             yield 'If the user is an instance of the UserInterface interface but the getUserIdentifier() method does not exist, then the getUsername() method is invoked' => [
                 new LegacyAuthenticatedTokenStub(new UserWithoutIdentifierStub()),
                 null,
                 new UserDataBag('foo_user'),
             ];
-        }
-        else {
+        } else {
             yield 'If the user is an instance of the UserInterface interface but the getUserIdentifier() method does not exist, then the getUsername() method is invoked' => [
                 new AuthenticatedTokenStub(new UserWithoutIdentifierStub()),
                 null,
@@ -276,7 +272,7 @@ final class LoginListenerTest extends TestCase
             ];
         }
 
-        if(version_compare(Kernel::VERSION, '5.0', '<')) {
+        if (version_compare(Kernel::VERSION, '5.0', '<')) {
             yield 'If the user is an object implementing the Stringable interface, then the __toString() method is invoked' => [
                 new LegacyAuthenticatedTokenStub(new class() implements \Stringable {
                     public function __toString(): string
@@ -287,8 +283,7 @@ final class LoginListenerTest extends TestCase
                 null,
                 new UserDataBag('foo_user'),
             ];
-        }
-        else {
+        } else {
             yield 'If the user is an object implementing the Stringable interface, then the __toString() method is invoked' => [
                 new AuthenticatedTokenStub(new class() implements \Stringable {
                     public function __toString(): string
@@ -362,7 +357,7 @@ final class LoginListenerTest extends TestCase
         $this->hub->expects($this->never())
             ->method('configureScope');
 
-        if(version_compare(Kernel::VERSION, '5.4', '<')) {
+        if (version_compare(Kernel::VERSION, '5.4', '<')) {
             $this->listener->handleLoginSuccessEvent(new LoginSuccessEvent(
                 $this->createMock(AuthenticatorInterface::class),
                 new SelfValidatingPassport(new UserBadge('foo_passport_user')),
@@ -371,8 +366,7 @@ final class LoginListenerTest extends TestCase
                 null,
                 'main'
             ));
-        }
-        else {
+        } else {
             $this->listener->handleLoginSuccessEvent(new LoginSuccessEvent(
                 $this->createMock(AuthenticatorInterface::class),
                 new SelfValidatingPassport(new UserBadge('foo_passport_user')),
@@ -402,7 +396,7 @@ final class LoginListenerTest extends TestCase
         $this->hub->expects($this->never())
             ->method('configureScope');
 
-        if(version_compare(Kernel::VERSION, '5.4', '<')) {
+        if (version_compare(Kernel::VERSION, '5.4', '<')) {
             $this->listener->handleLoginSuccessEvent(new LoginSuccessEvent(
                 $this->createMock(AuthenticatorInterface::class),
                 new SelfValidatingPassport(new UserBadge('foo_passport_user')),
@@ -411,8 +405,7 @@ final class LoginListenerTest extends TestCase
                 null,
                 'main'
             ));
-        }
-        else {
+        } else {
             $this->listener->handleLoginSuccessEvent(new LoginSuccessEvent(
                 $this->createMock(AuthenticatorInterface::class),
                 new SelfValidatingPassport(new UserBadge('foo_passport_user')),
@@ -454,8 +447,7 @@ final class LoginListenerTest extends TestCase
 
         if (version_compare(Kernel::VERSION, '5.4', '<')) {
             $this->listener->handleAuthenticationSuccessEvent(new AuthenticationSuccessEvent(new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())));
-        }
-        else {
+        } else {
             $this->listener->handleAuthenticationSuccessEvent(new AuthenticationSuccessEvent(new AuthenticatedTokenStub(new UserWithIdentifierStub())));
         }
     }
@@ -480,8 +472,7 @@ final class LoginListenerTest extends TestCase
 
         if (version_compare(Kernel::VERSION, '5.4', '<')) {
             $this->listener->handleAuthenticationSuccessEvent(new AuthenticationSuccessEvent(new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())));
-        }
-        else {
+        } else {
             $this->listener->handleAuthenticationSuccessEvent(new AuthenticationSuccessEvent(new AuthenticatedTokenStub(new UserWithIdentifierStub())));
         }
     }
@@ -503,7 +494,7 @@ final class UnauthenticatedTokenStub extends AbstractToken
 class LegacyAuthenticatedTokenStub extends AbstractToken
 {
     /**
-     * @var boolean
+     * @var bool
      */
     private $authenticated = false;
 
@@ -531,11 +522,10 @@ class LegacyAuthenticatedTokenStub extends AbstractToken
     }
 }
 
-
 final class AuthenticatedTokenStub extends AbstractToken
 {
     /**
-     * @var boolean
+     * @var bool
      */
     private $authenticated = false;
 
@@ -567,4 +557,3 @@ final class AuthenticatedTokenStub extends AbstractToken
         return null;
     }
 }
-
