@@ -418,7 +418,7 @@ final class UnauthenticatedTokenStub extends AbstractToken
 
 final class AuthenticatedTokenStub extends AbstractToken
 {
-    private bool $authenticated = true;
+    private $authenticated = false;
 
     /**
      * @param UserInterface|\Stringable|string|null $user
