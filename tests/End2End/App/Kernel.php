@@ -44,7 +44,7 @@ class Kernel extends SymfonyKernel
             $loader->load(__DIR__ . '/deprecations_for_5.yml');
         }
 
-        if (self::VERSION_ID >= 50400) {
+        if (self::VERSION_ID == 50400) {
             $loader->load(__DIR__ . '/deprecations_for_54.yml');
         }
 
