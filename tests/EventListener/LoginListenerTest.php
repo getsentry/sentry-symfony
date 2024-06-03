@@ -431,10 +431,10 @@ final class AuthenticatedTokenStub extends AbstractToken
             $this->setUser($user);
         }
 
-        if (version_compare(Kernel::VERSION, '5.4', '>') && method_exists($this, 'setAuthenticated')) {
-            $this->authenticated = true;
-        } else {
+        if (version_compare(Kernel::VERSION, '5.4', '<') && method_exists($this, 'setAuthenticated')) {
             $this->setAuthenticated(true);
+        } else {
+            $this->authenticated = true;
         }
     }
 
