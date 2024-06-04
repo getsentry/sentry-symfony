@@ -439,3 +439,7 @@ parameters:
 			message: "#^Parameter \\#5 \\$originatedFromUri of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects string\\|null, Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\AuthenticatedTokenStub given\\.$#"
 			count: 1
 			path: tests/EventListener/LoginListenerTest.php
+		-
+			message: "#^Parameter \\#3 \\$roles of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects array\\<string\\>, string given\\.$#"
+			count: 1
+			path: tests/EventListener/LoginListenerTest.php

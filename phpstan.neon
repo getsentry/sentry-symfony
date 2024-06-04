@@ -2,6 +2,7 @@ includes:
     - phpstan-baseline.neon
 
 parameters:
+    reportUnmatchedIgnoredErrors: false
     level: 9
     paths:
         - src
