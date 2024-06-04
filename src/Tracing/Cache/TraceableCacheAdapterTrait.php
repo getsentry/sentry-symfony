@@ -192,9 +192,7 @@ trait TraceableCacheAdapterTrait
     }
 
     /**
-     * @phpstan-template TResult
-     *
-     * @phpstan-param \Closure(): TResult $callback
+     * @phpstan-param \Closure(CacheItem): CacheItem $callback
      * @phpstan-param string $key
      *
      * @phpstan-return callable(): CacheItem
