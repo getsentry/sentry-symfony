@@ -156,6 +156,11 @@ parameters:
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
+			message: "#^Method Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\TokenInterface\\:\\:isAuthenticated\\(\\) invoked with 1 parameter, 0 required\\.$#"
+			count: 1
+			path: src/EventListener/LoginListener.php
+
+		-
 			message: "#^Parameter \\#2 \\$callback of function preg_replace_callback expects callable\\(array\\<int\\|string, string\\>\\)\\: string, Closure\\(array\\)\\: mixed given\\.$#"
 			count: 1
 			path: src/ErrorTypesParser.php
