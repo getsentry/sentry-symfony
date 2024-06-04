@@ -399,8 +399,3 @@ parameters:
 			message: "#^Parameter \\#2 \\$responses of static method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableResponse\\:\\:stream\\(\\) expects iterable\\<Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableResponse\\>, array\\<int, stdClass\\> given\\.$#"
 			count: 1
 			path: tests/Tracing/HttpClient/TraceableResponseTest.php
-
-		-
-			message: "#^Parameter \\#5 \\$originatedFromUri of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects string\\|null, Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\AuthenticatedTokenStub given\\.$#"
-			count: 1
-			path: tests/EventListener/LoginListenerTest.php
