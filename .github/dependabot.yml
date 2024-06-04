@@ -4,3 +4,13 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+  - package-ecosystem: "composer"
+    directory: "/"
+    allow:
+      - dependency-name: "*phpstan*"
+    schedule:
+      interval: weekly
+    groups:
+      composer:
+        patterns:
+          - "*phpstan*"
