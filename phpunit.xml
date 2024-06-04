@@ -20,16 +20,10 @@
         <include>
             <directory suffix=".php">src</directory>
         </include>
+        <exclude>
+            <file>src/aliases.php</file>
+        </exclude>
     </coverage>
-
-    <filter>
-        <whitelist>
-            <directory suffix=".php">src</directory>
-            <exclude>
-                <file>src/aliases.php</file>
-            </exclude>
-        </whitelist>
-    </filter>
 
     <listeners>
         <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener"/>

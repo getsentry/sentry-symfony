@@ -71,5 +71,8 @@ final class ErrorTypesParserTest extends TestCase
         yield ['('];
         yield [')'];
         yield ['()'];
+        // Non scalar values (probably misstypes, but still valid PHP code)
+        yield ['[8, 8192]'];
+        yield [\stdClass::class];
     }
 }
