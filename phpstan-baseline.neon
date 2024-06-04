@@ -419,3 +419,23 @@ parameters:
 			message: "#^Parameter \\#2 \\$responses of static method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableResponse\\:\\:stream\\(\\) expects iterable\\<Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableResponse\\>, array\\<int, stdClass\\> given\\.$#"
 			count: 1
 			path: tests/Tracing/HttpClient/TraceableResponseTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$roles of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects array\\<string\\>, string given\\.$#"
+			count: 1
+			path: tests/EventListener/LoginListenerTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$callback of function preg_replace_callback expects callable\\(array<int\\|string, string>\\)\\: string, Closure\\(array\\)\\: mixed given\\.$#"
+			count: 1
+			path: src/ErrorTypesParser.php
+
+		-
+			message: "#^Parameter \\#1 \\$user of method Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\AbstractToken\\:\\:setUser\\(\\) expects Symfony\\\\Component\\\\Security\\\\Core\\\\User\\\\UserInterface, string\\|Stringable\\|Symfony\\\\Component\\\\Security\\\\Core\\\\User\\\\UserInterface given\\.$#"
+			count: 1
+			path: tests/EventListener/LoginListenerTest.php
+
+		-
+			message: "#^Parameter \\#5 \\$originatedFromUri of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects string\\|null, Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\AuthenticatedTokenStub given\\.$#"
+			count: 1
+			path: tests/EventListener/LoginListenerTest.php
