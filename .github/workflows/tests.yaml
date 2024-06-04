@@ -96,7 +96,7 @@ jobs:
         run: vendor/bin/phpunit --coverage-clover=build/coverage-report.xml
 
       - name: Upload code coverage
-        uses: codecov/codecov-action@7afa10ed9b269c561c2336fd862446844e0cbf71 # v4.2.0
+        uses: codecov/codecov-action@125fc84a9a348dbcf27191600683ec096ec9021c # v4.4.1
         with:
           file: build/coverage-report.xml
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -148,7 +148,7 @@ jobs:
         run: vendor/bin/phpunit --coverage-clover=build/coverage-report.xml
 
       - name: Upload code coverage
-        uses: codecov/codecov-action@7afa10ed9b269c561c2336fd862446844e0cbf71 # v4.2.0
+        uses: codecov/codecov-action@125fc84a9a348dbcf27191600683ec096ec9021c # v4.4.1
         with:
           file: build/coverage-report.xml
           token: ${{ secrets.CODECOV_TOKEN }}
