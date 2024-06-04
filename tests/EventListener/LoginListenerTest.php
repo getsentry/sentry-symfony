@@ -183,17 +183,33 @@ final class LoginListenerTest extends TestCase
 
     public function authenticationTokenDataProvider(): \Generator
     {
-        yield 'If the username is already set on the User context, then it is not overridden' => [
-            new AuthenticatedTokenStub(new UserWithIdentifierStub()),
-            new UserDataBag('bar_user'),
-            new UserDataBag('bar_user'),
-        ];
+        if (version_compare(Kernel::VERSION, '5.4', '<')) {
+            yield 'If the username is already set on the User context, then it is not overridden' => [
+                new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub()),
+                new UserDataBag('bar_user'),
+                new UserDataBag('bar_user'),
+            ];
+        } else {
+            yield 'If the username is already set on the User context, then it is not overridden' => [
+                new AuthenticatedTokenStub(new UserWithIdentifierStub()),
+                new UserDataBag('bar_user'),
+                new UserDataBag('bar_user'),
+            ];
+        }
 
-        yield 'If the username is not set on the User context, then it is retrieved from the token' => [
-            new AuthenticatedTokenStub(new UserWithIdentifierStub()),
-            null,
-            new UserDataBag('foo_user'),
-        ];
+        if (version_compare(Kernel::VERSION, '5.4', '<')) {
+            yield 'If the username is not set on the User context, then it is retrieved from the token' => [
+                new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub()),
+                null,
+                new UserDataBag('foo_user'),
+            ];
+        } else {
+            yield 'If the username is not set on the User context, then it is retrieved from the token' => [
+                new AuthenticatedTokenStub(new UserWithIdentifierStub()),
+                null,
+                new UserDataBag('foo_user'),
+            ];
+        }
 
         yield 'If the user is being impersonated, then the username of the impersonator is set on the User context' => [
             (static function (): SwitchUserToken {
@@ -203,7 +219,8 @@ final class LoginListenerTest extends TestCase
                         null,
                         'foo_provider',
                         ['ROLE_USER'],
-                        new AuthenticatedTokenStub(new UserWithIdentifierStub('bar_user'))
+                        // @phpstan-ignore-next-line
+                        new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub('bar_user'))
                     );
                 }
 
@@ -228,28 +245,57 @@ final class LoginListenerTest extends TestCase
             return;
         }
 
-        yield 'If the user is a string, then the value is used as-is' => [
-            new AuthenticatedTokenStub('foo_user'),
-            null,
-            new UserDataBag('foo_user'),
-        ];
+        if (version_compare(Kernel::VERSION, '5.0', '<')) {
+            yield 'If the user is a string, then the value is used as-is' => [
+                new LegacyAuthenticatedTokenStub('foo_user'),
+                null,
+                new UserDataBag('foo_user'),
+            ];
+        } else {
+            yield 'If the user is a string, then the value is used as-is' => [
+                new AuthenticatedTokenStub('foo_user'),
+                null,
+                new UserDataBag('foo_user'),
+            ];
+        }
 
-        yield 'If the user is an instance of the UserInterface interface but the getUserIdentifier() method does not exist, then the getUsername() method is invoked' => [
-            new AuthenticatedTokenStub(new UserWithoutIdentifierStub()),
-            null,
-            new UserDataBag('foo_user'),
-        ];
+        if (version_compare(Kernel::VERSION, '5.0', '<')) {
+            yield 'If the user is an instance of the UserInterface interface but the getUserIdentifier() method does not exist, then the getUsername() method is invoked' => [
+                new LegacyAuthenticatedTokenStub(new UserWithoutIdentifierStub()),
+                null,
+                new UserDataBag('foo_user'),
+            ];
+        } else {
+            yield 'If the user is an instance of the UserInterface interface but the getUserIdentifier() method does not exist, then the getUsername() method is invoked' => [
+                new AuthenticatedTokenStub(new UserWithoutIdentifierStub()),
+                null,
+                new UserDataBag('foo_user'),
+            ];
+        }
 
-        yield 'If the user is an object implementing the Stringable interface, then the __toString() method is invoked' => [
-            new AuthenticatedTokenStub(new class() implements \Stringable {
-                public function __toString(): string
-                {
-                    return 'foo_user';
-                }
-            }),
-            null,
-            new UserDataBag('foo_user'),
-        ];
+        if (version_compare(Kernel::VERSION, '5.0', '<')) {
+            yield 'If the user is an object implementing the Stringable interface, then the __toString() method is invoked' => [
+                new LegacyAuthenticatedTokenStub(new class() implements \Stringable {
+                    public function __toString(): string
+                    {
+                        return 'foo_user';
+                    }
+                }),
+                null,
+                new UserDataBag('foo_user'),
+            ];
+        } else {
+            yield 'If the user is an object implementing the Stringable interface, then the __toString() method is invoked' => [
+                new AuthenticatedTokenStub(new class() implements \Stringable {
+                    public function __toString(): string
+                    {
+                        return 'foo_user';
+                    }
+                }),
+                null,
+                new UserDataBag('foo_user'),
+            ];
+        }
     }
 
     public function testHandleKernelRequestEventDoesNothingIfRequestIsNotMain(): void
@@ -312,14 +358,25 @@ final class LoginListenerTest extends TestCase
         $this->hub->expects($this->never())
             ->method('configureScope');
 
-        $this->listener->handleLoginSuccessEvent(new LoginSuccessEvent(
-            $this->createMock(AuthenticatorInterface::class),
-            new SelfValidatingPassport(new UserBadge('foo_passport_user')),
-            new AuthenticatedTokenStub(new UserWithIdentifierStub()),
-            new Request(),
-            null,
-            'main'
-        ));
+        if (version_compare(Kernel::VERSION, '5.4', '<')) {
+            $this->listener->handleLoginSuccessEvent(new LoginSuccessEvent(
+                $this->createMock(AuthenticatorInterface::class),
+                new SelfValidatingPassport(new UserBadge('foo_passport_user')),
+                new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub()),
+                new Request(),
+                null,
+                'main'
+            ));
+        } else {
+            $this->listener->handleLoginSuccessEvent(new LoginSuccessEvent(
+                $this->createMock(AuthenticatorInterface::class),
+                new SelfValidatingPassport(new UserBadge('foo_passport_user')),
+                new AuthenticatedTokenStub(new UserWithIdentifierStub()),
+                new Request(),
+                null,
+                'main'
+            ));
+        }
     }
 
     public function testHandleLoginSuccessEventDoesNothingIfSendingDefaultPiiIsDisabled(): void
@@ -340,14 +397,25 @@ final class LoginListenerTest extends TestCase
         $this->hub->expects($this->never())
             ->method('configureScope');
 
-        $this->listener->handleLoginSuccessEvent(new LoginSuccessEvent(
-            $this->createMock(AuthenticatorInterface::class),
-            new SelfValidatingPassport(new UserBadge('foo_passport_user')),
-            new AuthenticatedTokenStub(new UserWithIdentifierStub()),
-            new Request(),
-            null,
-            'main'
-        ));
+        if (version_compare(Kernel::VERSION, '5.4', '<')) {
+            $this->listener->handleLoginSuccessEvent(new LoginSuccessEvent(
+                $this->createMock(AuthenticatorInterface::class),
+                new SelfValidatingPassport(new UserBadge('foo_passport_user')),
+                new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub()),
+                new Request(),
+                null,
+                'main'
+            ));
+        } else {
+            $this->listener->handleLoginSuccessEvent(new LoginSuccessEvent(
+                $this->createMock(AuthenticatorInterface::class),
+                new SelfValidatingPassport(new UserBadge('foo_passport_user')),
+                new AuthenticatedTokenStub(new UserWithIdentifierStub()),
+                new Request(),
+                null,
+                'main'
+            ));
+        }
     }
 
     public function testHandleAuthenticationSuccessEventDoesNothingIfTokenIsNotAuthenticated(): void
@@ -378,7 +446,11 @@ final class LoginListenerTest extends TestCase
         $this->hub->expects($this->never())
             ->method('configureScope');
 
-        $this->listener->handleAuthenticationSuccessEvent(new AuthenticationSuccessEvent(new AuthenticatedTokenStub(new UserWithIdentifierStub())));
+        if (version_compare(Kernel::VERSION, '5.4', '<')) {
+            $this->listener->handleAuthenticationSuccessEvent(new AuthenticationSuccessEvent(new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())));
+        } else {
+            $this->listener->handleAuthenticationSuccessEvent(new AuthenticationSuccessEvent(new AuthenticatedTokenStub(new UserWithIdentifierStub())));
+        }
     }
 
     public function testHandleAuthenticationSuccessEventDoesNothingIfSendingDefaultPiiIsDisabled(): void
@@ -399,7 +471,11 @@ final class LoginListenerTest extends TestCase
         $this->hub->expects($this->never())
             ->method('configureScope');
 
-        $this->listener->handleAuthenticationSuccessEvent(new AuthenticationSuccessEvent(new AuthenticatedTokenStub(new UserWithIdentifierStub())));
+        if (version_compare(Kernel::VERSION, '5.4', '<')) {
+            $this->listener->handleAuthenticationSuccessEvent(new AuthenticationSuccessEvent(new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())));
+        } else {
+            $this->listener->handleAuthenticationSuccessEvent(new AuthenticationSuccessEvent(new AuthenticatedTokenStub(new UserWithIdentifierStub())));
+        }
     }
 }
 
@@ -416,8 +492,15 @@ final class UnauthenticatedTokenStub extends AbstractToken
     }
 }
 
-final class AuthenticatedTokenStub extends AbstractToken
+class LegacyAuthenticatedTokenStub extends AbstractToken
 {
+    /**
+     * @var bool
+     *
+     * @phpstan-ignore-next-line
+     */
+    private $authenticated = false;
+
     /**
      * @param UserInterface|\Stringable|string|null $user
      */
@@ -426,12 +509,52 @@ final class AuthenticatedTokenStub extends AbstractToken
         parent::__construct();
 
         if (null !== $user) {
+            // @phpstan-ignore-next-line
             $this->setUser($user);
         }
 
-        if (method_exists($this, 'setAuthenticated')) {
+        if (version_compare(Kernel::VERSION, '5.4', '<') && method_exists($this, 'setAuthenticated')) {
             $this->setAuthenticated(true);
+        } else {
+            $this->authenticated = true;
         }
+    }
+
+    public function getCredentials(): ?string
+    {
+        return null;
+    }
+}
+
+final class AuthenticatedTokenStub extends AbstractToken
+{
+    /**
+     * @var bool
+     */
+    private $authenticated = false;
+
+    /**
+     * @param UserInterface|\Stringable|string|null $user
+     */
+    public function __construct($user)
+    {
+        parent::__construct();
+
+        if (null !== $user) {
+            // @phpstan-ignore-next-line
+            $this->setUser($user);
+        }
+
+        if (version_compare(Kernel::VERSION, '5.4', '<') && method_exists($this, 'setAuthenticated')) {
+            $this->setAuthenticated(true);
+        } else {
+            $this->authenticated = true;
+        }
+    }
+
+    public function isAuthenticated(): bool
+    {
+        return $this->authenticated;
     }
 
     public function getCredentials(): ?string
