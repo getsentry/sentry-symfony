@@ -36,6 +36,7 @@ use Sentry\SentryBundle\Tracing\HttpClient\TraceableResponseForV5;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableResponseForV6;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\DoctrineProvider;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\Response\StreamableInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -78,7 +79,7 @@ if (!class_exists(TracingStatement::class)) {
     }
 }
 
-if (!class_exists(TraceableResponse::class) && interface_exists(HttpClientInterface::class)) {
+if (!class_exists(TraceableResponse::class) && class_exists(HttpClient::class)) {
     if (!interface_exists(StreamableInterface::class)) {
         class_alias(TraceableResponseForV4::class, TraceableResponse::class);
         class_alias(TraceableHttpClientForV4::class, TraceableHttpClient::class);
