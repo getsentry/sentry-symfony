@@ -69,7 +69,7 @@ final class MessengerListener
 
             $scope->setContext('messenger.body', [
                 'title' => 'CommandBus Message Body',
-                'body' => $this->castMessage($envelope->getMessage());
+                'body' => $this->castMessage($envelope->getMessage())
             ]);
 
             /** @var BusNameStamp|null $messageBusStamp */
