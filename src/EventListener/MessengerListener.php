@@ -98,7 +98,7 @@ final class MessengerListener
                 512,
                 \JSON_THROW_ON_ERROR
             );
-        } catch (\JsonException) {
+        } catch (\JsonException $e) {
             return 'Error while parsing message body.';
         }
     }
