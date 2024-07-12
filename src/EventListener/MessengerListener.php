@@ -39,7 +39,7 @@ final class MessengerListener
      * @param bool         $captureSoftFails   Whether to capture errors thrown
      *                                         while processing a message that
      *                                         will be retried
-     * @param bool         $captureMessageBody Add body of the message to the 
+     * @param bool         $captureMessageBody Add body of the message to the
      *                                         SentryException
      */
     public function __construct(HubInterface $hub, bool $captureSoftFails = true, bool $captureMessageBody = true)
@@ -69,7 +69,7 @@ final class MessengerListener
 
             $scope->setContext('messenger.body', [
                 'title' => 'CommandBus Message Body',
-                'body' => $this->castMessage($envelope->getMessage())
+                'body' => $this->castMessage($envelope->getMessage()),
             ]);
 
             /** @var BusNameStamp|null $messageBusStamp */
@@ -87,20 +87,19 @@ final class MessengerListener
 
     private function castMessage(object $message): mixed
     {
-        if(!$this->captureMessageBody) {
+        if (!$this->captureMessageBody) {
             return 'Capture message body is deactivated!';
         }
-        
+
         try {
             return json_decode(
-                json_encode($message, JSON_THROW_ON_ERROR),
+                json_encode($message, \JSON_THROW_ON_ERROR),
                 true,
                 512,
-                JSON_THROW_ON_ERROR
+                \JSON_THROW_ON_ERROR
             );
-            
         } catch (\JsonException) {
-            return 'Error while parsing message body.'; 
+            return 'Error while parsing message body.';
         }
     }
 
