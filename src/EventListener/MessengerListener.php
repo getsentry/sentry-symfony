@@ -35,10 +35,12 @@ final class MessengerListener
     private $captureMessageBody;
 
     /**
-     * @param HubInterface $hub              The current hub
-     * @param bool         $captureSoftFails Whether to capture errors thrown
-     *                                       while processing a message that
-     *                                       will be retried
+     * @param HubInterface $hub                The current hub
+     * @param bool         $captureSoftFails   Whether to capture errors thrown
+     *                                         while processing a message that
+     *                                         will be retried
+     * @param bool         $captureMessageBody Add body of the message to the 
+     *                                         SentryException
      */
     public function __construct(HubInterface $hub, bool $captureSoftFails = true, bool $captureMessageBody = true)
     {
