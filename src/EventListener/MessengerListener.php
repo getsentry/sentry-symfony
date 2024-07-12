@@ -59,6 +59,18 @@ final class MessengerListener
             $scope->setTag('messenger.receiver_name', $event->getReceiverName());
             $scope->setTag('messenger.message_class', \get_class($envelope->getMessage()));
 
+            $messageBody = json_decode(
+                json_encode($envelope->getMessage(), JSON_THROW_ON_ERROR),
+                true,
+                512,
+                JSON_THROW_ON_ERROR
+            );
+
+            $scope->addContext('messenger.body', [
+                'title' => 'CommandBus Message Body',
+                'body' => $messageBody
+            ]);
+
             /** @var BusNameStamp|null $messageBusStamp */
             $messageBusStamp = $envelope->last(BusNameStamp::class);
 
