@@ -1,6 +1,6 @@
 ## 5.0.1
 
-The Sentry SDK team is happy to announce the immediate availability of Sentry Laravel SDK v5.0.1.
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.0.1.
 
 ### Bug Fixes
 
