@@ -46,10 +46,10 @@ final class TracingRequestListener extends AbstractTracingRequestListener
 
         $routeName = $request->attributes->get('_route');
         if (null !== $routeName && \is_string($routeName)) {
-            $context->setName(sprintf('%s %s', $request->getMethod(), $routeName));
+            $context->setName(\sprintf('%s %s', $request->getMethod(), $routeName));
             $context->setSource(TransactionSource::route());
         } else {
-            $context->setName(sprintf('%s %s%s%s', $request->getMethod(), $request->getSchemeAndHttpHost(), $request->getBaseUrl(), $request->getPathInfo()));
+            $context->setName(\sprintf('%s %s%s%s', $request->getMethod(), $request->getSchemeAndHttpHost(), $request->getBaseUrl(), $request->getPathInfo()));
             $context->setSource(TransactionSource::url());
         }
 

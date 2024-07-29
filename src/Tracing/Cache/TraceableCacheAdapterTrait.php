@@ -70,7 +70,7 @@ trait TraceableCacheAdapterTrait
     {
         return $this->traceFunction('cache.delete_item', function () use ($key): bool {
             if (!$this->decoratedAdapter instanceof CacheInterface) {
-                throw new \BadMethodCallException(sprintf('The %s::delete() method is not supported because the decorated adapter does not implement the "%s" interface.', self::class, CacheInterface::class));
+                throw new \BadMethodCallException(\sprintf('The %s::delete() method is not supported because the decorated adapter does not implement the "%s" interface.', self::class, CacheInterface::class));
             }
 
             return $this->decoratedAdapter->delete($key);

@@ -25,7 +25,7 @@ class SentryTestCommand extends Command
         parent::__construct();
 
         if (null === $hub) {
-            @trigger_error(sprintf('Not passing an instance of the "%s" interface as argument of the constructor is deprecated since version 4.12 and will not work since version 5.0.', HubInterface::class), \E_USER_DEPRECATED);
+            @trigger_error(\sprintf('Not passing an instance of the "%s" interface as argument of the constructor is deprecated since version 4.12 and will not work since version 5.0.', HubInterface::class), \E_USER_DEPRECATED);
         }
 
         $this->hub = $hub ?? SentrySdk::getCurrentHub();

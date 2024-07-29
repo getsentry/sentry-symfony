@@ -159,7 +159,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($this->createMock(static::getAdapterClassFqcn()));
 
         $this->expectException(\BadMethodCallException::class);
-        $this->expectExceptionMessage(sprintf('The %s::get() method is not supported because the decorated adapter does not implement the "Symfony\\Contracts\\Cache\\CacheInterface" interface.', \get_class($adapter)));
+        $this->expectExceptionMessage(\sprintf('The %s::get() method is not supported because the decorated adapter does not implement the "Symfony\\Contracts\\Cache\\CacheInterface" interface.', \get_class($adapter)));
 
         $adapter->get('foo', static function () {});
     }
@@ -197,7 +197,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $adapter = $this->createCacheAdapter($this->createMock(static::getAdapterClassFqcn()));
 
         $this->expectException(\BadMethodCallException::class);
-        $this->expectExceptionMessage(sprintf('The %s::delete() method is not supported because the decorated adapter does not implement the "Symfony\\Contracts\\Cache\\CacheInterface" interface.', \get_class($adapter)));
+        $this->expectExceptionMessage(\sprintf('The %s::delete() method is not supported because the decorated adapter does not implement the "Symfony\\Contracts\\Cache\\CacheInterface" interface.', \get_class($adapter)));
 
         $adapter->delete('foo');
     }

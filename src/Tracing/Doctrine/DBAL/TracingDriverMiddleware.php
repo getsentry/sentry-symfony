@@ -31,11 +31,11 @@ final class TracingDriverMiddleware implements MiddlewareInterface
         if ($hubOrConnectionFactory instanceof TracingDriverConnectionFactoryInterface) {
             $this->connectionFactory = $hubOrConnectionFactory;
         } elseif ($hubOrConnectionFactory instanceof HubInterface) {
-            @trigger_error(sprintf('Not passing an instance of the "%s" interface as argument of the constructor is deprecated since version 4.2 and will not work since version 5.0.', TracingDriverConnectionFactoryInterface::class), \E_USER_DEPRECATED);
+            @trigger_error(\sprintf('Not passing an instance of the "%s" interface as argument of the constructor is deprecated since version 4.2 and will not work since version 5.0.', TracingDriverConnectionFactoryInterface::class), \E_USER_DEPRECATED);
 
             $this->connectionFactory = new TracingDriverConnectionFactory($hubOrConnectionFactory);
         } else {
-            throw new \InvalidArgumentException(sprintf('The constructor requires either an instance of the "%s" interface or an instance of the "%s" interface.', HubInterface::class, TracingDriverConnectionFactoryInterface::class));
+            throw new \InvalidArgumentException(\sprintf('The constructor requires either an instance of the "%s" interface or an instance of the "%s" interface.', HubInterface::class, TracingDriverConnectionFactoryInterface::class));
         }
     }
 
