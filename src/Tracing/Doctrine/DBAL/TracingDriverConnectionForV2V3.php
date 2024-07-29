@@ -176,7 +176,7 @@ final class TracingDriverConnectionForV2V3 implements TracingDriverConnectionInt
     public function getNativeConnection()
     {
         if (!method_exists($this->decoratedConnection, 'getNativeConnection')) {
-            throw new \BadMethodCallException(sprintf('The connection "%s" does not support accessing the native connection.', \get_class($this->decoratedConnection)));
+            throw new \BadMethodCallException(\sprintf('The connection "%s" does not support accessing the native connection.', \get_class($this->decoratedConnection)));
         }
 
         return $this->decoratedConnection->getNativeConnection();
@@ -191,7 +191,7 @@ final class TracingDriverConnectionForV2V3 implements TracingDriverConnectionInt
             return $this->decoratedConnection->errorCode();
         }
 
-        throw new \BadMethodCallException(sprintf('The %s() method is not supported on Doctrine DBAL 3.0.', __METHOD__));
+        throw new \BadMethodCallException(\sprintf('The %s() method is not supported on Doctrine DBAL 3.0.', __METHOD__));
     }
 
     /**
@@ -203,7 +203,7 @@ final class TracingDriverConnectionForV2V3 implements TracingDriverConnectionInt
             return $this->decoratedConnection->errorInfo();
         }
 
-        throw new \BadMethodCallException(sprintf('The %s() method is not supported on Doctrine DBAL 3.0.', __METHOD__));
+        throw new \BadMethodCallException(\sprintf('The %s() method is not supported on Doctrine DBAL 3.0.', __METHOD__));
     }
 
     public function getWrappedConnection(): DriverConnectionInterface

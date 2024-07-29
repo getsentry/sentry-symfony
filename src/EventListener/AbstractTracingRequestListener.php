@@ -67,7 +67,7 @@ abstract class AbstractTracingRequestListener
             $route = $request->attributes->get('_controller');
 
             if (\is_array($route) && \is_callable($route, true)) {
-                $route = sprintf('%s::%s', \is_object($route[0]) ? get_debug_type($route[0]) : $route[0], $route[1]);
+                $route = \sprintf('%s::%s', \is_object($route[0]) ? get_debug_type($route[0]) : $route[0], $route[1]);
             }
         }
 

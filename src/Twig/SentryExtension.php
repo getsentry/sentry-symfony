@@ -38,7 +38,7 @@ final class SentryExtension extends AbstractExtension
      */
     public function getTraceMeta(): string
     {
-        return sprintf('<meta name="sentry-trace" content="%s" />', getTraceparent());
+        return \sprintf('<meta name="sentry-trace" content="%s" />', getTraceparent());
     }
 
     /**
@@ -46,7 +46,7 @@ final class SentryExtension extends AbstractExtension
      */
     public function getW3CTraceMeta(): string
     {
-        return sprintf('<meta name="traceparent" content="%s" />', getW3CTraceparent());
+        return \sprintf('<meta name="traceparent" content="%s" />', getW3CTraceparent());
     }
 
     /**
@@ -54,6 +54,6 @@ final class SentryExtension extends AbstractExtension
      */
     public function getBaggageMeta(): string
     {
-        return sprintf('<meta name="baggage" content="%s" />', getBaggage());
+        return \sprintf('<meta name="baggage" content="%s" />', getBaggage());
     }
 }
