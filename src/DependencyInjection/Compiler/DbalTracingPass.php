@@ -45,8 +45,8 @@ final class DbalTracingPass implements CompilerPassInterface
         }
 
         foreach ($connectionsToTrace as $connectionName) {
-            if (!\in_array(sprintf(self::CONNECTION_SERVICE_NAME_FORMAT, $connectionName), $connections, true)) {
-                throw new \InvalidArgumentException(sprintf('The Doctrine connection "%s" does not exists and cannot be instrumented.', $connectionName));
+            if (!\in_array(\sprintf(self::CONNECTION_SERVICE_NAME_FORMAT, $connectionName), $connections, true)) {
+                throw new \InvalidArgumentException(\sprintf('The Doctrine connection "%s" does not exists and cannot be instrumented.', $connectionName));
             }
 
             if (class_exists(Result::class)) {
@@ -65,7 +65,7 @@ final class DbalTracingPass implements CompilerPassInterface
 
     private function configureConnectionForDoctrineDBALVersion2(ContainerBuilder $container, string $connectionName): void
     {
-        $connectionDefinition = $container->getDefinition(sprintf(self::CONNECTION_SERVICE_NAME_FORMAT, $connectionName));
+        $connectionDefinition = $container->getDefinition(\sprintf(self::CONNECTION_SERVICE_NAME_FORMAT, $connectionName));
         $connectionDefinition->setConfigurator([new Reference(ConnectionConfigurator::class), 'configure']);
     }
 

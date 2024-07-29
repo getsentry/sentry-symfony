@@ -107,7 +107,7 @@ abstract class AbstractTraceableResponse implements ResponseInterface
 
         foreach ($responses as $response) {
             if (!$response instanceof self) {
-                throw new \TypeError(sprintf('"%s::stream()" expects parameter 1 to be an iterable of TraceableResponse objects, "%s" given.', TraceableHttpClient::class, get_debug_type($response)));
+                throw new \TypeError(\sprintf('"%s::stream()" expects parameter 1 to be an iterable of TraceableResponse objects, "%s" given.', TraceableHttpClient::class, get_debug_type($response)));
             }
 
             $traceableMap[$response->response] = $response;

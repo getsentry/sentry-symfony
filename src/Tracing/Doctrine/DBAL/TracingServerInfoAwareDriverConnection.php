@@ -109,7 +109,7 @@ final class TracingServerInfoAwareDriverConnection implements TracingDriverConne
         $wrappedConnection = $this->getWrappedConnection();
 
         if (!$wrappedConnection instanceof ServerInfoAwareConnection) {
-            throw new \BadMethodCallException(sprintf('The wrapped connection must be an instance of the "%s" interface.', ServerInfoAwareConnection::class));
+            throw new \BadMethodCallException(\sprintf('The wrapped connection must be an instance of the "%s" interface.', ServerInfoAwareConnection::class));
         }
 
         return $wrappedConnection->getServerVersion();
@@ -123,7 +123,7 @@ final class TracingServerInfoAwareDriverConnection implements TracingDriverConne
     public function getNativeConnection()
     {
         if (!method_exists($this->decoratedConnection, 'getNativeConnection')) {
-            throw new \BadMethodCallException(sprintf('The connection "%s" does not support accessing the native connection.', \get_class($this->decoratedConnection)));
+            throw new \BadMethodCallException(\sprintf('The connection "%s" does not support accessing the native connection.', \get_class($this->decoratedConnection)));
         }
 
         return $this->decoratedConnection->getNativeConnection();
@@ -137,11 +137,11 @@ final class TracingServerInfoAwareDriverConnection implements TracingDriverConne
         $wrappedConnection = $this->getWrappedConnection();
 
         if (!$wrappedConnection instanceof ServerInfoAwareConnection) {
-            throw new \BadMethodCallException(sprintf('The wrapped connection must be an instance of the "%s" interface.', ServerInfoAwareConnection::class));
+            throw new \BadMethodCallException(\sprintf('The wrapped connection must be an instance of the "%s" interface.', ServerInfoAwareConnection::class));
         }
 
         if (!method_exists($wrappedConnection, 'requiresQueryForServerVersion')) {
-            throw new \BadMethodCallException(sprintf('The %s() method is not supported on Doctrine DBAL 3.0.', __METHOD__));
+            throw new \BadMethodCallException(\sprintf('The %s() method is not supported on Doctrine DBAL 3.0.', __METHOD__));
         }
 
         return $wrappedConnection->requiresQueryForServerVersion();
@@ -156,7 +156,7 @@ final class TracingServerInfoAwareDriverConnection implements TracingDriverConne
             return $this->decoratedConnection->errorCode();
         }
 
-        throw new \BadMethodCallException(sprintf('The %s() method is not supported on Doctrine DBAL 3.0.', __METHOD__));
+        throw new \BadMethodCallException(\sprintf('The %s() method is not supported on Doctrine DBAL 3.0.', __METHOD__));
     }
 
     /**
@@ -168,7 +168,7 @@ final class TracingServerInfoAwareDriverConnection implements TracingDriverConne
             return $this->decoratedConnection->errorInfo();
         }
 
-        throw new \BadMethodCallException(sprintf('The %s() method is not supported on Doctrine DBAL 3.0.', __METHOD__));
+        throw new \BadMethodCallException(\sprintf('The %s() method is not supported on Doctrine DBAL 3.0.', __METHOD__));
     }
 
     public function getWrappedConnection(): Connection
