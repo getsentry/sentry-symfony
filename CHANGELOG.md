@@ -1,3 +1,12 @@
+## 5.0.1
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Laravel SDK v5.0.1.
+
+### Bug Fixes
+
+- Add missing `setCallbackWrapper` method to `TraceableCacheAdapterTrait` [(#841)](https://github.com/getsentry/sentry-symfony/pull/841)
+- Fix detection of the `symfony/http-client` being installed [(#858)](https://github.com/getsentry/sentry-symfony/pull/858)
+
 ## 5.0.0
 
 The Sentry SDK team is thrilled to announce the immediate availability of Sentry Symfony SDK v5.0.0.
