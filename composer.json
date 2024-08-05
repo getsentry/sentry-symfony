@@ -33,7 +33,7 @@
         "friendsofphp/php-cs-fixer": "^2.19||^3.40",
         "masterminds/html5": "^2.8",
         "phpstan/extension-installer": "^1.0",
-        "phpstan/phpstan": "1.11.8",
+        "phpstan/phpstan": "1.11.9",
         "phpstan/phpstan-phpunit": "1.4.0",
         "phpstan/phpstan-symfony": "1.4.6",
         "phpunit/phpunit": "^8.5.14||^9.3.9",
