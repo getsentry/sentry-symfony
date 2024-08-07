@@ -75,7 +75,7 @@ final class ErrorTypesParser
         }, $value);
 
         if (null === $output) {
-            throw new \InvalidArgumentException(sprintf('The "%s" value could not be parsed.', $value));
+            throw new \InvalidArgumentException(\sprintf('The "%s" value could not be parsed.', $value));
         }
 
         return $output;

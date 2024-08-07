@@ -55,7 +55,7 @@ final class TraceableResponseTest extends TestCase
         $this->expectException(\BadMethodCallException::class);
         $this->expectExceptionMessage('Unserializing instances of this class is forbidden.');
 
-        unserialize(sprintf('O:%u:"%s":0:{}', \strlen(TraceableResponse::class), TraceableResponse::class));
+        unserialize(\sprintf('O:%u:"%s":0:{}', \strlen(TraceableResponse::class), TraceableResponse::class));
     }
 
     public function testDestructor(): void
