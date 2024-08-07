@@ -30,15 +30,23 @@ final class MessengerListener
     private $captureSoftFails;
 
     /**
-     * @param HubInterface $hub              The current hub
-     * @param bool         $captureSoftFails Whether to capture errors thrown
-     *                                       while processing a message that
-     *                                       will be retried
+     * @var bool Add body of a message to the SentryException
      */
-    public function __construct(HubInterface $hub, bool $captureSoftFails = true)
+    private $captureMessageBody;
+
+    /**
+     * @param HubInterface $hub                The current hub
+     * @param bool         $captureSoftFails   Whether to capture errors thrown
+     *                                         while processing a message that
+     *                                         will be retried
+     * @param bool         $captureMessageBody Add body of the message to the
+     *                                         SentryException
+     */
+    public function __construct(HubInterface $hub, bool $captureSoftFails = true, bool $captureMessageBody = true)
     {
         $this->hub = $hub;
         $this->captureSoftFails = $captureSoftFails;
+        $this->captureMessageBody = $captureMessageBody;
     }
 
     /**
@@ -59,6 +67,11 @@ final class MessengerListener
             $scope->setTag('messenger.receiver_name', $event->getReceiverName());
             $scope->setTag('messenger.message_class', \get_class($envelope->getMessage()));
 
+            $scope->setContext('messenger.body', [
+                'title' => 'CommandBus Message Body',
+                'body' => $this->castMessage($envelope->getMessage()),
+            ]);
+
             /** @var BusNameStamp|null $messageBusStamp */
             $messageBusStamp = $envelope->last(BusNameStamp::class);
 
@@ -70,6 +83,24 @@ final class MessengerListener
         });
 
         $this->flushClient();
+    }
+
+    private function castMessage(object $message): mixed
+    {
+        if (!$this->captureMessageBody) {
+            return 'Capture message body is deactivated!';
+        }
+
+        try {
+            return json_decode(
+                json_encode($message, \JSON_THROW_ON_ERROR),
+                true,
+                512,
+                \JSON_THROW_ON_ERROR
+            );
+        } catch (\JsonException $e) {
+            return 'Error while parsing message body.';
+        }
     }
 
     /**
