@@ -71,6 +71,7 @@ final class TracingConsoleListenerTest extends TestCase
         $transactionContext = new TransactionContext();
         $transactionContext->setOp('console.command');
         $transactionContext->setName('<unnamed command>');
+        $transactionContext->setOrigin('auto.console');
         $transactionContext->setSource(TransactionSource::task());
 
         yield [
@@ -81,6 +82,7 @@ final class TracingConsoleListenerTest extends TestCase
         $transactionContext = new TransactionContext();
         $transactionContext->setOp('console.command');
         $transactionContext->setName('app:command');
+        $transactionContext->setOrigin('auto.console');
         $transactionContext->setSource(TransactionSource::task());
 
         yield [
