@@ -69,7 +69,8 @@ final class TracingConsoleListener
         } else {
             $span = $currentSpan->startChild(
                 SpanContext::make()
-                    ->setOp('console.console')
+                    ->setOp('console.command')
+                    ->setOrigin('auto.console')
                     ->setDescription($this->getSpanName($command))
             );
         }
