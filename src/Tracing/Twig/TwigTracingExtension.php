@@ -46,11 +46,12 @@ final class TwigTracingExtension extends AbstractExtension
             return;
         }
 
-        $spanContext = new SpanContext();
-        $spanContext->setOp('view.render');
-        $spanContext->setDescription($this->getSpanDescription($profile));
-
-        $this->spans[$profile] = $transaction->startChild($spanContext);
+        $this->spans[$profile] = $transaction->startChild(
+            SpanContext::make()
+                ->setOp('view.render')
+                ->setOrigin('auto.view')
+                ->setDescription($this->getSpanDescription($profile))
+        );
     }
 
     /**

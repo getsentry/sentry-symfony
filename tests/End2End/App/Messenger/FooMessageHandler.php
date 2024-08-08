@@ -11,7 +11,7 @@ class FooMessageHandler
     public function __invoke(FooMessage $message): void
     {
         if (!$message->shouldRetry()) {
-            throw new class() extends \Exception implements UnrecoverableExceptionInterface { };
+            throw new class extends \Exception implements UnrecoverableExceptionInterface { };
         }
 
         throw new \Exception('This is an intentional failure while handling a message of class ' . \get_class($message));

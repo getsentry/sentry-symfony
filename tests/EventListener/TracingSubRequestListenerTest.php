@@ -104,7 +104,7 @@ final class TracingSubRequestListenerTest extends TestCase
         ];
 
         $request = Request::create('http://www.example.com/');
-        $request->attributes->set('_controller', [new class() {}, 'indexAction']);
+        $request->attributes->set('_controller', [new class {}, 'indexAction']);
 
         $span = new Span();
         $span->setOp('http.server');

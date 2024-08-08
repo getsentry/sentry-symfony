@@ -97,6 +97,7 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setName('GET http://www.example.com/');
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
+        $transactionContext->setOrigin('auto.http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setData([
             'net.host.port' => '80',
@@ -134,6 +135,7 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setName('GET http://www.example.com/');
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
+        $transactionContext->setOrigin('auto.http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setData([
             'net.host.port' => '80',
@@ -171,6 +173,7 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setName('GET http://www.example.com/');
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
+        $transactionContext->setOrigin('auto.http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setData([
             'net.host.port' => '80',
@@ -203,6 +206,7 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setName('GET http://www.example.com/');
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
+        $transactionContext->setOrigin('auto.http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setData([
             'net.host.port' => '80',
@@ -226,6 +230,7 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setName('GET http://127.0.0.1/');
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
+        $transactionContext->setOrigin('auto.http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setData([
             'net.host.port' => '80',
@@ -257,6 +262,7 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setName('GET app_homepage');
         $transactionContext->setSource(TransactionSource::route());
         $transactionContext->setOp('http.server');
+        $transactionContext->setOrigin('auto.http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setData([
             'net.host.port' => '80',
@@ -281,6 +287,7 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setName('GET http://www.example.com/path');
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
+        $transactionContext->setOrigin('auto.http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setData([
             'net.host.port' => '80',
@@ -305,6 +312,7 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setName('GET http://www.example.com/');
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
+        $transactionContext->setOrigin('auto.http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setData([
             'net.host.port' => '80',
@@ -329,6 +337,7 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setName('GET http://www.example.com/');
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
+        $transactionContext->setOrigin('auto.http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setData([
             'net.host.port' => '80',
@@ -347,12 +356,13 @@ final class TracingRequestListenerTest extends TestCase
 
         $request = Request::create('http://www.example.com/');
         $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
-        $request->attributes->set('_controller', [new class() {}, 'indexAction']);
+        $request->attributes->set('_controller', [new class {}, 'indexAction']);
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/');
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
+        $transactionContext->setOrigin('auto.http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setData([
             'net.host.port' => '80',
@@ -377,6 +387,7 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setName('GET http://www.example.com/');
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
+        $transactionContext->setOrigin('auto.http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setData([
             'net.host.port' => '80',
@@ -401,6 +412,7 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setName('GET http://www.example.com/');
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
+        $transactionContext->setOrigin('auto.http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setData([
             'net.host.port' => '80',
@@ -425,6 +437,7 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setName('GET http://:/');
         $transactionContext->setSource(TransactionSource::url());
         $transactionContext->setOp('http.server');
+        $transactionContext->setOrigin('auto.http.server');
         $transactionContext->setStartTimestamp(1613493597.010275);
         $transactionContext->setData([
             'net.host.port' => '',

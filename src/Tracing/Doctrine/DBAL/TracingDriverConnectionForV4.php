@@ -221,12 +221,13 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
         $span = $this->hub->getSpan();
 
         if (null !== $span) {
-            $spanContext = new SpanContext();
-            $spanContext->setOp($spanOperation);
-            $spanContext->setDescription($spanDescription);
-            $spanContext->setData($this->spanData);
-
-            $span = $span->startChild($spanContext);
+            $span = $span->startChild(
+                SpanContext::make()
+                    ->setOp($spanOperation)
+                    ->setData($this->spanData)
+                    ->setOrigin('auto.db')
+                    ->setDescription($spanDescription)
+            );
         }
 
         try {

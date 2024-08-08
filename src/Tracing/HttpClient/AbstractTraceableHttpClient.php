@@ -74,9 +74,10 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
             'path' => $uri->getPath(),
         ]);
 
-        $context = new SpanContext();
-        $context->setOp('http.client');
-        $context->setDescription($method . ' ' . (string) $partialUri);
+        $context = SpanContext::make()
+            ->setOp('http.client')
+            ->setOrigin('auto.http.client')
+            ->setDescription($method . ' ' . (string) $partialUri);
 
         $contextData = [
             'http.url' => (string) $partialUri,

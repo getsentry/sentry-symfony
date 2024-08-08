@@ -50,7 +50,7 @@ final class IntegrationConfiguratorTest extends TestCase
         $environmentIntegration = new EnvironmentIntegration();
         $modulesIntegration = new ModulesIntegration();
 
-        $userIntegration1 = new class() implements IntegrationInterface {
+        $userIntegration1 = new class implements IntegrationInterface {
             public function setupOnce(): void
             {
             }
