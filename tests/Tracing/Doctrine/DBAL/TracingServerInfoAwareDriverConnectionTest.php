@@ -264,7 +264,7 @@ final class TracingServerInfoAwareDriverConnectionTest extends DoctrineTestCase
 
     public function testGetNativeConnection(): void
     {
-        $nativeConnection = new class() {
+        $nativeConnection = new class {
         };
 
         $decoratedConnection = $this->createMock(NativeDriverConnectionInterfaceStub::class);

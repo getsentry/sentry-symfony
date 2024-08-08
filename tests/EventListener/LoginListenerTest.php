@@ -275,7 +275,7 @@ final class LoginListenerTest extends TestCase
 
         if (version_compare(Kernel::VERSION, '5.0', '<')) {
             yield 'If the user is an object implementing the Stringable interface, then the __toString() method is invoked' => [
-                new LegacyAuthenticatedTokenStub(new class() implements \Stringable {
+                new LegacyAuthenticatedTokenStub(new class implements \Stringable {
                     public function __toString(): string
                     {
                         return 'foo_user';
@@ -286,7 +286,7 @@ final class LoginListenerTest extends TestCase
             ];
         } else {
             yield 'If the user is an object implementing the Stringable interface, then the __toString() method is invoked' => [
-                new AuthenticatedTokenStub(new class() implements \Stringable {
+                new AuthenticatedTokenStub(new class implements \Stringable {
                     public function __toString(): string
                     {
                         return 'foo_user';
