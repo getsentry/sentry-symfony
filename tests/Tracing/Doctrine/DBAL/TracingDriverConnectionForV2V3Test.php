@@ -418,7 +418,7 @@ final class TracingDriverConnectionForV2V3Test extends DoctrineTestCase
 
     public function testGetNativeConnection(): void
     {
-        $nativeConnection = new class() {
+        $nativeConnection = new class {
         };
 
         $decoratedConnection = $this->createMock(NativeDriverConnectionInterfaceStub::class);

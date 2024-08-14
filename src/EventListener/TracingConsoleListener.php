@@ -59,18 +59,20 @@ final class TracingConsoleListener
         $currentSpan = $this->hub->getSpan();
 
         if (null === $currentSpan) {
-            $transactionContext = new TransactionContext();
-            $transactionContext->setOp('console.command');
-            $transactionContext->setName($this->getSpanName($command));
-            $transactionContext->setSource(TransactionSource::task());
-
-            $span = $this->hub->startTransaction($transactionContext);
+            $span = $this->hub->startTransaction(
+                TransactionContext::make()
+                    ->setOp('console.command')
+                    ->setOrigin('auto.console')
+                    ->setName($this->getSpanName($command))
+                    ->setSource(TransactionSource::task())
+            );
         } else {
-            $spanContext = new SpanContext();
-            $spanContext->setOp('console.command');
-            $spanContext->setDescription($this->getSpanName($command));
-
-            $span = $currentSpan->startChild($spanContext);
+            $span = $currentSpan->startChild(
+                SpanContext::make()
+                    ->setOp('console.command')
+                    ->setOrigin('auto.console')
+                    ->setDescription($this->getSpanName($command))
+            );
         }
 
         $this->hub->setSpan($span);

@@ -42,7 +42,9 @@ final class TracingRequestListener extends AbstractTracingRequestListener
             $request->headers->get('sentry-trace') ?? $request->headers->get('traceparent', ''),
             $request->headers->get('baggage', '')
         );
+
         $context->setOp('http.server');
+        $context->setOrigin('auto.http.server');
 
         $routeName = $request->attributes->get('_route');
         if (null !== $routeName && \is_string($routeName)) {

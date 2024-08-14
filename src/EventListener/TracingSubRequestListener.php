@@ -34,16 +34,19 @@ final class TracingSubRequestListener extends AbstractTracingRequestListener
             return;
         }
 
-        $spanContext = new SpanContext();
-        $spanContext->setOp('http.server');
-        $spanContext->setDescription(\sprintf('%s %s%s%s', $request->getMethod(), $request->getSchemeAndHttpHost(), $request->getBaseUrl(), $request->getPathInfo()));
-        $spanContext->setData([
-            'http.request.method' => $request->getMethod(),
-            'http.url' => $request->getUri(),
-            'route' => $this->getRouteName($request),
-        ]);
-
-        $this->hub->setSpan($span->startChild($spanContext));
+        $this->hub->setSpan(
+            $span->startChild(
+                SpanContext::make()
+                    ->setOp('http.server')
+                    ->setData([
+                        'http.request.method' => $request->getMethod(),
+                        'http.url' => $request->getUri(),
+                        'route' => $this->getRouteName($request),
+                    ])
+                    ->setOrigin('auto.http.server')
+                    ->setDescription(\sprintf('%s %s%s%s', $request->getMethod(), $request->getSchemeAndHttpHost(), $request->getBaseUrl(), $request->getPathInfo()))
+            )
+        );
     }
 
     /**

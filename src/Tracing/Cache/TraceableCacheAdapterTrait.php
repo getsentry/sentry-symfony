@@ -173,8 +173,10 @@ trait TraceableCacheAdapterTrait
         $span = $this->hub->getSpan();
 
         if (null !== $span) {
-            $spanContext = new SpanContext();
-            $spanContext->setOp($spanOperation);
+            $spanContext = SpanContext::make()
+                ->setOp($spanOperation)
+                ->setOrigin('auto.cache');
+
             if (null !== $spanDescription) {
                 $spanContext->setDescription(urldecode($spanDescription));
             }

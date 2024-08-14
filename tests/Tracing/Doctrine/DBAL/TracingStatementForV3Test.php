@@ -70,7 +70,7 @@ final class TracingStatementForV3Test extends DoctrineTestCase
     public function testBindParamForwardsLengthParamOnlyWhenExplicitlySet(): void
     {
         $variable = 'bar';
-        $decoratedStatement = new class() implements Statement {
+        $decoratedStatement = new class implements Statement {
             /**
              * @var int
              */
