@@ -14,6 +14,8 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleTerminateEvent;
 
+use function Sentry\metrics;
+
 /**
  * This listener either starts a {@see Transaction} or a child {@see Span} when
  * a console command is executed to allow measuring the application performances.
@@ -86,6 +88,8 @@ final class TracingConsoleListener
      */
     public function handleConsoleTerminateEvent(ConsoleTerminateEvent $event): void
     {
+        metrics()->flush();
+
         if ($this->isCommandExcluded($event->getCommand())) {
             return;
         }
