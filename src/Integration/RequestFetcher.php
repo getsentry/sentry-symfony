@@ -6,10 +6,10 @@ namespace Sentry\SentryBundle\Integration;
 
 use GuzzleHttp\Psr7\HttpFactory;
 use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Component\HttpFoundation\Request;
 use Sentry\Integration\RequestFetcherInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -25,7 +25,7 @@ final class RequestFetcher implements RequestFetcherInterface
     private $requestStack;
 
     /**
-     * @var \Symfony\Component\HttpFoundation\Request|null The current request
+     * @var Request|null The current request
      */
     private $currentRequest;
 

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\Integration\RequestFetcherInterface;
+use Sentry\SentryBundle\Integration\RequestFetcher;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\TransactionSource;
 use Symfony\Component\HttpFoundation\Request;
-use Sentry\Integration\RequestFetcherInterface;
-use Sentry\SentryBundle\Integration\RequestFetcher;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
@@ -24,7 +24,7 @@ use function Sentry\metrics;
 final class TracingRequestListener extends AbstractTracingRequestListener
 {
     /**
-     * @var \Sentry\Integration\RequestFetcherInterface
+     * @var RequestFetcherInterface
      */
     private $requestFetcher;
 
