@@ -24,11 +24,11 @@ use function Sentry\metrics;
 final class TracingRequestListener extends AbstractTracingRequestListener
 {
     /**
-     * @var RequestFetcherInterface
+     * @var RequestFetcherInterface|null
      */
     private $requestFetcher;
 
-    public function __construct(HubInterface $hub, RequestFetcherInterface $requestFetcher)
+    public function __construct(HubInterface $hub, ?RequestFetcherInterface $requestFetcher = null)
     {
         parent::__construct($hub);
 
