@@ -6,6 +6,7 @@ namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\Tracing\TransactionSource;
 use Symfony\Component\HttpFoundation\Request;
+use Sentry\SentryBundle\Integration\RequestFetcher;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
@@ -75,7 +76,13 @@ final class TracingRequestListener extends AbstractTracingRequestListener
             return;
         }
 
-        $transaction->finish();
+        RequestFetcher::withCurrentRequest(
+            $event->getRequest(),
+            static function () use ($transaction): void {
+                $transaction->finish();
+            },
+        );
+
         metrics()->flush();
     }
 

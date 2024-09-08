@@ -6,6 +6,7 @@ namespace Sentry\SentryBundle\Integration;
 
 use GuzzleHttp\Psr7\HttpFactory;
 use Psr\Http\Message\ServerRequestInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Sentry\Integration\RequestFetcherInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface;
@@ -29,6 +30,11 @@ final class RequestFetcher implements RequestFetcherInterface
     private $httpMessageFactory;
 
     /**
+     * @var \Symfony\Component\HttpFoundation\Request|null The current request
+     */
+    private static $currentRequest = null;
+
+    /**
      * Class constructor.
      *
      * @param RequestStack                     $requestStack       The request stack
@@ -41,7 +47,7 @@ final class RequestFetcher implements RequestFetcherInterface
             new HttpFactory(),
             new HttpFactory(),
             new HttpFactory(),
-            new HttpFactory()
+            new HttpFactory(),
         );
     }
 
@@ -50,7 +56,7 @@ final class RequestFetcher implements RequestFetcherInterface
      */
     public function fetchRequest(): ?ServerRequestInterface
     {
-        $request = $this->requestStack->getCurrentRequest();
+        $request = self::$currentRequest ?? $this->requestStack->getCurrentRequest();
 
         if (null === $request) {
             return null;
@@ -60,6 +66,17 @@ final class RequestFetcher implements RequestFetcherInterface
             return $this->httpMessageFactory->createRequest($request);
         } catch (\Throwable $exception) {
             return null;
+        }
+    }
+
+    public static function withCurrentRequest(Request $request, callable $callback): void
+    {
+        self::$currentRequest = $request;
+
+        try {
+            $callback();
+        } finally {
+            self::$currentRequest = null;
         }
     }
 }
