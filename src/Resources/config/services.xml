@@ -48,6 +48,7 @@
 
         <service id="Sentry\SentryBundle\EventListener\TracingRequestListener" class="Sentry\SentryBundle\EventListener\TracingRequestListener">
             <argument type="service" id="Sentry\State\HubInterface" />
+            <argument type="service" id="Sentry\Integration\RequestFetcherInterface" />
 
             <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" priority="4" />
             <tag name="kernel.event_listener" event="kernel.response" method="handleKernelResponseEvent" priority="15" />

@@ -25,14 +25,14 @@ final class RequestFetcher implements RequestFetcherInterface
     private $requestStack;
 
     /**
+     * @var \Symfony\Component\HttpFoundation\Request|null The current request
+     */
+    private $currentRequest;
+
+    /**
      * @var HttpMessageFactoryInterface The factory to convert Symfony requests to PSR-7 requests
      */
     private $httpMessageFactory;
-
-    /**
-     * @var \Symfony\Component\HttpFoundation\Request|null The current request
-     */
-    private static $currentRequest = null;
 
     /**
      * Class constructor.
@@ -47,7 +47,7 @@ final class RequestFetcher implements RequestFetcherInterface
             new HttpFactory(),
             new HttpFactory(),
             new HttpFactory(),
-            new HttpFactory(),
+            new HttpFactory()
         );
     }
 
@@ -56,7 +56,7 @@ final class RequestFetcher implements RequestFetcherInterface
      */
     public function fetchRequest(): ?ServerRequestInterface
     {
-        $request = self::$currentRequest ?? $this->requestStack->getCurrentRequest();
+        $request = $this->currentRequest ?? $this->requestStack->getCurrentRequest();
 
         if (null === $request) {
             return null;
@@ -69,14 +69,8 @@ final class RequestFetcher implements RequestFetcherInterface
         }
     }
 
-    public static function withCurrentRequest(Request $request, callable $callback): void
+    public function setRequest(?Request $request): void
     {
-        self::$currentRequest = $request;
-
-        try {
-            $callback();
-        } finally {
-            self::$currentRequest = null;
-        }
+        $this->currentRequest = $request;
     }
 }
