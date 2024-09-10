@@ -17,15 +17,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        uses: actions/checkout@v4
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@fc14643b0a99ee9db10a3c025a33d76544fa3761 # v2.30.5
+        uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
 
       - name: Install dependencies
-        uses: ramsey/composer-install@57532f8be5bda426838819c5ee9afb8af389d51a # v3.0.0
+        uses: ramsey/composer-install@v3
         with:
           composer-options: --prefer-dist
 
@@ -37,15 +37,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        uses: actions/checkout@v4
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@fc14643b0a99ee9db10a3c025a33d76544fa3761 # v2.30.5
+        uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
 
       - name: Install dependencies
-        uses: ramsey/composer-install@57532f8be5bda426838819c5ee9afb8af389d51a # v3.0.0
+        uses: ramsey/composer-install@v3
         with:
           composer-options: --prefer-dist
 
@@ -57,15 +57,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        uses: actions/checkout@v4
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@fc14643b0a99ee9db10a3c025a33d76544fa3761 # v2.30.5
+        uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
 
       - name: Install dependencies
-        uses: ramsey/composer-install@57532f8be5bda426838819c5ee9afb8af389d51a # v3.0.0
+        uses: ramsey/composer-install@v3
         with:
           composer-options: --prefer-dist
 
