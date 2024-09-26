@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\Integration\RequestFetcherInterface;
+use Sentry\SentryBundle\Integration\RequestFetcher;
+use Sentry\State\HubInterface;
 use Sentry\Tracing\TransactionSource;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -21,6 +24,18 @@ use function Sentry\metrics;
 final class TracingRequestListener extends AbstractTracingRequestListener
 {
     /**
+     * @var RequestFetcherInterface|null
+     */
+    private $requestFetcher;
+
+    public function __construct(HubInterface $hub, ?RequestFetcherInterface $requestFetcher = null)
+    {
+        parent::__construct($hub);
+
+        $this->requestFetcher = $requestFetcher;
+    }
+
+    /**
      * This method is called for each subrequest handled by the framework and
      * starts a new {@see Transaction}.
      *
@@ -34,6 +49,10 @@ final class TracingRequestListener extends AbstractTracingRequestListener
 
         /** @var Request $request */
         $request = $event->getRequest();
+
+        if ($this->requestFetcher instanceof RequestFetcher) {
+            $this->requestFetcher->setRequest($request);
+        }
 
         /** @var float $requestStartTime */
         $requestStartTime = $request->server->get('REQUEST_TIME_FLOAT', microtime(true));
@@ -77,6 +96,10 @@ final class TracingRequestListener extends AbstractTracingRequestListener
 
         $transaction->finish();
         metrics()->flush();
+
+        if ($this->requestFetcher instanceof RequestFetcher) {
+            $this->requestFetcher->setRequest(null);
+        }
     }
 
     /**

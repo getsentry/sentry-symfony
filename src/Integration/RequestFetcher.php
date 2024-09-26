@@ -9,6 +9,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Sentry\Integration\RequestFetcherInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -22,6 +23,11 @@ final class RequestFetcher implements RequestFetcherInterface
      * @var RequestStack The request stack
      */
     private $requestStack;
+
+    /**
+     * @var Request|null The current request
+     */
+    private $currentRequest;
 
     /**
      * @var HttpMessageFactoryInterface The factory to convert Symfony requests to PSR-7 requests
@@ -50,7 +56,7 @@ final class RequestFetcher implements RequestFetcherInterface
      */
     public function fetchRequest(): ?ServerRequestInterface
     {
-        $request = $this->requestStack->getCurrentRequest();
+        $request = $this->currentRequest ?? $this->requestStack->getCurrentRequest();
 
         if (null === $request) {
             return null;
@@ -61,5 +67,10 @@ final class RequestFetcher implements RequestFetcherInterface
         } catch (\Throwable $exception) {
             return null;
         }
+    }
+
+    public function setRequest(?Request $request): void
+    {
+        $this->currentRequest = $request;
     }
 }
