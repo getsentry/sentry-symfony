@@ -168,7 +168,7 @@ trait TraceableCacheAdapterTrait
      *
      * @phpstan-return TResult
      */
-    private function traceFunction(string $spanOperation, \Closure $callback, string $spanDescription = null)
+    private function traceFunction(string $spanOperation, \Closure $callback, ?string $spanDescription = null)
     {
         $span = $this->hub->getSpan();
 
