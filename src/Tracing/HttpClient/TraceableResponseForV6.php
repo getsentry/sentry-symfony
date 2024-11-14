@@ -14,7 +14,7 @@ final class TraceableResponseForV6 extends AbstractTraceableResponse implements 
     /**
      * {@inheritdoc}
      */
-    public function getInfo(string $type = null): mixed
+    public function getInfo(?string $type = null): mixed
     {
         return $this->response->getInfo($type);
     }
