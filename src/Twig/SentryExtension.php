@@ -17,7 +17,7 @@ final class SentryExtension extends AbstractExtension
     /**
      * @param HubInterface $hub The current hub
      */
-    public function __construct(HubInterface $hub = null)
+    public function __construct(?HubInterface $hub = null)
     {
     }
 
