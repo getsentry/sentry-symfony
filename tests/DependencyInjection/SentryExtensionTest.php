@@ -288,7 +288,8 @@ abstract class SentryExtensionTest extends TestCase
         $container = $this->createContainerFromFixture('error_types');
         $optionsDefinition = $container->getDefinition('sentry.client.options');
 
-        $this->assertSame(\E_ALL & ~(\E_NOTICE | \E_STRICT | \E_DEPRECATED), $optionsDefinition->getArgument(0)['error_types']);
+        // 2048 is \E_STRICT which has been deprecated in PHP 8.4 so we should not reference it directly to prevent deprecation notices
+        $this->assertSame(\E_ALL & ~(\E_NOTICE | 2048 | \E_DEPRECATED), $optionsDefinition->getArgument(0)['error_types']);
     }
 
     /**
