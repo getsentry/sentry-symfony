@@ -21,7 +21,7 @@ class TracingController
      */
     private $connection;
 
-    public function __construct(HubInterface $hub, Connection $connection = null)
+    public function __construct(HubInterface $hub, ?Connection $connection = null)
     {
         $this->hub = $hub;
         $this->connection = $connection;
