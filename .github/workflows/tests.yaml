@@ -125,7 +125,7 @@ jobs:
           - php: '8.0'
             dependencies: lowest
             symfony-version: 4.4.*
-          - php: '8.3'
+          - php: '8.4'
             dependencies: highest
 
     steps:
