@@ -1,11 +1,10 @@
-name: Continuous Integration
+name: CI
 
 on:
-  pull_request: null
+  pull_request:
   push:
     branches:
       - master
-      - develop
       - release/**
 
 permissions:
@@ -28,6 +27,7 @@ jobs:
           - '8.1'
           - '8.2'
           - '8.3'
+          - '8.4'
         symfony-version:
           - 4.4.*
           - 5.*
@@ -52,6 +52,8 @@ jobs:
             symfony-version: 7.*
           - php: '8.1'
             symfony-version: 7.*
+          - php: '8.4'
+            symfony-version: 4.4.*
         include:
           - php: '7.2'
             symfony-version: 4.4.*
@@ -82,9 +84,9 @@ jobs:
       - name: Setup Problem Matchers for PHPUnit
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
-      - name: Update PHPUnit
-        run: composer require --dev phpunit/phpunit ^9.3.9 --no-update
-        if: matrix.php == '8.0' && matrix.dependencies == 'lowest'
+      # These dependencies are not used running the tests but can cause deprecation warnings so we remove them before running the tests
+      - name: Remove unused dependencies
+        run: composer remove vimeo/psalm phpstan/phpstan friendsofphp/php-cs-fixer  --dev --no-interaction --no-update
 
       - name: Install dependencies
         uses: ramsey/composer-install@v3
@@ -118,7 +120,7 @@ jobs:
           - php: '8.0'
             dependencies: lowest
             symfony-version: 4.4.*
-          - php: '8.3'
+          - php: '8.4'
             dependencies: highest
 
     steps:

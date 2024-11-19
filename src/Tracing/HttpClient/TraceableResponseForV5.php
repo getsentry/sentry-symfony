@@ -16,7 +16,7 @@ final class TraceableResponseForV5 extends AbstractTraceableResponse implements 
      *
      * @return mixed
      */
-    public function getInfo(string $type = null)
+    public function getInfo(?string $type = null)
     {
         return $this->response->getInfo($type);
     }
