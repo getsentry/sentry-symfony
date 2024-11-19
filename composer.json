@@ -36,7 +36,7 @@
         "phpstan/phpstan": "1.12.5",
         "phpstan/phpstan-phpunit": "1.4.0",
         "phpstan/phpstan-symfony": "1.4.10",
-        "phpunit/phpunit": "^8.5.14||^9.3.9",
+        "phpunit/phpunit": "^8.5|^9.6",
         "symfony/browser-kit": "^4.4.20||^5.0.11||^6.0||^7.0",
         "symfony/cache": "^4.4.20||^5.0.11||^6.0||^7.0",
         "symfony/dom-crawler": "^4.4.20||^5.0.11||^6.0||^7.0",
