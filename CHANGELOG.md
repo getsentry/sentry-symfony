@@ -1,3 +1,16 @@
+## 5.1.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.1.0.
+
+### Features
+
+- The SDK was updated to support PHP 8.4 [(#893)](https://github.com/getsentry/sentry-symfony/pull/893)
+- Set the status for CLI command transactions based on the exit code [(#891)](https://github.com/getsentry/sentry-symfony/pull/891)
+
+### Bug Fixes
+
+- Fix including request data on transactions  [(#879)](https://github.com/getsentry/sentry-symfony/pull/879)
+
 ## 5.0.1
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.0.1.
