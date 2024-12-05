@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
+use Sentry\Logger\DebugStdOutLogger;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
@@ -211,7 +212,7 @@ abstract class SentryExtensionTest extends TestCase
             'attach_metric_code_locations' => true,
             'context_lines' => 0,
             'environment' => 'development',
-            'logger' => 'php',
+            'logger' => new Reference(DebugStdOutLogger::class),
             'spotlight' => true,
             'spotlight_url' => 'http://localhost:8969',
             'release' => '4.0.x-dev',
