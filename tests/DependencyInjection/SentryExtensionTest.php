@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
-use Sentry\Logger\DebugStdOutLogger;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
+use Sentry\Logger\DebugStdOutLogger;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
