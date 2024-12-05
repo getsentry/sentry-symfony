@@ -20,7 +20,7 @@
                         attach-metric-code-locations="true"
                         context-lines="0"
                         environment="development"
-                        logger="php"
+                        logger="Sentry\Logger\DebugStdOutLogger"
                         spotlight="true"
                         spotlight-url="http://localhost:8969"
                         release="4.0.x-dev"

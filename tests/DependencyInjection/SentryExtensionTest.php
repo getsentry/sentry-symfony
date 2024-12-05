@@ -9,6 +9,7 @@ use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
+use Sentry\Logger\DebugStdOutLogger;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
@@ -211,7 +212,7 @@ abstract class SentryExtensionTest extends TestCase
             'attach_metric_code_locations' => true,
             'context_lines' => 0,
             'environment' => 'development',
-            'logger' => 'php',
+            'logger' => new Reference(DebugStdOutLogger::class),
             'spotlight' => true,
             'spotlight_url' => 'http://localhost:8969',
             'release' => '4.0.x-dev',
