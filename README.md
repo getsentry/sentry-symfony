@@ -51,11 +51,15 @@ try {
 }
 ```
 
-## Symfony Version Compatibility
-
 ## Contributing to the SDK
 
 Please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
+
+### Thanks to all the people who contributed so far!
+
+<a href="https://github.com/getsentry/sentry-symfony/graphs/contributors">
+  <img src="https://contributors-img.web.app/image?repo=getsentry/sentry-symfony" />
+</a>
 
 ## Getting help/support
 
@@ -76,3 +80,4 @@ Licensed under the MIT license, see [`LICENSE`](LICENSE)
 [Packagist link]: https://packagist.org/packages/sentry/sentry-symfony
 [Master Code Coverage]: https://codecov.io/gh/getsentry/sentry-symfony/branch/master
 [Master Code Coverage Image]: https://img.shields.io/codecov/c/github/getsentry/sentry-symfony/master?logo=codecov
+
