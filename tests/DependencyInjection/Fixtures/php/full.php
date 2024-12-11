@@ -21,7 +21,7 @@ $container->loadFromExtension('sentry', [
         'attach_metric_code_locations' => true,
         'context_lines' => 0,
         'environment' => 'development',
-        'logger' => 'php',
+        'logger' => Sentry\Logger\DebugStdOutLogger::class,
         'spotlight' => true,
         'spotlight_url' => 'http://localhost:8969',
         'release' => '4.0.x-dev',
