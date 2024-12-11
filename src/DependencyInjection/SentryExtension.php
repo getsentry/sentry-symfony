@@ -94,6 +94,10 @@ final class SentryExtension extends ConfigurableExtension
             });
         }
 
+        if (isset($options['logger'])) {
+            $options['logger'] = new Reference($options['logger']);
+        }
+
         if (isset($options['traces_sampler'])) {
             $options['traces_sampler'] = new Reference($options['traces_sampler']);
         }
