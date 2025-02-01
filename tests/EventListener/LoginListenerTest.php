@@ -298,6 +298,18 @@ final class LoginListenerTest extends TestCase
         }
     }
 
+    public function testHandleKernelRequestEventDoesNothingIfRequestIsForStatelessRoute(): void
+    {
+        $this->tokenStorage->expects($this->never())
+            ->method('getToken');
+
+        $this->listener->handleKernelRequestEvent(new RequestEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(attributes: ['_stateless' => true]),
+            HttpKernelInterface::SUB_REQUEST
+        ));
+    }
+
     public function testHandleKernelRequestEventDoesNothingIfRequestIsNotMain(): void
     {
         $this->tokenStorage->expects($this->never())
