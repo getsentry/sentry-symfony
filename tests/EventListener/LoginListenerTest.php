@@ -305,7 +305,7 @@ final class LoginListenerTest extends TestCase
 
         $this->listener->handleKernelRequestEvent(new RequestEvent(
             $this->createMock(HttpKernelInterface::class),
-            new Request(attributes: ['_stateless' => true]),
+            new Request([], [], ['_stateless' => true]),
             HttpKernelInterface::SUB_REQUEST
         ));
     }
