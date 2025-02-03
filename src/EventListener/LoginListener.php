@@ -47,7 +47,11 @@ final class LoginListener
      */
     public function handleKernelRequestEvent(RequestEvent $event): void
     {
-        if (null === $this->tokenStorage || !$this->isMainRequest($event)) {
+        if (
+            null === $this->tokenStorage
+            || !$this->isMainRequest($event)
+            || $event->getRequest()->attributes->get('_stateless')
+        ) {
             return;
         }
 
