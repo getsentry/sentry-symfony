@@ -17,9 +17,17 @@ final class AddLoginListenerTagPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container): void
     {
+        if (!$container->hasDefinition(LoginListener::class)) {
+            return;
+        }
         $listenerDefinition = $container->getDefinition(LoginListener::class);
 
-        if (!class_exists(LoginSuccessEvent::class)) {
+        if (class_exists(LoginSuccessEvent::class)) {
+            $listenerDefinition->addTag('kernel.event_listener', [
+                'event' => LoginSuccessEvent::class,
+                'method' => 'handleLoginSuccessEvent',
+            ]);
+        } elseif (class_exists(AuthenticationSuccessEvent::class)) {
             $listenerDefinition->addTag('kernel.event_listener', [
                 'event' => AuthenticationSuccessEvent::class,
                 'method' => 'handleAuthenticationSuccessEvent',

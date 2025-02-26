@@ -83,7 +83,6 @@
             <argument type="service" id="security.token_storage" on-invalid="ignore" />
 
             <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" />
-            <tag name="kernel.event_listener" event="Symfony\Component\Security\Http\Event\LoginSuccessEvent" method="handleLoginSuccessEvent" />
         </service>
 
         <service id="Sentry\SentryBundle\Command\SentryTestCommand" class="Sentry\SentryBundle\Command\SentryTestCommand">
