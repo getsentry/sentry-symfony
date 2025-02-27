@@ -15,6 +15,7 @@ use Sentry\Integration\RequestIntegration;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
+use Sentry\SentryBundle\EventListener\LoginListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\EventListener\TracingConsoleListener;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
@@ -34,6 +35,7 @@ use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 final class SentryExtension extends ConfigurableExtension
 {
@@ -75,6 +77,10 @@ final class SentryExtension extends ConfigurableExtension
         $this->registerTwigTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerCacheTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerHttpClientTracingConfiguration($container, $mergedConfig['tracing']);
+
+        if (!interface_exists(TokenStorageInterface::class)) {
+            $container->removeDefinition(LoginListener::class);
+        }
     }
 
     /**

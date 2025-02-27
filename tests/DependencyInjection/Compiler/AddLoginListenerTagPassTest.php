@@ -28,4 +28,20 @@ final class AddLoginListenerTagPassTest extends TestCase
 
         $this->assertSame([['event' => AuthenticationSuccessEvent::class, 'method' => 'handleAuthenticationSuccessEvent']], $listenerDefinition->getTag('kernel.event_listener'));
     }
+
+    public function testProcessLoginSuccess(): void
+    {
+        if (!class_exists(LoginSuccessEvent::class)) {
+            $this->markTestSkipped('Skipping this test because LoginSuccessEvent does not exist.');
+        }
+
+        $container = new ContainerBuilder();
+        $container->register(LoginListener::class)->setPublic(true);
+        $container->addCompilerPass(new AddLoginListenerTagPass());
+        $container->compile();
+
+        $listenerDefinition = $container->getDefinition(LoginListener::class);
+
+        $this->assertSame([['event' => LoginSuccessEvent::class, 'method' => 'handleLoginSuccessEvent']], $listenerDefinition->getTag('kernel.event_listener'));
+    }
 }
