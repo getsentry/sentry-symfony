@@ -14,6 +14,7 @@ use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
+use Sentry\SentryBundle\EventListener\LoginListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
@@ -416,6 +417,12 @@ abstract class SentryExtensionTest extends TestCase
         $methodCalls = $factory[0]->getMethodCalls();
 
         $this->assertDefinitionMethodCallAt($methodCalls[3], 'setLogger', [new Reference(NullLogger::class, ContainerBuilder::IGNORE_ON_INVALID_REFERENCE)]);
+    }
+
+    public function testLoginListener(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+        $this->assertTrue($container->hasDefinition(LoginListener::class));
     }
 
     /**
