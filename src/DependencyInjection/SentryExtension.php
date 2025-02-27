@@ -78,7 +78,7 @@ final class SentryExtension extends ConfigurableExtension
         $this->registerCacheTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerHttpClientTracingConfiguration($container, $mergedConfig['tracing']);
 
-        if (!class_exists(TokenStorageInterface::class)) {
+        if (!interface_exists(TokenStorageInterface::class)) {
             $container->removeDefinition(LoginListener::class);
         }
     }
