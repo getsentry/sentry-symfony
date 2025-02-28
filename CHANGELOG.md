@@ -23,7 +23,7 @@ The Sentry SDK team is happy to announce the immediate availability of Sentry Sy
 
 ### Bug Fixes
 
-- Fixed updating the user context when a route is makred as stateless [(#910)](https://github.com/getsentry/sentry-symfony/pull/910)
+- Fixed updating the user context when a route is marked as stateless [(#910)](https://github.com/getsentry/sentry-symfony/pull/910)
 
 ### Misc
 
