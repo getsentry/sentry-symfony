@@ -1,3 +1,34 @@
+# CHANGELOG
+
+## 5.2.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.2.0.
+
+### Features
+
+- Allow to configure the logger via the `sentry.yaml` configuration file [(#899)](https://github.com/getsentry/sentry-symfony/pull/899)
+
+  ```yaml
+  sentry:
+    dsn: "%env(SENTRY_DSN)%"
+    options:
+        logger: "sentry.logger"
+
+  services:
+    sentry.logger:
+      class: 'Sentry\Logger\DebugFileLogger'
+      arguments:
+          $filePath: '../../var/log/sentry.log'
+  ```
+
+### Bug Fixes
+
+- Fixed updating the user context when a route is marked as stateless [(#910)](https://github.com/getsentry/sentry-symfony/pull/910)
+
+### Misc
+
+- Remove `symfony/security-core` and `symfony/security-http` as dependencies [(#912)](https://github.com/getsentry/sentry-symfony/pull/912)
+
 ## 5.1.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.1.0.
