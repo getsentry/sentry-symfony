@@ -13,7 +13,9 @@ use Sentry\Integration\IntegrationInterface;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\Integration\RequestIntegration;
 use Sentry\Options;
+use Sentry\SentryBundle\Attribute\SentryMonitorCommand;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
+use Sentry\SentryBundle\EventListener\CronMonitorListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\LoginListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
@@ -29,6 +31,7 @@ use Sentry\Serializer\RepresentationSerializer;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader;
@@ -77,6 +80,7 @@ final class SentryExtension extends ConfigurableExtension
         $this->registerTwigTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerCacheTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerHttpClientTracingConfiguration($container, $mergedConfig['tracing']);
+        $this->registerCronMonitoringConfiguration($container, $mergedConfig);
 
         if (!interface_exists(TokenStorageInterface::class)) {
             $container->removeDefinition(LoginListener::class);
@@ -283,6 +287,32 @@ final class SentryExtension extends ConfigurableExtension
         }
 
         $container->setParameter('sentry.tracing.http_client.enabled', $isConfigEnabled);
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function registerCronMonitoringConfiguration(ContainerBuilder $container, array $config): void
+    {
+        $container->setParameter('sentry.cron.enabled', (bool) $config['register_cron_monitor']);
+
+        if (!$config['register_cron_monitor']) {
+            $container->removeDefinition(CronMonitorListener::class);
+
+            return;
+        }
+
+        if (\PHP_VERSION > 8.1) {
+            $container->registerAttributeForAutoconfiguration(
+                SentryMonitorCommand::class,
+                static function (
+                    ChildDefinition $definition,
+                    SentryMonitorCommand $attribute
+                ) {
+                    $definition->addTag('sentry.monitor_command', ['slug' => $attribute->getSlug()]);
+                }
+            );
+        }
     }
 
     /**

@@ -1,0 +1,2 @@
+sentry:
+    register_cron_monitor: true
