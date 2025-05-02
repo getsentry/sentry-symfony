@@ -24,6 +24,11 @@ class CronMonitorListener
     private $registeredCommands;
 
     /**
+     * @var string|null
+     */
+    private $checkinId;
+
+    /**
      * @param HubInterface  $hub
      * @param array<string> $registeredCommands
      */
@@ -41,7 +46,7 @@ class CronMonitorListener
             return;
         }
 
-        $checkinId = $this->hub->captureCheckIn(
+        $this->checkinId = $this->hub->captureCheckIn(
             $this->registeredCommands[$this->getCommandIndex($command)],
             CheckInStatus::inProgress()
         );
@@ -59,7 +64,10 @@ class CronMonitorListener
             $this->registeredCommands[$this->getCommandIndex($command)],
             Command::SUCCESS === $event->getExitCode()
                 ? CheckInStatus::ok()
-                : CheckInStatus::error()
+                : CheckInStatus::error(),
+            null,
+            null,
+            $this->checkinId
         );
     }
 
@@ -73,7 +81,10 @@ class CronMonitorListener
 
         $this->hub->captureCheckIn(
             $this->registeredCommands[$this->getCommandIndex($command)],
-            CheckInStatus::error()
+            CheckInStatus::error(),
+            null,
+            null,
+            $this->checkinId
         );
     }
 
