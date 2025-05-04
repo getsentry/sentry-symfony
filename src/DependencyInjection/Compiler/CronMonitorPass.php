@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\DependencyInjection\Compiler;
 
 use Sentry\SentryBundle\EventListener\CronMonitorListener;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Compiler\PriorityTaggedServiceTrait;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 
 class CronMonitorPass implements CompilerPassInterface
 {
