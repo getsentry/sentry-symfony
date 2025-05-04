@@ -99,10 +99,6 @@ class CronMonitorListener
             return '';
         }
 
-        if (\PHP_VERSION > 8.0) {
-            return $command::class;
-        }
-
         return \get_class($command);
     }
 }
