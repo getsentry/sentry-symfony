@@ -65,6 +65,9 @@ final class TracingRequestListenerTest extends TestCase
         $this->hub->expects($this->once())
             ->method('startTransaction')
             ->with($this->callback(function (TransactionContext $context) use ($expectedTransactionContext): bool {
+                // This value is random when the metadata is constructed, thus we set it to a fixed expected value since we don't care for the value here
+                $context->getMetadata()->setSampleRand(0.1337);
+
                 $this->assertEquals($expectedTransactionContext, $context);
 
                 return true;
@@ -108,6 +111,7 @@ final class TracingRequestListenerTest extends TestCase
             'net.host.name' => 'www.example.com',
         ]);
         $transactionContext->getMetadata()->setDynamicSamplingContext($samplingContext);
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
 
         yield 'request.headers.sentry-trace EXISTS' => [
             new Options(),
@@ -146,6 +150,7 @@ final class TracingRequestListenerTest extends TestCase
             'net.host.name' => 'www.example.com',
         ]);
         $transactionContext->getMetadata()->setDynamicSamplingContext($samplingContext);
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
 
         yield 'request.headers.traceparent EXISTS' => [
             new Options(),
@@ -184,6 +189,8 @@ final class TracingRequestListenerTest extends TestCase
             'net.host.name' => 'www.example.com',
         ]);
         $transactionContext->getMetadata()->setDynamicSamplingContext($samplingContext);
+        $transactionContext->getMetadata()->setParentSamplingRate(1.0);
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
 
         yield 'request.headers.sentry-trace and headers.baggage EXISTS' => [
             new Options(),
@@ -216,6 +223,7 @@ final class TracingRequestListenerTest extends TestCase
             'route' => '<unknown>',
             'net.host.name' => 'www.example.com',
         ]);
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
 
         $request = Request::create('http://www.example.com');
         $request->server->remove('REQUEST_TIME_FLOAT');
@@ -240,6 +248,7 @@ final class TracingRequestListenerTest extends TestCase
             'route' => '<unknown>',
             'net.host.ip' => '127.0.0.1',
         ]);
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
 
         yield 'request.server.HOST IS IPV4' => [
             new Options(),
@@ -272,6 +281,7 @@ final class TracingRequestListenerTest extends TestCase
             'route' => 'app_homepage',
             'net.host.name' => 'www.example.com',
         ]);
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
 
         yield 'request.attributes.route IS STRING' => [
             new Options(),
@@ -297,6 +307,7 @@ final class TracingRequestListenerTest extends TestCase
             'route' => '/path',
             'net.host.name' => 'www.example.com',
         ]);
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
 
         yield 'request.attributes.route IS INSTANCEOF Symfony\Component\Routing\Route' => [
             new Options(),
@@ -322,6 +333,7 @@ final class TracingRequestListenerTest extends TestCase
             'route' => 'App\\Controller::indexAction',
             'net.host.name' => 'www.example.com',
         ]);
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
 
         yield 'request.attributes._controller IS STRING' => [
             new Options(),
@@ -347,6 +359,7 @@ final class TracingRequestListenerTest extends TestCase
             'route' => 'App\\Controller::indexAction',
             'net.host.name' => 'www.example.com',
         ]);
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
 
         yield 'request.attributes._controller IS CALLABLE (1)' => [
             new Options(),
@@ -372,6 +385,7 @@ final class TracingRequestListenerTest extends TestCase
             'route' => 'class@anonymous::indexAction',
             'net.host.name' => 'www.example.com',
         ]);
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
 
         yield 'request.attributes._controller IS CALLABLE (2)' => [
             new Options(),
@@ -397,6 +411,7 @@ final class TracingRequestListenerTest extends TestCase
             'route' => '<unknown>',
             'net.host.name' => 'www.example.com',
         ]);
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
 
         yield 'request.attributes._controller IS ARRAY and NOT VALID CALLABLE' => [
             new Options(),
@@ -423,6 +438,7 @@ final class TracingRequestListenerTest extends TestCase
             'net.host.name' => 'www.example.com',
             'net.peer.ip' => '127.0.0.1',
         ]);
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
 
         yield 'request.server.REMOTE_ADDR EXISTS and client.options.send_default_pii = TRUE' => [
             new Options(['send_default_pii' => true]),
@@ -446,6 +462,7 @@ final class TracingRequestListenerTest extends TestCase
             'route' => '<unknown>',
             'net.host.name' => '',
         ]);
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
 
         yield 'request.server.SERVER_PROTOCOL NOT EXISTS' => [
             new Options(),
