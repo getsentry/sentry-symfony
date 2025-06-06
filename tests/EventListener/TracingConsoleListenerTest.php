@@ -44,6 +44,9 @@ final class TracingConsoleListenerTest extends TestCase
         $this->hub->expects($this->once())
             ->method('startTransaction')
             ->with($this->callback(function (TransactionContext $context) use ($expectedTransactionContext): bool {
+                // This value is random when the metadata is constructed, thus we set it to a fixed expected value since we don't care for the value here
+                $context->getMetadata()->setSampleRand(0.1337);
+
                 $this->assertEquals($expectedTransactionContext, $context);
 
                 return true;
@@ -73,6 +76,7 @@ final class TracingConsoleListenerTest extends TestCase
         $transactionContext->setName('<unnamed command>');
         $transactionContext->setOrigin('auto.console');
         $transactionContext->setSource(TransactionSource::task());
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
 
         yield [
             new Command(),
@@ -84,6 +88,7 @@ final class TracingConsoleListenerTest extends TestCase
         $transactionContext->setName('app:command');
         $transactionContext->setOrigin('auto.console');
         $transactionContext->setSource(TransactionSource::task());
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
 
         yield [
             new Command('app:command'),

@@ -138,7 +138,7 @@ final class SentryExtensionTest extends TestCase
 
         SentrySdk::setCurrentHub($hub);
 
-        $this->assertSame('<meta name="baggage" content="sentry-trace_id=566e3688a61d4bc888951642d6f14a19,sentry-sample_rate=1,sentry-release=1.0.0,sentry-environment=development" />', $environment->render('foo.twig'));
+        $this->assertSame(\sprintf('<meta name="baggage" content="%s" />', $propagationContext->toBaggage()), $environment->render('foo.twig'));
     }
 
     public function testBaggageMetaFunctionWithActiveSpan(): void
@@ -164,7 +164,7 @@ final class SentryExtensionTest extends TestCase
 
         $hub->setSpan($transaction);
 
-        $this->assertSame('<meta name="baggage" content="sentry-trace_id=a3c01c41d7b94b90aee23edac90f4319,sentry-transaction=%3Cunlabeled%20transaction%3E,sentry-release=1.0.0,sentry-environment=development" />', $environment->render('foo.twig'));
+        $this->assertSame(\sprintf('<meta name="baggage" content="%s" />', $transaction->toBaggage()), $environment->render('foo.twig'));
     }
 
     private static function isTwigBundlePackageInstalled(): bool

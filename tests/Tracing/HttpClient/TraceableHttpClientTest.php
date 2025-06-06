@@ -92,9 +92,9 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame('GET', $response->getInfo('http_method'));
         $this->assertSame('https://username:password@www.example.com/test-page?foo=bar#baz', $response->getInfo('url'));
-        $this->assertSame(['sentry-trace: ' . $spans[1]->toTraceparent()], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
-        $this->assertSame(['traceparent: ' . $spans[1]->toW3CTraceparent()], $mockResponse->getRequestOptions()['normalized_headers']['traceparent']);
-        $this->assertSame(['baggage: ' . $transaction->toBaggage()], $mockResponse->getRequestOptions()['normalized_headers']['baggage']);
+        $this->assertSame([\sprintf('sentry-trace: %s', $spans[1]->toTraceparent())], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
+        $this->assertSame([\sprintf('traceparent: %s', $spans[1]->toW3CTraceparent())], $mockResponse->getRequestOptions()['normalized_headers']['traceparent']);
+        $this->assertSame([\sprintf('baggage: %s', $transaction->toBaggage())], $mockResponse->getRequestOptions()['normalized_headers']['baggage']);
         $this->assertNotNull($transaction->getSpanRecorder());
 
         $spans = $transaction->getSpanRecorder()->getSpans();
@@ -199,9 +199,9 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame('POST', $response->getInfo('http_method'));
         $this->assertSame('https://www.example.com/test-page', $response->getInfo('url'));
-        $this->assertSame(['sentry-trace: 566e3688a61d4bc888951642d6f14a19-566e3688a61d4bc8'], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
-        $this->assertSame(['traceparent: 00-566e3688a61d4bc888951642d6f14a19-566e3688a61d4bc8-00'], $mockResponse->getRequestOptions()['normalized_headers']['traceparent']);
-        $this->assertSame(['baggage: sentry-trace_id=566e3688a61d4bc888951642d6f14a19,sentry-public_key=public,sentry-release=1.0.0,sentry-environment=test'], $mockResponse->getRequestOptions()['normalized_headers']['baggage']);
+        $this->assertSame([\sprintf('sentry-trace: %s', $propagationContext->toTraceparent())], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
+        $this->assertSame([\sprintf('traceparent: %s', $propagationContext->toW3CTraceparent())], $mockResponse->getRequestOptions()['normalized_headers']['traceparent']);
+        $this->assertSame([\sprintf('baggage: %s', $propagationContext->toBaggage())], $mockResponse->getRequestOptions()['normalized_headers']['baggage']);
     }
 
     public function testRequestSetsUnknownErrorAsSpanStatusIfResponseStatusCodeIsUnavailable(): void
