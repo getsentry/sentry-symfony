@@ -100,6 +100,31 @@ final class SentryExtension extends ConfigurableExtension
             });
         }
 
+        // Resolve environment variables for float options
+        $floatOptions = ['sample_rate', 'traces_sample_rate', 'profiles_sample_rate', 'http_connect_timeout', 'http_timeout'];
+        foreach ($floatOptions as $option) {
+            if (isset($options[$option])) {
+                $options[$option] = $this->resolveEnvPlaceholder($container, $options[$option], 'float');
+            }
+        }
+
+        // Resolve environment variables for integer options
+        $intOptions = ['context_lines', 'max_breadcrumbs', 'max_value_length'];
+        foreach ($intOptions as $option) {
+            if (isset($options[$option])) {
+                $options[$option] = $this->resolveEnvPlaceholder($container, $options[$option], 'int');
+            }
+        }
+
+        // Resolve environment variables for boolean options
+        $boolOptions = ['default_integrations', 'enable_tracing', 'attach_stacktrace', 'attach_metric_code_locations', 
+                        'send_default_pii', 'http_ssl_verify_peer', 'http_compression', 'capture_silenced_errors', 'spotlight'];
+        foreach ($boolOptions as $option) {
+            if (isset($options[$option])) {
+                $options[$option] = $this->resolveEnvPlaceholder($container, $options[$option], 'bool');
+            }
+        }
+
         if (isset($options['logger'])) {
             $options['logger'] = new Reference($options['logger']);
         }
@@ -174,6 +199,36 @@ final class SentryExtension extends ConfigurableExtension
     }
 
     /**
+     * Resolves environment variable placeholders.
+     *
+     * @param mixed $value The value to resolve
+     * @param string $type The expected type (bool, float, int)
+     * @return mixed The resolved value
+     */
+    private function resolveEnvPlaceholder(ContainerBuilder $container, $value, string $type)
+    {
+        if (!\is_string($value) || !str_starts_with($value, 'env_')) {
+            return $value;
+        }
+
+        // Remove the type prefix from the env placeholder for resolution
+        $cleanValue = preg_replace('/env\(' . preg_quote($type, '/') . ':/i', 'env(', $value);
+        $resolved = $container->resolveEnvPlaceholders($cleanValue, true);
+
+        // Cast to the appropriate type
+        switch ($type) {
+            case 'bool':
+                return \is_string($resolved) ? filter_var($resolved, \FILTER_VALIDATE_BOOLEAN) : (bool) $resolved;
+            case 'float':
+                return (float) $resolved;
+            case 'int':
+                return (int) $resolved;
+            default:
+                return $resolved;
+        }
+    }
+
+    /**
      * @param array<string, mixed> $config
      */
     private function registerErrorListenerConfiguration(ContainerBuilder $container, array $config): void
@@ -204,9 +259,12 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function registerTracingConfiguration(ContainerBuilder $container, array $config): void
     {
-        $container->setParameter('sentry.tracing.enabled', $config['enabled']);
+        // Resolve environment variables in the 'enabled' configuration
+        $enabled = $this->resolveEnvPlaceholder($container, $config['enabled'], 'bool');
 
-        if (!$this->isConfigEnabled($container, $config)) {
+        $container->setParameter('sentry.tracing.enabled', $enabled);
+
+        if (!$enabled) {
             $container->removeDefinition(TracingRequestListener::class);
             $container->removeDefinition(TracingSubRequestListener::class);
             $container->removeDefinition(TracingConsoleListener::class);
@@ -222,8 +280,13 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function registerDbalTracingConfiguration(ContainerBuilder $container, array $config): void
     {
-        $isConfigEnabled = $this->isConfigEnabled($container, $config)
-            && $this->isConfigEnabled($container, $config['dbal']);
+        // Resolve environment variables for main tracing enabled state
+        $tracingEnabled = $this->resolveEnvPlaceholder($container, $config['enabled'], 'bool');
+
+        // Resolve environment variables for DBAL enabled state
+        $dbalEnabled = $this->resolveEnvPlaceholder($container, $config['dbal']['enabled'] ?? true, 'bool');
+
+        $isConfigEnabled = $tracingEnabled && $dbalEnabled;
 
         if ($isConfigEnabled && !class_exists(DoctrineBundle::class)) {
             throw new \LogicException('DBAL tracing support cannot be enabled because the doctrine/doctrine-bundle Composer package is not installed.');
@@ -243,8 +306,13 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function registerTwigTracingConfiguration(ContainerBuilder $container, array $config): void
     {
-        $isConfigEnabled = $this->isConfigEnabled($container, $config)
-            && $this->isConfigEnabled($container, $config['twig']);
+        // Resolve environment variables for main tracing enabled state
+        $tracingEnabled = $this->resolveEnvPlaceholder($container, $config['enabled'], 'bool');
+
+        // Resolve environment variables for Twig enabled state
+        $twigEnabled = $this->resolveEnvPlaceholder($container, $config['twig']['enabled'] ?? true, 'bool');
+
+        $isConfigEnabled = $tracingEnabled && $twigEnabled;
 
         if ($isConfigEnabled && !class_exists(TwigBundle::class)) {
             throw new \LogicException('Twig tracing support cannot be enabled because the symfony/twig-bundle Composer package is not installed.');
@@ -260,8 +328,13 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function registerCacheTracingConfiguration(ContainerBuilder $container, array $config): void
     {
-        $isConfigEnabled = $this->isConfigEnabled($container, $config)
-            && $this->isConfigEnabled($container, $config['cache']);
+        // Resolve environment variables for main tracing enabled state
+        $tracingEnabled = $this->resolveEnvPlaceholder($container, $config['enabled'], 'bool');
+
+        // Resolve environment variables for Cache enabled state
+        $cacheEnabled = $this->resolveEnvPlaceholder($container, $config['cache']['enabled'] ?? true, 'bool');
+
+        $isConfigEnabled = $tracingEnabled && $cacheEnabled;
 
         if ($isConfigEnabled && !class_exists(CacheItem::class)) {
             throw new \LogicException('Cache tracing support cannot be enabled because the symfony/cache Composer package is not installed.');
@@ -275,8 +348,13 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function registerHttpClientTracingConfiguration(ContainerBuilder $container, array $config): void
     {
-        $isConfigEnabled = $this->isConfigEnabled($container, $config)
-            && $this->isConfigEnabled($container, $config['http_client']);
+        // Resolve environment variables for main tracing enabled state
+        $tracingEnabled = $this->resolveEnvPlaceholder($container, $config['enabled'], 'bool');
+
+        // Resolve environment variables for HttpClient enabled state
+        $httpClientEnabled = $this->resolveEnvPlaceholder($container, $config['http_client']['enabled'] ?? true, 'bool');
+
+        $isConfigEnabled = $tracingEnabled && $httpClientEnabled;
 
         if ($isConfigEnabled && !class_exists(HttpClient::class)) {
             throw new \LogicException('Http client tracing support cannot be enabled because the symfony/http-client Composer package is not installed.');

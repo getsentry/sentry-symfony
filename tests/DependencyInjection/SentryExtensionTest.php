@@ -460,6 +460,121 @@ abstract class SentryExtensionTest extends TestCase
         ];
     }
 
+    /**
+     * @dataProvider tracingWithEnvVarsDataProvider
+     */
+    public function testTracingConfigurationWithEnvironmentVariables(array $envVars, array $expectations): void
+    {
+        foreach ($envVars as $key => $value) {
+            $_ENV[$key] = $value;
+        }
+
+        try {
+            $container = $this->createContainerFromFixture('tracing_with_env_vars');
+
+            // Check tracing enabled parameters
+            $this->assertSame($expectations['tracing_enabled'], $container->getParameter('sentry.tracing.enabled'));
+            $this->assertSame($expectations['dbal_enabled'], $container->getParameter('sentry.tracing.dbal.enabled'));
+            $this->assertSame($expectations['cache_enabled'], $container->getParameter('sentry.tracing.cache.enabled'));
+            $this->assertSame($expectations['http_client_enabled'], $container->getParameter('sentry.tracing.http_client.enabled'));
+
+            // Check options values
+            $optionsDefinition = $container->getDefinition('sentry.client.options');
+            $options = $optionsDefinition->getArgument(0);
+            $this->assertSame($expectations['traces_sample_rate'], $options['traces_sample_rate']);
+            $this->assertSame($expectations['sample_rate'], $options['sample_rate']);
+            $this->assertSame($expectations['max_breadcrumbs'], $options['max_breadcrumbs']);
+            $this->assertSame($expectations['attach_stacktrace'], $options['attach_stacktrace']);
+
+            // Check that tracing listeners are removed when tracing is disabled
+            if (!$expectations['tracing_enabled']) {
+                $this->assertFalse($container->hasDefinition(TracingRequestListener::class));
+                $this->assertFalse($container->hasDefinition(TracingSubRequestListener::class));
+                $this->assertFalse($container->hasDefinition(TracingConsoleListener::class));
+            }
+        } finally {
+            // Clean up environment variables
+            foreach ($envVars as $key => $value) {
+                unset($_ENV[$key]);
+            }
+        }
+    }
+
+    public function tracingWithEnvVarsDataProvider(): \Generator
+    {
+        yield 'Tracing disabled with float values' => [
+            [
+                'SENTRY_TRACING' => 'false',
+                'SENTRY_DBAL_TRACING' => 'false',
+                'SENTRY_TWIG_TRACING' => 'false',
+                'SENTRY_CACHE_TRACING' => 'false',
+                'SENTRY_HTTP_CLIENT_TRACING' => 'false',
+                'SENTRY_TRACES_SAMPLE_RATE' => '0.01',
+                'SENTRY_SAMPLE_RATE' => '0.5',
+                'SENTRY_MAX_BREADCRUMBS' => '50',
+                'SENTRY_ATTACH_STACKTRACE' => 'true',
+            ],
+            [
+                'tracing_enabled' => false,
+                'dbal_enabled' => false,
+                'cache_enabled' => false,
+                'http_client_enabled' => false,
+                'traces_sample_rate' => 0.01,
+                'sample_rate' => 0.5,
+                'max_breadcrumbs' => 50,
+                'attach_stacktrace' => true,
+            ],
+        ];
+
+        yield 'Tracing enabled with various values' => [
+            [
+                'SENTRY_TRACING' => 'true',
+                'SENTRY_DBAL_TRACING' => 'true',
+                'SENTRY_TWIG_TRACING' => 'false',
+                'SENTRY_CACHE_TRACING' => 'true',
+                'SENTRY_HTTP_CLIENT_TRACING' => 'false',
+                'SENTRY_TRACES_SAMPLE_RATE' => '1',
+                'SENTRY_SAMPLE_RATE' => '0',
+                'SENTRY_MAX_BREADCRUMBS' => '100',
+                'SENTRY_ATTACH_STACKTRACE' => 'false',
+            ],
+            [
+                'tracing_enabled' => true,
+                'dbal_enabled' => true,
+                'cache_enabled' => true,
+                'http_client_enabled' => false,
+                'traces_sample_rate' => 1.0,
+                'sample_rate' => 0.0,
+                'max_breadcrumbs' => 100,
+                'attach_stacktrace' => false,
+            ],
+        ];
+
+        yield 'Edge case values' => [
+            [
+                'SENTRY_TRACING' => '0',  // Should be false
+                'SENTRY_DBAL_TRACING' => '1',  // Should be true
+                'SENTRY_TWIG_TRACING' => 'yes',  // Should be true
+                'SENTRY_CACHE_TRACING' => 'no',  // Should be false
+                'SENTRY_HTTP_CLIENT_TRACING' => 'off',  // Should be false
+                'SENTRY_TRACES_SAMPLE_RATE' => '0.123456',
+                'SENTRY_SAMPLE_RATE' => '0.999',
+                'SENTRY_MAX_BREADCRUMBS' => '0',
+                'SENTRY_ATTACH_STACKTRACE' => 'on',  // Should be true
+            ],
+            [
+                'tracing_enabled' => false,
+                'dbal_enabled' => false,  // false because main tracing is disabled
+                'cache_enabled' => false,  // false because main tracing is disabled
+                'http_client_enabled' => false,
+                'traces_sample_rate' => 0.123456,
+                'sample_rate' => 0.999,
+                'max_breadcrumbs' => 0,
+                'attach_stacktrace' => true,
+            ],
+        ];
+    }
+
     private function createContainerFromFixture(string $fixtureFile): ContainerBuilder
     {
         $container = new ContainerBuilder(new EnvPlaceholderParameterBag([

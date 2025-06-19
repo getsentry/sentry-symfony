@@ -1,0 +1,17 @@
+sentry:
+    dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
+    tracing:
+        enabled: '%env(bool:SENTRY_TRACING)%'
+        dbal:
+            enabled: '%env(bool:SENTRY_DBAL_TRACING)%'
+        twig:
+            enabled: '%env(bool:SENTRY_TWIG_TRACING)%'
+        cache:
+            enabled: '%env(bool:SENTRY_CACHE_TRACING)%'
+        http_client:
+            enabled: '%env(bool:SENTRY_HTTP_CLIENT_TRACING)%'
+    options:
+        traces_sample_rate: '%env(float:SENTRY_TRACES_SAMPLE_RATE)%'
+        sample_rate: '%env(float:SENTRY_SAMPLE_RATE)%'
+        max_breadcrumbs: '%env(int:SENTRY_MAX_BREADCRUMBS)%'
+        attach_stacktrace: '%env(bool:SENTRY_ATTACH_STACKTRACE)%'
