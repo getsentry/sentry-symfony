@@ -22,7 +22,7 @@
             <argument type="service" id="Sentry\State\HubInterface" />
 
             <tag name="kernel.event_listener" event="console.command" method="handleConsoleCommandEvent" priority="128" />
-            <tag name="kernel.event_listener" event="console.terminate" method="handleConsoleTerminateEvent" priority="-64" />
+            <tag name="kernel.event_listener" event="console.terminate" method="handleConsoleTerminateEvent" priority="-128" />
             <tag name="kernel.event_listener" event="console.error" method="handleConsoleErrorEvent" priority="-64" />
         </service>
 

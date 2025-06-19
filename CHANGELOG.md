@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+### Bug Fixes
+
+- Fix missing breadcrumbs in console commands by adjusting the event listener priority to ensure the scope is popped after tracing data is captured [(#763)](https://github.com/getsentry/sentry-symfony/issues/763)
+
 ## 5.2.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.2.0.

@@ -71,6 +71,10 @@ class ConsoleListener
      */
     public function handleConsoleTerminateEvent(ConsoleTerminateEvent $event): void
     {
+        // The scope is popped here with a low priority (-128) to ensure that
+        // other listeners (like TracingConsoleListener at priority -54) have
+        // a chance to capture breadcrumbs and finish transactions before the
+        // scope is removed.
         $this->hub->popScope();
     }
 
