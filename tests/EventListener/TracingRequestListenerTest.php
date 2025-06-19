@@ -7,8 +7,10 @@ namespace Sentry\SentryBundle\Tests\EventListener;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
+use Sentry\Integration\RequestFetcherInterface;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
+use Sentry\SentryBundle\Integration\RequestFetcher;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\DynamicSamplingContext;
 use Sentry\Tracing\SpanId;
@@ -544,6 +546,29 @@ final class TracingRequestListenerTest extends TestCase
         $this->listener->handleKernelTerminateEvent(new TerminateEvent(
             $this->createMock(HttpKernelInterface::class),
             new Request(),
+            new Response()
+        ));
+    }
+
+    public function testHandleKernelTerminateEventDoesNotClearRequest(): void
+    {
+        $transaction = new Transaction(new TransactionContext());
+        $request = new Request();
+        $requestFetcher = $this->createMock(RequestFetcherInterface::class);
+
+        $this->hub->expects($this->once())
+            ->method('getTransaction')
+            ->willReturn($transaction);
+
+        // The request should NOT be cleared (setRequest(null) should NOT be called)
+        $requestFetcher->expects($this->never())
+            ->method('setRequest');
+
+        $listener = new TracingRequestListener($this->hub, $requestFetcher);
+
+        $listener->handleKernelTerminateEvent(new TerminateEvent(
+            $this->createMock(HttpKernelInterface::class),
+            $request,
             new Response()
         ));
     }

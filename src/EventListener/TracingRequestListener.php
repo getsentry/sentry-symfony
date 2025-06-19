@@ -97,9 +97,10 @@ final class TracingRequestListener extends AbstractTracingRequestListener
         $transaction->finish();
         metrics()->flush();
 
-        if ($this->requestFetcher instanceof RequestFetcher) {
-            $this->requestFetcher->setRequest(null);
-        }
+        // We don't clear the request here with setRequest(null) because other handlers
+        // (like Monolog's BreadcrumbHandler) might still need access to the request data
+        // during shutdown or after the kernel terminate event. The request will be
+        // naturally cleared when the RequestStack is cleared by Symfony itself.
     }
 
     /**
