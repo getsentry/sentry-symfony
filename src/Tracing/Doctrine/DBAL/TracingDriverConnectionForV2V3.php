@@ -246,9 +246,9 @@ final class TracingDriverConnectionForV2V3 implements TracingDriverConnectionInt
      *
      * @param array<string, mixed> $params The connection params
      *
-     * @return array<string, string>
-     *
      * @phpstan-param ConnectionParams $params
+     *
+     * @return array<string, string>
      *
      * @see https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
      */
