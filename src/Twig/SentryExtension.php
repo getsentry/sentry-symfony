@@ -10,7 +10,6 @@ use Twig\TwigFunction;
 
 use function Sentry\getBaggage;
 use function Sentry\getTraceparent;
-use function Sentry\getW3CTraceparent;
 
 final class SentryExtension extends AbstractExtension
 {
@@ -43,10 +42,12 @@ final class SentryExtension extends AbstractExtension
 
     /**
      * Returns an HTML meta tag named `traceparent`.
+     *
+     * @deprecated since version 5.3. To be removed in version 6.0.
      */
     public function getW3CTraceMeta(): string
     {
-        return \sprintf('<meta name="traceparent" content="%s" />', getW3CTraceparent());
+        return '';
     }
 
     /**
