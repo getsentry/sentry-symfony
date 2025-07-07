@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 5.3.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.3.0.
+
+### Features
+
+- Implement `NamespacedPoolInterface` for `TraceableCacheAdapterForV3` [(#927)](https://github.com/getsentry/sentry-symfony/pull/927)
+
+### Misc
+
+- Update minimum required version of `sentry/sentry` to `^4.14.1`
+- Remove support for `traceparent` header [(#928)](https://github.com/getsentry/sentry-symfony/pull/928)
+
 ## 5.2.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.2.0.
