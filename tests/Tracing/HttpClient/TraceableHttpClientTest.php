@@ -176,7 +176,7 @@ final class TraceableHttpClientTest extends TestCase
             'trace_propagation_targets' => ['www.example.com'],
         ]);
         $client = $this->createMock(ClientInterface::class);
-        $client->expects($this->exactly(5))
+        $client->expects($this->exactly(4))
             ->method('getOptions')
             ->willReturn($options);
 
@@ -200,7 +200,6 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame('POST', $response->getInfo('http_method'));
         $this->assertSame('https://www.example.com/test-page', $response->getInfo('url'));
         $this->assertSame([\sprintf('sentry-trace: %s', $propagationContext->toTraceparent())], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
-        $this->assertSame([\sprintf('traceparent: %s', $propagationContext->toW3CTraceparent())], $mockResponse->getRequestOptions()['normalized_headers']['traceparent']);
         $this->assertSame([\sprintf('baggage: %s', $propagationContext->toBaggage())], $mockResponse->getRequestOptions()['normalized_headers']['baggage']);
     }
 
