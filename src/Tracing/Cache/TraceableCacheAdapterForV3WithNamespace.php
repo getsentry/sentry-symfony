@@ -9,6 +9,7 @@ use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\PruneableInterface;
 use Symfony\Component\Cache\ResettableInterface;
 use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\NamespacedPoolInterface;
 
 /**
  * This implementation of a cache adapter supports the distributed tracing
@@ -16,7 +17,7 @@ use Symfony\Contracts\Cache\CacheInterface;
  *
  * @internal
  */
-final class TraceableCacheAdapterForV3 implements AdapterInterface, CacheInterface, PruneableInterface, ResettableInterface
+final class TraceableCacheAdapterForV3WithNamespace implements AdapterInterface, NamespacedPoolInterface, CacheInterface, PruneableInterface, ResettableInterface
 {
     /**
      * @phpstan-use TraceableCacheAdapterTrait<AdapterInterface>
@@ -47,5 +48,17 @@ final class TraceableCacheAdapterForV3 implements AdapterInterface, CacheInterfa
 
             return $this->decoratedAdapter->get($key, $callback, $beta, $metadata);
         }, $key);
+    }
+
+    public function withSubNamespace(string $namespace): static
+    {
+        if (!$this->decoratedAdapter instanceof NamespacedPoolInterface) {
+            throw new \BadMethodCallException(\sprintf('The %s::withSubNamespace() method is not supported because the decorated adapter does not implement the "%s" interface.', self::class, NamespacedPoolInterface::class));
+        }
+
+        $clone = clone $this;
+        $clone->decoratedAdapter = $this->decoratedAdapter->withSubNamespace($namespace);
+
+        return $clone;
     }
 }
