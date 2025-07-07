@@ -45,7 +45,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 if (interface_exists(AdapterInterface::class)) {
     if (!class_exists(DoctrineProvider::class, false) && version_compare(\PHP_VERSION, '8.0.0', '>=')) {
         if (!class_exists(TraceableCacheAdapter::class, false)) {
-            if (class_exists(NamespacedPoolInterface::class, false)) {
+            if (interface_exists(NamespacedPoolInterface::class)) {
                 class_alias(TraceableCacheAdapterForV3WithNamespace::class, TraceableCacheAdapter::class);
             } else {
                 class_alias(TraceableCacheAdapterForV3::class, TraceableCacheAdapter::class);
