@@ -91,11 +91,12 @@ final class TracingConsoleListener
             return;
         }
 
-        $span = $this->hub->getSpan();
+        $transaction = $this->hub->getTransaction();
 
-        if (null !== $span) {
-            $span->setStatus(0 === $event->getExitCode() ? SpanStatus::ok() : SpanStatus::internalError());
-            $span->finish();
+        if (null !== $transaction) {
+            $transaction->setStatus(0 === $event->getExitCode() ? SpanStatus::ok() : SpanStatus::internalError());
+            $transaction->finish();
+            metrics()->flush();
         }
     }
 
