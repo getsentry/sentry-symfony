@@ -56,7 +56,11 @@ final class RequestListener
             $user = $scope->getUser() ?? new UserDataBag();
 
             if (null === $user->getIpAddress()) {
-                $user->setIpAddress($event->getRequest()->getClientIp());
+                try {
+                    $user->setIpAddress($event->getRequest()->getClientIp());
+                } catch (\InvalidArgumentException $e) {
+                    // If the IP is in an invalid format, we ignore it
+                }
             }
 
             $scope->setUser($user);
