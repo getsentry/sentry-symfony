@@ -121,6 +121,17 @@ final class RequestListenerTest extends TestCase
             new UserDataBag('foo_user', null, '::1'),
             new UserDataBag('foo_user', null, '::1'),
         ];
+
+        yield 'remote address empty' => [
+            new RequestEvent(
+                $this->createMock(HttpKernelInterface::class),
+                new Request([], [], [], [], [], ['REMOTE_ADDR' => '']),
+                \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
+            ),
+            $this->getMockedClientWithOptions(new Options(['send_default_pii' => true])),
+            new UserDataBag(),
+            new UserDataBag(),
+        ];
     }
 
     /**
