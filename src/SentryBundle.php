@@ -6,6 +6,7 @@ namespace Sentry\SentryBundle;
 
 use Sentry\SentryBundle\DependencyInjection\Compiler\AddLoginListenerTagPass;
 use Sentry\SentryBundle\DependencyInjection\Compiler\CacheTracingPass;
+use Sentry\SentryBundle\DependencyInjection\Compiler\CronMonitorPass;
 use Sentry\SentryBundle\DependencyInjection\Compiler\DbalTracingPass;
 use Sentry\SentryBundle\DependencyInjection\Compiler\HttpClientTracingPass;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
@@ -26,5 +27,6 @@ final class SentryBundle extends Bundle
         $container->addCompilerPass(new CacheTracingPass());
         $container->addCompilerPass(new HttpClientTracingPass());
         $container->addCompilerPass(new AddLoginListenerTagPass());
+        $container->addCompilerPass(new CronMonitorPass());
     }
 }
