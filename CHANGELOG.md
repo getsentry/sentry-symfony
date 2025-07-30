@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 5.3.1
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.3.0.
+
+### Bug Fixes
+
+- Fix exception thrown when invalid IP address was captured by the request listener [(#931)](https://github.com/getsentry/sentry-symfony/pull/931)
+
 ## 5.3.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.3.0.
