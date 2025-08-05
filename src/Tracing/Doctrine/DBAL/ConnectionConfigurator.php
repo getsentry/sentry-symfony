@@ -39,8 +39,12 @@ final class ConnectionConfigurator
     public function configure(Connection $connection): void
     {
         $reflectionProperty = new \ReflectionProperty($connection, '_driver');
-        $reflectionProperty->setAccessible(true);
+        if (\PHP_VERSION_ID < 80100) {
+            $reflectionProperty->setAccessible(true);
+        }
         $reflectionProperty->setValue($connection, $this->tracingDriverMiddleware->wrap($reflectionProperty->getValue($connection)));
-        $reflectionProperty->setAccessible(false);
+        if (\PHP_VERSION_ID < 80100) {
+            $reflectionProperty->setAccessible(false);
+        }
     }
 }
