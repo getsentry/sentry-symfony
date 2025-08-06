@@ -53,6 +53,7 @@ class ConsoleListener
         $this->hub = $hub;
         $this->captureErrors = $captureErrors;
         $this->commandHasErrors = false;
+        $this->commandDepth = 0;
     }
 
     /**
@@ -65,6 +66,10 @@ class ConsoleListener
         $scope = $this->hub->pushScope();
         $command = $event->getCommand();
         $input = $event->getInput();
+        // Reset hasErrors flag if this is a new command and not a sub-command.
+        if (0 === $this->commandDepth) {
+            $this->commandHasErrors = false;
+        }
         ++$this->commandDepth;
 
         if (null !== $command && null !== $command->getName()) {
