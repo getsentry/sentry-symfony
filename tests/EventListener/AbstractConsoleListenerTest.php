@@ -91,7 +91,7 @@ abstract class AbstractConsoleListenerTest extends TestCase
         $listenerClass = static::getListenerClass();
         $listener = new $listenerClass($this->hub);
 
-        $this->hub->expects($this->once())
+        $this->hub->expects($this->never())
             ->method('popScope');
 
         $listener->handleConsoleTerminateEvent(new ConsoleTerminateEvent(new Command(), new ArrayInput([]), new NullOutput(), 0));

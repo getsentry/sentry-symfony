@@ -33,6 +33,16 @@ class ConsoleListener
     private $captureErrors;
 
     /**
+     * @var bool tracks if the command terminated with errors
+     */
+    private $commandHasErrors;
+
+    /**
+     * @var int tracks how many commands have been invoked from other commands
+     */
+    private $commandDepth;
+
+    /**
      * Constructor.
      *
      * @param HubInterface $hub           The current hub
@@ -42,6 +52,8 @@ class ConsoleListener
     {
         $this->hub = $hub;
         $this->captureErrors = $captureErrors;
+        $this->commandHasErrors = false;
+        $this->commandDepth = 0;
     }
 
     /**
@@ -54,6 +66,11 @@ class ConsoleListener
         $scope = $this->hub->pushScope();
         $command = $event->getCommand();
         $input = $event->getInput();
+        // Reset hasErrors flag if this is a new command and not a sub-command.
+        if (0 === $this->commandDepth) {
+            $this->commandHasErrors = false;
+        }
+        ++$this->commandDepth;
 
         if (null !== $command && null !== $command->getName()) {
             $scope->setTag('console.command', $command->getName());
@@ -65,13 +82,19 @@ class ConsoleListener
     }
 
     /**
-     * Handles the termination of a console command by popping the {@see Scope}.
+     * Handles the termination of a console command. If the command had errors, we will not pop the scope
+     * to retain information that we can attach to the event.
      *
      * @param ConsoleTerminateEvent $event The event
      */
     public function handleConsoleTerminateEvent(ConsoleTerminateEvent $event): void
     {
-        $this->hub->popScope();
+        --$this->commandDepth;
+        // If a command encountered an error, we want to keep the scope to be able to populate the event.
+        // We also want to keep the last scope so that breadcrumbs are not deleted once the command terminates.
+        if (false === $this->commandHasErrors && $this->commandDepth > 0) {
+            $this->hub->popScope();
+        }
     }
 
     /**
@@ -81,6 +104,7 @@ class ConsoleListener
      */
     public function handleConsoleErrorEvent(ConsoleErrorEvent $event): void
     {
+        $this->commandHasErrors = true;
         $this->hub->configureScope(function (Scope $scope) use ($event): void {
             $scope->setTag('console.command.exit_code', (string) $event->getExitCode());
 
