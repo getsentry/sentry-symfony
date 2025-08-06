@@ -38,6 +38,11 @@ class ConsoleListener
     private $commandHasErrors;
 
     /**
+     * @var int tracks how many commands have been invoked from other commands
+     */
+    private $commandDepth;
+
+    /**
      * Constructor.
      *
      * @param HubInterface $hub           The current hub
@@ -60,6 +65,7 @@ class ConsoleListener
         $scope = $this->hub->pushScope();
         $command = $event->getCommand();
         $input = $event->getInput();
+        ++$this->commandDepth;
 
         if (null !== $command && null !== $command->getName()) {
             $scope->setTag('console.command', $command->getName());
@@ -78,9 +84,10 @@ class ConsoleListener
      */
     public function handleConsoleTerminateEvent(ConsoleTerminateEvent $event): void
     {
-        // We need to keep the last scope around even until command termination to retain
-        // information when flushing buffered events.
-        if (false === $this->commandHasErrors) {
+        --$this->commandDepth;
+        // If a command encountered an error, we want to keep the scope to be able to populate the event.
+        // We also want to keep the last scope so that breadcrumbs are not deleted once the command terminates.
+        if (false === $this->commandHasErrors && $this->commandDepth > 0) {
             $this->hub->popScope();
         }
     }

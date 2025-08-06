@@ -79,7 +79,7 @@ class BreadcrumbTestCommandTest extends TestCase
             $this->application->doRun(new ArgvInput(['bin/console', 'sentry:breadcrumb:test']), new NullOutput());
             $this->fail();
         } catch (\Throwable $e) {
-            $this->assertSame($e->getMessage(), 'Breadcrumb error');
+            $this->assertEquals('Breadcrumb error', $e->getMessage());
         }
 
         $event = Event::createEvent();
@@ -119,8 +119,8 @@ class BreadcrumbTestCommandTest extends TestCase
         });
 
         $this->assertNotNull($modifiedEvent);
-        // We do not have breadcrumbs here because no error happened and the scope was popped.
-        $this->assertCount(0, $modifiedEvent->getBreadcrumbs());
+        // We have breadcrumbs but only from the root console command.
+        $this->assertCount(2, $modifiedEvent->getBreadcrumbs());
     }
 
     /**
@@ -140,7 +140,7 @@ class BreadcrumbTestCommandTest extends TestCase
             $this->application->doRun(new ArgvInput(['bin/console', 'sentry:subcommand:test']), new NullOutput());
             $this->fail();
         } catch (\Throwable $e) {
-            $this->assertSame($e->getMessage(), 'Breadcrumb error');
+            $this->assertEquals('Breadcrumb error', $e->getMessage());
         }
 
         $event = Event::createEvent();
@@ -152,7 +152,7 @@ class BreadcrumbTestCommandTest extends TestCase
 
         $this->assertNotNull($modifiedEvent);
         $this->assertCount(2, $modifiedEvent->getBreadcrumbs());
-        $this->assertSame($modifiedEvent->getTags()['console.command'], 'sentry:breadcrumb:test');
+        $this->assertEquals('sentry:breadcrumb:test', $modifiedEvent->getTags()['console.command']);
     }
 
     /**
@@ -176,7 +176,7 @@ class BreadcrumbTestCommandTest extends TestCase
             $this->application->doRun(new ArgvInput(['bin/console', 'sentry:subcommand:test']), new NullOutput());
             $this->fail();
         } catch (\Throwable $e) {
-            $this->assertSame($e->getMessage(), 'Breadcrumb error');
+            $this->assertEquals('Breadcrumb error', $e->getMessage());
         }
 
         $command = new SentryDummyTestCommand($this->logger);
@@ -195,6 +195,31 @@ class BreadcrumbTestCommandTest extends TestCase
         // Breadcrumbs contain all log entries until the sentry:dummy:test command crash.
         $this->assertCount(3, $modifiedEvent->getBreadcrumbs());
         // console.command tag is properly set to the last command
-        $this->assertSame($modifiedEvent->getTags()['console.command'], 'sentry:dummy:test');
+        $this->assertEquals('sentry:dummy:test', $modifiedEvent->getTags()['console.command']);
+    }
+
+    /**
+     * Tests that even if no errors occur, breadcrumb information is available.
+     *
+     * @return void
+     * @throws \Throwable
+     */
+    public function testBreadcrumbsAreAvailableAfterCommandTermination()
+    {
+        $command = new SentryDummyTestCommand($this->logger);
+        $this->application->add($command);
+
+        $this->application->doRun(new ArgvInput(['bin/console', 'sentry:dummy:test']), new NullOutput());
+
+        $event = Event::createEvent();
+        $modifiedEvent = null;
+        $this->hub->configureScope(function (Scope $scope) use ($event, &$modifiedEvent) {
+            $modifiedEvent = $scope->applyToEvent($event);
+        });
+
+        $this->assertNotNull($modifiedEvent);
+        $this->assertCount(1, $modifiedEvent->getBreadcrumbs());
+        $this->assertEquals('This is a dummy message', $modifiedEvent->getBreadcrumbs()[0]->getMessage());
+        $this->assertEquals('sentry:dummy:test', $modifiedEvent->getTags()['console.command']);
     }
 }
