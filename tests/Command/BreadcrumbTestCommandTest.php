@@ -202,6 +202,7 @@ class BreadcrumbTestCommandTest extends TestCase
      * Tests that even if no errors occur, breadcrumb information is available.
      *
      * @return void
+     *
      * @throws \Throwable
      */
     public function testBreadcrumbsAreAvailableAfterCommandTermination()
