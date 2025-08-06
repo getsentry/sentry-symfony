@@ -34,7 +34,9 @@ class SentrySubcommandTestCommand extends Command
     {
         $this->logger->error('Subcommand will run now');
 
-        $this->getApplication()->doRun(new ArrayInput(['command' => $this->subcommand->getName()]), new NullOutput());
+        if ($this->getApplication() !== null) {
+            $this->getApplication()->doRun(new ArrayInput(['command' => $this->subcommand->getName()]), new NullOutput());
+        }
 
         $this->logger->error('Breadcrumb after subcommand');
 
