@@ -34,7 +34,7 @@ class SentrySubcommandTestCommand extends Command
     {
         $this->logger->error('Subcommand will run now');
 
-        if ($this->getApplication() !== null) {
+        if (null !== $this->getApplication()) {
             $this->getApplication()->doRun(new ArrayInput(['command' => $this->subcommand->getName()]), new NullOutput());
         }
 
