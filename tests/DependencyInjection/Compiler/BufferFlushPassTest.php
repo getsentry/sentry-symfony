@@ -17,6 +17,7 @@ class BufferFlushPassTest extends TestCase
 {
     /**
      * @param Reference[] $services
+     *
      * @return string[]
      */
     private function servicesToName(array $services): array
@@ -24,6 +25,20 @@ class BufferFlushPassTest extends TestCase
         return array_map(function ($item) {
             return (string) $item;
         }, $services);
+    }
+
+    /**
+     * @param Definition $definition
+     *
+     * @return string[]
+     */
+    private function argumentToName(Definition $definition): array
+    {
+        $argument = $definition->getArgument(0);
+        $this->assertIsArray($argument);
+        $this->assertInstanceOf(Reference::class, $argument[0]);
+
+        return $this->servicesToName($argument);
     }
 
     /**
@@ -41,7 +56,7 @@ class BufferFlushPassTest extends TestCase
 
         (new BufferFlushPass())->process($container);
         $definition = $container->getDefinition('sentry.buffer_flusher');
-        $serviceIds = $this->servicesToName($definition->getArgument(0));
+        $serviceIds = $this->argumentToName($definition);
         $this->assertEquals(['sentry.test.handler'], $serviceIds);
     }
 
@@ -78,7 +93,7 @@ class BufferFlushPassTest extends TestCase
 
         (new BufferFlushPass())->process($container);
         $definition = $container->getDefinition('sentry.buffer_flusher');
-        $serviceIds = $this->servicesToName($definition->getArgument(0));
+        $serviceIds = $this->argumentToName($definition);
         $this->assertEquals(['sentry.test.handler', 'sentry.other.test.handler'], $serviceIds);
     }
 
@@ -98,7 +113,7 @@ class BufferFlushPassTest extends TestCase
 
         (new BufferFlushPass())->process($container);
         $definition = $container->getDefinition('sentry.buffer_flusher');
-        $serviceIds = $this->servicesToName($definition->getArgument(0));
+        $serviceIds = $this->argumentToName($definition);
         $this->assertEquals(['sentry.test.handler'], $serviceIds);
     }
 }
