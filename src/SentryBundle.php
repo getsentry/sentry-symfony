@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle;
 
 use Sentry\SentryBundle\DependencyInjection\Compiler\AddLoginListenerTagPass;
+use Sentry\SentryBundle\DependencyInjection\Compiler\BufferFlushPass;
 use Sentry\SentryBundle\DependencyInjection\Compiler\CacheTracingPass;
 use Sentry\SentryBundle\DependencyInjection\Compiler\DbalTracingPass;
 use Sentry\SentryBundle\DependencyInjection\Compiler\HttpClientTracingPass;
-use Sentry\SentryBundle\DependencyInjection\Compiler\BufferFlushPass;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
