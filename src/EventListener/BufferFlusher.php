@@ -11,7 +11,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
-class SentryBufferFlusher implements EventSubscriberInterface
+class BufferFlusher implements EventSubscriberInterface
 {
     /**
      * @var BufferHandler[]

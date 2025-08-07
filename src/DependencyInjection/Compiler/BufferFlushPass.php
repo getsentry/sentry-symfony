@@ -6,13 +6,13 @@ namespace Sentry\SentryBundle\DependencyInjection\Compiler;
 
 use Monolog\Handler\BufferHandler;
 use Sentry\Monolog\Handler as SentryHandler;
-use Sentry\SentryBundle\EventListener\SentryBufferFlusher;
+use Sentry\SentryBundle\EventListener\BufferFlusher;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
-class SentryBufferFlushPass implements CompilerPassInterface
+class BufferFlushPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
@@ -22,7 +22,7 @@ class SentryBufferFlushPass implements CompilerPassInterface
             return;
         }
 
-        $flusherDefinition = new Definition(SentryBufferFlusher::class);
+        $flusherDefinition = new Definition(BufferFlusher::class);
         $flusherDefinition->setArguments([$sentryBufferHandlers]);
         $flusherDefinition->addTag('kernel.event_subscriber');
 
