@@ -69,7 +69,7 @@ class BreadcrumbTestCommandTest extends TestCase
         $breadcrumbHandler = new BreadcrumbHandler($hub);
 
         // Monolog handler will turn logs above warn into sentry events.
-        $handler = new Handler($hub, Level::Warning);
+        $handler = new Handler($hub, Logger::WARNING);
         $bufferHandler = new BufferHandler($handler);
         $dispatcher->addSubscriber(new BufferFlusher([$bufferHandler]));
 
