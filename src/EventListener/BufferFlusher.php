@@ -6,6 +6,8 @@ namespace Sentry\SentryBundle\EventListener;
 
 use Monolog\Handler\BufferHandler;
 use Symfony\Component\Console\ConsoleEvents;
+use Symfony\Component\Console\Event\ConsoleCommandEvent;
+use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\Console\Event\ConsoleTerminateEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
@@ -30,7 +32,9 @@ class BufferFlusher implements EventSubscriberInterface
     {
         return [
             KernelEvents::TERMINATE => ['onKernelTerminate', 10],
+            ConsoleEvents::COMMAND => ['onConsoleCommand', 10],
             ConsoleEvents::TERMINATE => ['onConsoleTerminate', 10],
+            ConsoleEvents::ERROR => ['onConsoleError', 10],
         ];
     }
 
@@ -40,6 +44,16 @@ class BufferFlusher implements EventSubscriberInterface
     }
 
     public function onConsoleTerminate(ConsoleTerminateEvent $event): void
+    {
+        $this->flushBuffers();
+    }
+
+    public function onConsoleError(ConsoleErrorEvent $event): void
+    {
+        $this->flushBuffers();
+    }
+
+    public function onConsoleCommand(ConsoleCommandEvent $event): void
     {
         $this->flushBuffers();
     }
