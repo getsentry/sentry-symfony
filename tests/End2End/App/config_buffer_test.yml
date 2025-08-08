@@ -1,5 +1,6 @@
 sentry:
   dsn: http://public@example.com/sentry/1
+  register_error_handler: false
   tracing:
     enabled: true
   options:
@@ -12,6 +13,7 @@ sentry:
       - 'Symfony\Component\Debug\Exception\FatalErrorException'
     ignore_transactions: 'GET tracing_ignored_transaction'
     transport: 'Sentry\SentryBundle\Tests\End2End\StubTransport'
+
 
 framework:
   router: { resource: "%routing_config_dir%/routing.yml" }
@@ -27,6 +29,11 @@ services:
     public: true
 
   Sentry\SentryBundle\Tests\End2End\StubTransport: ~
+
+  Sentry\Monolog\BreadcrumbHandler:
+    arguments:
+      - '@Sentry\State\HubInterface'
+      - !php/const Monolog\Logger::WARNING
 
   Sentry\SentryBundle\Tests\End2End\App\Controller\MainController:
     autowire: true
@@ -47,3 +54,16 @@ monolog:
       type:  stream
       path:  "%kernel.logs_dir%/%kernel.environment%.log"
       level: debug
+    sentry:
+      type: sentry
+      level: warning
+      hub_id: 'Sentry\State\HubInterface'
+    sentry_breadcrumbs:
+      type: service
+      name: sentry_breadcrumbs
+      id: Sentry\Monolog\BreadcrumbHandler
+    sentry_buffer:
+      type: buffer
+      handler: sentry
+      level: notice
+      buffer_size: 50
