@@ -13,6 +13,13 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
+/**
+ * Class that wraps Sentry monolog handlers to flush them for certain lifecycle events.
+ * This is required to emit proper scope based information like tags and breadcrumbs.
+ *
+ * Without this class, buffered monolog messages are flushed when the request finishes at which
+ * point breadcrumbs and tags are no longer present in the scope.
+ */
 class BufferFlusher implements EventSubscriberInterface
 {
     /**
@@ -30,9 +37,15 @@ class BufferFlusher implements EventSubscriberInterface
 
     public static function getSubscribedEvents(): array
     {
+        // Flush the Monolog buffer before any scope is destroyed so that events
+        // get augmented with properly scoped data.
+        // For ConsoleEvents::COMMAND, we have to flush before ConsoleListener::handleConsoleCommandEvent(..)
+        // runs so that the proper tags get attached to the event.
+        // Running with lower priority will make the ConsoleListener run before and create a new scope
+        // with the new command name when running a symfony Command within another Command.
         return [
             KernelEvents::TERMINATE => ['onKernelTerminate', 10],
-            ConsoleEvents::COMMAND => ['onConsoleCommand', 10],
+            ConsoleEvents::COMMAND => ['onConsoleCommand', 150],
             ConsoleEvents::TERMINATE => ['onConsoleTerminate', 10],
             ConsoleEvents::ERROR => ['onConsoleError', 10],
         ];

@@ -48,6 +48,23 @@ services:
   Sentry\SentryBundle\Tests\End2End\App\Command\MainCommand:
     tags: [{ name: 'console.command', command: 'main-command' }]
 
+  Sentry\SentryBundle\Tests\End2End\App\Command\BreadcrumbTestCommand:
+    autowire: true
+    tags: [{ name: 'console.command', command: 'sentry:breadcrumb:test'}]
+
+  Sentry\SentryBundle\Tests\End2End\App\Command\DummyTestCommand:
+    autowire: true
+    tags: [{ name: 'console.command', command: 'sentry:dummy:test'}]
+
+  Sentry\SentryBundle\Tests\End2End\App\Command\SubcommandTestCommand:
+    autowire: true
+    tags: [{ name: 'console.command', command: 'sentry:subcommand:test'}]
+
+  Sentry\SentryBundle\Tests\End2End\App\Command\CrashingSubcommandTestCommand:
+    autowire: true
+    tags: [{ name: 'console.command', command: 'sentry:subcommand:crash'}]
+
+
 monolog:
   handlers:
     main:

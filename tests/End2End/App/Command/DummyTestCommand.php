@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Sentry\SentryBundle\Command;
+namespace Sentry\SentryBundle\Tests\End2End\App\Command;
 
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class SentryBreadcrumbTestCommand extends Command
+class DummyTestCommand extends Command
 {
     /**
      * @var LoggerInterface
@@ -18,14 +18,14 @@ class SentryBreadcrumbTestCommand extends Command
 
     public function __construct(LoggerInterface $logger)
     {
-        parent::__construct('sentry:breadcrumb:test');
+        parent::__construct();
         $this->logger = $logger;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->logger->error('Breadcrumb error log line');
+        $this->logger->error('dummy 1 error');
 
-        throw new \RuntimeException('Breadcrumb error');
+        return 0;
     }
 }
