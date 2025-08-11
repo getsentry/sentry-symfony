@@ -35,7 +35,7 @@ class KernelForBufferTest extends Kernel
                 }
             }
 
-            return true;
+            return false;
         } catch (\Exception $e) {
             return false;
         }
