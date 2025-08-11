@@ -23,14 +23,14 @@ class KernelForBufferTest extends Kernel
     }
 
     /**
-     * Monolog Bundle supports hub_id from version 3.5 onwards.
+     * Monolog Bundle supports hub_id from version 3.7 onwards.
      */
     private function supportsHubId(): bool
     {
         try {
             if (class_exists('Composer\InstalledVersions')) {
                 $version = \Composer\InstalledVersions::getVersion('symfony/monolog-bundle');
-                if ($version && version_compare($version, '3.5.0', '>=')) {
+                if ($version && version_compare($version, '3.7.0', '>=')) {
                     return true;
                 }
             }
