@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Command;
 
 use Monolog\Handler\BufferHandler;
-use Monolog\Level;
 use Monolog\Logger;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -20,7 +19,6 @@ use Sentry\SentryBundle\EventListener\BufferFlusher;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\Tests\End2End\StubTransport;
 use Sentry\State\Hub;
-use Sentry\State\HubInterface;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\Console\Input\ArgvInput;
@@ -34,11 +32,6 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
  */
 class BreadcrumbTestCommandTest extends TestCase
 {
-    /**
-     * @var HubInterface
-     */
-    private $hub;
-
     /**
      * @var LoggerInterface
      */
@@ -73,7 +66,6 @@ class BreadcrumbTestCommandTest extends TestCase
         $bufferHandler = new BufferHandler($handler);
         $dispatcher->addSubscriber(new BufferFlusher([$bufferHandler]));
 
-        $this->hub = $hub;
         $this->logger = new Logger('test', [$bufferHandler, $breadcrumbHandler]);
     }
 

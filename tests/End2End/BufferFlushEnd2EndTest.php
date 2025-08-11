@@ -8,6 +8,7 @@ use Sentry\SentryBundle\Tests\End2End\App\KernelForBufferTest;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 if (!class_exists(KernelBrowser::class) && class_exists(Client::class)) {
     class_alias(Client::class, KernelBrowser::class);
@@ -18,7 +19,6 @@ if (!class_exists(KernelBrowser::class) && class_exists(Client::class)) {
  */
 class BufferFlushEnd2EndTest extends WebTestCase
 {
-
     protected function setUp(): void
     {
         StubTransport::$events = [];
@@ -34,7 +34,14 @@ class BufferFlushEnd2EndTest extends WebTestCase
      */
     public function testLogMessagesBufferedAndFlushedAfterKernelTermination(): void
     {
-        $client = static::createClient(['debug' => false]);
+        try {
+            $client = static::createClient(['debug' => false]);
+        } catch (InvalidConfigurationException $e) {
+            if (str_starts_with($e->getMessage(), 'Unrecognized option "hub_id" under "monolog.handlers.sentry"')) {
+                $this->markTestSkipped('Skipped because "hub_id" option does not exist for this PHP/Symfony version');
+            }
+            $this->fail();
+        }
 
         $client->request('GET', '/buffer-flush');
 
