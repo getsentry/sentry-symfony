@@ -44,29 +44,29 @@ class BufferFlusher implements EventSubscriberInterface
         // Running with lower priority will make the ConsoleListener run before and create a new scope
         // with the new command name when running a symfony Command within another Command.
         return [
-            KernelEvents::TERMINATE => ['onKernelTerminate', 10],
-            ConsoleEvents::COMMAND => ['onConsoleCommand', 150],
-            ConsoleEvents::TERMINATE => ['onConsoleTerminate', 10],
-            ConsoleEvents::ERROR => ['onConsoleError', 10],
+            KernelEvents::TERMINATE => ['handleKernelTerminateEvent', 10],
+            ConsoleEvents::COMMAND => ['handleConsoleCommandEvent', 150],
+            ConsoleEvents::TERMINATE => ['handleConsoleTerminateEvent', 10],
+            ConsoleEvents::ERROR => ['handleConsoleErrorEvent', 10],
         ];
     }
 
-    public function onKernelTerminate(TerminateEvent $event): void
+    public function handleKernelTerminateEvent(TerminateEvent $event): void
     {
         $this->flushBuffers();
     }
 
-    public function onConsoleTerminate(ConsoleTerminateEvent $event): void
+    public function handleConsoleTerminateEvent(ConsoleTerminateEvent $event): void
     {
         $this->flushBuffers();
     }
 
-    public function onConsoleError(ConsoleErrorEvent $event): void
+    public function handleConsoleErrorEvent(ConsoleErrorEvent $event): void
     {
         $this->flushBuffers();
     }
 
-    public function onConsoleCommand(ConsoleCommandEvent $event): void
+    public function handleConsoleCommandEvent(ConsoleCommandEvent $event): void
     {
         $this->flushBuffers();
     }

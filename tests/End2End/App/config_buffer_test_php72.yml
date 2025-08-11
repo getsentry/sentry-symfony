@@ -1,0 +1,22 @@
+services:
+  app.sentry.handler:
+    class: Sentry\Monolog\Handler
+    arguments:
+      - '@Sentry\State\HubInterface'
+      - !php/const Monolog\Logger::WARNING
+
+monolog:
+  handlers:
+    sentry:
+      type: service
+      id: app.sentry.handler
+      level: warning
+    sentry_breadcrumbs:
+      type: service
+      name: sentry_breadcrumbs
+      id: Sentry\Monolog\BreadcrumbHandler
+    sentry_buffer:
+      type: buffer
+      handler: sentry
+      level: notice
+      buffer_size: 50
