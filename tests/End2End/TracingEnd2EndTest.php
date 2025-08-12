@@ -36,7 +36,7 @@ class TracingEnd2EndTest extends WebTestCase
 
     public function testTracingWithDoctrineConnectionPing(): void
     {
-        $client = static::createClient(['debug' => true]);
+        $client = static::createClient(['debug' => false]);
 
         $client->request('GET', '/tracing/ping-database');
 
@@ -52,7 +52,7 @@ class TracingEnd2EndTest extends WebTestCase
 
     public function testTracingWithIgnoredTransaction(): void
     {
-        $client = static::createClient(['debug' => true]);
+        $client = static::createClient(['debug' => false]);
 
         $client->request('GET', '/tracing/ignored-transaction');
 

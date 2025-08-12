@@ -46,7 +46,7 @@ class BufferFlusher implements EventSubscriberInterface
         return [
             KernelEvents::TERMINATE => ['handleKernelTerminateEvent', 10],
             ConsoleEvents::COMMAND => ['handleConsoleCommandEvent', 150],
-            ConsoleEvents::TERMINATE => ['handleConsoleTerminateEvent', 0],
+            ConsoleEvents::TERMINATE => ['handleConsoleTerminateEvent', 10],
             ConsoleEvents::ERROR => ['handleConsoleErrorEvent', 10],
         ];
     }
