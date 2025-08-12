@@ -15,6 +15,8 @@ use Symfony\Component\Console\Output\NullOutput;
  * Tests in this suite test the following configuration:
  * - Sentry breadcrumb handler is enabled
  * - Sentry Monolog handler is enabled which will send log lines with a severity of warn or above to sentry.
+ *
+ * @runTestsInSeparateProcesses
  */
 class BreadcrumbTestCommandTest extends WebTestCase
 {

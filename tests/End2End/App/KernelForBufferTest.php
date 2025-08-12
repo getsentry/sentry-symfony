@@ -32,8 +32,10 @@ class KernelForBufferTest extends Kernel
         try {
             if (class_exists('Composer\InstalledVersions')) {
                 $version = \Composer\InstalledVersions::getVersion('symfony/monolog-bundle');
+
                 return $version && version_compare($version, '3.7.0', '>=');
             }
+
             return false;
         } catch (\Exception $e) {
             return false;
