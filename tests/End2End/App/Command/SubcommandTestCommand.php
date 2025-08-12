@@ -29,7 +29,7 @@ class SubcommandTestCommand extends Command
         $this->logger->error('subcommand 1 error');
 
         if (null !== $this->getApplication()) {
-            $this->getApplication()->doRun(new ArrayInput(['command' => "sentry:dummy:test"]), new NullOutput());
+            $this->getApplication()->doRun(new ArrayInput(['command' => 'sentry:dummy:test']), new NullOutput());
         }
 
         $this->logger->error('subcommand 2 error');
