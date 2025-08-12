@@ -40,6 +40,7 @@ class TracingEnd2EndTest extends WebTestCase
         $response = $client->getResponse();
 
         $this->assertInstanceOf(Response::class, $response);
+        $this->assertEquals('Success', $response->getContent());
         $this->assertSame(200, $response->getStatusCode());
 
         $this->assertLastEventIdIsNotNull($client);
@@ -55,6 +56,7 @@ class TracingEnd2EndTest extends WebTestCase
         $response = $client->getResponse();
 
         $this->assertInstanceOf(Response::class, $response);
+        $this->assertEquals('Success', $response->getContent());
         $this->assertSame(200, $response->getStatusCode());
 
         $this->assertLastEventIdIsNull($client);
