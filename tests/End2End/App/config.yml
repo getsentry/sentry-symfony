@@ -33,6 +33,13 @@ services:
     tags:
       - controller.service_arguments
 
+  Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController:
+    arguments:
+      $hub: '@Sentry\State\HubInterface'
+      $connection: '@?doctrine.dbal.default_connection'
+    tags:
+      - controller.service_arguments
+
   Sentry\SentryBundle\Tests\End2End\App\Command\MainCommand:
     tags: [{ name: 'console.command', command: 'main-command' }]
 

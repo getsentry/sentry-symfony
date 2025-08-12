@@ -29,50 +29,26 @@ class TracingController
 
     public function pingDatabase(): Response
     {
-        try {
-            $this->hub->setSpan(
-                $this->hub->getSpan()
-                    ->startChild($this->createSpan())
-            );
+        $this->hub->setSpan(
+            $this->hub->getSpan()
+                ->startChild($this->createSpan())
+        );
 
-            if ($this->connection) {
-                $this->connection->executeQuery('SELECT 1');
-            }
-
-            return new Response('Success');
-        } catch (\Throwable $e) {
-            $errorMessage = sprintf(
-                "Exception: %s\nMessage: %s\nFile: %s\nLine: %d",
-                get_class($e),
-                $e->getMessage(),
-                $e->getFile(),
-                $e->getLine()
-            );
-
-            return new Response($errorMessage, 200);
+        if ($this->connection) {
+            $this->connection->executeQuery('SELECT 1');
         }
+
+        return new Response('Success');
     }
 
     public function ignoredTransaction(): Response
     {
-        try {
-            $this->hub->setSpan(
-                $this->hub->getSpan()
-                    ->startChild($this->createSpan())
-            );
+        $this->hub->setSpan(
+            $this->hub->getSpan()
+                ->startChild($this->createSpan())
+        );
 
-            return new Response('Success');
-        } catch (\Throwable $e) {
-            $errorMessage = sprintf(
-                "Exception: %s\nMessage: %s\nFile: %s\nLine: %d",
-                get_class($e),
-                $e->getMessage(),
-                $e->getFile(),
-                $e->getLine()
-            );
-
-            return new Response($errorMessage, 200);
-        }
+        return new Response('Success');
     }
 
     private function createSpan(): SpanContext

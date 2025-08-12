@@ -3,11 +3,3 @@ sentry:
     enabled: true
   options:
     traces_sample_rate: 1
-
-services:
-  Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController:
-    arguments:
-      $hub: '@Sentry\State\HubInterface'
-      $connection: '@?doctrine.dbal.default_connection'
-    tags:
-      - { name: controller.service_arguments }
