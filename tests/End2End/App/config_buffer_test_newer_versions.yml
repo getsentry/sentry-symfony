@@ -1,0 +1,6 @@
+monolog:
+  handlers:
+    sentry:
+      type: sentry
+      level: warning
+      hub_id: 'Sentry\State\HubInterface'

@@ -41,3 +41,7 @@ tracing_ping_database:
 tracing_ignored_transaction:
   path: /tracing/ignored-transaction
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::ignoredTransaction' }
+
+buffer_flush:
+  path: /buffer-flush
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\BufferFlushController::testBufferFlush' }
