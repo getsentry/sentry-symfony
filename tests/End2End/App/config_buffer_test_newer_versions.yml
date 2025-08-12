@@ -1,0 +1,15 @@
+monolog:
+  handlers:
+    sentry:
+      type: sentry
+      level: warning
+      hub_id: 'Sentry\State\HubInterface'
+    sentry_breadcrumbs:
+      type: service
+      name: sentry_breadcrumbs
+      id: Sentry\Monolog\BreadcrumbHandler
+    sentry_buffer:
+      type: buffer
+      handler: sentry
+      level: notice
+      buffer_size: 50

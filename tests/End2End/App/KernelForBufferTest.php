@@ -17,7 +17,9 @@ class KernelForBufferTest extends Kernel
         parent::registerContainerConfiguration($loader);
         $loader->load(__DIR__ . '/config_buffer_test.yml');
 
-        if (!$this->supportsHubId()) {
+        if ($this->supportsHubId()) {
+            $loader->load(__DIR__ . '/config_buffer_test_newer_versions.yml');
+        } else {
             $loader->load(__DIR__ . '/config_buffer_test_php72.yml');
         }
     }
@@ -30,9 +32,7 @@ class KernelForBufferTest extends Kernel
         try {
             if (class_exists('Composer\InstalledVersions')) {
                 $version = \Composer\InstalledVersions::getVersion('symfony/monolog-bundle');
-                if ($version && version_compare($version, '3.7.0', '>=')) {
-                    return true;
-                }
+                return $version && version_compare($version, '3.7.0', '>=');
             }
 
             return false;

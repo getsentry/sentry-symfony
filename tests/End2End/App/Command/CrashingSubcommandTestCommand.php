@@ -29,7 +29,7 @@ class CrashingSubcommandTestCommand extends Command
         $this->logger->error('subcommand crash 1 error');
 
         if (null !== $this->getApplication()) {
-            $this->getApplication()->doRun(new ArrayInput(['command' => "sentry:breadcrumb:test"]), new NullOutput());
+            $this->getApplication()->doRun(new ArrayInput(['command' => 'sentry:breadcrumb:test']), new NullOutput());
         }
 
         $this->logger->error('subcommand error 2 error');

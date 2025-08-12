@@ -68,6 +68,7 @@ class BreadcrumbTestCommandTest extends WebTestCase
         $this->assertCount(2, $event->getBreadcrumbs());
         $this->assertEquals('breadcrumb 1 error', $event->getBreadcrumbs()[0]->getMessage());
         $this->assertCount(1, $event->getExceptions());
+        $this->assertNotNull($event->getMessage());
         $this->assertStringStartsWith('Error thrown while running command', $event->getMessage());
     }
 
