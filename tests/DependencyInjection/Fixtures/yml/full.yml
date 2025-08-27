@@ -12,6 +12,7 @@ sentry:
         traces_sample_rate: 1
         traces_sampler: App\Sentry\Tracing\TracesSampler
         profiles_sample_rate: 1
+        enable_logs: true
         attach_stacktrace: true
         attach_metric_code_locations: true
         context_lines: 0
@@ -29,6 +30,7 @@ sentry:
         before_send_transaction: App\Sentry\BeforeSendTransactionCallback
         before_send_check_in: App\Sentry\BeforeSendCheckInCallback
         before_send_metrics: App\Sentry\BeforeSendMetricsCallback
+        before_send_logs: App\Sentry\BeforeSendLogsCallback
         trace_propagation_targets:
           - 'website.invalid'
         tags:
