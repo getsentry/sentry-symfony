@@ -29,7 +29,7 @@ class CrashCommand extends Command
         $this->subcommand = $subcommand;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->logger->warning('Executing subcommand if exists');
 

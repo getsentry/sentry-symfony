@@ -98,6 +98,11 @@ class LoggingCommandTest extends WebTestCase
         $this->assertEmpty($logEvent->getExceptions());
     }
 
+    /**
+     * @param Log[] $logs
+     * @param LogLevel $level
+     * @return Log|null
+     */
     private function findOneByLevel(array $logs, LogLevel $level): ?Log
     {
         foreach ($logs as $log) {

@@ -7,6 +7,7 @@ namespace Sentry\SentryBundle\Monolog;
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Handler\HandlerInterface;
 use Monolog\Logger as MonologLogger;
+use Monolog\LogRecord;
 use Sentry\Monolog\CompatibilityLogLevelTrait;
 use Sentry\Monolog\LogsHandler as BaseLogsHandler;
 
@@ -30,11 +31,17 @@ class LogsHandler implements HandlerInterface
         $this->logsHandler = new BaseLogsHandler($logLevel, $bubble);
     }
 
+    /**
+     * @param array<string, mixed>|LogRecord $record
+     */
     public function isHandling(array $record): bool
     {
         return $this->logsHandler->isHandling($record);
     }
 
+    /**
+     * @param array<string, mixed>|LogRecord $record
+     */
     public function handle(array $record): bool
     {
         // Extra check required here because `isHandling` is not guaranteed to
@@ -46,6 +53,9 @@ class LogsHandler implements HandlerInterface
         return false;
     }
 
+    /**
+     * @param array<array<string, mixed>|LogRecord> $records
+     */
     public function handleBatch(array $records): void
     {
         $this->logsHandler->handleBatch($records);
@@ -56,6 +66,9 @@ class LogsHandler implements HandlerInterface
         $this->logsHandler->close();
     }
 
+    /**
+     * @param callable $callback
+     */
     public function pushProcessor($callback): void
     {
         $this->logsHandler->pushProcessor($callback);

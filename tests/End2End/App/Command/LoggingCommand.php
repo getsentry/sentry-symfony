@@ -22,7 +22,7 @@ class LoggingCommand extends Command
         $this->logger = $logger;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->logger->debug('Debug Log');
 
