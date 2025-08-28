@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Monolog;
 
+use Monolog\Formatter\FormatterInterface;
 use Monolog\Handler\HandlerInterface;
 use Monolog\Logger as MonologLogger;
 use Sentry\Monolog\CompatibilityLogLevelTrait;
@@ -52,5 +53,28 @@ class LogsHandler implements HandlerInterface
     public function close(): void
     {
         $this->logsHandler->close();
+    }
+
+    public function pushProcessor($callback): void
+    {
+        $this->logsHandler->pushProcessor($callback);
+    }
+
+    /**
+     * @return callable
+     */
+    public function popProcessor()
+    {
+        return $this->logsHandler->popProcessor();
+    }
+
+    public function setFormatter(FormatterInterface $formatter): void
+    {
+        $this->logsHandler->setFormatter($formatter);
+    }
+
+    public function getFormatter(): FormatterInterface
+    {
+        return $this->logsHandler->getFormatter();
     }
 }
