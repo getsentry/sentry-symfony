@@ -49,5 +49,3 @@ final class LogsHandlerTest extends TestCase
         $this->assertTrue($handler->handle($record));
     }
 }
-
-
