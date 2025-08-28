@@ -34,7 +34,7 @@ class LogsHandler implements HandlerInterface
     /**
      * @param array<string, mixed>|LogRecord $record
      */
-    public function isHandling(array $record): bool
+    public function isHandling($record): bool
     {
         return $this->logsHandler->isHandling($record);
     }
@@ -42,7 +42,7 @@ class LogsHandler implements HandlerInterface
     /**
      * @param array<string, mixed>|LogRecord $record
      */
-    public function handle(array $record): bool
+    public function handle($record): bool
     {
         // Extra check required here because `isHandling` is not guaranteed to
         // be called, and we might accidentally capture log messages that should be filtered.
