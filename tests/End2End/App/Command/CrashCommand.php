@@ -22,7 +22,7 @@ class CrashCommand extends Command
      */
     private $subcommand;
 
-    public function __construct(LoggerInterface $logger, string $subcommand = null)
+    public function __construct(LoggerInterface $logger, ?string $subcommand = null)
     {
         parent::__construct();
         $this->logger = $logger;

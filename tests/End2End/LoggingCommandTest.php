@@ -102,8 +102,9 @@ class LoggingCommandTest extends WebTestCase
     }
 
     /**
-     * @param Log[] $logs
+     * @param Log[]    $logs
      * @param LogLevel $level
+     *
      * @return Log|null
      */
     private function findOneByLevel(array $logs, LogLevel $level): ?Log
