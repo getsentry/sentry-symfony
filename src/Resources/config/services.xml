@@ -85,6 +85,10 @@
             <tag name="kernel.event_listener" event="kernel.request" method="handleKernelRequestEvent" />
         </service>
 
+        <service id="Sentry\SentryBundle\EventListener\LogRequestListener" class="Sentry\SentryBundle\EventListener\LogRequestListener">
+            <tag name="kernel.event_listener" event="kernel.terminate" method="handleKernelTerminateEvent" priority="10" />
+        </service>
+
         <service id="Sentry\SentryBundle\Command\SentryTestCommand" class="Sentry\SentryBundle\Command\SentryTestCommand">
             <argument type="service" id="Sentry\State\HubInterface" />
 

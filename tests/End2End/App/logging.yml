@@ -1,0 +1,19 @@
+sentry:
+  options:
+    enable_logs: true
+
+monolog:
+  handlers:
+    sentry_logs:
+      type: service
+      id: Sentry\SentryBundle\Monolog\LogsHandler
+
+services:
+  Sentry\SentryBundle\Monolog\LogsHandler:
+    arguments:
+      - !php/const Monolog\Logger::WARNING
+
+  Sentry\SentryBundle\Tests\End2End\App\Controller\LoggingController:
+    autowire: true
+    tags:
+      - { name: controller.service_arguments }

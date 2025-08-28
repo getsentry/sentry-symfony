@@ -41,3 +41,11 @@ tracing_ping_database:
 tracing_ignored_transaction:
   path: /tracing/ignored-transaction
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::ignoredTransaction' }
+
+just_logging:
+  path: /just-logging
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\LoggingController::justLogging' }
+
+logging_With_Error:
+  path: /logging-with-error
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\LoggingController::loggingWithError' }
