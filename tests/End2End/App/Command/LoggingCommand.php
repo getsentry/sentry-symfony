@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sentry\SentryBundle\Tests\End2End\App\Command;
 
 use Psr\Log\LoggerInterface;
@@ -22,13 +24,13 @@ class LoggingCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->logger->debug("Debug Log");
+        $this->logger->debug('Debug Log');
 
-        $this->logger->info("Info Log");
+        $this->logger->info('Info Log');
 
-        $this->logger->warning("Warn Log");
+        $this->logger->warning('Warn Log');
 
-        $this->logger->error("Error Log");
+        $this->logger->error('Error Log');
 
         return 0;
     }

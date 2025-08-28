@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sentry\SentryBundle\Tests\End2End;
 
 use Sentry\Logs\Log;
@@ -12,7 +14,6 @@ use Symfony\Component\Console\Output\NullOutput;
 
 class LoggingCommandTest extends WebTestCase
 {
-
     /**
      * @var Application
      */
@@ -31,7 +32,7 @@ class LoggingCommandTest extends WebTestCase
 
     public function testLogsInCommand(): void
     {
-        $this->application->doRun(new ArgvInput(['bin/console', "log:test"]), new NullOutput());
+        $this->application->doRun(new ArgvInput(['bin/console', 'log:test']), new NullOutput());
 
         $this->assertCount(1, StubTransport::$events);
         $event = StubTransport::$events[0];
@@ -49,8 +50,8 @@ class LoggingCommandTest extends WebTestCase
     public function testExceptionLogsInCommand(): void
     {
         try {
-            $this->application->doRun(new ArgvInput(['bin/console', "log:nosub"]), new NullOutput());
-            $this->fail("Expected exception never occurred");
+            $this->application->doRun(new ArgvInput(['bin/console', 'log:nosub']), new NullOutput());
+            $this->fail('Expected exception never occurred');
         } catch (\Throwable $t) {
         }
 
@@ -70,10 +71,9 @@ class LoggingCommandTest extends WebTestCase
     public function testExceptionLogsWithSubcommand(): void
     {
         try {
-            $this->application->doRun(new ArgvInput(['bin/console', "log:sub"]), new NullOutput());
-            $this->fail("Expected exception never occurred");
+            $this->application->doRun(new ArgvInput(['bin/console', 'log:sub']), new NullOutput());
+            $this->fail('Expected exception never occurred');
         } catch (\Throwable $t) {
-
         }
 
         // 1.) Logs from subcommand
@@ -105,7 +105,7 @@ class LoggingCommandTest extends WebTestCase
                 return $log;
             }
         }
+
         return null;
     }
-
 }

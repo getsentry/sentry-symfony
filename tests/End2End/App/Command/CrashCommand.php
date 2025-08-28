@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sentry\SentryBundle\Tests\End2End\App\Command;
 
 use Psr\Log\LoggerInterface;
@@ -10,7 +12,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class CrashCommand extends Command
 {
-
     /**
      * @var LoggerInterface
      */
@@ -30,15 +31,14 @@ class CrashCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->logger->warning("Executing subcommand if exists");
+        $this->logger->warning('Executing subcommand if exists');
 
-        if ($this->subcommand !== null) {
+        if (null !== $this->subcommand) {
             $this->getApplication()->doRun(new ArgvInput(['bin/console', 'log:test']), $output);
         }
 
-        $this->logger->emergency("About to crash");
+        $this->logger->emergency('About to crash');
 
-        throw new \RuntimeException("Crash in command");
+        throw new \RuntimeException('Crash in command');
     }
-
 }

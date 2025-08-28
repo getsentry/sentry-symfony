@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sentry\SentryBundle\Tests\End2End;
 
 use Sentry\Logs\Log;
@@ -56,13 +58,14 @@ class LoggingEnd2EndTest extends WebTestCase
      * Removes framework logs so that the tests can focus on our expected logs.
      *
      * @param Log[] $logs
+     *
      * @return Log[]
      */
     private function filterFrameworkLogs(array $logs): array
     {
         return array_filter($logs, function (Log $log) {
-            return $log->getBody() !== 'Matched route "{route}".'
-                && $log->getBody() !== 'Notified event "{event}" to listener "{listener}".';
+            return 'Matched route "{route}".' !== $log->getBody()
+                && 'Notified event "{event}" to listener "{listener}".' !== $log->getBody();
         });
     }
 }

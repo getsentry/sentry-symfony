@@ -42,6 +42,7 @@ class LogsHandler implements HandlerInterface
         if ($this->logsHandler->isHandling($record)) {
             return $this->logsHandler->handle($record);
         }
+
         return false;
     }
 
