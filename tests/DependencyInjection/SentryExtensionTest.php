@@ -13,6 +13,7 @@ use Sentry\Logger\DebugStdOutLogger;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
+use Sentry\SentryBundle\EventListener\CronMonitorListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\LoginListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
@@ -460,6 +461,22 @@ abstract class SentryExtensionTest extends TestCase
             'release_option_fallback_to_composer_version',
             PrettyVersions::getRootPackageVersion()->getPrettyVersion(),
         ];
+    }
+
+    public function testRegisterCronMonitoringConfigurationDisabled(): void
+    {
+        $container = $this->createContainerFromFixture('cron_monitor_disabled');
+
+        $this->assertFalse($container->getParameter('sentry.cron.enabled'));
+        $this->assertFalse($container->hasDefinition(CronMonitorListener::class));
+    }
+
+    public function testRegisterCronMonitoringConfiguration(): void
+    {
+        $container = $this->createContainerFromFixture('cron_monitor_enabled');
+
+        $this->assertTrue($container->getParameter('sentry.cron.enabled'));
+        $this->assertTrue($container->hasDefinition(CronMonitorListener::class));
     }
 
     private function createContainerFromFixture(string $fixtureFile): ContainerBuilder

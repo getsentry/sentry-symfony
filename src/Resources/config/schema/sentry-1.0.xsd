@@ -16,6 +16,7 @@
 
         <xsd:attribute name="register-error-listener" type="xsd:boolean" />
         <xsd:attribute name="register-error-handler" type="xsd:boolean" />
+        <xsd:attribute name="register-cron-monitor" type="xsd:boolean" />
         <xsd:attribute name="transport-factory" type="xsd:string" />
         <xsd:attribute name="dsn" type="xsd:string" />
         <xsd:attribute name="logger" type="xsd:string" />
