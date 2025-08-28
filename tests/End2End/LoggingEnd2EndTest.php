@@ -8,6 +8,9 @@ use Sentry\Logs\Log;
 use Sentry\SentryBundle\Tests\End2End\App\KernelWithLogging;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
+/**
+ * @runTestsInSeparateProcesses
+ */
 class LoggingEnd2EndTest extends WebTestCase
 {
     protected static function getKernelClass(): string

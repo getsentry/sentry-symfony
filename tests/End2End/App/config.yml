@@ -36,24 +36,6 @@ services:
   Sentry\SentryBundle\Tests\End2End\App\Command\MainCommand:
     tags: [{ name: 'console.command', command: 'main-command' }]
 
-  Sentry\SentryBundle\Tests\End2End\App\Command\LoggingCommand:
-    autowire: true
-    tags: [ { name: 'console.command', command: 'log:test' } ]
-
-  Sentry\SentryBundle\Tests\End2End\App\Command\CrashCommand.nosub:
-    autowire: true
-    class: Sentry\SentryBundle\Tests\End2End\App\Command\CrashCommand
-    arguments:
-      $subcommand: null
-    tags: [ { name: 'console.command', command: 'log:nosub' } ]
-
-  Sentry\SentryBundle\Tests\End2End\App\Command\CrashCommand.sub:
-    autowire: true
-    class: Sentry\SentryBundle\Tests\End2End\App\Command\CrashCommand
-    arguments:
-      $subcommand: 'log:test'
-    tags: [ { name: 'console.command', command: 'log:sub' } ]
-
 monolog:
   handlers:
     main:

@@ -12,6 +12,9 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Output\NullOutput;
 
+/**
+ * @runTestsInSeparateProcesses
+ */
 class LoggingCommandTest extends WebTestCase
 {
     /**
