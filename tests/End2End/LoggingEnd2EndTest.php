@@ -57,7 +57,7 @@ class LoggingEnd2EndTest extends WebTestCase
         $this->assertCount(2, $logsEvent->getLogs());
     }
 
-    public function testBeforeSendLogCallback()
+    public function testBeforeSendLogCallback(): void
     {
         $client = static::createClient(['debug' => false]);
 

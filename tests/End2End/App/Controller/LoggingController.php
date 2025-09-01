@@ -46,9 +46,9 @@ class LoggingController
 
     public function beforeSendLog()
     {
-        $this->logger->warning("warn 1");
-        $this->logger->error("before_send_log");
-        $this->logger->warning("warn 2");
+        $this->logger->warning('warn 1');
+        $this->logger->error('before_send_log');
+        $this->logger->warning('warn 2');
 
         return new Response();
     }
