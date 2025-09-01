@@ -7,6 +7,7 @@ namespace Sentry\SentryBundle\EventListener;
 use Sentry\Event;
 use Sentry\EventHint;
 use Sentry\ExceptionMechanism;
+use Sentry\Logs\Logs;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
@@ -71,6 +72,7 @@ class ConsoleListener
      */
     public function handleConsoleTerminateEvent(ConsoleTerminateEvent $event): void
     {
+        Logs::getInstance()->flush();
         $this->hub->popScope();
     }
 
