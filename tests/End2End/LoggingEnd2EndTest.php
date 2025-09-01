@@ -57,6 +57,23 @@ class LoggingEnd2EndTest extends WebTestCase
         $this->assertCount(2, $logsEvent->getLogs());
     }
 
+    public function testBeforeSendLogCallback()
+    {
+        $client = static::createClient(['debug' => false]);
+
+        $client->request('GET', '/before-send-log');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
+
+        $this->assertCount(1, StubTransport::$events);
+        $event = StubTransport::$events[0];
+        $logs = $this->filterFrameworkLogs($event->getLogs());
+
+        // Make sure we just have two warn logs and no error log (since it's filtered by the callback)
+        $this->assertCount(2, $logs);
+        $this->assertEquals('warn 1', $logs[0]->getBody());
+        $this->assertEquals('warn 2', $logs[1]->getBody());
+    }
+
     /**
      * Removes framework logs so that the tests can focus on our expected logs.
      *

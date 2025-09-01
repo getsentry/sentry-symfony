@@ -1,6 +1,7 @@
 sentry:
   options:
     enable_logs: true
+    before_send_log: "sentry.callback.before_send_log"
 
 monolog:
   handlers:
@@ -12,6 +13,13 @@ services:
   Sentry\SentryBundle\Monolog\LogsHandler:
     arguments:
       - !php/const Monolog\Logger::WARNING
+
+  Sentry\SentryBundle\Tests\End2End\App\Callback\BeforeSendLogCallback:
+    autowire: true
+
+  sentry.callback.before_send_log:
+    class: 'Sentry\SentryBundle\Tests\End2End\App\Callback\BeforeSendLogCallback'
+    factory: ['@Sentry\SentryBundle\Tests\End2End\App\Callback\BeforeSendLogCallback', 'getCallback']
 
   Sentry\SentryBundle\Tests\End2End\App\Controller\LoggingController:
     autowire: true

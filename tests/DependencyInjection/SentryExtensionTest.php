@@ -229,7 +229,7 @@ abstract class SentryExtensionTest extends TestCase
             'before_send_transaction' => new Reference('App\\Sentry\\BeforeSendTransactionCallback'),
             'before_send_check_in' => new Reference('App\\Sentry\\BeforeSendCheckInCallback'),
             'before_send_metrics' => new Reference('App\\Sentry\\BeforeSendMetricsCallback'),
-            'before_send_logs' => new Reference('App\\Sentry\\BeforeSendLogsCallback'),
+            'before_send_log' => new Reference('App\\Sentry\\BeforeSendLogsCallback'),
             'trace_propagation_targets' => ['website.invalid'],
             'tags' => [
                 'context' => 'development',
@@ -491,7 +491,7 @@ abstract class SentryExtensionTest extends TestCase
 
     /**
      * @param array<int, mixed> $methodCall
-     * @param mixed[]           $arguments
+     * @param mixed[] $arguments
      */
     private function assertDefinitionMethodCallAt(array $methodCall, string $method, array $arguments): void
     {
