@@ -34,11 +34,11 @@ services:
       - controller.service_arguments
 
   Sentry\SentryBundle\Tests\End2End\App\Command\MainCommand:
-    tags: [{ name: 'console.command', command: 'main-command' }]
+    tags: [ { name: 'console.command', command: 'main-command' } ]
 
 monolog:
   handlers:
     main:
-      type:  stream
-      path:  "%kernel.logs_dir%/%kernel.environment%.log"
+      type: stream
+      path: "%kernel.logs_dir%/%kernel.environment%.log"
       level: debug

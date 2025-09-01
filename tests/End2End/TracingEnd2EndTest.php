@@ -15,6 +15,9 @@ if (!class_exists(KernelBrowser::class)) {
     class_alias(Client::class, KernelBrowser::class);
 }
 
+/**
+ * @runTestsInSeparateProcesses
+ */
 class TracingEnd2EndTest extends WebTestCase
 {
     public const SENT_EVENTS_LOG = '/tmp/sentry_e2e_test_sent_events.log';
@@ -40,6 +43,7 @@ class TracingEnd2EndTest extends WebTestCase
         $response = $client->getResponse();
 
         $this->assertInstanceOf(Response::class, $response);
+        $this->assertEquals('Success', $response->getContent());
         $this->assertSame(200, $response->getStatusCode());
 
         $this->assertLastEventIdIsNotNull($client);
@@ -55,6 +59,7 @@ class TracingEnd2EndTest extends WebTestCase
         $response = $client->getResponse();
 
         $this->assertInstanceOf(Response::class, $response);
+        $this->assertEquals('Success', $response->getContent());
         $this->assertSame(200, $response->getStatusCode());
 
         $this->assertLastEventIdIsNull($client);
