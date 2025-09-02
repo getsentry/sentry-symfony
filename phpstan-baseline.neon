@@ -86,7 +86,7 @@ parameters:
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
-			message: "#^Cannot access offset 'before_send_logs' on mixed\\.$#"
+			message: "#^Cannot access offset 'before_send_log' on mixed\\.$#"
 			count: 1
 			path: src/DependencyInjection/SentryExtension.php
 
