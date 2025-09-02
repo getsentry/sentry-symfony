@@ -22,7 +22,7 @@ class TracingCacheEnd2EndTest extends WebTestCase
         StubTransport::$events = [];
     }
 
-    public function testPopulateStringCache()
+    public function testPopulateStringCache(): void
     {
         $client = static::createClient(['debug' => false]);
 
@@ -48,7 +48,7 @@ class TracingCacheEnd2EndTest extends WebTestCase
         $this->assertEquals($getSpan->getParentSpanId(), $putSpan->getParentSpanId());
     }
 
-    public function testCacheHit()
+    public function testCacheHit(): void
     {
         $client = static::createClient(['debug' => false]);
 
@@ -73,7 +73,7 @@ class TracingCacheEnd2EndTest extends WebTestCase
         $this->assertTrue($span->getData('cache.hit'));
     }
 
-    public function testNonStringItemSize()
+    public function testNonStringItemSize(): void
     {
         $client = static::createClient(['debug' => false]);
 
@@ -89,7 +89,7 @@ class TracingCacheEnd2EndTest extends WebTestCase
         $this->assertNull($span->getData('cache.item_size'));
     }
 
-    public function testDeleteCacheSpan()
+    public function testDeleteCacheSpan(): void
     {
         $client = static::createClient(['debug' => false]);
 
@@ -106,7 +106,7 @@ class TracingCacheEnd2EndTest extends WebTestCase
         $this->assertNull($span->getData('cache.item_size'));
     }
 
-    public function testGetWithDbSpan()
+    public function testGetWithDbSpan(): void
     {
         $client = static::createClient(['debug' => false]);
 
@@ -133,7 +133,7 @@ class TracingCacheEnd2EndTest extends WebTestCase
         $this->assertEquals($getSpan->getParentSpanId(), $putSpan->getParentSpanId());
     }
 
-    public function testPsrCachePopulateString()
+    public function testPsrCachePopulateString(): void
     {
         $client = static::createClient(['debug' => false]);
 
@@ -153,7 +153,7 @@ class TracingCacheEnd2EndTest extends WebTestCase
         $this->assertEquals('cache.put', $putSpan->getOp());
     }
 
-    public function testPsrCacheHit()
+    public function testPsrCacheHit(): void
     {
         $client = static::createClient(['debug' => false]);
 
@@ -177,7 +177,7 @@ class TracingCacheEnd2EndTest extends WebTestCase
         $this->assertTrue($span->getData('cache.hit'));
     }
 
-    public function testPsrCacheDelete()
+    public function testPsrCacheDelete(): void
     {
         $client = static::createClient(['debug' => false]);
 

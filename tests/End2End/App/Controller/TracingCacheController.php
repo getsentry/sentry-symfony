@@ -38,10 +38,6 @@ class TracingCacheController
     public function populateCacheWithInteger()
     {
         $this->cache->get('numeric', function () {
-            if ($this->connection) {
-                $this->connection->executeQuery('SELECT 1');
-            }
-
             return 1234;
         });
 
