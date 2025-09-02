@@ -24,7 +24,7 @@ final class TraceableCacheAdapterForV2 implements AdapterInterface, CacheInterfa
     use TraceableCacheAdapterTrait;
 
     /**
-     * @param HubInterface     $hub              The current hub
+     * @param HubInterface $hub The current hub
      * @param AdapterInterface $decoratedAdapter The decorated cache adapter
      */
     public function __construct(HubInterface $hub, AdapterInterface $decoratedAdapter)
@@ -40,7 +40,7 @@ final class TraceableCacheAdapterForV2 implements AdapterInterface, CacheInterfa
      *
      * @return mixed
      */
-    public function get(string $key, callable $callback, ?float $beta = null, ?array &$metadata = null): mixed
+    public function get($key, callable $callback, ?float $beta = null, ?array &$metadata = null): mixed
     {
         return $this->traceGet($key, $callback, $beta, $metadata);
     }

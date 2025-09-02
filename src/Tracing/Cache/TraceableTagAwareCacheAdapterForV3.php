@@ -24,7 +24,7 @@ final class TraceableTagAwareCacheAdapterForV3 implements TagAwareAdapterInterfa
     use TraceableCacheAdapterTrait;
 
     /**
-     * @param HubInterface             $hub              The current hub
+     * @param HubInterface $hub The current hub
      * @param TagAwareAdapterInterface $decoratedAdapter The decorated cache adapter
      */
     public function __construct(HubInterface $hub, TagAwareAdapterInterface $decoratedAdapter)
@@ -38,7 +38,7 @@ final class TraceableTagAwareCacheAdapterForV3 implements TagAwareAdapterInterfa
      *
      * @param mixed[] $metadata
      */
-    public function get(string $key, callable $callback, ?float $beta = null, ?array &$metadata = null): mixed
+    public function get($key, callable $callback, ?float $beta = null, ?array &$metadata = null): mixed
     {
         return $this->traceGet($key, $callback, $beta, $metadata);
     }
