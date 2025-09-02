@@ -24,7 +24,7 @@ final class TraceableCacheAdapterForV3 implements AdapterInterface, CacheInterfa
     use TraceableCacheAdapterTrait;
 
     /**
-     * @param HubInterface $hub The current hub
+     * @param HubInterface     $hub              The current hub
      * @param AdapterInterface $decoratedAdapter The decorated cache adapter
      */
     public function __construct(HubInterface $hub, AdapterInterface $decoratedAdapter)

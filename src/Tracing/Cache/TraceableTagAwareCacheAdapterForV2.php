@@ -24,7 +24,7 @@ final class TraceableTagAwareCacheAdapterForV2 implements TagAwareAdapterInterfa
     use TraceableCacheAdapterTrait;
 
     /**
-     * @param HubInterface $hub The current hub
+     * @param HubInterface             $hub              The current hub
      * @param TagAwareAdapterInterface $decoratedAdapter The decorated cache adapter
      */
     public function __construct(HubInterface $hub, TagAwareAdapterInterface $decoratedAdapter)

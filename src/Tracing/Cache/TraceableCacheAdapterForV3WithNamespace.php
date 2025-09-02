@@ -25,7 +25,7 @@ final class TraceableCacheAdapterForV3WithNamespace implements AdapterInterface,
     use TraceableCacheAdapterTrait;
 
     /**
-     * @param HubInterface $hub The current hub
+     * @param HubInterface     $hub              The current hub
      * @param AdapterInterface $decoratedAdapter The decorated cache adapter
      */
     public function __construct(HubInterface $hub, AdapterInterface $decoratedAdapter)
@@ -38,6 +38,7 @@ final class TraceableCacheAdapterForV3WithNamespace implements AdapterInterface,
      * {@inheritdoc}
      *
      * @param mixed[] $metadata
+     *
      * @return mixed
      */
     public function get($key, callable $callback, ?float $beta = null, ?array &$metadata = null): mixed

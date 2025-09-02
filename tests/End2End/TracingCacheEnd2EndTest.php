@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\End2End;
 
+use Doctrine\DBAL\Connection;
 use Sentry\SentryBundle\Tests\End2End\App\KernelWithTracing;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -108,6 +109,9 @@ class TracingCacheEnd2EndTest extends WebTestCase
 
     public function testGetWithDbSpan(): void
     {
+        if (!class_exists(Connection::class)) {
+            $this->markTestSkipped('Skipped if doctrine is not available');
+        }
         $client = static::createClient(['debug' => false]);
 
         $client->request('GET', '/tracing/cache/populate-string-with-db');
