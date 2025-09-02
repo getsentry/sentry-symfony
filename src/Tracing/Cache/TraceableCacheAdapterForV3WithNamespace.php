@@ -38,8 +38,9 @@ final class TraceableCacheAdapterForV3WithNamespace implements AdapterInterface,
      * {@inheritdoc}
      *
      * @param mixed[] $metadata
+     * @return mixed
      */
-    public function get($key, callable $callback, ?float $beta = null, ?array &$metadata = null): mixed
+    public function get($key, callable $callback, ?float $beta = null, ?array &$metadata = null)
     {
         return $this->traceGet($key, $callback, $beta, $metadata);
     }
