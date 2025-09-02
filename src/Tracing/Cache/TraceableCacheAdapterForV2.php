@@ -40,7 +40,7 @@ final class TraceableCacheAdapterForV2 implements AdapterInterface, CacheInterfa
      *
      * @return mixed
      */
-    public function get($key, callable $callback, ?float $beta = null, ?array &$metadata = null)
+    public function get(string $key, callable $callback, ?float $beta = null, ?array &$metadata = null)
     {
         return $this->traceGet($key, $callback, $beta, $metadata);
     }

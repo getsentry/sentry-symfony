@@ -38,7 +38,7 @@ final class TraceableCacheAdapterForV3 implements AdapterInterface, CacheInterfa
      *
      * @param mixed[] $metadata
      */
-    public function get($key, callable $callback, ?float $beta = null, ?array &$metadata = null)
+    public function get($key, callable $callback, ?float $beta = null, ?array &$metadata = null): mixed
     {
         return $this->traceGet($key, $callback, $beta, $metadata);
     }

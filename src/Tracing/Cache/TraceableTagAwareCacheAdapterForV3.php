@@ -38,7 +38,7 @@ final class TraceableTagAwareCacheAdapterForV3 implements TagAwareAdapterInterfa
      *
      * @param mixed[] $metadata
      */
-    public function get($key, callable $callback, ?float $beta = null, ?array &$metadata = null)
+    public function get(string $key, callable $callback, ?float $beta = null, ?array &$metadata = null): mixed
     {
         return $this->traceGet($key, $callback, $beta, $metadata);
     }
