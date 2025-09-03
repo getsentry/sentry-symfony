@@ -1,5 +1,33 @@
 # CHANGELOG
 
+## 5.4
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.4.0.
+
+### Features
+
+- Introduce structured logging support. [(#940)](https://github.com/getsentry/sentry-symfony/pull/940)
+```yaml
+sentry:
+  options:
+    enable_logs: true
+
+services:
+  Sentry\SentryBundle\Monolog\LogsHandler:
+    arguments:
+      - !php/const Monolog\Logger::INFO
+
+monolog:
+  handlers:
+    sentry_logs:
+      type: service
+      id: Sentry\SentryBundle\Monolog\LogsHandler
+```
+
+### Bug Fixes
+
+- Add buffer flusher for sentry monolog handler. [(#936)](https://github.com/getsentry/sentry-symfony/pull/936)
+
 ## 5.3.1
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.3.0.
