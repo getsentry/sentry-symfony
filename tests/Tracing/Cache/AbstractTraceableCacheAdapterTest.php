@@ -63,7 +63,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $spans = $transaction->getSpanRecorder()->getSpans();
 
         $this->assertCount(2, $spans);
-        $this->assertSame('cache.get_item', $spans[1]->getOp());
+        $this->assertSame('cache.get', $spans[1]->getOp());
         $this->assertSame('foo', $spans[1]->getDescription());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
@@ -92,7 +92,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $spans = $transaction->getSpanRecorder()->getSpans();
 
         $this->assertCount(2, $spans);
-        $this->assertSame('cache.get_items', $spans[1]->getOp());
+        $this->assertSame('cache.get', $spans[1]->getOp());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
@@ -119,14 +119,15 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $spans = $transaction->getSpanRecorder()->getSpans();
 
         $this->assertCount(2, $spans);
-        $this->assertSame('cache.clear', $spans[1]->getOp());
+        $this->assertSame('cache.flush', $spans[1]->getOp());
         $this->assertSame('foo', $spans[1]->getDescription());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
     public function testGet(): void
     {
-        $callback = static function () {};
+        $callback = static function () {
+        };
         $metadata = [];
         $transaction = new Transaction(new TransactionContext(), $this->hub);
         $transaction->initSpanRecorder();
@@ -149,7 +150,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $spans = $transaction->getSpanRecorder()->getSpans();
 
         $this->assertCount(2, $spans);
-        $this->assertSame('cache.get_item', $spans[1]->getOp());
+        $this->assertSame('cache.get', $spans[1]->getOp());
         $this->assertSame('foo', $spans[1]->getDescription());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
@@ -161,7 +162,8 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $this->expectException(\BadMethodCallException::class);
         $this->expectExceptionMessage(\sprintf('The %s::get() method is not supported because the decorated adapter does not implement the "Symfony\\Contracts\\Cache\\CacheInterface" interface.', \get_class($adapter)));
 
-        $adapter->get('foo', static function () {});
+        $adapter->get('foo', static function () {
+        });
     }
 
     public function testDelete(): void
@@ -187,7 +189,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $spans = $transaction->getSpanRecorder()->getSpans();
 
         $this->assertCount(2, $spans);
-        $this->assertSame('cache.delete_item', $spans[1]->getOp());
+        $this->assertSame('cache.remove', $spans[1]->getOp());
         $this->assertSame('foo', $spans[1]->getDescription());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
@@ -253,7 +255,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $spans = $transaction->getSpanRecorder()->getSpans();
 
         $this->assertCount(2, $spans);
-        $this->assertSame('cache.delete_item', $spans[1]->getOp());
+        $this->assertSame('cache.remove', $spans[1]->getOp());
         $this->assertSame('foo', $spans[1]->getDescription());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
@@ -281,7 +283,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $spans = $transaction->getSpanRecorder()->getSpans();
 
         $this->assertCount(2, $spans);
-        $this->assertSame('cache.delete_items', $spans[1]->getOp());
+        $this->assertSame('cache.remove', $spans[1]->getOp());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
@@ -309,7 +311,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $spans = $transaction->getSpanRecorder()->getSpans();
 
         $this->assertCount(2, $spans);
-        $this->assertSame('cache.save', $spans[1]->getOp());
+        $this->assertSame('cache.put', $spans[1]->getOp());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
@@ -337,7 +339,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $spans = $transaction->getSpanRecorder()->getSpans();
 
         $this->assertCount(2, $spans);
-        $this->assertSame('cache.save_deferred', $spans[1]->getOp());
+        $this->assertSame('cache.put', $spans[1]->getOp());
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 

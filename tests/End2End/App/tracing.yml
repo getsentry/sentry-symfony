@@ -10,4 +10,16 @@ services:
       $hub: '@Sentry\State\HubInterface'
       $connection: '@?doctrine.dbal.default_connection'
     tags:
-      - controller.service_arguments
+      - { name: controller.service_arguments }
+
+  Sentry\SentryBundle\Tests\End2End\App\Controller\TracingCacheController:
+    arguments:
+      $cache: '@cache.app'
+      $connection: '@?doctrine.dbal.default_connection'
+    tags:
+      - { name: controller.service_arguments }
+
+  Sentry\SentryBundle\Tests\End2End\App\Controller\PsrTracingCacheController:
+    autowire: true
+    tags:
+      - { name: controller.service_arguments }

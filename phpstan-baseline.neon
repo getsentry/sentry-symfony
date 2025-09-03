@@ -424,3 +424,8 @@ parameters:
 			message: "#^Parameter \\#2 \\$responses of static method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableResponse\\:\\:stream\\(\\) expects iterable\\<Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableResponse\\>, array\\<int, stdClass\\> given\\.$#"
 			count: 1
 			path: tests/Tracing/HttpClient/TraceableResponseTest.php
+
+		-
+			message: "#^Call to method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) with 1 and array\\{\\} will always evaluate to false\\.$#"
+			count: 2
+			path: tests/End2End/TracingCacheEnd2EndTest.php
