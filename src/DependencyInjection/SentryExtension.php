@@ -124,8 +124,8 @@ final class SentryExtension extends ConfigurableExtension
             $options['before_send_metrics'] = new Reference($options['before_send_metrics']);
         }
 
-        if (isset($options['before_send_logs'])) {
-            $options['before_send_logs'] = new Reference($options['before_send_logs']);
+        if (isset($options['before_send_log'])) {
+            $options['before_send_log'] = new Reference($options['before_send_log']);
         }
 
         if (isset($options['before_breadcrumb'])) {
