@@ -36,6 +36,7 @@ final class TraceableCacheAdapterForV3 implements AdapterInterface, CacheInterfa
     /**
      * {@inheritdoc}
      *
+     * @param string  $key
      * @param mixed[] $metadata
      */
     public function get($key, callable $callback, ?float $beta = null, ?array &$metadata = null): mixed

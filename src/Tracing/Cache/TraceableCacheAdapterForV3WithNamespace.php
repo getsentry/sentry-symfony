@@ -37,6 +37,7 @@ final class TraceableCacheAdapterForV3WithNamespace implements AdapterInterface,
     /**
      * {@inheritdoc}
      *
+     * @param string  $key
      * @param mixed[] $metadata
      *
      * @return mixed
