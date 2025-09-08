@@ -42,7 +42,7 @@ final class MessengerListenerTest extends TestCase
     /**
      * @dataProvider handleWorkerMessageFailedEventDataProvider
      *
-     * @param \Throwable[]          $exceptions
+     * @param \Throwable[] $exceptions
      * @param array<string, string> $expectedTags
      */
     public function testHandleWorkerMessageFailedEvent(array $exceptions, WorkerMessageFailedEvent $event, array $expectedTags, bool $expectedIsHandled): void
@@ -99,7 +99,7 @@ final class MessengerListenerTest extends TestCase
             return;
         }
 
-        $envelope = Envelope::wrap((object) []);
+        $envelope = Envelope::wrap((object)[]);
         $exceptions = [
             new \Exception(),
             new \Exception(),
@@ -155,7 +155,7 @@ final class MessengerListenerTest extends TestCase
             true,
         ];
 
-        $envelope = new Envelope((object) [], [new BusNameStamp('bus.foo')]);
+        $envelope = new Envelope((object)[], [new BusNameStamp('bus.foo')]);
 
         yield 'envelope.stamps CONTAINS BusNameStamp' => [
             [$exceptions[0]],
@@ -178,7 +178,7 @@ final class MessengerListenerTest extends TestCase
             $this->markTestSkipped('Messenger not supported in this environment.');
         }
 
-        $envelope = Envelope::wrap((object) []);
+        $envelope = Envelope::wrap((object)[]);
         $event = $this->getMessageFailedEvent($envelope, 'receiver', new \Exception(), $retry);
 
         $this->hub->expects($this->any())
@@ -236,7 +236,7 @@ final class MessengerListenerTest extends TestCase
             ->method('flush');
 
         $listener = new MessengerListener($this->hub);
-        $listener->handleWorkerMessageHandledEvent(new WorkerMessageHandledEvent(Envelope::wrap((object) []), 'receiver'));
+        $listener->handleWorkerMessageHandledEvent(new WorkerMessageHandledEvent(Envelope::wrap((object)[]), 'receiver'));
     }
 
     public function testResetBreadcrumbsPushAndPopScopeWhenEnabled(): void
@@ -255,8 +255,8 @@ final class MessengerListenerTest extends TestCase
 
         $listener = new MessengerListener($this->hub, true, true);
 
-        $envelope = Envelope::wrap((object) []);
-        $listener->handleWorkerMessageReceivedEvent($this->createWorkerMessageReceivedEvent($envelope, 'receiver'));
+        $envelope = Envelope::wrap((object)[]);
+        $listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent($envelope, 'receiver'));
         $listener->handleWorkerMessageHandledEvent(new WorkerMessageHandledEvent($envelope, 'receiver'));
     }
 
@@ -274,8 +274,8 @@ final class MessengerListenerTest extends TestCase
 
         $listener = new MessengerListener($this->hub, true, false);
 
-        $envelope = Envelope::wrap((object) []);
-        $listener->handleWorkerMessageReceivedEvent($this->createWorkerMessageReceivedEvent($envelope, 'receiver'));
+        $envelope = Envelope::wrap((object)[]);
+        $listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent($envelope, 'receiver'));
         $listener->handleWorkerMessageHandledEvent(new WorkerMessageHandledEvent($envelope, 'receiver'));
     }
 
@@ -285,15 +285,12 @@ final class MessengerListenerTest extends TestCase
             $this->markTestSkipped('Messenger not supported in this environment.');
         }
 
-        // Received event should push, failure should pop
         $this->hub->expects($this->once())
             ->method('pushScope');
 
-        // The failure handler pops in finally
         $this->hub->expects($this->once())
             ->method('popScope');
 
-        // Also expect captureEvent to be called once
         $this->hub->expects($this->once())
             ->method('withScope')
             ->willReturnCallback(function (callable $callback): void {
@@ -305,26 +302,12 @@ final class MessengerListenerTest extends TestCase
             ->willReturn($this->client);
 
         $listener = new MessengerListener($this->hub, true, true);
-        $envelope = Envelope::wrap((object) []);
+        $envelope = Envelope::wrap((object)[]);
 
-        $listener->handleWorkerMessageReceivedEvent($this->createWorkerMessageReceivedEvent($envelope, 'receiver'));
+        $listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent($envelope, 'receiver'));
 
         $event = $this->getMessageFailedEvent($envelope, 'receiver', new \Exception('boom'), false);
         $listener->handleWorkerMessageFailedEvent($event);
-    }
-
-    private function createWorkerMessageReceivedEvent(Envelope $envelope, string $receiverName)
-    {
-        $x = new WorkerMessageReceivedEvent($envelope, $receiverName);
-        $class = WorkerMessageReceivedEvent::class;
-        $refClass = new \ReflectionClass($class);
-        $ctor = $refClass->getConstructor();
-
-        if (null !== $ctor && $ctor->getNumberOfParameters() >= 2) {
-            return $refClass->newInstanceArgs([$envelope, $receiverName]);
-        }
-
-        return $refClass->newInstanceArgs([$envelope]);
     }
 
     private function getMessageFailedEvent(Envelope $envelope, string $receiverName, \Throwable $error, bool $retry): WorkerMessageFailedEvent
