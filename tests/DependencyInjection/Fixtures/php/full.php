@@ -33,7 +33,7 @@ $container->loadFromExtension('sentry', [
         'before_send_transaction' => 'App\\Sentry\\BeforeSendTransactionCallback',
         'before_send_check_in' => 'App\\Sentry\\BeforeSendCheckInCallback',
         'before_send_metrics' => 'App\\Sentry\\BeforeSendMetricsCallback',
-        'before_send_logs' => 'App\\Sentry\\BeforeSendLogsCallback',
+        'before_send_log' => 'App\\Sentry\\BeforeSendLogsCallback',
         'trace_propagation_targets' => ['website.invalid'],
         'tags' => [
             'context' => 'development',

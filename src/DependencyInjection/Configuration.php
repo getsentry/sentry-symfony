@@ -113,7 +113,7 @@ final class Configuration implements ConfigurationInterface
                         ->scalarNode('before_send_transaction')->end()
                         ->scalarNode('before_send_check_in')->end()
                         ->scalarNode('before_send_metrics')->end()
-                        ->scalarNode('before_send_logs')->end()
+                        ->scalarNode('before_send_log')->end()
                         ->variableNode('trace_propagation_targets')->end()
                         ->arrayNode('tags')
                             ->useAttributeAsKey('name')

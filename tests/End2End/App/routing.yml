@@ -74,6 +74,10 @@ logging_With_Error:
   path: /logging-with-error
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\LoggingController::loggingWithError' }
 
+logging_before_send_logs:
+  path: /before-send-log
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\LoggingController::beforeSendLog' }
+
 buffer_flush:
   path: /buffer-flush
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\BufferFlushController::testBufferFlush' }

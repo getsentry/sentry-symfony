@@ -30,7 +30,7 @@
                         before-send-transaction="App\Sentry\BeforeSendTransactionCallback"
                         before-send-check-in="App\Sentry\BeforeSendCheckInCallback"
                         before-send-metrics="App\Sentry\BeforeSendMetricsCallback"
-                        before-send-logs="App\Sentry\BeforeSendLogsCallback"
+                        before-send-log="App\Sentry\BeforeSendLogsCallback"
                         error-types="E_ALL"
                         max-breadcrumbs="1"
                         before-breadcrumb="App\Sentry\BeforeBreadcrumbCallback"
