@@ -38,6 +38,8 @@ class End2EndTest extends WebTestCase
     {
         parent::setUp();
 
+        StubTransport::$events = [];
+
         file_put_contents(self::SENT_EVENTS_LOG, '');
     }
 
@@ -248,6 +250,30 @@ class End2EndTest extends WebTestCase
         $this->consumeOneMessage($client->getKernel());
 
         $this->assertLastEventIdIsNull($client);
+    }
+
+    public function testResetBreadcrumbs()
+    {
+        $this->skipIfMessengerIsMissing();
+
+        $client = static::createClient();
+
+        // Create two messages
+        $client->request('GET', '/dispatch-unrecoverable-message');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
+
+        $client->request('GET', '/dispatch-unrecoverable-message');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
+
+        $this->consumeOneMessage($client->getKernel());
+        $this->consumeOneMessage($client->getKernel());
+
+        $events = StubTransport::$events;
+        $this->assertCount(2, $events);
+
+        // Asser that both have the same number of breadcrumbs meaning that each event has isolated breadcrumbs
+        $this->assertCount(4, $events[0]->getBreadcrumbs());
+        $this->assertCount(4, $events[1]->getBreadcrumbs());
     }
 
     private function consumeOneMessage(KernelInterface $kernel): void
