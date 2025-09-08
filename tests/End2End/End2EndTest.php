@@ -252,7 +252,7 @@ class End2EndTest extends WebTestCase
         $this->assertLastEventIdIsNull($client);
     }
 
-    public function testResetBreadcrumbs()
+    public function testResetBreadcrumbs(): void
     {
         $this->skipIfMessengerIsMissing();
 
