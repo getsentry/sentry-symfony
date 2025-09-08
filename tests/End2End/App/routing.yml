@@ -54,6 +54,10 @@ tracing_cache_delete:
   path: /tracing/cache/delete
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingCacheController::deleteCache' }
 
+tracing_cache_crash:
+  path: /tracing/cache/crash
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingCacheController::crashInCallback' }
+
 tracing_cache_populate_string_with_db:
   path: /tracing/cache/populate-string-with-db
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingCacheController::getWithDbTrace' }

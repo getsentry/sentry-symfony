@@ -137,6 +137,33 @@ class TracingCacheEnd2EndTest extends WebTestCase
         $this->assertEquals($getSpan->getParentSpanId(), $putSpan->getParentSpanId());
     }
 
+    public function testCrashInCallback(): void
+    {
+        $client = static::createClient(['debug' => false]);
+
+        $client->request('GET', '/tracing/cache/crash');
+        $this->assertSame(500, $client->getResponse()->getStatusCode());
+
+        $this->assertCount(2, StubTransport::$events);
+
+        // This is the exception from the callback
+        $event = StubTransport::$events[0];
+        $this->assertCount(1, $event->getExceptions());
+        $this->assertSame('crash in callback', $event->getExceptions()[0]->getValue());
+        $this->assertCount(0, $event->getSpans());
+
+        $spansEvent = StubTransport::$events[1];
+        $this->assertCount(2, $spansEvent->getSpans());
+
+        $getSpan = $spansEvent->getSpans()[0];
+        $this->assertEquals('cache.get', $getSpan->getOp());
+
+        // This is the span for rendering the error page (I think)
+        $span = $spansEvent->getSpans()[1];
+        $this->assertEquals('http.server', $span->getOp());
+        $this->assertEquals('auto.http.server', $span->getOrigin());
+    }
+
     public function testPsrCachePopulateString(): void
     {
         $client = static::createClient(['debug' => false]);

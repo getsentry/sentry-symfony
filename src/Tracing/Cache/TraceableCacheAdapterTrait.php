@@ -244,30 +244,36 @@ trait TraceableCacheAdapterTrait
             return $this->decoratedAdapter->get($key, $callback, $beta, $metadata);
         }
 
+        $spanContext = SpanContext::make()
+            ->setOp('cache.get')
+            ->setOrigin('auto.cache');
+
+        $spanContext->setDescription(urldecode($key));
+
+        $getSpan = $parentSpan->startChild($spanContext);
+
         try {
-            $spanContext = SpanContext::make()
-                ->setOp('cache.get')
-                ->setOrigin('auto.cache');
-
-            $spanContext->setDescription(urldecode($key));
-
-            $getSpan = $parentSpan->startChild($spanContext);
             $this->hub->setSpan($getSpan);
 
             $wasMiss = false;
             $saveStartTimestamp = null;
 
-            $value = $this->decoratedAdapter->get($key, function (CacheItemInterface $item, &$save) use ($callback, &$wasMiss, &$saveStartTimestamp) {
-                $wasMiss = true;
+            try {
+                $value = $this->decoratedAdapter->get($key, function (CacheItemInterface $item, &$save) use ($callback, &$wasMiss, &$saveStartTimestamp) {
+                    $wasMiss = true;
 
-                $result = $callback($item, $save);
+                    $result = $callback($item, $save);
 
-                if ($save) {
-                    $saveStartTimestamp = microtime(true);
-                }
+                    if ($save) {
+                        $saveStartTimestamp = microtime(true);
+                    }
 
-                return $result;
-            }, $beta, $metadata);
+                    return $result;
+                }, $beta, $metadata);
+            } catch (\Throwable $t) {
+                $getSpan->finish();
+                throw $t;
+            }
 
             $now = microtime(true);
 
@@ -292,12 +298,12 @@ trait TraceableCacheAdapterTrait
             } else {
                 $getSpan->finish();
             }
+
+            return $value;
         } finally {
             // We always want to restore the previous parent span.
             $this->hub->setSpan($parentSpan);
         }
-
-        return $value;
     }
 
     /**

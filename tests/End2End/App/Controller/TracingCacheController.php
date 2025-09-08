@@ -61,4 +61,13 @@ class TracingCacheController
 
         return new Response();
     }
+
+    public function crashInCallback()
+    {
+        $this->cache->get('crash', function () {
+            throw new \RuntimeException('crash in callback');
+        });
+
+        return new Response();
+    }
 }
