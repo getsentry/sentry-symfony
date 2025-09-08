@@ -41,7 +41,7 @@ class TracingCacheEnd2EndTest extends WebTestCase
 
         $putSpan = $event->getSpans()[1];
         $this->assertEquals('cache.put', $putSpan->getOp());
-        $this->assertEquals(14, $getSpan->getData('cache.item_size'));
+        $this->assertEquals(14, $putSpan->getData('cache.item_size'));
         $this->assertNull($putSpan->getData('cache.hit'));
 
         // assert that put is a sibling span to get
