@@ -6,7 +6,8 @@ The Sentry SDK team is happy to announce the immediate availability of Sentry Sy
 
 ### Features
 
-- Introduce structured logging support. [(#940)](https://github.com/getsentry/sentry-symfony/pull/940)
+- Introduce Sentry Structured Logging support. [(#940)](https://github.com/getsentry/sentry-symfony/pull/940)
+
 ```yaml
 sentry:
   options:
