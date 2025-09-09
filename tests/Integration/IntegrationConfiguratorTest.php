@@ -37,7 +37,7 @@ final class IntegrationConfiguratorTest extends TestCase
     }
 
     /**
-     * @return iterable<array{0: IntegrationInterface[], 1: bool, 2: IntegrationInterface[], 3: IntegrationInterface[]}>
+     * @return iterable<array{0: IntegrationInterface[]|callable, 1: bool, 2: IntegrationInterface[], 3: IntegrationInterface[]}>
      */
     public function integrationsDataProvider(): iterable
     {
