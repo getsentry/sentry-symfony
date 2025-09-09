@@ -45,8 +45,8 @@ class BufferFlushPass implements CompilerPassInterface
                 $arguments = $definition->getArguments();
                 if (!empty($arguments)) {
                     // The first argument of BufferHandler is the HandlerInterface, which
-                    // can be a SentryHandler.
-                    $firstArgument = $arguments[0];
+                    // can be a SentryHandler. Missing argument will be ignored.
+                    $firstArgument = $arguments[0] ?? $arguments['$handler'] ?? null;
 
                     if ($firstArgument instanceof Reference) {
                         $referencedServiceId = (string) $firstArgument;
