@@ -71,7 +71,7 @@ final class IntegrationConfigurator
 
         $integrations = [];
         /** @var IntegrationInterface[] $userIntegrations */
-        $userIntegrations = \is_array($this->userConfig) ? $this->userConfig : [];
+        $userIntegrations = $this->userConfig;
         $userIntegrationsClasses = array_map('get_class', $userIntegrations);
         $pickedIntegrationsClasses = [];
 

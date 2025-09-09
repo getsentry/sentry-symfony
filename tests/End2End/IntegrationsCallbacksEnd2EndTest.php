@@ -25,11 +25,11 @@ final class IntegrationsCallbacksEnd2EndTest extends TestCase
         $kernel->boot();
 
         /**
-         * @var $hub HubInterface
+         * @var HubInterface $hub
          */
         $hub = $kernel->getContainer()->get('test.hub');
         /**
-         * @var $client Client
+         * @var Client $client
          */
         $client = $hub->getClient();
 
@@ -48,11 +48,11 @@ final class IntegrationsCallbacksEnd2EndTest extends TestCase
         $kernel->boot();
 
         /**
-         * @var $hub HubInterface
+         * @var HubInterface $hub
          */
         $hub = $kernel->getContainer()->get('test.hub');
         /**
-         * @var $client Client
+         * @var Client $client
          */
         $client = $hub->getClient();
 
