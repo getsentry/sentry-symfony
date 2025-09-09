@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 5.4.1
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.4.1.
+
+### Bug Fixes
+
+- Support named arguments in BufferFlushPass. [(#948)](https://github.com/getsentry/sentry-symfony/pull/948)
+
 ## 5.4.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.4.0.
@@ -31,7 +39,7 @@ monolog:
 
 ## 5.3.1
 
-The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.3.0.
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.3.1.
 
 ### Bug Fixes
 
