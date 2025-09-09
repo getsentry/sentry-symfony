@@ -21,12 +21,12 @@ final class IntegrationConfiguratorTest extends TestCase
     /**
      * @dataProvider integrationsDataProvider
      *
-     * @param IntegrationInterface[] $userIntegrations
-     * @param IntegrationInterface[] $defaultIntegrations
-     * @param IntegrationInterface[] $expectedIntegrations
+     * @param IntegrationInterface[]|callable $userIntegrations
+     * @param IntegrationInterface[]          $defaultIntegrations
+     * @param IntegrationInterface[]          $expectedIntegrations
      */
     public function testIntegrationConfigurator(
-        array $userIntegrations,
+        $userIntegrations,
         bool $registerErrorHandler,
         array $defaultIntegrations,
         array $expectedIntegrations
@@ -170,6 +170,52 @@ final class IntegrationConfiguratorTest extends TestCase
             [
                 $userIntegration1,
                 $userRequestIntegration,
+            ],
+        ];
+
+        yield 'User provided callable receives filtered defaults when error handler disabled' => [
+            function (array $defaults) use ($userIntegration1): array {
+                $classes = array_map('get_class', $defaults);
+                self::assertContains(RequestIntegration::class, $classes);
+                self::assertNotContains(ExceptionListenerIntegration::class, $classes);
+                self::assertNotContains(ErrorListenerIntegration::class, $classes);
+                self::assertNotContains(FatalErrorListenerIntegration::class, $classes);
+
+                return [$userIntegration1];
+            },
+            false,
+            [
+                $exceptionListenerIntegration,
+                $errorListenerIntegration,
+                $fatalErrorListenerIntegration,
+                $requestIntegration,
+                $transactionIntegration,
+            ],
+            [
+                $userIntegration1,
+            ],
+        ];
+
+        yield 'User provided callable receives all defaults when error handler enabled' => [
+            function (array $defaults) use ($userIntegration1): array {
+                $classes = array_map('get_class', $defaults);
+                self::assertContains(ExceptionListenerIntegration::class, $classes);
+                self::assertContains(ErrorListenerIntegration::class, $classes);
+                self::assertContains(FatalErrorListenerIntegration::class, $classes);
+                self::assertContains(RequestIntegration::class, $classes);
+
+                return [$userIntegration1];
+            },
+            true,
+            [
+                $exceptionListenerIntegration,
+                $errorListenerIntegration,
+                $fatalErrorListenerIntegration,
+                $requestIntegration,
+                $transactionIntegration,
+            ],
+            [
+                $userIntegration1,
             ],
         ];
     }
