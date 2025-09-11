@@ -20,6 +20,9 @@ framework:
   annotations: false
   php_errors:
     log: true
+  # Use FS cache for testing
+  cache:
+    app: cache.adapter.filesystem
 
 services:
   test.hub:
