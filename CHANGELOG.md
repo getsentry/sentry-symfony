@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 5.5.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.5.0.
+
+### Features
+
+- Enable auto-instrumentation for Symfony Cache [(#942)](https://github.com/getsentry/sentry-symfony/pull/942)
+- Add flag to reset breadcrumbs between messages [(#946)](https://github.com/getsentry/sentry-symfony/pull/946)
+- Allow callbacks in integration configuration [(#947)](https://github.com/getsentry/sentry-symfony/pull/947)
+
 ## 5.4.1
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.4.1.
