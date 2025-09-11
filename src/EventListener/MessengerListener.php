@@ -43,7 +43,7 @@ final class MessengerListener
      * @param bool         $captureSoftFails            Whether to capture errors thrown
      *                                                  while processing a message that
      *                                                  will be retried
-     * @param bool         $isolateBreadcrumbsByMessage Whether to reset all breadcrumbs after a message
+     * @param bool         $isolateBreadcrumbsByMessage Whether messages should have isolated breadcrumbs
      */
     public function __construct(HubInterface $hub, bool $captureSoftFails = true, bool $isolateBreadcrumbsByMessage = false)
     {
