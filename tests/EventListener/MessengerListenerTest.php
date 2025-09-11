@@ -15,6 +15,7 @@ use Sentry\State\Scope;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
+use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Exception\DelayedMessageHandlingException;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -116,7 +117,7 @@ final class MessengerListenerTest extends TestCase
 
         yield 'envelope.throwable INSTANCEOF DelayedMessageHandlingException' => [
             $exceptions,
-            $this->getMessageFailedEvent($envelope, 'receiver', new DelayedMessageHandlingException($exceptions, $envelope), false),
+            $this->getMessageFailedEvent($envelope, 'receiver', new DelayedMessageHandlingException($exceptions), false),
             [
                 'messenger.receiver_name' => 'receiver',
                 'messenger.message_class' => \get_class($envelope->getMessage()),
@@ -236,6 +237,77 @@ final class MessengerListenerTest extends TestCase
 
         $listener = new MessengerListener($this->hub);
         $listener->handleWorkerMessageHandledEvent(new WorkerMessageHandledEvent(Envelope::wrap((object) []), 'receiver'));
+    }
+
+    public function testIsolateBreadcrumbsByMessagePushAndPopScopeWhenEnabled(): void
+    {
+        if (!$this->supportsMessenger()) {
+            $this->markTestSkipped('Messenger not supported in this environment.');
+        }
+
+        // Received event should push
+        $this->hub->expects($this->once())
+            ->method('pushScope');
+
+        // Handled event should pop
+        $this->hub->expects($this->once())
+            ->method('popScope');
+
+        $listener = new MessengerListener($this->hub, true, true);
+
+        $envelope = Envelope::wrap((object) []);
+        $listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent($envelope, 'receiver'));
+        $listener->handleWorkerMessageHandledEvent(new WorkerMessageHandledEvent($envelope, 'receiver'));
+    }
+
+    public function testIsolateBreadcrumbsByMessageDoesNotPushOrPopWhenDisabled(): void
+    {
+        if (!$this->supportsMessenger()) {
+            $this->markTestSkipped('Messenger not supported in this environment.');
+        }
+
+        $this->hub->expects($this->never())
+            ->method('pushScope');
+
+        $this->hub->expects($this->never())
+            ->method('popScope');
+
+        $listener = new MessengerListener($this->hub, true, false);
+
+        $envelope = Envelope::wrap((object) []);
+        $listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent($envelope, 'receiver'));
+        $listener->handleWorkerMessageHandledEvent(new WorkerMessageHandledEvent($envelope, 'receiver'));
+    }
+
+    public function testIsolateBreadcrumbsByMessagePopsAfterFailureWhenEnabled(): void
+    {
+        if (!$this->supportsMessenger()) {
+            $this->markTestSkipped('Messenger not supported in this environment.');
+        }
+
+        $this->hub->expects($this->once())
+            ->method('pushScope');
+
+        $this->hub->expects($this->once())
+            ->method('popScope');
+
+        $this->hub->expects($this->once())
+            ->method('withScope')
+            ->willReturnCallback(function (callable $callback): void {
+                $callback(new Scope());
+            });
+
+        $this->hub->expects($this->any())
+            ->method('getClient')
+            ->willReturn($this->client);
+
+        $listener = new MessengerListener($this->hub, true, true);
+        $envelope = Envelope::wrap((object) []);
+
+        $listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent($envelope, 'receiver'));
+
+        $event = $this->getMessageFailedEvent($envelope, 'receiver', new \Exception('boom'), false);
+        $listener->handleWorkerMessageFailedEvent($event);
     }
 
     private function getMessageFailedEvent(Envelope $envelope, string $receiverName, \Throwable $error, bool $retry): WorkerMessageFailedEvent

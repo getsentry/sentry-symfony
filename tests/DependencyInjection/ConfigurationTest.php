@@ -42,6 +42,7 @@ final class ConfigurationTest extends TestCase
             'messenger' => [
                 'enabled' => interface_exists(MessageBusInterface::class),
                 'capture_soft_fails' => true,
+                'isolate_breadcrumbs_by_message' => false,
             ],
             'tracing' => [
                 'enabled' => true,

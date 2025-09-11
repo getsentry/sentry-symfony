@@ -41,6 +41,7 @@ use Symfony\Component\HttpClient\TraceableHttpClient;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
+use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 abstract class SentryExtensionTest extends TestCase
@@ -138,10 +139,16 @@ abstract class SentryExtensionTest extends TestCase
                     'method' => 'handleWorkerMessageHandledEvent',
                     'priority' => 50,
                 ],
+                [
+                    'event' => WorkerMessageReceivedEvent::class,
+                    'method' => 'handleWorkerMessageReceivedEvent',
+                    'priority' => 50,
+                ],
             ],
         ], $definition->getTags());
 
         $this->assertFalse($definition->getArgument(1));
+        $this->assertTrue($definition->getArgument(2));
     }
 
     public function testMessengerListenerIsRemovedWhenDisabled(): void

@@ -60,6 +60,7 @@ $container->loadFromExtension('sentry', [
     'messenger' => [
         'enabled' => true,
         'capture_soft_fails' => false,
+        'isolate_breadcrumbs_by_message' => true,
     ],
     'tracing' => [
         'dbal' => [
