@@ -63,7 +63,7 @@ final class IntegrationConfigurator
             $result = ($this->userConfig)($filteredDefaults);
 
             if (!\is_array($result)) {
-                throw new \UnexpectedValueException(\sprintf('Expected the callable set for the user integrations to return a list of integrations. Got: "%s".', get_debug_type($result)));
+                return [];
             }
 
             return $result;
