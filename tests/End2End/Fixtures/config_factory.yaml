@@ -1,0 +1,7 @@
+services:
+    Sentry\SentryBundle\Tests\End2End\Fixtures\FactoryCallback:
+        factory: ['Sentry\SentryBundle\Tests\End2End\Fixtures\FactoryCallback', 'factory']
+
+sentry:
+    options:
+        integrations: 'Sentry\SentryBundle\Tests\End2End\Fixtures\FactoryCallback'
