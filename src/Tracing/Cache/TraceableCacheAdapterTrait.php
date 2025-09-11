@@ -315,6 +315,10 @@ trait TraceableCacheAdapterTrait
      */
     public static function getCacheItemSize($value): ?int
     {
+        // We only gather the payload size for strings since this is easy to figure out
+        // and has basically no overhead.
+        // Getting the size of objects would be more complex, and it would potentially
+        // introduce more overhead since we don't get the size from the current framework abstraction.
         if (\is_string($value)) {
             return \strlen($value);
         }
