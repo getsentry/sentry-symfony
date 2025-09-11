@@ -6,7 +6,7 @@ The Sentry SDK team is happy to announce the immediate availability of Sentry Sy
 
 ### Features
 
-- Enable auto-instrumentation for the Symfony Cache [(#942)](https://github.com/getsentry/sentry-symfony/pull/942)
+- Enable auto-instrumentation for the Symfony Cache Component [(#942)](https://github.com/getsentry/sentry-symfony/pull/942)
 - Add a new config flag to reset breadcrumbs between Symfony messages [(#946)](https://github.com/getsentry/sentry-symfony/pull/946)
 ```yaml
 sentry:
