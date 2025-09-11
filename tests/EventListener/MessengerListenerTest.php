@@ -239,7 +239,7 @@ final class MessengerListenerTest extends TestCase
         $listener->handleWorkerMessageHandledEvent(new WorkerMessageHandledEvent(Envelope::wrap((object) []), 'receiver'));
     }
 
-    public function testResetBreadcrumbsPushAndPopScopeWhenEnabled(): void
+    public function testIsolateBreadcrumbsByMessagePushAndPopScopeWhenEnabled(): void
     {
         if (!$this->supportsMessenger()) {
             $this->markTestSkipped('Messenger not supported in this environment.');
@@ -260,7 +260,7 @@ final class MessengerListenerTest extends TestCase
         $listener->handleWorkerMessageHandledEvent(new WorkerMessageHandledEvent($envelope, 'receiver'));
     }
 
-    public function testResetBreadcrumbsDoesNotPushOrPopWhenDisabled(): void
+    public function testIsolateBreadcrumbsByMessageDoesNotPushOrPopWhenDisabled(): void
     {
         if (!$this->supportsMessenger()) {
             $this->markTestSkipped('Messenger not supported in this environment.');
@@ -279,7 +279,7 @@ final class MessengerListenerTest extends TestCase
         $listener->handleWorkerMessageHandledEvent(new WorkerMessageHandledEvent($envelope, 'receiver'));
     }
 
-    public function testResetBreadcrumbsPopsAfterFailureWhenEnabled(): void
+    public function testIsolateBreadcrumbsByMessagePopsAfterFailureWhenEnabled(): void
     {
         if (!$this->supportsMessenger()) {
             $this->markTestSkipped('Messenger not supported in this environment.');

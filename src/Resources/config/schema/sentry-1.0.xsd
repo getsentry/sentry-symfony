@@ -101,7 +101,7 @@
     <xsd:complexType name="messenger">
         <xsd:attribute name="enabled" type="xsd:boolean" />
         <xsd:attribute name="capture-soft-fails" type="xsd:boolean" />
-        <xsd:attribute name="reset-breadcrumbs" type="xsd:boolean" />
+        <xsd:attribute name="isolate-breadcrumbs-by-message" type="xsd:boolean" />
     </xsd:complexType>
 
     <xsd:complexType name="tracing">

@@ -36,20 +36,20 @@ final class MessengerListener
      *           This allows us to have breadcrumbs only for one message and no breadcrumb is leaked into
      *           future messages.
      */
-    private $resetBreadcrumbs;
+    private $isolateBreadcrumbsByMessage;
 
     /**
-     * @param HubInterface $hub              The current hub
-     * @param bool         $captureSoftFails Whether to capture errors thrown
-     *                                       while processing a message that
-     *                                       will be retried
-     * @param bool         $resetBreadcrumbs Whether to reset all breadcrumbs after a message
+     * @param HubInterface $hub                         The current hub
+     * @param bool         $captureSoftFails            Whether to capture errors thrown
+     *                                                  while processing a message that
+     *                                                  will be retried
+     * @param bool         $isolateBreadcrumbsByMessage Whether to reset all breadcrumbs after a message
      */
-    public function __construct(HubInterface $hub, bool $captureSoftFails = true, bool $resetBreadcrumbs = false)
+    public function __construct(HubInterface $hub, bool $captureSoftFails = true, bool $isolateBreadcrumbsByMessage = false)
     {
         $this->hub = $hub;
         $this->captureSoftFails = $captureSoftFails;
-        $this->resetBreadcrumbs = $resetBreadcrumbs;
+        $this->isolateBreadcrumbsByMessage = $isolateBreadcrumbsByMessage;
     }
 
     /**
@@ -85,7 +85,7 @@ final class MessengerListener
         } finally {
             // We always want to pop the scope at the end of this method to add the breadcrumbs
             // to any potential event that is produced.
-            if ($this->resetBreadcrumbs) {
+            if ($this->isolateBreadcrumbsByMessage) {
                 $this->hub->popScope();
             }
         }
@@ -101,7 +101,7 @@ final class MessengerListener
         // Flush normally happens at shutdown... which only happens in the worker if it is run with a lifecycle limit
         // such as --time=X or --limit=Y. Flush immediately in a background worker.
         $this->flushClient();
-        if ($this->resetBreadcrumbs) {
+        if ($this->isolateBreadcrumbsByMessage) {
             $this->hub->popScope();
         }
     }
@@ -116,7 +116,7 @@ final class MessengerListener
      */
     public function handleWorkerMessageReceivedEvent(WorkerMessageReceivedEvent $event): void
     {
-        if ($this->resetBreadcrumbs) {
+        if ($this->isolateBreadcrumbsByMessage) {
             $this->hub->pushScope();
         }
     }
