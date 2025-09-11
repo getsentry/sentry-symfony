@@ -41,4 +41,4 @@ framework:
 sentry:
   messenger:
     capture_soft_fails: false
-    reset_breadcrumbs: true
+    isolate_breadcrumbs_by_message: true

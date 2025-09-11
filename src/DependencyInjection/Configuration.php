@@ -187,7 +187,7 @@ final class Configuration implements ConfigurationInterface
                     ->{interface_exists(MessageBusInterface::class) ? 'canBeDisabled' : 'canBeEnabled'}()
                     ->children()
                         ->booleanNode('capture_soft_fails')->defaultTrue()->end()
-                        ->booleanNode('reset_breadcrumbs')->defaultFalse()->end()
+                        ->booleanNode('isolate_breadcrumbs_by_message')->defaultFalse()->end()
                     ->end()
                 ->end()
             ->end();
