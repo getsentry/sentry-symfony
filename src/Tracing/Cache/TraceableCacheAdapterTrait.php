@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tracing\Cache;
 
 use Psr\Cache\CacheItemInterface;
+use Psr\Cache\InvalidArgumentException;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\SpanContext;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
@@ -38,7 +39,7 @@ trait TraceableCacheAdapterTrait
      */
     public function getItem($key): CacheItem
     {
-        return $this->traceFunction('cache.get_item', function () use ($key): CacheItem {
+        return $this->traceFunction('cache.get', function () use ($key): CacheItem {
             return $this->decoratedAdapter->getItem($key);
         }, $key);
     }
@@ -48,7 +49,7 @@ trait TraceableCacheAdapterTrait
      */
     public function getItems(array $keys = []): iterable
     {
-        return $this->traceFunction('cache.get_items', function () use ($keys): iterable {
+        return $this->traceFunction('cache.get', function () use ($keys): iterable {
             return $this->decoratedAdapter->getItems($keys);
         });
     }
@@ -58,7 +59,7 @@ trait TraceableCacheAdapterTrait
      */
     public function clear(string $prefix = ''): bool
     {
-        return $this->traceFunction('cache.clear', function () use ($prefix): bool {
+        return $this->traceFunction('cache.flush', function () use ($prefix): bool {
             return $this->decoratedAdapter->clear($prefix);
         }, $prefix);
     }
@@ -68,7 +69,7 @@ trait TraceableCacheAdapterTrait
      */
     public function delete(string $key): bool
     {
-        return $this->traceFunction('cache.delete_item', function () use ($key): bool {
+        return $this->traceFunction('cache.remove', function () use ($key): bool {
             if (!$this->decoratedAdapter instanceof CacheInterface) {
                 throw new \BadMethodCallException(\sprintf('The %s::delete() method is not supported because the decorated adapter does not implement the "%s" interface.', self::class, CacheInterface::class));
             }
@@ -92,7 +93,7 @@ trait TraceableCacheAdapterTrait
      */
     public function deleteItem($key): bool
     {
-        return $this->traceFunction('cache.delete_item', function () use ($key): bool {
+        return $this->traceFunction('cache.remove', function () use ($key): bool {
             return $this->decoratedAdapter->deleteItem($key);
         }, $key);
     }
@@ -102,7 +103,7 @@ trait TraceableCacheAdapterTrait
      */
     public function deleteItems(array $keys): bool
     {
-        return $this->traceFunction('cache.delete_items', function () use ($keys): bool {
+        return $this->traceFunction('cache.remove', function () use ($keys): bool {
             return $this->decoratedAdapter->deleteItems($keys);
         });
     }
@@ -112,7 +113,7 @@ trait TraceableCacheAdapterTrait
      */
     public function save(CacheItemInterface $item): bool
     {
-        return $this->traceFunction('cache.save', function () use ($item): bool {
+        return $this->traceFunction('cache.put', function () use ($item): bool {
             return $this->decoratedAdapter->save($item);
         });
     }
@@ -122,7 +123,7 @@ trait TraceableCacheAdapterTrait
      */
     public function saveDeferred(CacheItemInterface $item): bool
     {
-        return $this->traceFunction('cache.save_deferred', function () use ($item): bool {
+        return $this->traceFunction('cache.put', function () use ($item): bool {
             return $this->decoratedAdapter->saveDeferred($item);
         });
     }
@@ -162,6 +163,10 @@ trait TraceableCacheAdapterTrait
     }
 
     /**
+     * Traces a symfony operation and creating one span in the process.
+     *
+     * If you want to trace a get operation with callback, use {@see self::traceGet()} instead.
+     *
      * @phpstan-template TResult
      *
      * @phpstan-param \Closure(): TResult $callback
@@ -172,25 +177,153 @@ trait TraceableCacheAdapterTrait
     {
         $span = $this->hub->getSpan();
 
-        if (null !== $span) {
-            $spanContext = SpanContext::make()
-                ->setOp($spanOperation)
-                ->setOrigin('auto.cache');
-
-            if (null !== $spanDescription) {
-                $spanContext->setDescription(urldecode($spanDescription));
-            }
-
-            $span = $span->startChild($spanContext);
+        // Exit early if we have no span.
+        if (null === $span) {
+            return $callback();
         }
+
+        $spanContext = SpanContext::make()
+            ->setOp($spanOperation)
+            ->setOrigin('auto.cache');
+
+        if (null !== $spanDescription) {
+            $spanContext->setDescription(urldecode($spanDescription));
+        }
+
+        $span = $span->startChild($spanContext);
 
         try {
-            return $callback();
-        } finally {
-            if (null !== $span) {
-                $span->finish();
+            $result = $callback();
+
+            // Necessary for static analysis. Otherwise, the TResult type is assumed to be CacheItemInterface.
+            if (!$result instanceof CacheItemInterface) {
+                return $result;
             }
+
+            $data = ['cache.hit' => $result->isHit()];
+            if ($result->isHit()) {
+                $data['cache.item_size'] = static::getCacheItemSize($result->get());
+            }
+            $span->setData($data);
+
+            return $result;
+        } finally {
+            $span->finish();
         }
+    }
+
+    /**
+     * Traces a Symfony Cache get() call with a get and optional put span.
+     *
+     * Produces 2 spans in case of a cache miss:
+     * 1. 'cache.get' span
+     * 2. 'cache.put' span
+     *
+     * If the callback uses code with sentry traces, those traces will be available in the trace explorer.
+     *
+     * Use this method if you want to instrument {@see CacheInterface::get()}.
+     *
+     * @param string                       $key
+     * @param callable                     $callback
+     * @param float|null                   $beta
+     * @param array<int|string,mixed>|null $metadata
+     *
+     * @return mixed
+     *
+     * @throws InvalidArgumentException
+     */
+    private function traceGet(string $key, callable $callback, ?float $beta = null, ?array &$metadata = null)
+    {
+        if (!$this->decoratedAdapter instanceof CacheInterface) {
+            throw new \BadMethodCallException(\sprintf('The %s::get() method is not supported because the decorated adapter does not implement the "%s" interface.', self::class, CacheInterface::class));
+        }
+        $parentSpan = $this->hub->getSpan();
+
+        // If we don't have a parent span we can just forward it.
+        if (null === $parentSpan) {
+            return $this->decoratedAdapter->get($key, $callback, $beta, $metadata);
+        }
+
+        $spanContext = SpanContext::make()
+            ->setOp('cache.get')
+            ->setOrigin('auto.cache');
+
+        $spanContext->setDescription(urldecode($key));
+
+        $getSpan = $parentSpan->startChild($spanContext);
+
+        try {
+            $this->hub->setSpan($getSpan);
+
+            $wasMiss = false;
+            $saveStartTimestamp = null;
+
+            try {
+                $value = $this->decoratedAdapter->get($key, function (CacheItemInterface $item, &$save) use ($callback, &$wasMiss, &$saveStartTimestamp) {
+                    $wasMiss = true;
+
+                    $result = $callback($item, $save);
+
+                    if ($save) {
+                        $saveStartTimestamp = microtime(true);
+                    }
+
+                    return $result;
+                }, $beta, $metadata);
+            } catch (\Throwable $t) {
+                $getSpan->finish();
+                throw $t;
+            }
+
+            $now = microtime(true);
+
+            $getSpan->setData([
+                'cache.hit' => !$wasMiss,
+                'cache.item_size' => self::getCacheItemSize($value),
+            ]);
+
+            // If we got a timestamp here we know that we missed
+            if (null !== $saveStartTimestamp) {
+                $getSpan->finish($saveStartTimestamp);
+                $saveContext = SpanContext::make()
+                    ->setOp('cache.put')
+                    ->setOrigin('auto.cache')
+                    ->setDescription(urldecode($key));
+                $saveSpan = $parentSpan->startChild($saveContext);
+                $saveSpan->setStartTimestamp($saveStartTimestamp);
+                $saveSpan->setData([
+                    'cache.item_size' => self::getCacheItemSize($value),
+                ]);
+                $saveSpan->finish($now);
+            } else {
+                $getSpan->finish();
+            }
+
+            return $value;
+        } finally {
+            // We always want to restore the previous parent span.
+            $this->hub->setSpan($parentSpan);
+        }
+    }
+
+    /**
+     * Calculates the size of the cached item.
+     *
+     * @param mixed $value
+     *
+     * @return int|null
+     */
+    public static function getCacheItemSize($value): ?int
+    {
+        // We only gather the payload size for strings since this is easy to figure out
+        // and has basically no overhead.
+        // Getting the size of objects would be more complex, and it would potentially
+        // introduce more overhead since we don't get the size from the current framework abstraction.
+        if (\is_string($value)) {
+            return \strlen($value);
+        }
+
+        return null;
     }
 
     /**

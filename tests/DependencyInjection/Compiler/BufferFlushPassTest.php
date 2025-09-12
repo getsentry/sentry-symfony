@@ -116,4 +116,21 @@ class BufferFlushPassTest extends TestCase
         $serviceIds = $this->argumentToName($definition);
         $this->assertEquals(['sentry.test.handler'], $serviceIds);
     }
+
+    /**
+     * Test that the flusher will work with named arguments.
+     *
+     * @return void
+     */
+    public function testProcessWithNamedArguments()
+    {
+        $container = new ContainerBuilder();
+        $container->setDefinition('sentry.handler', new Definition(SentryHandler::class));
+        $container->setDefinition('sentry.test.handler', new Definition(BufferHandler::class, ['$handler' => new Reference('sentry.handler')]));
+
+        (new BufferFlushPass())->process($container);
+        $definition = $container->getDefinition('sentry.buffer_flusher');
+        $serviceIds = $this->argumentToName($definition);
+        $this->assertEquals(['sentry.test.handler'], $serviceIds);
+    }
 }

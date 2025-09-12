@@ -21,9 +21,9 @@ final class IntegrationConfigurator
     ];
 
     /**
-     * @var IntegrationInterface[]
+     * @var IntegrationInterface[]|callable|mixed
      */
-    private $userIntegrations;
+    private $userConfig;
 
     /**
      * @var bool
@@ -31,28 +31,24 @@ final class IntegrationConfigurator
     private $registerErrorHandler;
 
     /**
-     * @param IntegrationInterface[] $userIntegrations
+     * @param IntegrationInterface[]|callable $userConfig Array of integrations or a callable that filters/returns integrations
      */
-    public function __construct(array $userIntegrations, bool $registerErrorHandler)
+    public function __construct($userConfig, bool $registerErrorHandler)
     {
-        $this->userIntegrations = $userIntegrations;
+        $this->userConfig = $userConfig;
         $this->registerErrorHandler = $registerErrorHandler;
     }
 
     /**
-     * @see IntegrationRegistry::getIntegrationsToSetup()
-     *
      * @param IntegrationInterface[] $defaultIntegrations
      *
      * @return IntegrationInterface[]
+     *
+     * @see IntegrationRegistry::getIntegrationsToSetup()
      */
     public function __invoke(array $defaultIntegrations): array
     {
-        $integrations = [];
-
-        $userIntegrationsClasses = array_map('get_class', $this->userIntegrations);
-        $pickedIntegrationsClasses = [];
-
+        $filteredDefaults = [];
         foreach ($defaultIntegrations as $defaultIntegration) {
             $integrationClassName = \get_class($defaultIntegration);
 
@@ -60,13 +56,35 @@ final class IntegrationConfigurator
                 continue;
             }
 
+            $filteredDefaults[] = $defaultIntegration;
+        }
+
+        if (\is_callable($this->userConfig)) {
+            $result = ($this->userConfig)($filteredDefaults);
+
+            if (!\is_array($result)) {
+                return [];
+            }
+
+            return $result;
+        }
+
+        $integrations = [];
+        /** @var IntegrationInterface[] $userIntegrations */
+        $userIntegrations = \is_array($this->userConfig) ? $this->userConfig : [];
+        $userIntegrationsClasses = array_map('get_class', $userIntegrations);
+        $pickedIntegrationsClasses = [];
+
+        foreach ($filteredDefaults as $defaultIntegration) {
+            $integrationClassName = \get_class($defaultIntegration);
+
             if (!\in_array($integrationClassName, $userIntegrationsClasses, true) && !isset($pickedIntegrationsClasses[$integrationClassName])) {
                 $integrations[] = $defaultIntegration;
                 $pickedIntegrationsClasses[$integrationClassName] = true;
             }
         }
 
-        foreach ($this->userIntegrations as $userIntegration) {
+        foreach ($userIntegrations as $userIntegration) {
             $integrationClassName = \get_class($userIntegration);
 
             if (!isset($pickedIntegrationsClasses[$integrationClassName])) {

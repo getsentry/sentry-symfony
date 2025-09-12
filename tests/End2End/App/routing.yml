@@ -42,6 +42,34 @@ tracing_ignored_transaction:
   path: /tracing/ignored-transaction
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::ignoredTransaction' }
 
+tracing_cache_populate_string:
+  path: /tracing/cache/populate-string
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingCacheController::populateCacheWithString' }
+
+tracing_cache_populate_integer:
+  path: /tracing/cache/populate-integer
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingCacheController::populateCacheWithInteger' }
+
+tracing_cache_delete:
+  path: /tracing/cache/delete
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingCacheController::deleteCache' }
+
+tracing_cache_crash:
+  path: /tracing/cache/crash
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingCacheController::crashInCallback' }
+
+tracing_cache_populate_string_with_db:
+  path: /tracing/cache/populate-string-with-db
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingCacheController::getWithDbTrace' }
+
+psr_tracing_cache_populate_string:
+  path: /tracing/cache/psr/populate-string
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\PsrTracingCacheController::testPopulateString' }
+
+psr_tracing_cache_delete:
+  path: /tracing/cache/psr/delete
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\PsrTracingCacheController::testDelete' }
+
 just_logging:
   path: /just-logging
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\LoggingController::justLogging' }

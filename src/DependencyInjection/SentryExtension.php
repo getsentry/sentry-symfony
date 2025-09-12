@@ -146,9 +146,17 @@ final class SentryExtension extends ConfigurableExtension
             $options['http_client'] = new Reference($options['http_client']);
         }
 
-        $container->getDefinition(IntegrationConfigurator::class)
-            ->setArgument(0, $this->configureIntegrationsOption($options['integrations'], $config))
-            ->setArgument(1, $config['register_error_handler']);
+        if (\is_string($options['integrations']) && '' !== $options['integrations']) {
+            $container->getDefinition(IntegrationConfigurator::class)
+                ->setArgument(0, new Reference($options['integrations']))
+                ->setArgument(1, $config['register_error_handler']);
+        } else {
+            $integrations = \is_array($options['integrations']) ? $options['integrations'] : [];
+
+            $container->getDefinition(IntegrationConfigurator::class)
+                ->setArgument(0, $this->configureIntegrationsOption($integrations, $config))
+                ->setArgument(1, $config['register_error_handler']);
+        }
         $options['integrations'] = new Reference(IntegrationConfigurator::class);
 
         $container
@@ -200,7 +208,7 @@ final class SentryExtension extends ConfigurableExtension
             return;
         }
 
-        $container->getDefinition(MessengerListener::class)->setArgument(1, $config['capture_soft_fails']);
+        $container->getDefinition(MessengerListener::class)->setArgument(1, $config['capture_soft_fails'])->setArgument(2, $config['isolate_breadcrumbs_by_message']);
     }
 
     /**

@@ -1,0 +1,6 @@
+services:
+    Sentry\SentryBundle\Tests\End2End\Fixtures\InvokableCallback: ~
+
+sentry:
+    options:
+        integrations: 'Sentry\SentryBundle\Tests\End2End\Fixtures\InvokableCallback'

@@ -57,7 +57,7 @@
             <sentry:ignore-exception>Symfony\Component\HttpKernel\Exception\BadRequestHttpException</sentry:ignore-exception>
             <sentry:ignore-transaction>GET tracing_ignored_transaction</sentry:ignore-transaction>
         </sentry:options>
-        <sentry:messenger enabled="true" capture-soft-fails="false" />
+        <sentry:messenger enabled="true" capture-soft-fails="false" isolate-breadcrumbs-by-message="true"/>
         <sentry:tracing>
             <sentry:dbal enabled="false">
                 <sentry:connection>default</sentry:connection>
