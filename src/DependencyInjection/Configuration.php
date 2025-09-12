@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
-use Sentry\Options;
 use Sentry\SentryBundle\ErrorTypesParser;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
@@ -125,10 +124,7 @@ final class Configuration implements ConfigurationInterface
                                 ->always(\Closure::fromCallable([ErrorTypesParser::class, 'parse']))
                             ->end()
                         ->end()
-                        ->integerNode('max_breadcrumbs')
-                            ->min(0)
-                            ->max(Options::DEFAULT_MAX_BREADCRUMBS)
-                        ->end()
+                        ->integerNode('max_breadcrumbs')->min(0)->end()
                         ->variableNode('before_breadcrumb')->end()
                         ->arrayNode('in_app_exclude')
                             ->scalarPrototype()->end()
