@@ -18,6 +18,20 @@
       <code><![CDATA[isMasterRequest]]></code>
     </UndefinedMethod>
   </file>
+  <file src="src/Monolog/LogsHandler.php">
+    <InvalidParamDefault>
+      <code><![CDATA[value-of<MonologLevel::VALUES>|value-of<MonologLevel::NAMES>|MonologLevel|PsrLogLevel::*]]></code>
+    </InvalidParamDefault>
+    <UndefinedClass>
+      <code><![CDATA[value-of<MonologLevel::VALUES>|value-of<MonologLevel::NAMES>|MonologLevel|PsrLogLevel::*]]></code>
+    </UndefinedClass>
+    <UndefinedDocblockClass>
+      <code><![CDATA[value-of<MonologLevel::VALUES>|value-of<MonologLevel::NAMES>|MonologLevel|PsrLogLevel::*]]></code>
+    </UndefinedDocblockClass>
+    <UnresolvableConstant>
+      <code><![CDATA[value-of<MonologLevel::VALUES>|value-of<MonologLevel::NAMES>|MonologLevel|PsrLogLevel::*]]></code>
+    </UnresolvableConstant>
+  </file>
   <file src="src/Tracing/Cache/TraceableCacheAdapterTrait.php">
     <LessSpecificImplementedReturnType>
       <code><![CDATA[iterable]]></code>
