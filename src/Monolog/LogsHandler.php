@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Monolog;
 
+use Monolog\Level as MonologLevel;
 use Monolog\Logger as MonologLogger;
 use Monolog\LogRecord;
+use Psr\Log\LogLevel as PsrLogLevel;
 use Sentry\Monolog\CompatibilityLogLevelTrait;
 use Sentry\Monolog\LogsHandler as BaseLogsHandler;
 
@@ -18,8 +20,17 @@ class LogsHandler extends BaseLogsHandler
 {
     use CompatibilityLogLevelTrait;
 
-    public function __construct(int $level = MonologLogger::DEBUG, bool $bubble = true)
+    /**
+     * @param int|string|MonologLevel|PsrLogLevel::* $level
+     *
+     * @phpstan-param value-of<MonologLevel::VALUES>|value-of<MonologLevel::NAMES>|MonologLevel|PsrLogLevel::* $level
+     */
+    public function __construct($level = MonologLogger::DEBUG, bool $bubble = true)
     {
+        $level = MonologLogger::toMonologLevel($level);
+        if ($level instanceof MonologLevel) { // Monolog >= 3
+            $level = $level->value;
+        }
         $logLevel = self::getSentryLogLevelFromMonologLevel($level);
         parent::__construct($logLevel, $bubble);
     }
