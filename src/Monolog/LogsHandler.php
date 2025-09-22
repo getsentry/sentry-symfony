@@ -7,6 +7,7 @@ namespace Sentry\SentryBundle\Monolog;
 use Monolog\Level as MonologLevel;
 use Monolog\Logger as MonologLogger;
 use Monolog\LogRecord;
+use Psr\Log\InvalidArgumentException;
 use Psr\Log\LogLevel as PsrLogLevel;
 use Sentry\Monolog\CompatibilityLogLevelTrait;
 use Sentry\Monolog\LogsHandler as BaseLogsHandler;
@@ -27,7 +28,11 @@ class LogsHandler extends BaseLogsHandler
      */
     public function __construct($level = MonologLogger::DEBUG, bool $bubble = true)
     {
-        $level = MonologLogger::toMonologLevel($level);
+        try {
+            $level = MonologLogger::toMonologLevel($level);
+        } catch (InvalidArgumentException $e) {
+            $level = MonologLogger::INFO;
+        }
         if ($level instanceof MonologLevel) { // Monolog >= 3
             $level = $level->value;
         }

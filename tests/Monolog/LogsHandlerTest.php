@@ -84,4 +84,18 @@ final class LogsHandlerTest extends TestCase
             yield [MonologLevel::Debug];
         }
     }
+
+    public function testHandlerFallbacksToInfoOnInvalidLevel(): void
+    {
+        /** @phpstan-ignore-next-line */
+        $handler = new LogsHandler(123124213, false);
+        $record = [
+            'message' => 'msg',
+            'context' => [],
+            'extra' => [],
+        ];
+
+        $this->assertFalse($handler->handle($record + ['level' => MonologLogger::DEBUG]));
+        $this->assertTrue($handler->handle($record + ['level' => MonologLogger::WARNING]));
+    }
 }
