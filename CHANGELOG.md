@@ -1,5 +1,35 @@
 # CHANGELOG
 
+## 5.6.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.6.0.
+
+### Features
+
+- Remove upper limit for `max_breadcrumbs` option. [(#953)](https://github.com/getsentry/sentry-symfony/pull/953)
+- Allow passing string and enum Monolog level. [(#959)](https://github.com/getsentry/sentry-symfony/pull/959)
+```yaml
+services:
+  Sentry\SentryBundle\Monolog\LogsHandler:
+    arguments:
+      - 'info'
+```
+
+```yaml
+# or using PSR constants
+services:
+  Sentry\SentryBundle\Monolog\LogsHandler:
+    arguments:
+      - !php/const Psr\Log\LogLevel::INFO
+```
+
+```php
+// or via PHP config
+$container->services()
+    ->set(\Sentry\SentryBundle\Monolog\LogsHandler::class)
+    ->args([\Monolog\Level::Info]);
+```
+
 ## 5.5.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.5.0.
