@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\Monolog;
 
+use Monolog\Level as MonologLevel;
 use Monolog\Logger as MonologLogger;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LogLevel as PsrLogLevel;
 use Sentry\SentryBundle\Monolog\LogsHandler;
 
 final class LogsHandlerTest extends TestCase
@@ -47,5 +49,53 @@ final class LogsHandlerTest extends TestCase
         ];
 
         $this->assertTrue($handler->handle($record));
+    }
+
+    /**
+     * @dataProvider levelProvider
+     *
+     * @param int|string|MonologLevel $level
+     *
+     * @phpstan-param value-of<MonologLevel::VALUES>|value-of<MonologLevel::NAMES>|MonologLevel|PsrLogLevel::* $level
+     */
+    public function testHandlerAcceptsVariousTypesAsLevel($level): void
+    {
+        $handler = new LogsHandler($level, false);
+        $record = [
+            'level' => MonologLogger::WARNING,
+            'message' => 'msg',
+            'context' => [],
+            'extra' => [],
+        ];
+
+        $this->assertTrue($handler->handle($record));
+    }
+
+    /**
+     * @return iterable<array{0: int|string|MonologLevel}>
+     */
+    public static function levelProvider(): iterable
+    {
+        yield [MonologLogger::DEBUG];
+        yield ['DEBUG'];
+        yield [PsrLogLevel::DEBUG];
+
+        if (class_exists(MonologLevel::class)) {
+            yield [MonologLevel::Debug];
+        }
+    }
+
+    public function testHandlerFallbacksToInfoOnInvalidLevel(): void
+    {
+        /** @phpstan-ignore-next-line */
+        $handler = new LogsHandler(123124213, false);
+        $record = [
+            'message' => 'msg',
+            'context' => [],
+            'extra' => [],
+        ];
+
+        $this->assertFalse($handler->handle($record + ['level' => MonologLogger::DEBUG]));
+        $this->assertTrue($handler->handle($record + ['level' => MonologLogger::WARNING]));
     }
 }
