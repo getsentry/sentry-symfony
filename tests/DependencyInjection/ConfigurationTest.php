@@ -281,7 +281,7 @@ final class ConfigurationTest extends TestCase
     /**
      * @dataProvider maxRequestBodySizeValuesDataProvider
      */
-    public function testMaxRequestBodySizeValues($maxRequestBodySize): void
+    public function testMaxRequestBodySizeValues(string $maxRequestBodySize): void
     {
         $options = new Options();
         $options->setMaxRequestBodySize($maxRequestBodySize);
