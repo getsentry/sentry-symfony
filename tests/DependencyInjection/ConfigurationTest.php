@@ -288,7 +288,7 @@ final class ConfigurationTest extends TestCase
         $this->assertSame($maxRequestBodySize, $options->getMaxRequestBodySize());
     }
 
-    private function maxRequestBodySizeValuesDataProvider(): \Generator
+    public function maxRequestBodySizeValuesDataProvider(): \Generator
     {
         yield ['never'];
         yield ['none'];
