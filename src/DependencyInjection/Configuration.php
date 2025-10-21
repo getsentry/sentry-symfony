@@ -155,6 +155,7 @@ final class Configuration implements ConfigurationInterface
                         ->enumNode('max_request_body_size')
                             ->values([
                                 'none',
+                                'never',
                                 'small',
                                 'medium',
                                 'always',

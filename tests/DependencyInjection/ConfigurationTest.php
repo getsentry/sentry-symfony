@@ -6,6 +6,7 @@ namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use PHPUnit\Framework\TestCase;
+use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
@@ -275,5 +276,24 @@ final class ConfigurationTest extends TestCase
         $processor = new Processor();
 
         return $processor->processConfiguration(new Configuration(), ['sentry' => $values]);
+    }
+
+    /**
+     * @dataProvider maxRequestBodySizeValuesDataProvider
+     */
+    public function testMaxRequestBodySizeValues($maxRequestBodySize): void
+    {
+        $options = new Options();
+        $options->setMaxRequestBodySize($maxRequestBodySize);
+        $this->assertSame($maxRequestBodySize, $options->getMaxRequestBodySize());
+    }
+
+    private function maxRequestBodySizeValuesDataProvider(): \Generator
+    {
+        yield ['never'];
+        yield ['none'];
+        yield ['small'];
+        yield ['medium'];
+        yield ['always'];
     }
 }
