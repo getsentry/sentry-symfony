@@ -4,6 +4,8 @@
     "description": "Symfony integration for Sentry (http://getsentry.com)",
     "keywords": ["logging", "errors", "symfony", "sentry"],
     "homepage": "http://getsentry.com",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "license": "MIT",
     "authors": [
         {
@@ -27,7 +29,7 @@
     },
     "require-dev": {
         "doctrine/dbal": "^2.13||^3.3||^4.0",
-        "doctrine/doctrine-bundle": "^2.6",
+        "doctrine/doctrine-bundle": "^2.6||^3.0",
         "friendsofphp/php-cs-fixer": "^2.19||^3.40",
         "masterminds/html5": "^2.8",
         "phpstan/extension-installer": "^1.0",
@@ -41,7 +43,7 @@
         "symfony/framework-bundle": "^4.4.20||^5.0.11||^6.0||^7.0||^8.0",
         "symfony/http-client": "^4.4.20||^5.0.11||^6.0||^7.0||^8.0",
         "symfony/messenger": "^4.4.20||^5.0.11||^6.0||^7.0||^8.0",
-        "symfony/monolog-bundle": "^3.4",
+        "symfony/monolog-bundle": "^3.4||^4.0",
         "symfony/phpunit-bridge": "^5.2.6||^6.0||^7.0||^8.0",
         "symfony/process": "^4.4.20||^5.0.11||^6.0||^7.0||^8.0",
         "symfony/security-core": "^4.4.20||^5.0.11||^6.0||^7.0||^8.0",
