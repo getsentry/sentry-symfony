@@ -33,7 +33,7 @@ jobs:
           - 5.*
           - 6.*
           - 7.*
-          - 8.*
+          - 8.0.*@dev
         dependencies:
           - highest
         exclude:
@@ -55,6 +55,20 @@ jobs:
             symfony-version: 7.*
           - php: '8.4'
             symfony-version: 4.4.*
+          - php: '7.2'
+            symfony-version: 8.0.*@dev
+          - php: '7.3'
+            symfony-version: 8.0.*@dev
+          - php: '7.4'
+            symfony-version: 8.0.*@dev
+          - php: '8.0'
+            symfony-version: 8.0.*@dev
+          - php: '8.1'
+            symfony-version: 8.0.*@dev
+          - php: '8.2'
+            symfony-version: 8.0.*@dev
+          - php: '8.3'
+            symfony-version: 8.0.*@dev
         include:
           - php: '7.2'
             symfony-version: 4.4.*
@@ -123,6 +137,7 @@ jobs:
             symfony-version: 4.4.*
           - php: '8.4'
             dependencies: highest
+            symfony-version: 8.0.*@dev
 
     steps:
       - name: Checkout
