@@ -1,0 +1,123 @@
+services:
+  _defaults:
+    public: false
+
+  Sentry\ClientInterface: '@sentry.client'
+  Sentry\SentryBundle\EventListener\ConsoleCommandListener: '@Sentry\SentryBundle\EventListener\ConsoleListener'
+  Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryInterface: '@Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactory'
+
+  Sentry\State\HubInterface:
+    factory: ['Sentry\State\HubAdapter', 'getInstance']
+    calls:
+      - [bindClient, ['@Sentry\ClientInterface']]
+
+  Sentry\SentryBundle\EventListener\ConsoleListener:
+    arguments: ['@Sentry\State\HubInterface']
+    tags:
+      - { name: kernel.event_listener, event: console.command, method: handleConsoleCommandEvent, priority: 128 }
+      - { name: kernel.event_listener, event: console.terminate, method: handleConsoleTerminateEvent, priority: -64 }
+      - { name: kernel.event_listener, event: console.error, method: handleConsoleErrorEvent, priority: -64 }
+
+  Sentry\SentryBundle\EventListener\ErrorListener:
+    arguments: ['@Sentry\State\HubInterface']
+    tags:
+      - { name: kernel.event_listener, event: kernel.exception, method: handleExceptionEvent, priority: 128 }
+
+  Sentry\SentryBundle\EventListener\RequestListener:
+    arguments: ['@Sentry\State\HubInterface']
+    tags:
+      - { name: kernel.event_listener, event: kernel.request, method: handleKernelRequestEvent, priority: 5 }
+      - { name: kernel.event_listener, event: kernel.controller, method: handleKernelControllerEvent, priority: 10 }
+
+  Sentry\SentryBundle\EventListener\SubRequestListener:
+    arguments: ['@Sentry\State\HubInterface']
+    tags:
+      - { name: kernel.event_listener, event: kernel.request, method: handleKernelRequestEvent, priority: 3 }
+      - { name: kernel.event_listener, event: kernel.finish_request, method: handleKernelFinishRequestEvent, priority: 5 }
+
+  Sentry\SentryBundle\EventListener\TracingRequestListener:
+    arguments:
+      - '@Sentry\State\HubInterface'
+      - '@Sentry\Integration\RequestFetcherInterface'
+    tags:
+      - { name: kernel.event_listener, event: kernel.request, method: handleKernelRequestEvent, priority: 4 }
+      - { name: kernel.event_listener, event: kernel.response, method: handleKernelResponseEvent, priority: 15 }
+      - { name: kernel.event_listener, event: kernel.terminate, method: handleKernelTerminateEvent, priority: 5 }
+
+  Sentry\SentryBundle\EventListener\TracingSubRequestListener:
+    arguments: ['@Sentry\State\HubInterface']
+    tags:
+      - { name: kernel.event_listener, event: kernel.request, method: handleKernelRequestEvent, priority: 2 }
+      - { name: kernel.event_listener, event: kernel.finish_request, method: handleKernelFinishRequestEvent, priority: 10 }
+      - { name: kernel.event_listener, event: kernel.response, method: handleKernelResponseEvent, priority: 15 }
+
+  Sentry\SentryBundle\EventListener\TracingConsoleListener:
+    arguments:
+      - '@Sentry\State\HubInterface'
+      - ''
+    tags:
+      - { name: kernel.event_listener, event: console.command, method: handleConsoleCommandEvent, priority: 118 }
+      - { name: kernel.event_listener, event: console.terminate, method: handleConsoleTerminateEvent, priority: -54 }
+
+  Sentry\SentryBundle\EventListener\MessengerListener:
+    arguments: ['@Sentry\State\HubInterface']
+    tags:
+      - { name: kernel.event_listener, event: 'Symfony\Component\Messenger\Event\WorkerMessageFailedEvent', method: handleWorkerMessageFailedEvent, priority: 50 }
+      - { name: kernel.event_listener, event: 'Symfony\Component\Messenger\Event\WorkerMessageHandledEvent', method: handleWorkerMessageHandledEvent, priority: 50 }
+      - { name: kernel.event_listener, event: 'Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent', method: handleWorkerMessageReceivedEvent, priority: 50 }
+
+  Sentry\SentryBundle\EventListener\LoginListener:
+    arguments:
+      - '@Sentry\State\HubInterface'
+      - '@?security.token_storage'
+    tags:
+      - { name: kernel.event_listener, event: kernel.request, method: handleKernelRequestEvent }
+
+  Sentry\SentryBundle\EventListener\LogRequestListener:
+    tags:
+      - { name: kernel.event_listener, event: kernel.terminate, method: handleKernelTerminateEvent, priority: 10 }
+
+  # Command
+  Sentry\SentryBundle\Command\SentryTestCommand:
+    arguments: ['@Sentry\State\HubInterface']
+    tags:
+      - { name: console.command, command: 'sentry:test' }
+
+  Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactory:
+    arguments: ['@Sentry\State\HubInterface']
+
+  Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware:
+    arguments: ['@Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactory']
+
+  Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator:
+    arguments: ['@Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware']
+
+  Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension:
+    arguments: ['@Sentry\State\HubInterface']
+    tags:
+      - { name: twig.extension }
+
+  sentry.tracing.traceable_cache_adapter:
+    class: Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapter
+    abstract: true
+    arguments: ['@Sentry\State\HubInterface', '' ]
+
+  sentry.tracing.traceable_tag_aware_cache_adapter:
+    class: Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapter
+    abstract: true
+    arguments: ['@Sentry\State\HubInterface', '' ]
+
+  Sentry\SentryBundle\Integration\IntegrationConfigurator:
+    arguments: [ [], '' ]
+
+  Sentry\Integration\RequestFetcherInterface:
+    class: Sentry\SentryBundle\Integration\RequestFetcher
+    arguments:
+      - '@Symfony\Component\HttpFoundation\RequestStack'
+      - '@?Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface'
+
+  Sentry\SentryBundle\Twig\SentryExtension:
+    tags:
+      - { name: twig.extension }
+
+
