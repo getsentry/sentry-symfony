@@ -62,8 +62,8 @@ final class SentryExtension extends ConfigurableExtension
      */
     protected function loadInternal(array $mergedConfig, ContainerBuilder $container): void
     {
-        $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
-        $loader->load('services.xml');
+        $loader = new Loader\PhpFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
+        $loader->load('services.php');
 
         if (!$container->hasParameter('env(SENTRY_RELEASE)')) {
             $container->setParameter('env(SENTRY_RELEASE)', PrettyVersions::getRootPackageVersion()->getPrettyVersion());
@@ -298,7 +298,7 @@ final class SentryExtension extends ConfigurableExtension
     }
 
     /**
-     * @param string[]             $integrations
+     * @param string[] $integrations
      * @param array<string, mixed> $config
      *
      * @return array<Reference|Definition>
@@ -330,12 +330,12 @@ final class SentryExtension extends ConfigurableExtension
 
     /**
      * @param class-string<IntegrationInterface> $integrationClass
-     * @param array<Reference|Definition>        $integrations
+     * @param array<Reference|Definition> $integrations
      */
     private function isIntegrationEnabled(string $integrationClass, array $integrations): bool
     {
         foreach ($integrations as $integration) {
-            if ($integration instanceof Reference && $integrationClass === (string) $integration) {
+            if ($integration instanceof Reference && $integrationClass === (string)$integration) {
                 return true;
             }
 
