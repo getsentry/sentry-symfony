@@ -33,7 +33,7 @@ jobs:
           - 5.*
           - 6.*
           - 7.*
-          - 8.0.*@dev
+          - 8.0
         dependencies:
           - highest
         exclude:
@@ -56,19 +56,19 @@ jobs:
           - php: '8.4'
             symfony-version: 4.4.*
           - php: '7.2'
-            symfony-version: 8.0.*@dev
+            symfony-version: 8.0
           - php: '7.3'
-            symfony-version: 8.0.*@dev
+            symfony-version: 8.0
           - php: '7.4'
-            symfony-version: 8.0.*@dev
+            symfony-version: 8.0
           - php: '8.0'
-            symfony-version: 8.0.*@dev
+            symfony-version: 8.0
           - php: '8.1'
-            symfony-version: 8.0.*@dev
+            symfony-version: 8.0
           - php: '8.2'
-            symfony-version: 8.0.*@dev
+            symfony-version: 8.0
           - php: '8.3'
-            symfony-version: 8.0.*@dev
+            symfony-version: 8.0
         include:
           - php: '7.2'
             symfony-version: 4.4.*
@@ -102,7 +102,7 @@ jobs:
       - name: Allow Symfony 8 pre-releases
         if: contains(matrix.symfony-version, '8.')
         run: |
-          composer config minimum-stability dev
+          composer config minimum-stability beta
           composer config prefer-stable true
 
       # These dependencies are not used running the tests but can cause deprecation warnings so we remove them before running the tests
@@ -165,7 +165,7 @@ jobs:
       - name: Allow Symfony 8 pre-releases
         if: contains(matrix.symfony-version || '', '8.')
         run: |
-          composer config minimum-stability dev
+          composer config minimum-stability beta
           composer config prefer-stable true
 
       - name: Install dependencies
