@@ -99,11 +99,11 @@ jobs:
       - name: Setup Problem Matchers for PHPUnit
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
-      - name: Allow Symfony 8 pre-releases
-        if: contains(matrix.symfony-version, '8.')
-        run: |
-          composer config minimum-stability beta
-          composer config prefer-stable true
+      # - name: Allow Symfony 8 pre-releases
+      #   if: contains(matrix.symfony-version, '8.')
+      #   run: |
+      #     composer config minimum-stability beta
+      #     composer config prefer-stable true
 
       # These dependencies are not used running the tests but can cause deprecation warnings so we remove them before running the tests
       - name: Remove unused dependencies

@@ -5,7 +5,7 @@
     "keywords": ["logging", "errors", "symfony", "sentry"],
     "homepage": "http://getsentry.com",
     "minimum-stability": "dev",
-    "prefer-stable": true,
+    "prefer-stable": false,
     "license": "MIT",
     "authors": [
         {
