@@ -16,6 +16,7 @@ _Bad software is everywhere, and we're tired of it. Sentry is on a mission to he
 [![CI](https://github.com/getsentry/sentry-symfony/actions/workflows/tests.yaml/badge.svg)](https://github.com/getsentry/sentry-symfony/actions/workflows/tests.yaml)
 [![Coverage Status][Master Code Coverage Image]][Master Code Coverage]
 [![Discord](https://img.shields.io/discord/621778831602221064)](https://discord.gg/cWnMQeA)
+[![X Follow](https://img.shields.io/twitter/follow/sentry?label=sentry&style=social)](https://x.com/intent/follow?screen_name=sentry)
 
 This is the official Symfony SDK for [Sentry](https://getsentry.com/).
 
