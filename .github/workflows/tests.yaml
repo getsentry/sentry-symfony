@@ -99,12 +99,6 @@ jobs:
       - name: Setup Problem Matchers for PHPUnit
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
-      # - name: Allow Symfony 8 pre-releases
-      #   if: contains(matrix.symfony-version, '8.')
-      #   run: |
-      #     composer config minimum-stability beta
-      #     composer config prefer-stable true
-
       # These dependencies are not used running the tests but can cause deprecation warnings so we remove them before running the tests
       - name: Remove unused dependencies
         run: composer remove vimeo/psalm phpstan/phpstan friendsofphp/php-cs-fixer  --dev --no-interaction --no-update
@@ -143,7 +137,7 @@ jobs:
             symfony-version: 4.4.*
           - php: '8.4'
             dependencies: highest
-            symfony-version: 8.0.*@dev
+            symfony-version: 8.0
 
     steps:
       - name: Checkout
@@ -161,12 +155,6 @@ jobs:
 
       - name: Remove optional packages
         run: composer remove doctrine/dbal doctrine/doctrine-bundle symfony/messenger symfony/twig-bundle symfony/cache symfony/http-client --dev --no-update
-
-      - name: Allow Symfony 8 pre-releases
-        if: contains(matrix.symfony-version || '', '8.')
-        run: |
-          composer config minimum-stability beta
-          composer config prefer-stable true
 
       - name: Install dependencies
         uses: ramsey/composer-install@v3
