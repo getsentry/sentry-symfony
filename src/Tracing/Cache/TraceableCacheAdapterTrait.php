@@ -46,10 +46,13 @@ trait TraceableCacheAdapterTrait
 
     /**
      * {@inheritdoc}
-     * @return iterable<string, CacheItemInterface>
+     *
+     * @psalm-return iterable<string, \Symfony\Component\Cache\CacheItem>
+     * @phpstan-return iterable<string, \Symfony\Component\Cache\CacheItem>
      */
     public function getItems(array $keys = []): iterable
     {
+        /** @psalm-return iterable<string, \Symfony\Component\Cache\CacheItem> */
         return $this->traceFunction('cache.get', function () use ($keys): iterable {
             return $this->decoratedAdapter->getItems($keys);
         });
@@ -224,9 +227,9 @@ trait TraceableCacheAdapterTrait
      *
      * Use this method if you want to instrument {@see CacheInterface::get()}.
      *
-     * @param string $key
-     * @param callable $callback
-     * @param float|null $beta
+     * @param string                       $key
+     * @param callable                     $callback
+     * @param float|null                   $beta
      * @param array<int|string,mixed>|null $metadata
      *
      * @return mixed
