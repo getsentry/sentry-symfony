@@ -47,12 +47,13 @@ trait TraceableCacheAdapterTrait
     /**
      * {@inheritdoc}
      *
-     * @psalm-return iterable<string, \Symfony\Component\Cache\CacheItem>
-     * @phpstan-return iterable<string, \Symfony\Component\Cache\CacheItem>
+     * @phpstan-return iterable<string, CacheItem>
+     *
+     * @psalm-return iterable<string, CacheItem>
      */
     public function getItems(array $keys = []): iterable
     {
-        /** @psalm-return iterable<string, \Symfony\Component\Cache\CacheItem> */
+        /** @psalm-return iterable<string, CacheItem> */
         return $this->traceFunction('cache.get', function () use ($keys): iterable {
             return $this->decoratedAdapter->getItems($keys);
         });
