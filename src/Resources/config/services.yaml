@@ -4,7 +4,8 @@ services:
 
   Sentry\ClientInterface: '@sentry.client'
   Sentry\SentryBundle\EventListener\ConsoleCommandListener: '@Sentry\SentryBundle\EventListener\ConsoleListener'
-  Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryInterface: '@Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactory'
+  Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryInterface: '@sentry.tracing.dbal.connection_factory'
+  Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactory: '@sentry.tracing.dbal.connection_factory'
 
   Sentry\State\HubInterface:
     factory: ['Sentry\State\HubAdapter', 'getInstance']
@@ -83,11 +84,12 @@ services:
     tags:
       - { name: console.command, command: 'sentry:test' }
 
-  Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactory:
+  sentry.tracing.dbal.connection_factory:
+    class: Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryForV2V3
     arguments: ['@Sentry\State\HubInterface']
 
   Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware:
-    arguments: ['@Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactory']
+    arguments: ['@Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryInterface']
 
   Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator:
     arguments: ['@Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware']

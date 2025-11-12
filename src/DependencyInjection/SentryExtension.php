@@ -69,6 +69,11 @@ final class SentryExtension extends ConfigurableExtension
             $container->setParameter('env(SENTRY_RELEASE)', PrettyVersions::getRootPackageVersion()->getPrettyVersion());
         }
 
+        // Remove Twig extension service if Twig is not installed to avoid autoloading failures on Symfony 8
+        if (!class_exists(\Twig\Extension\AbstractExtension::class)) {
+            $container->removeDefinition(\Sentry\SentryBundle\Twig\SentryExtension::class);
+        }
+
         $this->registerConfiguration($container, $mergedConfig);
         $this->registerErrorListenerConfiguration($container, $mergedConfig);
         $this->registerMessengerListenerConfiguration($container, $mergedConfig['messenger']);
@@ -244,6 +249,19 @@ final class SentryExtension extends ConfigurableExtension
         $container->setParameter('sentry.tracing.dbal.enabled', $isConfigEnabled);
         $container->setParameter('sentry.tracing.dbal.connections', $isConfigEnabled ? $config['dbal']['connections'] : []);
 
+        $factoryServiceId = 'sentry.tracing.dbal.connection_factory';
+        if ($container->hasDefinition($factoryServiceId)) {
+            $factoryClass = \Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryForV2V3::class;
+
+            // On Symfony 8+, the container validates FQCN-like service IDs at compile time. Classes provided
+            // via aliases.php aren’t considered during this check, so FQCN IDs without loadable classes fail
+            if (class_exists(\Doctrine\DBAL\Result::class) && !interface_exists(\Doctrine\DBAL\VersionAwarePlatformDriver::class)) {
+                $factoryClass = \Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryForV4::class;
+            }
+
+            $container->getDefinition($factoryServiceId)->setClass($factoryClass);
+        }
+
         if (!$isConfigEnabled) {
             $container->removeDefinition(ConnectionConfigurator::class);
             $container->removeDefinition(TracingDriverMiddleware::class);
@@ -298,7 +316,7 @@ final class SentryExtension extends ConfigurableExtension
     }
 
     /**
-     * @param string[]             $integrations
+     * @param string[] $integrations
      * @param array<string, mixed> $config
      *
      * @return array<Reference|Definition>
@@ -330,12 +348,12 @@ final class SentryExtension extends ConfigurableExtension
 
     /**
      * @param class-string<IntegrationInterface> $integrationClass
-     * @param array<Reference|Definition>        $integrations
+     * @param array<Reference|Definition> $integrations
      */
     private function isIntegrationEnabled(string $integrationClass, array $integrations): bool
     {
         foreach ($integrations as $integration) {
-            if ($integration instanceof Reference && $integrationClass === (string) $integration) {
+            if ($integration instanceof Reference && $integrationClass === (string)$integration) {
                 return true;
             }
 
