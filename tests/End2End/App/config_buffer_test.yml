@@ -4,6 +4,12 @@ services:
       - '@Sentry\State\HubInterface'
       - !php/const Monolog\Logger::WARNING
 
+  app.sentry.handler:
+    class: Sentry\Monolog\Handler
+    arguments:
+      - '@Sentry\State\HubInterface'
+      - !php/const Monolog\Logger::WARNING
+
   Sentry\SentryBundle\Tests\End2End\App\Controller\BufferFlushController:
     autowire: true
     tags:
@@ -31,6 +37,10 @@ services:
 
 monolog:
   handlers:
+    sentry:
+      type: service
+      id: app.sentry.handler
+      level: warning
     main:
       type: stream
       path: "%kernel.logs_dir%/%kernel.environment%.log"

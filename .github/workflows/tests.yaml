@@ -33,6 +33,7 @@ jobs:
           - 5.*
           - 6.*
           - 7.*
+          - 8.0.*@beta
         dependencies:
           - highest
         exclude:
@@ -54,6 +55,20 @@ jobs:
             symfony-version: 7.*
           - php: '8.4'
             symfony-version: 4.4.*
+          - php: '7.2'
+            symfony-version: 8.0.*@beta
+          - php: '7.3'
+            symfony-version: 8.0.*@beta
+          - php: '7.4'
+            symfony-version: 8.0.*@beta
+          - php: '8.0'
+            symfony-version: 8.0.*@beta
+          - php: '8.1'
+            symfony-version: 8.0.*@beta
+          - php: '8.2'
+            symfony-version: 8.0.*@beta
+          - php: '8.3'
+            symfony-version: 8.0.*@beta
         include:
           - php: '7.2'
             symfony-version: 4.4.*
@@ -122,6 +137,7 @@ jobs:
             symfony-version: 4.4.*
           - php: '8.4'
             dependencies: highest
+            symfony-version: 8.0.*@beta
 
     steps:
       - name: Checkout
@@ -136,6 +152,10 @@ jobs:
 
       - name: Setup Problem Matchers for PHPUnit
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+      # These dependencies are not used running the tests but can cause deprecation warnings so we remove them before running the tests
+      - name: Remove unused dependencies
+        run: composer remove vimeo/psalm phpstan/phpstan friendsofphp/php-cs-fixer  --dev --no-interaction --no-update
 
       - name: Remove optional packages
         run: composer remove doctrine/dbal doctrine/doctrine-bundle symfony/messenger symfony/twig-bundle symfony/cache symfony/http-client --dev --no-update
