@@ -46,6 +46,7 @@ trait TraceableCacheAdapterTrait
 
     /**
      * {@inheritdoc}
+     * @return iterable<string, CacheItemInterface>
      */
     public function getItems(array $keys = []): iterable
     {
@@ -223,9 +224,9 @@ trait TraceableCacheAdapterTrait
      *
      * Use this method if you want to instrument {@see CacheInterface::get()}.
      *
-     * @param string                       $key
-     * @param callable                     $callback
-     * @param float|null                   $beta
+     * @param string $key
+     * @param callable $callback
+     * @param float|null $beta
      * @param array<int|string,mixed>|null $metadata
      *
      * @return mixed
