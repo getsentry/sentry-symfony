@@ -12,7 +12,7 @@ final class TraceableResponseForV4 extends AbstractTraceableResponse
     /**
      * {@inheritdoc}
      */
-    public function getInfo(string $type = null)
+    public function getInfo(?string $type = null)
     {
         return $this->response->getInfo($type);
     }
