@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\End2End\App;
 
+use Composer\InstalledVersions;
+use Composer\Semver\VersionParser;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -47,7 +49,9 @@ class Kernel extends SymfonyKernel
         if (self::VERSION_ID >= 50400 && self::VERSION_ID <= 60000) {
             // Check if class for Messenger is present (component symfony/messenger is not mandatory)
             if (interface_exists(MessageBusInterface::class)) {
-                $loader->load(__DIR__ . '/deprecations_for_54.yml');
+                if (InstalledVersions::satisfies(new VersionParser(), 'symfony/messenger', '>=5.4')) {
+                    $loader->load(__DIR__ . '/deprecations_for_54.yml');
+                }
             }
         }
 
