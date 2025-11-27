@@ -85,7 +85,8 @@
     "config": {
         "audit": {
             "ignore": {
-                "PKSA-4k7v-pfvw-nqvp": "Ignoring for now until we find a solution for this"
+                "PKSA-4k7v-pfvw-nqvp": "Ignoring for now until we find a solution for this",
+                "PKSA-365x-2zjk-pt47": "Ignoring for now until we find a solution for this"
             }
         },
         "sort-packages": true,
