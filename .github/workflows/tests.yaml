@@ -56,7 +56,7 @@ jobs:
             symfony-version: 7.*
           - php: '8.4'
             symfony-version: 4.4.*
-          - php: '7.2'Ï
+          - php: '7.2'
             symfony-version: 8.*
           - php: '7.3'
             symfony-version: 8.*
