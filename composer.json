@@ -4,8 +4,6 @@
     "description": "Symfony integration for Sentry (http://getsentry.com)",
     "keywords": ["logging", "errors", "symfony", "sentry"],
     "homepage": "http://getsentry.com",
-    "minimum-stability": "dev",
-    "prefer-stable": false,
     "license": "MIT",
     "authors": [
         {
