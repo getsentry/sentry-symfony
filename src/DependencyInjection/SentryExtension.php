@@ -25,6 +25,7 @@ use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
+use Sentry\SentryBundle\Twig\SentryExtension as TwigSentryExtension;
 use Sentry\Serializer\RepresentationSerializer;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
@@ -263,6 +264,7 @@ final class SentryExtension extends ConfigurableExtension
         }
 
         if (!$isConfigEnabled) {
+            $container->removeDefinition(TwigSentryExtension::class);
             $container->removeDefinition(TwigTracingExtension::class);
         }
     }
