@@ -47,9 +47,7 @@ class Kernel extends SymfonyKernel
         if (self::VERSION_ID >= 50400 && self::VERSION_ID <= 60000) {
             // Check if class for Messenger is present (component symfony/messenger is not mandatory)
             if (interface_exists(MessageBusInterface::class)) {
-                if (class_exists(\Symfony\Component\Messenger\EventListener\ResetServicesListener::class)) {
-                    $loader->load(__DIR__ . '/deprecations_for_54.yml');
-                }
+                $loader->load(__DIR__ . '/deprecations_for_54.yml');
             }
         }
 

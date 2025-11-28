@@ -109,7 +109,7 @@ jobs:
         uses: ramsey/composer-install@v3
         with:
           dependency-versions: ${{ matrix.dependencies }}
-          composer-options: --prefer-dist
+          composer-options: --prefer-dist --no-security-blocking
 
       - name: Run tests
         run: vendor/bin/phpunit --coverage-clover=build/coverage-report.xml
@@ -166,7 +166,7 @@ jobs:
         uses: ramsey/composer-install@v3
         with:
           dependency-versions: ${{ matrix.dependencies }}
-          composer-options: --prefer-dist
+          composer-options: --prefer-dist --no-security-blocking
 
       - name: Run tests
         run: vendor/bin/phpunit --coverage-clover=build/coverage-report.xml
