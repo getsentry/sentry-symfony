@@ -43,8 +43,6 @@ jobs:
             symfony-version: 6.*
           - php: '7.4'
             symfony-version: 6.*
-          - php: '8.0'
-            symfony-version: 6.*
           - php: '7.2'
             symfony-version: 7.*
           - php: '7.3'
