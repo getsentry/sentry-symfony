@@ -79,7 +79,7 @@ jobs:
             symfony-version: 5.*
             dependencies: lowest
           - php: '8.0'
-            symfony-version: 6.0.*
+            symfony-version: 6.*
             dependencies: lowest
           - php: '8.2'
             symfony-version: 7.*

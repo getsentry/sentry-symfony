@@ -83,16 +83,6 @@
         "psalm": "vendor/bin/psalm"
     },
     "config": {
-        "audit": {
-            "ignore": {
-                "PKSA-4k7v-pfvw-nqvp": "Ignoring for now until we find a solution for this",
-                "PKSA-365x-2zjk-pt47": "Ignoring for now until we find a solution for this",
-                "PKSA-wws7-mr54-jsny": "Ignoring for now until we find a solution for this",
-                "PKSA-b35n-565h-rs4q": "Ignoring for now until we find a solution for this",
-                "PKSA-rqvm-b18n-vg69": "Ignoring for now until we find a solution for this",
-                "PKSA-5x8m-77gx-t86z": "Ignoring for now until we find a solution for this"
-            }
-        },
         "sort-packages": true,
         "allow-plugins": {
             "composer/package-versions-deprecated": true,
