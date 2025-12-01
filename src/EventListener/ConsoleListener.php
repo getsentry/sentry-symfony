@@ -8,6 +8,7 @@ use Sentry\Event;
 use Sentry\EventHint;
 use Sentry\ExceptionMechanism;
 use Sentry\Logs\Logs;
+use Sentry\Metrics\TraceMetrics;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
@@ -36,8 +37,8 @@ class ConsoleListener
     /**
      * Constructor.
      *
-     * @param HubInterface $hub           The current hub
-     * @param bool         $captureErrors Whether to capture console errors
+     * @param HubInterface $hub The current hub
+     * @param bool $captureErrors Whether to capture console errors
      */
     public function __construct(HubInterface $hub, bool $captureErrors = true)
     {
@@ -61,7 +62,7 @@ class ConsoleListener
         }
 
         if ($input instanceof ArgvInput) {
-            $scope->setExtra('Full command', (string) $input);
+            $scope->setExtra('Full command', (string)$input);
         }
     }
 
@@ -73,6 +74,7 @@ class ConsoleListener
     public function handleConsoleTerminateEvent(ConsoleTerminateEvent $event): void
     {
         Logs::getInstance()->flush();
+        TraceMetrics::getInstance()->flush();
         $this->hub->popScope();
     }
 
@@ -84,7 +86,7 @@ class ConsoleListener
     public function handleConsoleErrorEvent(ConsoleErrorEvent $event): void
     {
         $this->hub->configureScope(function (Scope $scope) use ($event): void {
-            $scope->setTag('console.command.exit_code', (string) $event->getExitCode());
+            $scope->setTag('console.command.exit_code', (string)$event->getExitCode());
 
             if ($this->captureErrors) {
                 $hint = EventHint::fromArray([

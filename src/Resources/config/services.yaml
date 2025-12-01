@@ -78,6 +78,10 @@ services:
     tags:
       - { name: kernel.event_listener, event: kernel.terminate, method: handleKernelTerminateEvent, priority: 10 }
 
+  Sentry\SentryBundle\EventListener\MetricsRequestListener:
+    tags:
+      - { name: kernel.event_listener, event: kernel.terminate, method: handleKernelTerminateEvent, priority: 10 }
+
   # Command
   Sentry\SentryBundle\Command\SentryTestCommand:
     arguments: ['@Sentry\State\HubInterface']
