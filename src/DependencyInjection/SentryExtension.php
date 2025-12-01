@@ -72,7 +72,7 @@ final class SentryExtension extends ConfigurableExtension
 
         // Remove Twig extension service if Twig is not installed to avoid autoloading failures on Symfony 8
         if (!class_exists(\Twig\Extension\AbstractExtension::class)) {
-            $container->removeDefinition(\Sentry\SentryBundle\Twig\SentryExtension::class);
+            $container->removeDefinition(TwigSentryExtension::class);
         }
 
         $this->registerConfiguration($container, $mergedConfig);
