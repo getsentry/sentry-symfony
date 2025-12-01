@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sentry\SentryBundle\Tests\End2End;
 
 use Sentry\SentryBundle\Tests\End2End\App\KernelWithMetrics;
@@ -20,7 +22,7 @@ class MetricsEnd2EndTest extends WebTestCase
         return KernelWithMetrics::class;
     }
 
-    public function testMetricsAreFlushedAfterRequest()
+    public function testMetricsAreFlushedAfterRequest(): void
     {
         $client = static::createClient(['debug' => true]);
 

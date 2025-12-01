@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sentry\SentryBundle\Tests\End2End\App\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
+
 use function Sentry\trace_metrics;
 
 class MetricsController
 {
-
     public function metrics(): Response
     {
         trace_metrics()->count('test-counter', 10);
@@ -16,5 +18,4 @@ class MetricsController
 
         return new Response();
     }
-
 }
