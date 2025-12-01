@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace End2End;
+namespace Sentry\SentryBundle\Tests\End2End;
 
 use Sentry\SentryBundle\Tests\End2End\App\KernelWithMetrics;
-use Sentry\SentryBundle\Tests\End2End\StubTransport;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Console\Input\ArgvInput;
