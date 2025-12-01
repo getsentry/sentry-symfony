@@ -9,6 +9,7 @@ use Sentry\SentryBundle\ErrorTypesParser;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
+use Symfony\Component\Config\Definition\Builder\NodeParentInterface;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\HttpClient\HttpClient;
@@ -19,12 +20,14 @@ final class Configuration implements ConfigurationInterface
 {
     /**
      * {@inheritdoc}
+     *
+     * @phpstan-return TreeBuilder<'array'>
      */
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('sentry');
 
-        /** @var ArrayNodeDefinition $rootNode */
+        /** @phpstan-var ArrayNodeDefinition<NodeParentInterface|null> $rootNode */
         $rootNode = method_exists(TreeBuilder::class, 'getRootNode')
             ? $treeBuilder->getRootNode()
             : $treeBuilder->root('sentry');
@@ -38,6 +41,7 @@ final class Configuration implements ConfigurationInterface
             $inAppExcludes[] = '%kernel.build_dir%';
         }
 
+        // @phpstan-ignore-next-line
         $rootNode
             ->children()
                 ->scalarNode('dsn')
@@ -176,8 +180,12 @@ final class Configuration implements ConfigurationInterface
         return $treeBuilder;
     }
 
+    /**
+     * @phpstan-param ArrayNodeDefinition<NodeParentInterface|null> $rootNode
+     */
     private function addMessengerSection(ArrayNodeDefinition $rootNode): void
     {
+        // @phpstan-ignore-next-line
         $rootNode
             ->children()
                 ->arrayNode('messenger')
@@ -190,8 +198,12 @@ final class Configuration implements ConfigurationInterface
             ->end();
     }
 
+    /**
+     * @phpstan-param ArrayNodeDefinition<NodeParentInterface|null> $rootNode
+     */
     private function addDistributedTracingSection(ArrayNodeDefinition $rootNode): void
     {
+        // @phpstan-ignore-next-line
         $rootNode
             ->children()
                 ->arrayNode('tracing')
