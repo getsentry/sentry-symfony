@@ -16,12 +16,6 @@ class KernelForBufferTest extends Kernel
     {
         parent::registerContainerConfiguration($loader);
         $loader->load(__DIR__ . '/config_buffer_test.yml');
-
-        if ($this->supportsHubId()) {
-            $loader->load(__DIR__ . '/config_buffer_test_newer_versions.yml');
-        } else {
-            $loader->load(__DIR__ . '/config_buffer_test_php72.yml');
-        }
     }
 
     /**

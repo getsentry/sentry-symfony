@@ -62,11 +62,16 @@ final class SentryExtension extends ConfigurableExtension
      */
     protected function loadInternal(array $mergedConfig, ContainerBuilder $container): void
     {
-        $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
-        $loader->load('services.xml');
+        $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
+        $loader->load('services.yaml');
 
         if (!$container->hasParameter('env(SENTRY_RELEASE)')) {
             $container->setParameter('env(SENTRY_RELEASE)', PrettyVersions::getRootPackageVersion()->getPrettyVersion());
+        }
+
+        // Remove Twig extension service if Twig is not installed to avoid autoloading failures on Symfony 8
+        if (!class_exists(\Twig\Extension\AbstractExtension::class)) {
+            $container->removeDefinition(\Sentry\SentryBundle\Twig\SentryExtension::class);
         }
 
         $this->registerConfiguration($container, $mergedConfig);
@@ -243,6 +248,19 @@ final class SentryExtension extends ConfigurableExtension
 
         $container->setParameter('sentry.tracing.dbal.enabled', $isConfigEnabled);
         $container->setParameter('sentry.tracing.dbal.connections', $isConfigEnabled ? $config['dbal']['connections'] : []);
+
+        $factoryServiceId = 'sentry.tracing.dbal.connection_factory';
+        if ($container->hasDefinition($factoryServiceId)) {
+            $factoryClass = \Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryForV2V3::class;
+
+            // On Symfony 8+, the container validates FQCN-like service IDs at compile time. Classes provided
+            // via aliases.php aren’t considered during this check, so FQCN IDs without loadable classes fail
+            if (class_exists(\Doctrine\DBAL\Result::class) && !interface_exists(\Doctrine\DBAL\VersionAwarePlatformDriver::class)) {
+                $factoryClass = \Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryForV4::class;
+            }
+
+            $container->getDefinition($factoryServiceId)->setClass($factoryClass);
+        }
 
         if (!$isConfigEnabled) {
             $container->removeDefinition(ConnectionConfigurator::class);
