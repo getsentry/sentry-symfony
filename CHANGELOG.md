@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 5.7.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.7.0.
+
+### Features
+
+- Add support for Symfony 8. [(#968)](https://github.com/getsentry/sentry-symfony/pull/968)
+
+### Misc
+
+- Add `never` as valid option for `max_request_body_size`. [(#966)](https://github.com/getsentry/sentry-symfony/pull/966)
+
 ## 5.6.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.6.0.
