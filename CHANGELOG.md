@@ -2,7 +2,7 @@
 
 ### 5.8.0
 
-The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.7.0.
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.8.0.
 
 ### Features
 
