@@ -137,6 +137,10 @@ final class SentryExtension extends ConfigurableExtension
             $options['before_breadcrumb'] = new Reference($options['before_breadcrumb']);
         }
 
+        if (isset($options['before_send_metric'])) {
+            $options['before_send_metric'] = new Reference($options['before_send_metric']);
+        }
+
         if (isset($options['class_serializers'])) {
             $options['class_serializers'] = array_map(static function (string $value): Reference {
                 return new Reference($value);
@@ -316,7 +320,7 @@ final class SentryExtension extends ConfigurableExtension
     }
 
     /**
-     * @param string[]             $integrations
+     * @param string[] $integrations
      * @param array<string, mixed> $config
      *
      * @return array<Reference|Definition>
@@ -348,12 +352,12 @@ final class SentryExtension extends ConfigurableExtension
 
     /**
      * @param class-string<IntegrationInterface> $integrationClass
-     * @param array<Reference|Definition>        $integrations
+     * @param array<Reference|Definition> $integrations
      */
     private function isIntegrationEnabled(string $integrationClass, array $integrations): bool
     {
         foreach ($integrations as $integration) {
-            if ($integration instanceof Reference && $integrationClass === (string) $integration) {
+            if ($integration instanceof Reference && $integrationClass === (string)$integration) {
                 return true;
             }
 
