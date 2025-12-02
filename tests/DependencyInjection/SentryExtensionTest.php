@@ -499,7 +499,7 @@ abstract class SentryExtensionTest extends TestCase
 
     /**
      * @param array<int, mixed> $methodCall
-     * @param mixed[] $arguments
+     * @param mixed[]           $arguments
      */
     private function assertDefinitionMethodCallAt(array $methodCall, string $method, array $arguments): void
     {

@@ -91,6 +91,11 @@ parameters:
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
+			message: "#^Cannot access offset 'before_send_metric' on mixed\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
 			message: "#^Parameter \\#1 \\$array of function array_filter expects array, mixed given\\.$#"
 			count: 1
 			path: src/DependencyInjection/SentryExtension.php
@@ -102,7 +107,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$id of class Symfony\\\\Component\\\\DependencyInjection\\\\Reference constructor expects string, mixed given\\.$#"
-			count: 11
+			count: 12
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
@@ -169,21 +174,6 @@ parameters:
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"
 			count: 1
 			path: src/EventListener/LoginListener.php
-
-		-
-			message: "#^Instanceof between Throwable and Symfony\\\\Component\\\\Messenger\\\\Exception\\\\DelayedMessageHandlingException will always evaluate to false\\.$#"
-			count: 1
-			path: src/EventListener/MessengerListener.php
-
-		-
-			message: "#^Instanceof between Throwable and Symfony\\\\Component\\\\Messenger\\\\Exception\\\\HandlerFailedException will always evaluate to false\\.$#"
-			count: 1
-			path: src/EventListener/MessengerListener.php
-
-		-
-			message: "#^Result of && is always false\\.$#"
-			count: 2
-			path: src/EventListener/MessengerListener.php
 
 		-
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpKernel\\\\Event\\\\KernelEvent\\:\\:isMasterRequest\\(\\)\\.$#"

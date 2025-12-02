@@ -320,7 +320,7 @@ final class SentryExtension extends ConfigurableExtension
     }
 
     /**
-     * @param string[] $integrations
+     * @param string[]             $integrations
      * @param array<string, mixed> $config
      *
      * @return array<Reference|Definition>
@@ -352,12 +352,12 @@ final class SentryExtension extends ConfigurableExtension
 
     /**
      * @param class-string<IntegrationInterface> $integrationClass
-     * @param array<Reference|Definition> $integrations
+     * @param array<Reference|Definition>        $integrations
      */
     private function isIntegrationEnabled(string $integrationClass, array $integrations): bool
     {
         foreach ($integrations as $integration) {
-            if ($integration instanceof Reference && $integrationClass === (string)$integration) {
+            if ($integration instanceof Reference && $integrationClass === (string) $integration) {
                 return true;
             }
 
