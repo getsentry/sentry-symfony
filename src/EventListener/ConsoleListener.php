@@ -8,6 +8,7 @@ use Sentry\Event;
 use Sentry\EventHint;
 use Sentry\ExceptionMechanism;
 use Sentry\Logs\Logs;
+use Sentry\Metrics\TraceMetrics;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
@@ -73,6 +74,7 @@ class ConsoleListener
     public function handleConsoleTerminateEvent(ConsoleTerminateEvent $event): void
     {
         Logs::getInstance()->flush();
+        TraceMetrics::getInstance()->flush();
         $this->hub->popScope();
     }
 

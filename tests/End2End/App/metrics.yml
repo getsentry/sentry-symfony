@@ -1,0 +1,9 @@
+services:
+  Sentry\SentryBundle\Tests\End2End\App\Controller\MetricsController:
+    autowire: true
+    tags:
+      - { name: controller.service_arguments }
+
+  Sentry\SentryBundle\Tests\End2End\App\Command\MetricsCommand:
+    autowire: true
+    tags: [ { name: 'console.command', command: 'metrics:test' } ]

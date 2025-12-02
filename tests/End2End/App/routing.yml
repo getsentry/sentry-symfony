@@ -85,3 +85,7 @@ logging_before_send_logs:
 buffer_flush:
   path: /buffer-flush
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\BufferFlushController::testBufferFlush' }
+
+metrics:
+  path: /metrics
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MetricsController::metrics'}
