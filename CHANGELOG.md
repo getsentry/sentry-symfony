@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## 5.8.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.8.0.
+
+### Features
+
+- Add support for Sentry metrics. [#977](https://github.com/getsentry/sentry-symfony/pull/977)
+```php
+// Counter metric
+\Sentry\trace_metrics()->count('test-counter', 10, ['my-attribute' => 'foo']);
+
+// Gauge metric
+\Sentry\trace_metrics()->gauge('test-gauge', 50.0, ['my-attribute' => 'foo'], \Sentry\Unit::millisecond());
+
+// Distribution metric
+\Sentry\trace_metrics()->distribution('test-distribution', 20.0, ['my-attribute' => 'foo'], \Sentry\Unit::kilobyte());
+```
+
 ## 5.7.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.7.0.
