@@ -42,7 +42,7 @@ class MetricsCommandTest extends WebTestCase
 
         $count = $metrics[0];
         $this->assertSame('test-counter', $count->getName());
-        $this->assertSame(10.0, $count->getValue());
+        $this->assertSame(10, $count->getValue());
 
         $gauge = $metrics[1];
         $this->assertSame('test-gauge', $gauge->getName());
