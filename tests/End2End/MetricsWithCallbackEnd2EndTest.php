@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\End2End;
 
-use Sentry\SentryBundle\Tests\End2End\App\KernelWithMetrics;
+use Sentry\SentryBundle\Tests\End2End\App\KernelWithMetricsCallback;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
  * @runTestsInSeparateProcesses
  */
-class MetricsEnd2EndTest extends WebTestCase
+class MetricsWithCallbackEnd2EndTest extends WebTestCase
 {
     protected function setUp(): void
     {
@@ -19,29 +19,27 @@ class MetricsEnd2EndTest extends WebTestCase
 
     protected static function getKernelClass(): string
     {
-        return KernelWithMetrics::class;
+        return KernelWithMetricsCallback::class;
     }
 
     public function testMetricsAreFlushedAfterRequest(): void
     {
-        $client = static::createClient(['debug' => true]);
+        $client = static::createClient();
 
         $client->request('GET', '/metrics');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
 
         $this->assertCount(1, StubTransport::$events);
+
         $metrics = StubTransport::$events[0]->getMetrics();
-        $this->assertCount(3, $metrics);
+        $this->assertCount(2, $metrics);
 
-        $count = $metrics[0];
-        $this->assertSame('test-counter', $count->getName());
-        $this->assertSame(10, $count->getValue());
-
-        $gauge = $metrics[1];
+        // Counter metric removed by `before_send_metric`
+        $gauge = $metrics[0];
         $this->assertSame('test-gauge', $gauge->getName());
         $this->assertSame(20.51, $gauge->getValue());
 
-        $distribution = $metrics[2];
+        $distribution = $metrics[1];
         $this->assertSame('test-distribution', $distribution->getName());
         $this->assertSame(100.81, $distribution->getValue());
     }

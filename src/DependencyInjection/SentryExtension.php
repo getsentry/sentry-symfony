@@ -137,6 +137,10 @@ final class SentryExtension extends ConfigurableExtension
             $options['before_breadcrumb'] = new Reference($options['before_breadcrumb']);
         }
 
+        if (isset($options['before_send_metric'])) {
+            $options['before_send_metric'] = new Reference($options['before_send_metric']);
+        }
+
         if (isset($options['class_serializers'])) {
             $options['class_serializers'] = array_map(static function (string $value): Reference {
                 return new Reference($value);

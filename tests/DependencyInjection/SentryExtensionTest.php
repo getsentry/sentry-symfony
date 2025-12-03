@@ -217,6 +217,7 @@ abstract class SentryExtensionTest extends TestCase
             'traces_sampler' => new Reference('App\\Sentry\\Tracing\\TracesSampler'),
             'profiles_sample_rate' => 1,
             'enable_logs' => true,
+            'enable_metrics' => true,
             'attach_stacktrace' => true,
             'attach_metric_code_locations' => true,
             'context_lines' => 0,

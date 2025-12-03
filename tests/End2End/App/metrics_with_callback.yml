@@ -1,0 +1,12 @@
+sentry:
+  options:
+    before_send_metric: 'sentry.callback.before_send_metric'
+
+services:
+  Sentry\SentryBundle\Tests\End2End\Fixtures\SentryCallbacks:
+    class: 'Sentry\SentryBundle\Tests\End2End\Fixtures\SentryCallbacks'
+
+  sentry.callback.before_send_metric:
+    class: 'Sentry\SentryBundle\Tests\End2End\Fixtures\SentryCallbacks'
+    factory: ['@Sentry\SentryBundle\Tests\End2End\Fixtures\SentryCallbacks', 'getBeforeSendMetric']
+

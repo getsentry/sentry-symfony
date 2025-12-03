@@ -1,0 +1,3 @@
+sentry:
+  options:
+    enable_metrics: false
