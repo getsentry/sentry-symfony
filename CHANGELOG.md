@@ -1,12 +1,20 @@
 # CHANGELOG
 
+## 5.8.1
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.8.0.
+
+### Improvements
+
+- Add support for `before_send_metric` and `enable_metrics`. [(#981)](https://github.com/getsentry/sentry-symfony/pull/981)
+
 ## 5.8.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.8.0.
 
 ### Features
 
-- Add support for Sentry metrics. [#977](https://github.com/getsentry/sentry-symfony/pull/977)
+- Add support for Sentry metrics. ([#977])(https://github.com/getsentry/sentry-symfony/pull/977)
 ```php
 // Counter metric
 \Sentry\trace_metrics()->count('test-counter', 10, ['my-attribute' => 'foo']);
