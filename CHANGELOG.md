@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 5.8.2
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.8.2.
+
+### Bug fixes
+
+- Move `symfony/yaml` to a non-dev dependency. [(#983)](https://github.com/getsentry/sentry-symfony/pull/983)
+
 ## 5.8.1
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.8.1.
