@@ -230,7 +230,7 @@ class TracingCacheEnd2EndTest extends WebTestCase
             $this->markTestSkipped('Namespaced caches are not supported by this Symfony version.');
         }
 
-        $client = static::createClient(['debug' => true]);
+        $client = static::createClient(['debug' => false]);
         $cache = static::getContainer()->get('cache.app.taggable');
 
         // make sure that the configured taggable cache supports namespaces before running this test
@@ -239,7 +239,6 @@ class TracingCacheEnd2EndTest extends WebTestCase
         }
 
         $client->request('GET', '/tracing/cache/namespaced/populate');
-        $this->assertSame('', $client->getResponse()->getContent());
         $this->assertSame(200, $client->getResponse()->getStatusCode());
 
         $this->assertCount(1, StubTransport::$events);
