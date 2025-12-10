@@ -13,6 +13,7 @@ use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapterForV3WithNamespace;
 use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapter;
 use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapterForV2;
 use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapterForV3;
+use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapterForV3WithNamespace;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriver;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnection;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactory;
@@ -53,7 +54,11 @@ if (interface_exists(AdapterInterface::class)) {
         }
 
         if (!class_exists(TraceableTagAwareCacheAdapter::class, false)) {
-            class_alias(TraceableTagAwareCacheAdapterForV3::class, TraceableTagAwareCacheAdapter::class);
+            if (interface_exists(NamespacedPoolInterface::class)) {
+                class_alias(TraceableTagAwareCacheAdapterForV3WithNamespace::class, TraceableTagAwareCacheAdapter::class);
+            } else {
+                class_alias(TraceableTagAwareCacheAdapterForV3::class, TraceableTagAwareCacheAdapter::class);
+            }
         }
     } else {
         if (!class_exists(TraceableCacheAdapter::class, false)) {
