@@ -5,10 +5,16 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\Tracing\Cache;
 
 use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapter;
+use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapterForV3WithNamespace;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
+use Symfony\Contracts\Cache\NamespacedPoolInterface;
+
+interface TagAwareNamespacedPoolInterface extends TagAwareAdapterInterface, NamespacedPoolInterface
+{
+}
 
 /**
  * @phpstan-extends AbstractTraceableCacheAdapterTest<TraceableTagAwareCacheAdapter, TagAwareAdapterInterface>
@@ -40,6 +46,49 @@ final class TraceableTagAwareCacheAdapterTest extends AbstractTraceableCacheAdap
         $this->assertCount(2, $spans);
         $this->assertSame('cache.invalidate_tags', $spans[1]->getOp());
         $this->assertNotNull($spans[1]->getEndTimestamp());
+    }
+
+    public function testWithSubNamespaceThrowsWhenNotNamespaced(): void
+    {
+        if (!interface_exists(NamespacedPoolInterface::class)) {
+            $this->markTestSkipped('Namespaced caches are not supported by this Symfony version.');
+        }
+
+        $decoratedAdapter = $this->createMock(TagAwareAdapterInterface::class);
+        $adapter = new TraceableTagAwareCacheAdapterForV3WithNamespace($this->hub, $decoratedAdapter);
+
+        $this->expectException(\BadMethodCallException::class);
+        $this->expectExceptionMessage('withSubNamespace() method is not supported');
+
+        $adapter->withSubNamespace('foo');
+    }
+
+    public function testWithSubNamespaceReturnsNamespacedAdapter(): void
+    {
+        if (!interface_exists(NamespacedPoolInterface::class)) {
+            $this->markTestSkipped('Namespaced caches are not supported by this Symfony version.');
+        }
+
+        $decoratedAdapter = $this->createMock(TagAwareNamespacedPoolInterface::class);
+        $namespacedAdapter = $this->createMock(TagAwareNamespacedPoolInterface::class);
+
+        $decoratedAdapter
+            ->expects($this->once())
+            ->method('withSubNamespace')
+            ->with('foo')
+            ->willReturn($namespacedAdapter);
+
+        $adapter = new TraceableTagAwareCacheAdapterForV3WithNamespace($this->hub, $decoratedAdapter);
+
+        $result = $adapter->withSubNamespace('foo');
+
+        $this->assertInstanceOf(NamespacedPoolInterface::class, $result);
+        $this->assertNotSame($adapter, $result);
+
+        $ref = new \ReflectionProperty($result, 'decoratedAdapter');
+        $ref->setAccessible(true);
+
+        $this->assertSame($namespacedAdapter, $ref->getValue($result));
     }
 
     /**
