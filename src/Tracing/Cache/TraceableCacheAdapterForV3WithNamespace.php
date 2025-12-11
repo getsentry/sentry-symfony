@@ -25,11 +25,6 @@ final class TraceableCacheAdapterForV3WithNamespace implements AdapterInterface,
     use TraceableCacheAdapterTrait;
 
     /**
-     * @var string|null
-     */
-    private $namespace;
-
-    /**
      * @param HubInterface     $hub              The current hub
      * @param AdapterInterface $decoratedAdapter The decorated cache adapter
      */

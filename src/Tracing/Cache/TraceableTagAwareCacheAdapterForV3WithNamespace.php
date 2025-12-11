@@ -25,11 +25,6 @@ final class TraceableTagAwareCacheAdapterForV3WithNamespace implements TagAwareA
     use TraceableCacheAdapterTrait;
 
     /**
-     * @var string|null
-     */
-    private $namespace;
-
-    /**
      * @param HubInterface             $hub              The current hub
      * @param TagAwareAdapterInterface $decoratedAdapter The decorated cache adapter
      */

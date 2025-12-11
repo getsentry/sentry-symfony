@@ -35,6 +35,11 @@ trait TraceableCacheAdapterTrait
     private $decoratedAdapter;
 
     /**
+     * @var string|null
+     */
+    protected $namespace;
+
+    /**
      * {@inheritdoc}
      */
     public function getItem($key): CacheItem
@@ -365,10 +370,6 @@ trait TraceableCacheAdapterTrait
      */
     protected function getCacheNamespace(): ?string
     {
-        if (!\property_exists($this, 'namespace')) {
-            return null;
-        }
-
         return $this->namespace;
     }
 }
