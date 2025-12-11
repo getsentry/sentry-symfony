@@ -68,6 +68,9 @@ final class TraceableTagAwareCacheAdapterTest extends AbstractTraceableCacheAdap
         }
 
         $decoratedAdapter = new TagAwareAdapter(new ArrayAdapter(), new ArrayAdapter());
+        if (!\method_exists($decoratedAdapter, 'withSubNamespace')) {
+            $this->markTestSkipped('TagAwareAdapter::withSubNamespace() is not available in this Symfony version.');
+        }
         $namespacedAdapter = $decoratedAdapter->withSubNamespace('foo');
 
         $adapter = new TraceableTagAwareCacheAdapterForV3WithNamespace($this->hub, $decoratedAdapter);
@@ -97,6 +100,9 @@ final class TraceableTagAwareCacheAdapterTest extends AbstractTraceableCacheAdap
             ->willReturn($transaction);
 
         $decoratedAdapter = new TagAwareAdapter(new ArrayAdapter(), new ArrayAdapter());
+        if (!\method_exists($decoratedAdapter, 'withSubNamespace')) {
+            $this->markTestSkipped('TagAwareAdapter::withSubNamespace() is not available in this Symfony version.');
+        }
         $adapter = new TraceableTagAwareCacheAdapterForV3WithNamespace($this->hub, $decoratedAdapter);
 
         $namespaced = $adapter->withSubNamespace('foo')->withSubNamespace('bar');
@@ -125,6 +131,9 @@ final class TraceableTagAwareCacheAdapterTest extends AbstractTraceableCacheAdap
             ->willReturn($transaction);
 
         $decoratedAdapter = new TagAwareAdapter(new ArrayAdapter(), new ArrayAdapter());
+        if (!\method_exists($decoratedAdapter, 'withSubNamespace')) {
+            $this->markTestSkipped('TagAwareAdapter::withSubNamespace() is not available in this Symfony version.');
+        }
         $adapter = new TraceableTagAwareCacheAdapterForV3WithNamespace($this->hub, $decoratedAdapter);
 
         $namespaced = $adapter->withSubNamespace('foo');
