@@ -25,6 +25,11 @@ final class TraceableTagAwareCacheAdapterForV3WithNamespace implements TagAwareA
     use TraceableCacheAdapterTrait;
 
     /**
+     * @var string|null
+     */
+    private $namespace;
+
+    /**
      * @param HubInterface             $hub              The current hub
      * @param TagAwareAdapterInterface $decoratedAdapter The decorated cache adapter
      */
@@ -62,6 +67,9 @@ final class TraceableTagAwareCacheAdapterForV3WithNamespace implements TagAwareA
 
         $clone = clone $this;
         $clone->decoratedAdapter = $this->decoratedAdapter->withSubNamespace($namespace);
+        $clone->namespace = null === $this->namespace
+            ? $namespace
+            : \sprintf('%s.%s', $this->namespace, $namespace);
 
         return $clone;
     }

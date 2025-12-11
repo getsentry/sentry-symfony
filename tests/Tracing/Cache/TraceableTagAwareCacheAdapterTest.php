@@ -9,14 +9,10 @@ use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapterForV3WithName
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
 use Symfony\Contracts\Cache\NamespacedPoolInterface;
-
-if (interface_exists(NamespacedPoolInterface::class)) {
-    interface TagAwareNamespacedPoolInterface extends TagAwareAdapterInterface, NamespacedPoolInterface
-    {
-    }
-}
 
 /**
  * @phpstan-extends AbstractTraceableCacheAdapterTest<TraceableTagAwareCacheAdapter, TagAwareAdapterInterface>
@@ -71,14 +67,8 @@ final class TraceableTagAwareCacheAdapterTest extends AbstractTraceableCacheAdap
             $this->markTestSkipped('Namespaced caches are not supported by this Symfony version.');
         }
 
-        $decoratedAdapter = $this->createMock(TagAwareNamespacedPoolInterface::class);
-        $namespacedAdapter = $this->createMock(TagAwareNamespacedPoolInterface::class);
-
-        $decoratedAdapter
-            ->expects($this->once())
-            ->method('withSubNamespace')
-            ->with('foo')
-            ->willReturn($namespacedAdapter);
+        $decoratedAdapter = new TagAwareAdapter(new ArrayAdapter(), new ArrayAdapter());
+        $namespacedAdapter = $decoratedAdapter->withSubNamespace('foo');
 
         $adapter = new TraceableTagAwareCacheAdapterForV3WithNamespace($this->hub, $decoratedAdapter);
 
@@ -90,7 +80,63 @@ final class TraceableTagAwareCacheAdapterTest extends AbstractTraceableCacheAdap
         $ref = new \ReflectionProperty($result, 'decoratedAdapter');
         $ref->setAccessible(true);
 
-        $this->assertSame($namespacedAdapter, $ref->getValue($result));
+        $this->assertEquals($namespacedAdapter, $ref->getValue($result));
+    }
+
+    public function testNamespaceIsAddedToSpanData(): void
+    {
+        if (!interface_exists(NamespacedPoolInterface::class)) {
+            $this->markTestSkipped('Namespaced caches are not supported by this Symfony version.');
+        }
+
+        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction->initSpanRecorder();
+
+        $this->hub->expects($this->any())
+            ->method('getSpan')
+            ->willReturn($transaction);
+
+        $decoratedAdapter = new TagAwareAdapter(new ArrayAdapter(), new ArrayAdapter());
+        $adapter = new TraceableTagAwareCacheAdapterForV3WithNamespace($this->hub, $decoratedAdapter);
+
+        $namespaced = $adapter->withSubNamespace('foo')->withSubNamespace('bar');
+
+        $namespaced->delete('example');
+        $this->assertNotNull($transaction->getSpanRecorder());
+
+        $spans = $transaction->getSpanRecorder()->getSpans();
+
+        $this->assertCount(2, $spans);
+        $this->assertSame('cache.remove', $spans[1]->getOp());
+        $this->assertSame('foo.bar', $spans[1]->getData()['cache.namespace']);
+    }
+
+    public function testSingleNamespaceIsAddedToSpanData(): void
+    {
+        if (!interface_exists(NamespacedPoolInterface::class)) {
+            $this->markTestSkipped('Namespaced caches are not supported by this Symfony version.');
+        }
+
+        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction->initSpanRecorder();
+
+        $this->hub->expects($this->any())
+            ->method('getSpan')
+            ->willReturn($transaction);
+
+        $decoratedAdapter = new TagAwareAdapter(new ArrayAdapter(), new ArrayAdapter());
+        $adapter = new TraceableTagAwareCacheAdapterForV3WithNamespace($this->hub, $decoratedAdapter);
+
+        $namespaced = $adapter->withSubNamespace('foo');
+
+        $namespaced->delete('example');
+        $this->assertNotNull($transaction->getSpanRecorder());
+
+        $spans = $transaction->getSpanRecorder()->getSpans();
+
+        $this->assertCount(2, $spans);
+        $this->assertSame('cache.remove', $spans[1]->getOp());
+        $this->assertSame('foo', $spans[1]->getData()['cache.namespace']);
     }
 
     /**
