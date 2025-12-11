@@ -12,8 +12,10 @@ use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
 use Symfony\Contracts\Cache\NamespacedPoolInterface;
 
-interface TagAwareNamespacedPoolInterface extends TagAwareAdapterInterface, NamespacedPoolInterface
-{
+if (interface_exists(NamespacedPoolInterface::class)) {
+    interface TagAwareNamespacedPoolInterface extends TagAwareAdapterInterface, NamespacedPoolInterface
+    {
+    }
 }
 
 /**
