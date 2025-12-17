@@ -70,6 +70,10 @@ psr_tracing_cache_delete:
   path: /tracing/cache/psr/delete
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\PsrTracingCacheController::testDelete' }
 
+namespaced_tracing_cache_populate:
+  path: /tracing/cache/namespaced/populate
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\NamespacedCacheController::populateNamespacedCache' }
+
 just_logging:
   path: /just-logging
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\LoggingController::justLogging' }

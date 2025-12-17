@@ -223,4 +223,35 @@ class TracingCacheEnd2EndTest extends WebTestCase
         $this->assertEquals('cache.remove', $span->getOp());
         $this->assertNull($span->getData('cache.item_size'));
     }
+
+    public function testNamespacedTagAwareCache(): void
+    {
+        if (!interface_exists(\Symfony\Contracts\Cache\NamespacedPoolInterface::class)) {
+            $this->markTestSkipped('Namespaced caches are not supported by this Symfony version.');
+        }
+
+        $client = static::createClient(['debug' => false]);
+        $cache = static::getContainer()->get('cache.app.taggable');
+
+        // make sure that the configured taggable cache supports namespaces before running this test
+        if (!$cache instanceof \Symfony\Contracts\Cache\NamespacedPoolInterface) {
+            $this->markTestSkipped('The configured tag-aware cache pool does not support namespaces.');
+        }
+
+        $client->request('GET', '/tracing/cache/namespaced/populate');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
+
+        $this->assertCount(1, StubTransport::$events);
+        $event = StubTransport::$events[0];
+
+        $cacheGetSpans = array_values(array_filter($event->getSpans(), static function ($span) {
+            return 'cache.get' === $span->getOp();
+        }));
+        $this->assertNotEmpty($cacheGetSpans);
+
+        $cachePutSpans = array_filter($event->getSpans(), static function ($span) {
+            return 'cache.put' === $span->getOp();
+        });
+        $this->assertNotEmpty($cachePutSpans);
+    }
 }

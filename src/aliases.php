@@ -9,7 +9,6 @@ use Doctrine\DBAL\VersionAwarePlatformDriver;
 use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapter;
 use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapterForV2;
 use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapterForV3;
-use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapterForV3WithNamespace;
 use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapter;
 use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapterForV2;
 use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapterForV3;
@@ -39,21 +38,24 @@ use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\DoctrineProvider;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\Response\StreamableInterface;
-use Symfony\Contracts\Cache\NamespacedPoolInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 if (interface_exists(AdapterInterface::class)) {
     if (!class_exists(DoctrineProvider::class, false) && version_compare(\PHP_VERSION, '8.0.0', '>=')) {
         if (!class_exists(TraceableCacheAdapter::class, false)) {
-            if (interface_exists(NamespacedPoolInterface::class)) {
-                class_alias(TraceableCacheAdapterForV3WithNamespace::class, TraceableCacheAdapter::class);
+            if (interface_exists('Symfony\\Contracts\\Cache\\NamespacedPoolInterface')) {
+                class_alias('Sentry\\SentryBundle\\Tracing\\Cache\\TraceableCacheAdapterForV3WithNamespace', TraceableCacheAdapter::class);
             } else {
                 class_alias(TraceableCacheAdapterForV3::class, TraceableCacheAdapter::class);
             }
         }
 
         if (!class_exists(TraceableTagAwareCacheAdapter::class, false)) {
-            class_alias(TraceableTagAwareCacheAdapterForV3::class, TraceableTagAwareCacheAdapter::class);
+            if (interface_exists('Symfony\\Contracts\\Cache\\NamespacedPoolInterface')) {
+                class_alias('Sentry\\SentryBundle\\Tracing\\Cache\\TraceableTagAwareCacheAdapterForV3WithNamespace', TraceableTagAwareCacheAdapter::class);
+            } else {
+                class_alias(TraceableTagAwareCacheAdapterForV3::class, TraceableTagAwareCacheAdapter::class);
+            }
         }
     } else {
         if (!class_exists(TraceableCacheAdapter::class, false)) {

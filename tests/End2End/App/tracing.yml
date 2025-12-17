@@ -23,3 +23,9 @@ services:
     autowire: true
     tags:
       - { name: controller.service_arguments }
+
+  Sentry\SentryBundle\Tests\End2End\App\Controller\NamespacedCacheController:
+    arguments:
+      $cache: '@cache.app.taggable'
+    tags:
+      - { name: controller.service_arguments }

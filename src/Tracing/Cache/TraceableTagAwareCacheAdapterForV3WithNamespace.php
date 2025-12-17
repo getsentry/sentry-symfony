@@ -5,30 +5,30 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tracing\Cache;
 
 use Sentry\State\HubInterface;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
+use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
 use Symfony\Component\Cache\PruneableInterface;
 use Symfony\Component\Cache\ResettableInterface;
-use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\NamespacedPoolInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
- * This implementation of a cache adapter supports the distributed tracing
- * feature of Sentry.
+ * This implementation of a cache adapter aware of cache tags supports the
+ * distributed tracing feature of Sentry.
  *
  * @internal
  */
-final class TraceableCacheAdapterForV3WithNamespace implements AdapterInterface, NamespacedPoolInterface, CacheInterface, PruneableInterface, ResettableInterface
+final class TraceableTagAwareCacheAdapterForV3WithNamespace implements TagAwareAdapterInterface, TagAwareCacheInterface, NamespacedPoolInterface, PruneableInterface, ResettableInterface
 {
     /**
-     * @phpstan-use TraceableCacheAdapterTrait<AdapterInterface>
+     * @phpstan-use TraceableCacheAdapterTrait<TagAwareAdapterInterface>
      */
     use TraceableCacheAdapterTrait;
 
     /**
-     * @param HubInterface     $hub              The current hub
-     * @param AdapterInterface $decoratedAdapter The decorated cache adapter
+     * @param HubInterface             $hub              The current hub
+     * @param TagAwareAdapterInterface $decoratedAdapter The decorated cache adapter
      */
-    public function __construct(HubInterface $hub, AdapterInterface $decoratedAdapter)
+    public function __construct(HubInterface $hub, TagAwareAdapterInterface $decoratedAdapter)
     {
         $this->hub = $hub;
         $this->decoratedAdapter = $decoratedAdapter;
@@ -38,12 +38,20 @@ final class TraceableCacheAdapterForV3WithNamespace implements AdapterInterface,
      * {@inheritdoc}
      *
      * @param mixed[] $metadata
-     *
-     * @return mixed
      */
     public function get(string $key, callable $callback, ?float $beta = null, ?array &$metadata = null): mixed
     {
         return $this->traceGet($key, $callback, $beta, $metadata);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function invalidateTags(array $tags): bool
+    {
+        return $this->traceFunction('cache.invalidate_tags', function () use ($tags): bool {
+            return $this->decoratedAdapter->invalidateTags($tags);
+        });
     }
 
     public function withSubNamespace(string $namespace): static

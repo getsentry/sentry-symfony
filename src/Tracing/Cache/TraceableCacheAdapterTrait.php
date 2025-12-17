@@ -35,6 +35,11 @@ trait TraceableCacheAdapterTrait
     private $decoratedAdapter;
 
     /**
+     * @var string|null
+     */
+    protected $namespace;
+
+    /**
      * {@inheritdoc}
      */
     public function getItem($key): CacheItem
@@ -200,16 +205,23 @@ trait TraceableCacheAdapterTrait
         try {
             $result = $callback();
 
-            // Necessary for static analysis. Otherwise, the TResult type is assumed to be CacheItemInterface.
-            if (!$result instanceof CacheItemInterface) {
-                return $result;
+            $data = [];
+
+            if ($result instanceof CacheItemInterface) {
+                $data['cache.hit'] = $result->isHit();
+                if ($result->isHit()) {
+                    $data['cache.item_size'] = static::getCacheItemSize($result->get());
+                }
             }
 
-            $data = ['cache.hit' => $result->isHit()];
-            if ($result->isHit()) {
-                $data['cache.item_size'] = static::getCacheItemSize($result->get());
+            $namespace = $this->getCacheNamespace();
+            if (null !== $namespace) {
+                $data['cache.namespace'] = $namespace;
             }
-            $span->setData($data);
+
+            if ([] !== $data) {
+                $span->setData($data);
+            }
 
             return $result;
         } finally {
@@ -282,10 +294,15 @@ trait TraceableCacheAdapterTrait
 
             $now = microtime(true);
 
-            $getSpan->setData([
+            $getData = [
                 'cache.hit' => !$wasMiss,
                 'cache.item_size' => self::getCacheItemSize($value),
-            ]);
+            ];
+            $namespace = $this->getCacheNamespace();
+            if (null !== $namespace) {
+                $getData['cache.namespace'] = $namespace;
+            }
+            $getSpan->setData($getData);
 
             // If we got a timestamp here we know that we missed
             if (null !== $saveStartTimestamp) {
@@ -296,9 +313,13 @@ trait TraceableCacheAdapterTrait
                     ->setDescription(urldecode($key));
                 $saveSpan = $parentSpan->startChild($saveContext);
                 $saveSpan->setStartTimestamp($saveStartTimestamp);
-                $saveSpan->setData([
+                $saveData = [
                     'cache.item_size' => self::getCacheItemSize($value),
-                ]);
+                ];
+                if (null !== $namespace) {
+                    $saveData['cache.namespace'] = $namespace;
+                }
+                $saveSpan->setData($saveData);
                 $saveSpan->finish($now);
             } else {
                 $getSpan->finish();
@@ -342,5 +363,13 @@ trait TraceableCacheAdapterTrait
         return function () use ($callback, $key): CacheItem {
             return $callback($this->decoratedAdapter->getItem($key));
         };
+    }
+
+    /**
+     * @return string|null
+     */
+    protected function getCacheNamespace(): ?string
+    {
+        return $this->namespace;
     }
 }
