@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 5.8.3
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.8.3.
+
+### Bug fixes
+
+- Using caches with namespaces will no longer cause an error. [(#986)](https://github.com/getsentry/sentry-symfony/pull/986)
+
 ## 5.8.2
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.8.2.
