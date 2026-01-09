@@ -1,40 +1,17 @@
 name: Prepare Release
-
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: Version to release
-        required: true
-      force:
-        description: Force a release even when there are release-blockers (optional)
+        description: Version to release (or "auto")
         required: false
-
-permissions:
-  contents: read
-
+      force:
+        description: Force a release even when there are release-blockers
+        required: false
 jobs:
   release:
-    runs-on: ubuntu-latest
-    name: Release version
-    steps:
-      - name: Get auth token
-        id: token
-        uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94 # v2.2.0
-        with:
-          app-id: ${{ vars.SENTRY_RELEASE_BOT_CLIENT_ID }}
-          private-key: ${{ secrets.SENTRY_RELEASE_BOT_PRIVATE_KEY }}
-
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          token: ${{ steps.token.outputs.token }}
-          fetch-depth: 0
-
-      - name: Prepare release
-        uses: getsentry/action-prepare-release@v1
-        env:
-          GITHUB_TOKEN: ${{ steps.token.outputs.token }}
-        with:
-          version: ${{ github.event.inputs.version }}
-          force: ${{ github.event.inputs.force }}
+    uses: getsentry/craft/.github/workflows/release.yml@v2
+    with:
+      version: ${{ inputs.version }}
+      force: ${{ inputs.force }}
+    secrets: inherit
