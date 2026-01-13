@@ -8,6 +8,10 @@ on:
       force:
         description: Force a release even when there are release-blockers
         required: false
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
