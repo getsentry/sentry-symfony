@@ -119,7 +119,7 @@ abstract class AbstractConsoleListenerTest extends TestCase
                 $this->anything(),
                 $this->logicalAnd(
                     $this->isInstanceOf(EventHint::class),
-                    $this->callback(function (EventHint $subject) use ($consoleEvent) {
+                    $this->callback(static function (EventHint $subject) use ($consoleEvent) {
                         self::assertSame($consoleEvent->getError(), $subject->exception);
                         self::assertNotNull($subject->mechanism);
                         self::assertFalse($subject->mechanism->isHandled());

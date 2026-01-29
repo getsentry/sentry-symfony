@@ -28,7 +28,7 @@ class TracingCacheController
 
     public function populateCacheWithString()
     {
-        $this->cache->get('example', function () {
+        $this->cache->get('example', static function () {
             return 'example-string';
         });
 
@@ -37,7 +37,7 @@ class TracingCacheController
 
     public function populateCacheWithInteger()
     {
-        $this->cache->get('numeric', function () {
+        $this->cache->get('numeric', static function () {
             return 1234;
         });
 
@@ -64,7 +64,7 @@ class TracingCacheController
 
     public function crashInCallback()
     {
-        $this->cache->get('crash', function () {
+        $this->cache->get('crash', static function () {
             throw new \RuntimeException('crash in callback');
         });
 

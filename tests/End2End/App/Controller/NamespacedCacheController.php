@@ -24,7 +24,7 @@ class NamespacedCacheController
     {
         $namespaced = $this->cache->withSubNamespace('tests');
 
-        $namespaced->get('namespaced-key', function (ItemInterface $item) {
+        $namespaced->get('namespaced-key', static function (ItemInterface $item) {
             $item->tag(['a tag name']);
 
             return 'namespaced-value';

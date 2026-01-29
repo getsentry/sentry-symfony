@@ -276,7 +276,7 @@ trait TraceableCacheAdapterTrait
             $saveStartTimestamp = null;
 
             try {
-                $value = $this->decoratedAdapter->get($key, function (CacheItemInterface $item, &$save) use ($callback, &$wasMiss, &$saveStartTimestamp) {
+                $value = $this->decoratedAdapter->get($key, static function (CacheItemInterface $item, &$save) use ($callback, &$wasMiss, &$saveStartTimestamp) {
                     $wasMiss = true;
 
                     $result = $callback($item, $save);

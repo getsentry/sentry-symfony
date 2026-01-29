@@ -55,7 +55,7 @@ final class MessengerListenerTest extends TestCase
 
         $this->hub->expects($this->once())
             ->method('withScope')
-            ->willReturnCallback(function (callable $callback) use ($scope): void {
+            ->willReturnCallback(static function (callable $callback) use ($scope): void {
                 $callback($scope);
             });
 
@@ -66,7 +66,7 @@ final class MessengerListenerTest extends TestCase
                     $this->anything(),
                     $this->logicalAnd(
                         $this->isInstanceOf(EventHint::class),
-                        $this->callback(function (EventHint $subject) use ($expectedException, $expectedIsHandled) {
+                        $this->callback(static function (EventHint $subject) use ($expectedException, $expectedIsHandled) {
                             self::assertSame($expectedException, $subject->exception);
                             self::assertNotNull($subject->mechanism);
                             self::assertSame($expectedIsHandled, $subject->mechanism->isHandled());
@@ -293,7 +293,7 @@ final class MessengerListenerTest extends TestCase
 
         $this->hub->expects($this->once())
             ->method('withScope')
-            ->willReturnCallback(function (callable $callback): void {
+            ->willReturnCallback(static function (callable $callback): void {
                 $callback(new Scope());
             });
 
