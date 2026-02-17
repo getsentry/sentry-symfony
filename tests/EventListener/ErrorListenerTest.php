@@ -44,7 +44,7 @@ final class ErrorListenerTest extends TestCase
                 $this->anything(),
                 $this->logicalAnd(
                     $this->isInstanceOf(EventHint::class),
-                    $this->callback(function (EventHint $subject) use ($expectedException) {
+                    $this->callback(static function (EventHint $subject) use ($expectedException) {
                         self::assertSame($expectedException, $subject->exception);
                         self::assertNotNull($subject->mechanism);
                         self::assertFalse($subject->mechanism->isHandled());

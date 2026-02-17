@@ -10,7 +10,7 @@ class BeforeSendLogCallback
 {
     public function getCallback(): callable
     {
-        return function (Log $log): ?Log {
+        return static function (Log $log): ?Log {
             if ('before_send_log' === $log->getBody()) {
                 return null;
             }

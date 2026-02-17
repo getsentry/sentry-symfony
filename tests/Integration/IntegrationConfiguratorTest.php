@@ -174,7 +174,7 @@ final class IntegrationConfiguratorTest extends TestCase
         ];
 
         yield 'User provided callable receives filtered defaults when error handler disabled' => [
-            function (array $defaults) use ($userIntegration1): array {
+            static function (array $defaults) use ($userIntegration1): array {
                 $classes = array_map('get_class', $defaults);
                 self::assertContains(RequestIntegration::class, $classes);
                 self::assertNotContains(ExceptionListenerIntegration::class, $classes);
@@ -197,7 +197,7 @@ final class IntegrationConfiguratorTest extends TestCase
         ];
 
         yield 'User provided callable receives all defaults when error handler enabled' => [
-            function (array $defaults) use ($userIntegration1): array {
+            static function (array $defaults) use ($userIntegration1): array {
                 $classes = array_map('get_class', $defaults);
                 self::assertContains(ExceptionListenerIntegration::class, $classes);
                 self::assertContains(ErrorListenerIntegration::class, $classes);

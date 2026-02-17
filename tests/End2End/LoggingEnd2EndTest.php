@@ -83,7 +83,7 @@ class LoggingEnd2EndTest extends WebTestCase
      */
     private function filterFrameworkLogs(array $logs): array
     {
-        return array_filter($logs, function (Log $log) {
+        return array_filter($logs, static function (Log $log) {
             return 'Matched route "{route}".' !== $log->getBody()
                 && 'Notified event "{event}" to listener "{listener}".' !== $log->getBody();
         });

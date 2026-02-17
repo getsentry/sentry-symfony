@@ -22,7 +22,7 @@ class BufferFlushPassTest extends TestCase
      */
     private function servicesToName(array $services): array
     {
-        return array_map(function ($item) {
+        return array_map(static function ($item) {
             return (string) $item;
         }, $services);
     }

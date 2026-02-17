@@ -35,10 +35,10 @@ return (new PhpCsFixer\Config())
             'after_heredoc' => false,
             'elements' => ['arrays'],
         ],
+        'modern_serialization_methods' => false, // Could be re-enabled when we drop support for PHP 7.3 and lower
     ])
     ->setFinder(
         PhpCsFixer\Finder::create()
             ->in(__DIR__)
             ->exclude(['var'])
-    )
-;
+    );
