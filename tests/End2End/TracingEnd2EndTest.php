@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\End2End;
 
 use Sentry\SentryBundle\Tests\End2End\App\KernelWithTracing;
-use Sentry\State\HubInterface;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -68,24 +67,12 @@ class TracingEnd2EndTest extends WebTestCase
 
     private function assertLastEventIdIsNotNull(KernelBrowser $client): void
     {
-        $container = $client->getContainer();
-        $this->assertNotNull($container);
-
-        $hub = $container->get('test.hub');
-        $this->assertInstanceOf(HubInterface::class, $hub);
-
-        $this->assertNotNull($hub->getLastEventId(), 'Last error not captured');
+        $this->assertNotEmpty(StubTransport::$events, 'Last error not captured');
     }
 
     private function assertLastEventIdIsNull(KernelBrowser $client): void
     {
-        $container = $client->getContainer();
-        $this->assertNotNull($container);
-
-        $hub = $container->get('test.hub');
-        $this->assertInstanceOf(HubInterface::class, $hub);
-
-        $this->assertNull($hub->getLastEventId(), 'Some error was captured');
+        $this->assertCount(0, StubTransport::$events, 'Some error was captured');
     }
 
     private function assertTracingEventCount(int $expectedCount): void

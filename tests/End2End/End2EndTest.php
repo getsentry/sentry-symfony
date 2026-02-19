@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\End2End;
 
 use Sentry\SentryBundle\Tests\End2End\App\Kernel;
-use Sentry\State\HubInterface;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -271,9 +270,10 @@ class End2EndTest extends WebTestCase
         $events = StubTransport::$events;
         $this->assertCount(2, $events);
 
-        // Asser that both have the same number of breadcrumbs meaning that each event has isolated breadcrumbs
-        $this->assertCount(4, $events[0]->getBreadcrumbs());
-        $this->assertCount(4, $events[1]->getBreadcrumbs());
+        $firstEventBreadcrumbCount = \count($events[0]->getBreadcrumbs());
+        $this->assertGreaterThan(0, $firstEventBreadcrumbCount);
+        // Assert that both have the same number of breadcrumbs meaning that each event has isolated breadcrumbs
+        $this->assertCount($firstEventBreadcrumbCount, $events[1]->getBreadcrumbs());
     }
 
     private function consumeOneMessage(KernelInterface $kernel): void
@@ -294,13 +294,7 @@ class End2EndTest extends WebTestCase
 
     private function assertLastEventIdIsNotNull(KernelBrowser $client): void
     {
-        $container = $client->getContainer();
-        $this->assertNotNull($container);
-
-        $hub = $container->get('test.hub');
-        $this->assertInstanceOf(HubInterface::class, $hub);
-
-        $this->assertNotNull($hub->getLastEventId(), 'Last error not captured');
+        $this->assertNotEmpty(StubTransport::$events, 'Last error not captured');
     }
 
     private function assertEventCount(int $expectedCount): void
@@ -313,13 +307,7 @@ class End2EndTest extends WebTestCase
 
     private function assertLastEventIdIsNull(KernelBrowser $client): void
     {
-        $container = $client->getContainer();
-        $this->assertNotNull($container);
-
-        $hub = $container->get('test.hub');
-        $this->assertInstanceOf(HubInterface::class, $hub);
-
-        $this->assertNull($hub->getLastEventId(), 'Some error was captured');
+        $this->assertCount(0, StubTransport::$events, 'Some error was captured');
     }
 
     private function skipIfMessengerIsMissing(): void

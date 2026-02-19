@@ -77,4 +77,43 @@ final class RequestFetcherTest extends TestCase
 
         $this->assertNull($this->requestFetcher->fetchRequest());
     }
+
+    public function testFetchRequestUsesManuallySetRequestBeforeRequestStack(): void
+    {
+        $manualRequest = Request::create('https://www.example.com/manual');
+        $expectedRequest = $this->createMock(ServerRequestInterface::class);
+
+        $this->requestFetcher->setRequest($manualRequest);
+
+        $this->requestStack->expects($this->never())
+            ->method('getCurrentRequest');
+
+        $this->httpMessageFactory->expects($this->once())
+            ->method('createRequest')
+            ->with($manualRequest)
+            ->willReturn($expectedRequest);
+
+        $this->assertSame($expectedRequest, $this->requestFetcher->fetchRequest());
+    }
+
+    public function testResetClearsTheManuallySetRequest(): void
+    {
+        $manualRequest = Request::create('https://www.example.com/manual');
+        $stackRequest = Request::create('https://www.example.com/stack');
+        $expectedRequest = $this->createMock(ServerRequestInterface::class);
+
+        $this->requestFetcher->setRequest($manualRequest);
+        $this->requestFetcher->reset();
+
+        $this->requestStack->expects($this->once())
+            ->method('getCurrentRequest')
+            ->willReturn($stackRequest);
+
+        $this->httpMessageFactory->expects($this->once())
+            ->method('createRequest')
+            ->with($stackRequest)
+            ->willReturn($expectedRequest);
+
+        $this->assertSame($expectedRequest, $this->requestFetcher->fetchRequest());
+    }
 }

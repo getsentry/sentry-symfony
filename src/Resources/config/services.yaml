@@ -12,6 +12,12 @@ services:
     calls:
       - [bindClient, ['@Sentry\ClientInterface']]
 
+  Sentry\SentryBundle\EventListener\RuntimeContextListener:
+    tags:
+      - { name: kernel.event_listener, event: kernel.request, method: handleKernelRequestEvent, priority: 6 }
+      - { name: kernel.event_listener, event: kernel.terminate, method: handleKernelTerminateEvent, priority: -128 }
+      - { name: kernel.reset, method: reset }
+
   Sentry\SentryBundle\EventListener\ConsoleListener:
     arguments: ['@Sentry\State\HubInterface']
     tags:
@@ -121,6 +127,8 @@ services:
     arguments:
       - '@Symfony\Component\HttpFoundation\RequestStack'
       - '@?Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface'
+    tags:
+      - { name: kernel.reset, method: reset }
 
   Sentry\SentryBundle\Twig\SentryExtension:
     tags:
