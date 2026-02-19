@@ -13,6 +13,7 @@ services:
       - [bindClient, ['@Sentry\ClientInterface']]
 
   Sentry\SentryBundle\EventListener\RuntimeContextListener:
+    arguments: ['@Sentry\State\HubInterface']
     tags:
       - { name: kernel.event_listener, event: kernel.request, method: handleKernelRequestEvent, priority: 6 }
       - { name: kernel.event_listener, event: kernel.terminate, method: handleKernelTerminateEvent, priority: -128 }

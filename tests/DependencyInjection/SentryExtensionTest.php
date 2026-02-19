@@ -29,6 +29,7 @@ use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
+use Sentry\State\HubInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\DependencyInjection\Compiler\ResolveParameterPlaceHoldersPass;
@@ -189,6 +190,9 @@ abstract class SentryExtensionTest extends TestCase
         $definition = $container->getDefinition(RuntimeContextListener::class);
 
         $this->assertSame(RuntimeContextListener::class, $definition->getClass());
+        // Keep this dependency explicit: removing it can break runtime-context bootstrap
+        // in some long-running/no-optional package environments.
+        $this->assertEquals(new Reference(HubInterface::class), $definition->getArgument(0));
         $this->assertSame([
             'kernel.event_listener' => [
                 [

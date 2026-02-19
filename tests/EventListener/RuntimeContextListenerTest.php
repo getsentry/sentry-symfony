@@ -7,6 +7,7 @@ namespace Sentry\SentryBundle\Tests\EventListener;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\EventListener\RuntimeContextListener;
 use Sentry\SentrySdk;
+use Sentry\State\HubInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -24,7 +25,7 @@ final class RuntimeContextListenerTest extends TestCase
     {
         SentrySdk::init();
 
-        $this->listener = new RuntimeContextListener();
+        $this->listener = new RuntimeContextListener($this->createMock(HubInterface::class));
     }
 
     protected function tearDown(): void
@@ -36,9 +37,7 @@ final class RuntimeContextListenerTest extends TestCase
     {
         $globalHub = SentrySdk::getCurrentHub();
 
-        $this->listener->handleKernelRequestEvent($this->createRequestEvent(
-            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
-        ));
+        $this->listener->handleKernelRequestEvent($this->createRequestEvent($this->getMainRequestType()));
 
         $this->assertNotSame($globalHub, SentrySdk::getCurrentHub());
     }
@@ -56,9 +55,7 @@ final class RuntimeContextListenerTest extends TestCase
     {
         $globalHub = SentrySdk::getCurrentHub();
 
-        $this->listener->handleKernelRequestEvent($this->createRequestEvent(
-            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
-        ));
+        $this->listener->handleKernelRequestEvent($this->createRequestEvent($this->getMainRequestType()));
 
         $this->listener->handleKernelTerminateEvent(new TerminateEvent(
             $this->createMock(HttpKernelInterface::class),
@@ -73,9 +70,7 @@ final class RuntimeContextListenerTest extends TestCase
     {
         $globalHub = SentrySdk::getCurrentHub();
 
-        $this->listener->handleKernelRequestEvent($this->createRequestEvent(
-            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
-        ));
+        $this->listener->handleKernelRequestEvent($this->createRequestEvent($this->getMainRequestType()));
 
         $this->listener->reset();
 
@@ -88,6 +83,15 @@ final class RuntimeContextListenerTest extends TestCase
             $this->createMock(HttpKernelInterface::class),
             new Request(),
             $requestType
+        );
+    }
+
+    private function getMainRequestType(): int
+    {
+        return (int) \constant(
+            \defined(HttpKernelInterface::class . '::MAIN_REQUEST')
+                ? HttpKernelInterface::class . '::MAIN_REQUEST'
+                : HttpKernelInterface::class . '::MASTER_REQUEST'
         );
     }
 }
