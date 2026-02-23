@@ -2,6 +2,14 @@
 
 ## 5.8.3
 
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.9.0.
+
+### Misc
+
+- Bump `sentry-php` version to `4.20.0`. [(#996)](https://github.com/getsentry/sentry-symfony/pull/996)
+
+## 5.8.3
+
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.8.3.
 
 ### Bug fixes
