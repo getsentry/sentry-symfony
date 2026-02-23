@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 5.8.3
+## 5.9.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.9.0.
 
