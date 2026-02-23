@@ -266,6 +266,11 @@ parameters:
 			path: src/Twig/SentryExtension.php
 
 		-
+			message: "#^Constructor of class Sentry\\\\SentryBundle\\\\EventListener\\\\RuntimeContextListener has an unused parameter \\$hub\\.$#"
+			count: 1
+			path: src/EventListener/RuntimeContextListener.php
+
+		-
 			message: "#^Cannot access offset 'profiles_sample_rate' on mixed\\.$#"
 			count: 1
 			path: tests/DependencyInjection/ConfigurationTest.php
