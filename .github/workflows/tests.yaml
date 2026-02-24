@@ -109,13 +109,7 @@ jobs:
 
       - name: Remove RoadRunner dependencies on unsupported PHP versions
         if: ${{ runner.os == 'Windows' || matrix.php == '7.2' || matrix.php == '7.3' || matrix.php == '7.4' || matrix.php == '8.0' }}
-        run: |
-          if php -r '$composer = json_decode(file_get_contents("composer.json"), true); $has = isset($composer["require-dev"]["spiral/roadrunner-http"]) || isset($composer["require"]["spiral/roadrunner-http"]) || isset($composer["require-dev"]["spiral/roadrunner-worker"]) || isset($composer["require"]["spiral/roadrunner-worker"]); exit($has ? 0 : 1);'; then
-            composer remove spiral/roadrunner-http spiral/roadrunner-worker --dev --no-interaction --no-update
-          else
-            echo "RoadRunner dependencies are not present in root composer.json, skipping."
-          fi
-        shell: bash
+        run: composer remove spiral/roadrunner-http spiral/roadrunner-worker --dev --no-interaction --no-update
 
       - name: Install dependencies
         uses: ramsey/composer-install@v3
@@ -173,13 +167,7 @@ jobs:
 
       - name: Remove RoadRunner dependencies on unsupported PHP versions
         if: ${{ runner.os == 'Windows' || matrix.php == '7.2' || matrix.php == '7.3' || matrix.php == '7.4' || matrix.php == '8.0' }}
-        run: |
-          if php -r '$composer = json_decode(file_get_contents("composer.json"), true); $has = isset($composer["require-dev"]["spiral/roadrunner-http"]) || isset($composer["require"]["spiral/roadrunner-http"]) || isset($composer["require-dev"]["spiral/roadrunner-worker"]) || isset($composer["require"]["spiral/roadrunner-worker"]); exit($has ? 0 : 1);'; then
-            composer remove spiral/roadrunner-http spiral/roadrunner-worker --dev --no-interaction --no-update
-          else
-            echo "RoadRunner dependencies are not present in root composer.json, skipping."
-          fi
-        shell: bash
+        run: composer remove spiral/roadrunner-http spiral/roadrunner-worker --dev --no-interaction --no-update
 
       - name: Remove optional packages
         run: composer remove doctrine/dbal doctrine/doctrine-bundle symfony/messenger symfony/twig-bundle symfony/cache symfony/http-client --dev --no-update
