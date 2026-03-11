@@ -25,6 +25,9 @@ final class StrictTraceContinuationEnd2EndTest extends WebTestCase
     private const INCOMING_PARENT_SPAN_ID = '566e3688a61d4bc8';
     private const INCOMING_SENTRY_TRACE_HEADER = self::INCOMING_TRACE_ID . '-' . self::INCOMING_PARENT_SPAN_ID . '-1';
 
+    /**
+     * @param array{extra_config_files?: list<string>} $options
+     */
     protected static function createKernel(array $options = []): KernelInterface
     {
         return new KernelWithExtraConfig(array_merge([
