@@ -65,6 +65,10 @@ final class TracingRequestListenerTest extends TestCase
         $this->hub->expects($this->once())
             ->method('startTransaction')
             ->with($this->callback(function (TransactionContext $context) use ($expectedTransactionContext): bool {
+                if (null === $expectedTransactionContext->getTraceId() && null !== $context->getTraceId()) {
+                    $expectedTransactionContext->setTraceId($context->getTraceId());
+                }
+
                 // This value is random when the metadata is constructed, thus we set it to a fixed expected value since we don't care for the value here
                 $context->getMetadata()->setSampleRand(0.1337);
 
@@ -330,7 +334,8 @@ final class TracingRequestListenerTest extends TestCase
 
         $request = Request::create('http://www.example.com/');
         $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
-        $request->attributes->set('_controller', [new class {}, 'indexAction']);
+        $request->attributes->set('_controller', [new class {
+        }, 'indexAction']);
 
         $transactionContext = new TransactionContext();
         $transactionContext->setName('GET http://www.example.com/');

@@ -226,6 +226,7 @@ abstract class SentryExtensionTest extends TestCase
             'spotlight' => true,
             'spotlight_url' => 'http://localhost:8969',
             'release' => '4.0.x-dev',
+            'org_id' => 1,
             'server_name' => 'localhost',
             'ignore_exceptions' => [
                 'Symfony\Component\HttpKernel\Exception\BadRequestHttpException',
@@ -239,6 +240,7 @@ abstract class SentryExtensionTest extends TestCase
             'before_send_metrics' => new Reference('App\\Sentry\\BeforeSendMetricsCallback'),
             'before_send_log' => new Reference('App\\Sentry\\BeforeSendLogsCallback'),
             'trace_propagation_targets' => ['website.invalid'],
+            'strict_trace_continuation' => true,
             'tags' => [
                 'context' => 'development',
             ],
