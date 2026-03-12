@@ -94,7 +94,6 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
         if (self::shouldAttachTracingHeaders($client, $uri)) {
             $headers['baggage'] = $childSpan->toBaggage();
             $headers['sentry-trace'] = $childSpan->toTraceparent();
-            $headers['traceparent'] = $childSpan->toW3CTraceparent();
         }
 
         $options['headers'] = $headers;
