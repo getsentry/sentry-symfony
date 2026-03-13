@@ -135,4 +135,7 @@ services:
     tags:
       - { name: twig.extension }
 
+  # Serializers
+  Sentry\SentryBundle\Serializer\ConsoleInputSerializer: ~
+
 
