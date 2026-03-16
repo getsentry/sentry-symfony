@@ -1,0 +1,3 @@
+sentry:
+  options:
+    strict_trace_continuation: true

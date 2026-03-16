@@ -25,6 +25,7 @@
                         spotlight="true"
                         spotlight-url="http://localhost:8969"
                         release="4.0.x-dev"
+                        org-id="1"
                         server-name="localhost"
                         before-send="App\Sentry\BeforeSendCallback"
                         before-send-transaction="App\Sentry\BeforeSendTransactionCallback"
@@ -46,6 +47,7 @@
                         http-compression="true"
                         capture-silenced-errors="true"
                         max-request-body-size="none"
+                        strict-trace-continuation="true"
         >
             <sentry:integration>App\Sentry\Integration\FooIntegration</sentry:integration>
             <sentry:trace-propagation-target>website.invalid</sentry:trace-propagation-target>
