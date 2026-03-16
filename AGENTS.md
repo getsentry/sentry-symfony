@@ -51,6 +51,8 @@
 - `src/EventListener/TracingRequestListener.php` temporarily injects the active
   request into `RequestFetcher` and clears it on terminate. Keep that set/reset
   lifecycle balanced if you change request tracing.
+- `SentryBundle::SDK_VERSION` is updated by the release action. Do not modify
+  it manually as part of normal development changes.
 - `BufferFlushPass`, logging, and metrics code are sensitive to terminate-time
   behavior. Add end-to-end coverage when changing those paths.
 
@@ -70,12 +72,11 @@
 - `README.md` and `CHANGELOG.md` are updated manually during releases, so do
   not modify them as part of normal development changes.
 - If a change may require updates in the separate documentation repo, ask the
-  user whether to review their locally checked out docs. The user must provide
-  the local path. If they opt in, update that repo's `master` branch when safe,
-  use git worktrees to inspect the relevant docs, and suggest any needed
-  changes to avoid stale documentation.
-- Add or update an `UPGRADE-*.md` file when a change is breaking or alters the
-  upgrade path.
+  user whether to review `../sentry-docs` if that sibling checkout exists. If
+  it does not exist, ask the user for the local docs path first. If they opt
+  in, update that repo's `master` branch when safe, use git worktrees to
+  inspect the relevant docs, and suggest any needed changes to avoid stale
+  documentation.
 - `CONTRIBUTING.md` states that new code should include tests and notes that
   style checkers require PHP 7.4+ locally, but shipped code still has to comply
   with the package's PHP `7.2` baseline.
