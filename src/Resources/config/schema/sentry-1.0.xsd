@@ -50,6 +50,7 @@
         <xsd:attribute name="spotlight" type="xsd:boolean" />
         <xsd:attribute name="spotlight-url" type="xsd:string" />
         <xsd:attribute name="release" type="xsd:string" />
+        <xsd:attribute name="org-id" type="xsd:integer" />
         <xsd:attribute name="server-name" type="xsd:string" />
         <xsd:attribute name="before-send" type="xsd:string" />
         <xsd:attribute name="before-send-transaction" type="xsd:string" />
@@ -71,6 +72,7 @@
         <xsd:attribute name="http-compression" type="xsd:boolean" />
         <xsd:attribute name="capture-silenced-errors" type="xsd:boolean" />
         <xsd:attribute name="max-request-body-size" type="max-request-body-size" />
+        <xsd:attribute name="strict-trace-continuation" type="xsd:boolean" />
     </xsd:complexType>
 
     <xsd:complexType name="tag">

@@ -268,6 +268,31 @@ final class ConfigurationTest extends TestCase
         ];
     }
 
+    public function testOrgIdOption(): void
+    {
+        /** @var array{options: array{org_id: int}} $config */
+        $config = $this->processConfiguration(['options' => ['org_id' => 1]]);
+
+        $this->assertSame(1, $config['options']['org_id']);
+    }
+
+    /**
+     * @dataProvider strictTraceContinuationOptionDataProvider
+     */
+    public function testStrictTraceContinuationOption(bool $value): void
+    {
+        /** @var array{options: array{strict_trace_continuation: bool}} $config */
+        $config = $this->processConfiguration(['options' => ['strict_trace_continuation' => $value]]);
+
+        $this->assertSame($value, $config['options']['strict_trace_continuation']);
+    }
+
+    public function strictTraceContinuationOptionDataProvider(): \Generator
+    {
+        yield [true];
+        yield [false];
+    }
+
     /**
      * @param array<string, mixed> $values
      *

@@ -26,6 +26,7 @@ $container->loadFromExtension('sentry', [
         'spotlight' => true,
         'spotlight_url' => 'http://localhost:8969',
         'release' => '4.0.x-dev',
+        'org_id' => 1,
         'server_name' => 'localhost',
         'ignore_exceptions' => ['Symfony\Component\HttpKernel\Exception\BadRequestHttpException'],
         'ignore_transactions' => ['GET tracing_ignored_transaction'],
@@ -35,6 +36,7 @@ $container->loadFromExtension('sentry', [
         'before_send_metrics' => 'App\\Sentry\\BeforeSendMetricsCallback',
         'before_send_log' => 'App\\Sentry\\BeforeSendLogsCallback',
         'trace_propagation_targets' => ['website.invalid'],
+        'strict_trace_continuation' => true,
         'tags' => [
             'context' => 'development',
         ],
