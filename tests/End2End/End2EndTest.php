@@ -54,7 +54,7 @@ class End2EndTest extends WebTestCase
         $this->assertInstanceOf(Response::class, $response);
         $this->assertSame(200, $response->getStatusCode());
 
-        $this->assertLastEventIdIsNotNull($client);
+        $this->assertEventWasCaptured();
         $this->assertEventCount(1);
     }
 
@@ -69,7 +69,7 @@ class End2EndTest extends WebTestCase
         $this->assertInstanceOf(Response::class, $response);
         $this->assertSame(200, $response->getStatusCode());
 
-        $this->assertLastEventIdIsNotNull($client);
+        $this->assertEventWasCaptured();
         $this->assertEventCount(1);
     }
 
@@ -84,7 +84,7 @@ class End2EndTest extends WebTestCase
         $this->assertInstanceOf(Response::class, $response);
         $this->assertSame(200, $response->getStatusCode());
 
-        $this->assertLastEventIdIsNotNull($client);
+        $this->assertEventWasCaptured();
         $this->assertEventCount(1);
     }
 
@@ -107,7 +107,7 @@ class End2EndTest extends WebTestCase
             $this->assertSame('No route found for "GET /missing-page"', $exception->getMessage());
         }
 
-        $this->assertLastEventIdIsNotNull($client);
+        $this->assertEventWasCaptured();
         $this->assertEventCount(1);
     }
 
@@ -122,7 +122,7 @@ class End2EndTest extends WebTestCase
         $this->assertInstanceOf(Response::class, $response);
         $this->assertSame(400, $response->getStatusCode());
 
-        $this->assertLastEventIdIsNull($client);
+        $this->assertNoEventWasCaptured();
     }
 
     public function testGet500(): void
@@ -145,7 +145,7 @@ class End2EndTest extends WebTestCase
             $this->assertSame('This is an intentional error', $exception->getMessage());
         }
 
-        $this->assertLastEventIdIsNotNull($client);
+        $this->assertEventWasCaptured();
         $this->assertEventCount(1);
     }
 
@@ -194,7 +194,7 @@ class End2EndTest extends WebTestCase
         $this->assertInstanceOf(Response::class, $response);
         $this->assertSame(200, $response->getStatusCode());
 
-        $this->assertLastEventIdIsNotNull($client);
+        $this->assertEventWasCaptured();
         $this->assertEventCount(1);
     }
 
@@ -231,7 +231,7 @@ class End2EndTest extends WebTestCase
 
         $this->consumeOneMessage($client->getKernel());
 
-        $this->assertLastEventIdIsNotNull($client);
+        $this->assertEventWasCaptured();
     }
 
     public function testMessengerCaptureSoftFailCanBeDisabled(): void
@@ -249,7 +249,7 @@ class End2EndTest extends WebTestCase
 
         $this->consumeOneMessage($client->getKernel());
 
-        $this->assertLastEventIdIsNull($client);
+        $this->assertNoEventWasCaptured();
     }
 
     public function testIsolateBreadcrumbsByMessage(): void
@@ -293,9 +293,9 @@ class End2EndTest extends WebTestCase
         $this->assertSame(0, $commandTester->getStatusCode());
     }
 
-    private function assertLastEventIdIsNotNull(KernelBrowser $client): void
+    private function assertEventWasCaptured(): void
     {
-        $this->assertNotEmpty(StubTransport::$events, 'Last error not captured');
+        $this->assertNotEmpty(StubTransport::$events, 'No event was captured');
     }
 
     private function assertEventCount(int $expectedCount): void
@@ -306,9 +306,9 @@ class End2EndTest extends WebTestCase
         $this->assertCount($expectedCount, $listOfEvents, 'Wrong number of events sent: ' . \PHP_EOL . $events);
     }
 
-    private function assertLastEventIdIsNull(KernelBrowser $client): void
+    private function assertNoEventWasCaptured(): void
     {
-        $this->assertCount(0, StubTransport::$events, 'Some error was captured');
+        $this->assertCount(0, StubTransport::$events, 'Some event was captured');
     }
 
     private function skipIfMessengerIsMissing(): void

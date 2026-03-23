@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\End2End;
 
+use Sentry\Event;
 use Sentry\SentryBundle\Tests\End2End\App\KernelWithTracing;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -19,8 +20,6 @@ if (!class_exists(KernelBrowser::class)) {
  */
 class TracingEnd2EndTest extends WebTestCase
 {
-    public const SENT_EVENTS_LOG = '/tmp/sentry_e2e_test_sent_events.log';
-
     protected static function getKernelClass(): string
     {
         return KernelWithTracing::class;
@@ -30,7 +29,7 @@ class TracingEnd2EndTest extends WebTestCase
     {
         parent::setUp();
 
-        file_put_contents(self::SENT_EVENTS_LOG, '');
+        StubTransport::$events = [];
     }
 
     public function testTracingWithDoctrineConnectionPing(): void
@@ -45,7 +44,7 @@ class TracingEnd2EndTest extends WebTestCase
         $this->assertEquals('Success', $response->getContent());
         $this->assertSame(200, $response->getStatusCode());
 
-        $this->assertLastEventIdIsNotNull($client);
+        $this->assertCount(1, StubTransport::$events, 'Wrong number of events captured');
         $this->assertTracingEventCount(1);
     }
 
@@ -61,28 +60,16 @@ class TracingEnd2EndTest extends WebTestCase
         $this->assertEquals('Success', $response->getContent());
         $this->assertSame(200, $response->getStatusCode());
 
-        $this->assertLastEventIdIsNull($client);
-        $this->assertTracingEventCount(1);
-    }
-
-    private function assertLastEventIdIsNotNull(KernelBrowser $client): void
-    {
-        $this->assertNotEmpty(StubTransport::$events, 'Last error not captured');
-    }
-
-    private function assertLastEventIdIsNull(KernelBrowser $client): void
-    {
-        $this->assertCount(0, StubTransport::$events, 'Some error was captured');
+        $this->assertCount(0, StubTransport::$events, 'Ignored transaction should not be sent');
+        $this->assertTracingEventCount(0);
     }
 
     private function assertTracingEventCount(int $expectedCount): void
     {
-        $events = file_get_contents(self::SENT_EVENTS_LOG);
-        $this->assertNotFalse($events, 'Cannot read sent events log');
-        $listOfTracingEvents = array_filter(explode(StubTransport::SEPARATOR, trim($events)), static function (string $elem) {
-            return str_contains('TRACING', $elem);
-        });
+        $tracingEvents = array_values(array_filter(StubTransport::$events, static function (Event $event): bool {
+            return null !== $event->getTransaction();
+        }));
 
-        $this->assertCount($expectedCount, $listOfTracingEvents, 'Wrong number of tracing events sent: ' . \PHP_EOL . $events);
+        $this->assertCount($expectedCount, $tracingEvents, 'Wrong number of tracing events captured');
     }
 }
