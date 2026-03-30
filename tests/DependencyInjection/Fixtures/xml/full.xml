@@ -14,6 +14,7 @@
                         sample-rate="1"
                         enable-tracing="true"
                         enable-logs="true"
+                        log-flush-threshold="2"
                         traces-sample-rate="1"
                         traces-sampler="App\Sentry\Tracing\TracesSampler"
                         profiles-sample-rate="1"
