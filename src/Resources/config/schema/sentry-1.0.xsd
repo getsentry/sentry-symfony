@@ -38,6 +38,7 @@
         <xsd:attribute name="sample-rate" type="xsd:float" />
         <xsd:attribute name="enable-tracing" type="xsd:boolean" />
         <xsd:attribute name="enable-logs" type="xsd:boolean" />
+        <xsd:attribute name="log-flush-threshold" type="xsd:integer" />
         <xsd:attribute name="traces-sample-rate" type="xsd:float" />
         <xsd:attribute name="profiles-sample-rate" type="xsd:float" />
         <xsd:attribute name="traces-sampler" type="xsd:string" />

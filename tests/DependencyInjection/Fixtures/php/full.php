@@ -18,6 +18,7 @@ $container->loadFromExtension('sentry', [
         'traces_sampler' => 'App\\Sentry\\Tracing\\TracesSampler',
         'profiles_sample_rate' => 1,
         'enable_logs' => true,
+        'log_flush_threshold' => 2,
         'attach_stacktrace' => true,
         'attach_metric_code_locations' => true,
         'context_lines' => 0,

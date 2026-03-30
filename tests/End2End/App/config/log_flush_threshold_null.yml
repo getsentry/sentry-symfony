@@ -1,0 +1,3 @@
+sentry:
+  options:
+    log_flush_threshold: ~

@@ -27,6 +27,7 @@ final class ConfigurationTest extends TestCase
             'options' => [
                 'integrations' => [],
                 'prefixes' => array_merge(['%kernel.project_dir%'], array_filter(explode(\PATH_SEPARATOR, get_include_path() ?: ''))),
+                'log_flush_threshold' => null,
                 'enable_metrics' => true,
                 'environment' => '%kernel.environment%',
                 'release' => '%env(default::SENTRY_RELEASE)%',
@@ -273,6 +274,22 @@ final class ConfigurationTest extends TestCase
         $config = $this->processConfiguration(['options' => ['org_id' => 1]]);
 
         $this->assertSame(1, $config['options']['org_id']);
+    }
+
+    public function testLogFlushThresholdOption(): void
+    {
+        /** @var array{options: array{log_flush_threshold: int}} $config */
+        $config = $this->processConfiguration(['options' => ['log_flush_threshold' => 2]]);
+
+        $this->assertSame(2, $config['options']['log_flush_threshold']);
+    }
+
+    public function testLogFlushThresholdOptionCanBeNull(): void
+    {
+        /** @var array{options: array{log_flush_threshold: null}} $config */
+        $config = $this->processConfiguration(['options' => ['log_flush_threshold' => null]]);
+
+        $this->assertNull($config['options']['log_flush_threshold']);
     }
 
     /**
