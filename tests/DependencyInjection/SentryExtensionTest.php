@@ -9,6 +9,7 @@ use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
+use Sentry\Integration\RequestFetcherInterface;
 use Sentry\Logger\DebugStdOutLogger;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
@@ -17,6 +18,7 @@ use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\LoginListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\EventListener\RequestListener;
+use Sentry\SentryBundle\EventListener\RuntimeContextListener;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
 use Sentry\SentryBundle\EventListener\TracingConsoleListener;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
@@ -27,6 +29,7 @@ use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
+use Sentry\State\HubInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\DependencyInjection\Compiler\ResolveParameterPlaceHoldersPass;
@@ -149,6 +152,7 @@ abstract class SentryExtensionTest extends TestCase
 
         $this->assertFalse($definition->getArgument(1));
         $this->assertTrue($definition->getArgument(2));
+        $this->assertTrue($definition->getArgument(3));
     }
 
     public function testMessengerListenerIsRemovedWhenDisabled(): void
@@ -180,6 +184,34 @@ abstract class SentryExtensionTest extends TestCase
         ], $definition->getTags());
     }
 
+    public function testRuntimeContextListener(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+        $definition = $container->getDefinition(RuntimeContextListener::class);
+
+        $this->assertSame(RuntimeContextListener::class, $definition->getClass());
+        // Keep this dependency explicit: removing it can break runtime-context bootstrap
+        // in some long-running/no-optional package environments.
+        $this->assertEquals(new Reference(HubInterface::class), $definition->getArgument(0));
+        $this->assertSame([
+            'kernel.event_listener' => [
+                [
+                    'event' => KernelEvents::REQUEST,
+                    'method' => 'handleKernelRequestEvent',
+                    'priority' => 6,
+                ],
+                [
+                    'event' => KernelEvents::TERMINATE,
+                    'method' => 'handleKernelTerminateEvent',
+                    'priority' => -128,
+                ],
+            ],
+            'kernel.reset' => [
+                ['method' => 'reset'],
+            ],
+        ], $definition->getTags());
+    }
+
     public function testSubRequestListener(): void
     {
         $container = $this->createContainerFromFixture('full');
@@ -200,6 +232,16 @@ abstract class SentryExtensionTest extends TestCase
                 ],
             ],
         ], $definition->getTags());
+    }
+
+    public function testRequestFetcherIsResettable(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+        $definition = $container->getDefinition(RequestFetcherInterface::class);
+
+        $this->assertSame([
+            ['method' => 'reset'],
+        ], $definition->getTag('kernel.reset'));
     }
 
     public function testClientIsCreatedFromOptions(): void

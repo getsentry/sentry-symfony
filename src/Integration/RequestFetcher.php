@@ -11,13 +11,14 @@ use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * This class fetches the server request from the request stack and converts it
  * into a PSR-7 request that is suitable to be used by the {@see \Sentry\Integration\RequestIntegration}
  * integration.
  */
-final class RequestFetcher implements RequestFetcherInterface
+final class RequestFetcher implements RequestFetcherInterface, ResetInterface
 {
     /**
      * @var RequestStack The request stack
@@ -72,5 +73,10 @@ final class RequestFetcher implements RequestFetcherInterface
     public function setRequest(?Request $request): void
     {
         $this->currentRequest = $request;
+    }
+
+    public function reset(): void
+    {
+        $this->setRequest(null);
     }
 }

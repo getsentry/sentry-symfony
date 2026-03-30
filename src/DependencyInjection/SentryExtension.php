@@ -217,7 +217,10 @@ final class SentryExtension extends ConfigurableExtension
             return;
         }
 
-        $container->getDefinition(MessengerListener::class)->setArgument(1, $config['capture_soft_fails'])->setArgument(2, $config['isolate_breadcrumbs_by_message']);
+        $container->getDefinition(MessengerListener::class)
+            ->setArgument(1, $config['capture_soft_fails'])
+            ->setArgument(2, $config['isolate_breadcrumbs_by_message'])
+            ->setArgument(3, $config['isolate_context_by_message']);
     }
 
     /**
