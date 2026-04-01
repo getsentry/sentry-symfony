@@ -25,6 +25,7 @@ use Sentry\SentryBundle\EventListener\TracingRequestListener;
 use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
 use Sentry\SentryBundle\Integration\IntegrationConfigurator;
 use Sentry\SentryBundle\SentryBundle;
+use Sentry\SentryBundle\Serializer\ConsoleInputSerializer;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
@@ -32,6 +33,7 @@ use Sentry\Serializer\RepresentationSerializer;
 use Sentry\State\HubInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Console\ConsoleEvents;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\DependencyInjection\Compiler\ResolveParameterPlaceHoldersPass;
 use Symfony\Component\DependencyInjection\Compiler\ResolveTaggedIteratorArgumentPass;
 use Symfony\Component\DependencyInjection\Compiler\ValidateEnvPlaceholdersPass;
@@ -347,6 +349,19 @@ abstract class SentryExtensionTest extends TestCase
 
         // 2048 is \E_STRICT which has been deprecated in PHP 8.4 so we should not reference it directly to prevent deprecation notices
         $this->assertSame(\E_ALL & ~(\E_NOTICE | 2048 | \E_DEPRECATED), $optionsDefinition->getArgument(0)['error_types']);
+    }
+
+    public function testConsoleInputSerializerIsRegisteredAndResolvesAsClassSerializer(): void
+    {
+        $container = $this->createContainerFromFixture('console_input_serializer');
+
+        $this->assertTrue($container->hasDefinition(ConsoleInputSerializer::class));
+
+        $optionsDefinition = $container->getDefinition('sentry.client.options');
+        $classSerializers = $optionsDefinition->getArgument(0)['class_serializers'];
+
+        $this->assertArrayHasKey(InputInterface::class, $classSerializers);
+        $this->assertEquals(new Reference(ConsoleInputSerializer::class), $classSerializers[InputInterface::class]);
     }
 
     /**

@@ -1,0 +1,4 @@
+sentry:
+    options:
+        class_serializers:
+            Symfony\Component\Console\Input\InputInterface: Sentry\SentryBundle\Serializer\ConsoleInputSerializer

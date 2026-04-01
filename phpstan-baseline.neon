@@ -306,7 +306,17 @@ parameters:
 			path: tests/DependencyInjection/SentryExtensionTest.php
 
 		-
+			message: "#^Cannot access offset 'class_serializers' on mixed\\.$#"
+			count: 1
+			path: tests/DependencyInjection/SentryExtensionTest.php
+
+		-
 			message: "#^Cannot access offset 'release' on mixed\\.$#"
+			count: 1
+			path: tests/DependencyInjection/SentryExtensionTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$array of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertArrayHasKey\\(\\) expects array\\|ArrayAccess, mixed given\\.$#"
 			count: 1
 			path: tests/DependencyInjection/SentryExtensionTest.php
 
