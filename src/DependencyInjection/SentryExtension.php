@@ -243,18 +243,21 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function registerDbalTracingConfiguration(ContainerBuilder $container, array $config): void
     {
+        /** @var array{connections: string[], ignore_prepare_spans: bool} $dbalConfig */
+        $dbalConfig = $config['dbal'];
         $isConfigEnabled = $this->isConfigEnabled($container, $config)
-            && $this->isConfigEnabled($container, $config['dbal']);
+            && $this->isConfigEnabled($container, $dbalConfig);
 
         if ($isConfigEnabled && !class_exists(DoctrineBundle::class)) {
             throw new \LogicException('DBAL tracing support cannot be enabled because the doctrine/doctrine-bundle Composer package is not installed.');
         }
 
         $container->setParameter('sentry.tracing.dbal.enabled', $isConfigEnabled);
-        $container->setParameter('sentry.tracing.dbal.connections', $isConfigEnabled ? $config['dbal']['connections'] : []);
+        $container->setParameter('sentry.tracing.dbal.connections', $isConfigEnabled ? $dbalConfig['connections'] : []);
 
         $factoryServiceId = 'sentry.tracing.dbal.connection_factory';
         if ($container->hasDefinition($factoryServiceId)) {
+            $ignorePrepareSpans = $isConfigEnabled ? $dbalConfig['ignore_prepare_spans'] : false;
             $factoryClass = \Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryForV2V3::class;
 
             // On Symfony 8+, the container validates FQCN-like service IDs at compile time. Classes provided
@@ -263,7 +266,9 @@ final class SentryExtension extends ConfigurableExtension
                 $factoryClass = \Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryForV4::class;
             }
 
-            $container->getDefinition($factoryServiceId)->setClass($factoryClass);
+            $container->getDefinition($factoryServiceId)
+                ->setClass($factoryClass)
+                ->setArgument(1, $ignorePrepareSpans);
         }
 
         if (!$isConfigEnabled) {

@@ -370,6 +370,19 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertNotEmpty($container->getParameter('sentry.tracing.dbal.connections'));
     }
 
+    public function testTracingDriverConnectionFactoryReceivesIgnorePrepareSpansFlag(): void
+    {
+        if (!class_exists(DoctrineBundle::class)) {
+            $this->expectException(\LogicException::class);
+            $this->expectExceptionMessage('DBAL tracing support cannot be enabled because the doctrine/doctrine-bundle Composer package is not installed.');
+        }
+
+        $container = $this->createContainerFromFixture('dbal_tracing_enabled');
+        $definition = $container->getDefinition('sentry.tracing.dbal.connection_factory');
+
+        $this->assertTrue($definition->getArgument(1));
+    }
+
     public function testTracingDriverMiddlewareIsRemovedWhenDbalTracingIsDisabled(): void
     {
         $container = $this->createContainerFromFixture('full');

@@ -9,6 +9,7 @@ $container->loadFromExtension('sentry', [
     'tracing' => [
         'dbal' => [
             'enabled' => true,
+            'ignore_prepare_spans' => true,
             'connections' => ['default'],
         ],
     ],

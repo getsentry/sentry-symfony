@@ -1,0 +1,4 @@
+sentry:
+  tracing:
+    dbal:
+      ignore_prepare_spans: true

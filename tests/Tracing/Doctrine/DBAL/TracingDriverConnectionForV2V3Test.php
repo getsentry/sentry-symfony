@@ -11,7 +11,7 @@ use Doctrine\DBAL\ParameterType;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tests\Tracing\Doctrine\DBAL\Fixture\NativeDriverConnectionInterfaceStub;
-use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionForV4 as TracingDriverConnection;
+use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionForV2V3 as TracingDriverConnection;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionInterface;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatement;
 use Sentry\State\HubInterface;
@@ -110,6 +110,24 @@ final class TracingDriverConnectionForV2V3Test extends DoctrineTestCase
             ->willReturn($statement);
 
         $this->assertEquals($resultStatement, $this->connection->prepare($sql));
+    }
+
+    public function testPrepareCanIgnorePrepareSpans(): void
+    {
+        $sql = 'SELECT 1 + 1';
+        $statement = $this->createMock(DriverStatementInterface::class);
+        $resultStatement = new TracingStatement($this->hub, $statement, $sql, ['db.system' => 'foo_platform']);
+        $connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', [], true);
+
+        $this->hub->expects($this->never())
+            ->method('getSpan');
+
+        $this->decoratedConnection->expects($this->once())
+            ->method('prepare')
+            ->with($sql)
+            ->willReturn($statement);
+
+        $this->assertEquals($resultStatement, $connection->prepare($sql));
     }
 
     /**

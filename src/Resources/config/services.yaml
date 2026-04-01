@@ -90,7 +90,7 @@ services:
 
   sentry.tracing.dbal.connection_factory:
     class: Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryForV2V3
-    arguments: ['@Sentry\State\HubInterface']
+    arguments: ['@Sentry\State\HubInterface', false]
 
   Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware:
     arguments: ['@Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryInterface']

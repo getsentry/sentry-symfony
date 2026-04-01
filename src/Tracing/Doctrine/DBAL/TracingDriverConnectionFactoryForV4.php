@@ -25,13 +25,20 @@ final class TracingDriverConnectionFactoryForV4 implements TracingDriverConnecti
     private $hub;
 
     /**
+     * @var bool Whether prepare spans should be ignored
+     */
+    private $ignorePrepareSpans;
+
+    /**
      * Constructor.
      *
-     * @param HubInterface $hub The current hub
+     * @param HubInterface $hub                The current hub
+     * @param bool         $ignorePrepareSpans Whether prepare spans should be ignored
      */
-    public function __construct(HubInterface $hub)
+    public function __construct(HubInterface $hub, bool $ignorePrepareSpans = false)
     {
         $this->hub = $hub;
+        $this->ignorePrepareSpans = $ignorePrepareSpans;
     }
 
     /**
@@ -43,7 +50,8 @@ final class TracingDriverConnectionFactoryForV4 implements TracingDriverConnecti
             $this->hub,
             $connection,
             $this->getDatabasePlatform($databasePlatform),
-            $params
+            $params,
+            $this->ignorePrepareSpans
         );
 
         return $tracingDriverConnection;

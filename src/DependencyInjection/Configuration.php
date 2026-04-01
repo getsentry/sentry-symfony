@@ -218,6 +218,7 @@ final class Configuration implements ConfigurationInterface
                             ->{class_exists(DoctrineBundle::class) ? 'canBeDisabled' : 'canBeEnabled'}()
                             ->fixXmlConfig('connection')
                             ->children()
+                                ->booleanNode('ignore_prepare_spans')->defaultFalse()->end()
                                 ->arrayNode('connections')
                                     ->scalarPrototype()->end()
                                 ->end()
