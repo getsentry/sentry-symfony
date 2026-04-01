@@ -123,6 +123,8 @@ services:
   Sentry\SentryBundle\Integration\IntegrationConfigurator:
     arguments: [ [], '' ]
 
+  Sentry\Integration\OTLPIntegration: ~
+
   Sentry\Integration\RequestFetcherInterface:
     class: Sentry\SentryBundle\Integration\RequestFetcher
     arguments:

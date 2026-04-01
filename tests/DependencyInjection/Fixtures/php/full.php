@@ -9,7 +9,10 @@ $container->loadFromExtension('sentry', [
     'dsn' => 'https://examplePublicKey@o0.ingest.sentry.io/0',
     'logger' => 'app.logger',
     'options' => [
-        'integrations' => ['App\\Sentry\\Integration\\FooIntegration'],
+        'integrations' => [
+            'App\\Sentry\\Integration\\FooIntegration',
+            'Sentry\\Integration\\OTLPIntegration',
+        ],
         'default_integrations' => false,
         'prefixes' => ['%kernel.project_dir%'],
         'sample_rate' => 1,

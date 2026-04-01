@@ -4,6 +4,7 @@ sentry:
     options:
         integrations:
             - App\Sentry\Integration\FooIntegration
+            - Sentry\Integration\OTLPIntegration
         default_integrations: false
         prefixes:
             - '%kernel.project_dir%'

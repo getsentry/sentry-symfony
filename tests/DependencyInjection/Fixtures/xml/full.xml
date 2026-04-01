@@ -51,6 +51,7 @@
                         strict-trace-continuation="true"
         >
             <sentry:integration>App\Sentry\Integration\FooIntegration</sentry:integration>
+            <sentry:integration>Sentry\Integration\OTLPIntegration</sentry:integration>
             <sentry:trace-propagation-target>website.invalid</sentry:trace-propagation-target>
             <sentry:prefix>%kernel.project_dir%</sentry:prefix>
             <sentry:tag name="context">development</sentry:tag>

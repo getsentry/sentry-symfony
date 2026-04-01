@@ -317,6 +317,7 @@ abstract class SentryExtensionTest extends TestCase
         $integrationConfiguratorDefinition = $container->getDefinition(IntegrationConfigurator::class);
         $expectedIntegrations = [
             new Reference('App\\Sentry\\Integration\\FooIntegration'),
+            new Reference('Sentry\\Integration\\OTLPIntegration'),
         ];
 
         $this->assertSame(IntegrationConfigurator::class, $integrationConfiguratorDefinition->getClass());
