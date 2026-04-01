@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## 5.10.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.10.0.
+
+### Features
+
+- Add support for `strict_trace_continuation` and `org_id` to continue incoming traces only when they belong to the same Sentry organization. [(#1002)](https://github.com/getsentry/sentry-symfony/pull/1002)
+- Add `ConsoleInputSerializer` to capture console command arguments and options via `class_serializers`. [(#1007)](https://github.com/getsentry/sentry-symfony/pull/1007)
+- Add support for `log_flush_threshold` to flush logs once a configured batch size is reached. [(#1012)](https://github.com/getsentry/sentry-symfony/pull/1012)
+- Add support for `Sentry\Integration\OTLPIntegration`. [(#1014)](https://github.com/getsentry/sentry-symfony/pull/1014)
+- Add `tracing.dbal.ignore_prepare_spans` to suppress `db.sql.prepare` spans for prepared queries. [(#1016)](https://github.com/getsentry/sentry-symfony/pull/1016)
+- Isolate runtime context between HTTP requests on persistent workers, and add `messenger.isolate_context_by_message` to prevent scope, logs, and metrics data from leaking across messages. [(#997)](https://github.com/getsentry/sentry-symfony/pull/997)
+
+### Bug fixes
+
+- Remove the deprecated `traceparent` header. [(#1005)](https://github.com/getsentry/sentry-symfony/pull/1005)
+
+### Misc
+
+- Bump `sentry-php` version to `4.23.0`. [(#1012)](https://github.com/getsentry/sentry-symfony/pull/1012)
+
 ## 5.9.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.9.0.
