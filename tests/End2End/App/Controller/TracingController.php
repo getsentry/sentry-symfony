@@ -41,6 +41,20 @@ class TracingController
         return new Response('Success');
     }
 
+    public function pingPreparedDatabase(): Response
+    {
+        $this->hub->setSpan(
+            $this->hub->getSpan()
+                ->startChild($this->createSpan())
+        );
+
+        if ($this->connection) {
+            $this->connection->executeQuery('SELECT ?', [1]);
+        }
+
+        return new Response('Success');
+    }
+
     public function ignoredTransaction(): Response
     {
         $this->hub->setSpan(

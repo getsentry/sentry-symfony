@@ -52,6 +52,7 @@ final class ConfigurationTest extends TestCase
                 'enabled' => true,
                 'dbal' => [
                     'enabled' => class_exists(DoctrineBundle::class),
+                    'ignore_prepare_spans' => false,
                     'connections' => [],
                 ],
                 'twig' => [
@@ -305,6 +306,23 @@ final class ConfigurationTest extends TestCase
     }
 
     public function strictTraceContinuationOptionDataProvider(): \Generator
+    {
+        yield [true];
+        yield [false];
+    }
+
+    /**
+     * @dataProvider ignorePrepareSpansOptionDataProvider
+     */
+    public function testIgnorePrepareSpansOption(bool $value): void
+    {
+        /** @var array{tracing: array{dbal: array{ignore_prepare_spans: bool}}} $config */
+        $config = $this->processConfiguration(['tracing' => ['dbal' => ['ignore_prepare_spans' => $value]]]);
+
+        $this->assertSame($value, $config['tracing']['dbal']['ignore_prepare_spans']);
+    }
+
+    public function ignorePrepareSpansOptionDataProvider(): \Generator
     {
         yield [true];
         yield [false];

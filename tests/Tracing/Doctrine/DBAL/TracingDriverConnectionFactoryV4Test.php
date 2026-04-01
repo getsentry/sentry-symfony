@@ -64,6 +64,17 @@ final class TracingDriverConnectionFactoryV4Test extends DoctrineTestCase
         $this->assertEquals($expectedDriverConnection, $driverConnection);
     }
 
+    public function testCreateCanIgnorePrepareSpans(): void
+    {
+        $connection = $this->createMock(Connection::class);
+        $databasePlatform = $this->createMock(AbstractPlatform::class);
+        $tracingDriverConnectionFactory = new TracingDriverConnectionFactory($this->hub, true);
+        $driverConnection = $tracingDriverConnectionFactory->create($connection, $databasePlatform, []);
+        $expectedDriverConnection = new TracingDriverConnectionForV4($this->hub, $connection, 'other_sql', [], true);
+
+        $this->assertEquals($expectedDriverConnection, $driverConnection);
+    }
+
     public static function createDataProvider(): \Generator
     {
         yield [

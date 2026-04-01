@@ -42,6 +42,10 @@ tracing_ping_database:
   path: /tracing/ping-database
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::pingDatabase' }
 
+tracing_ping_prepared_database:
+  path: /tracing/ping-prepared-database
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::pingPreparedDatabase' }
+
 tracing_ignored_transaction:
   path: /tracing/ignored-transaction
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::ignoredTransaction' }
