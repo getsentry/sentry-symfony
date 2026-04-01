@@ -220,7 +220,7 @@ class End2EndTest extends WebTestCase
     {
         $this->skipIfMessengerIsMissing();
 
-        $client = static::createClient();
+        $client = static::createClient(['debug' => false]);
 
         $client->request('GET', '/dispatch-unrecoverable-message');
 
@@ -238,7 +238,7 @@ class End2EndTest extends WebTestCase
     {
         $this->skipIfMessengerIsMissing();
 
-        $client = static::createClient();
+        $client = static::createClient(['debug' => false]);
 
         $client->request('GET', '/dispatch-message');
 
@@ -256,7 +256,7 @@ class End2EndTest extends WebTestCase
     {
         $this->skipIfMessengerIsMissing();
 
-        $client = static::createClient();
+        $client = static::createClient(['debug' => false]);
 
         // Create two messages
         $client->request('GET', '/dispatch-unrecoverable-message');
