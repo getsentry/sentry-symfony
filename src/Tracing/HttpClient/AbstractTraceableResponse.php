@@ -48,12 +48,12 @@ abstract class AbstractTraceableResponse implements ResponseInterface
         }
     }
 
-    public function __sleep(): array
+    public function __serialize(): array
     {
         throw new \BadMethodCallException('Serializing instances of this class is forbidden.');
     }
 
-    public function __wakeup()
+    public function __unserialize(array $data)
     {
         throw new \BadMethodCallException('Unserializing instances of this class is forbidden.');
     }
