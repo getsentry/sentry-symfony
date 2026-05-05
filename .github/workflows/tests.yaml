@@ -112,7 +112,7 @@ jobs:
         run: composer remove spiral/roadrunner-http spiral/roadrunner-worker --dev --no-interaction --no-update
 
       - name: Install dependencies
-        uses: ramsey/composer-install@a8d0d959dab41457692a5e2041bd9b757a119e3f # v3
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v3
         with:
           dependency-versions: ${{ matrix.dependencies }}
           composer-options: --prefer-dist --no-security-blocking
@@ -173,7 +173,7 @@ jobs:
         run: composer remove doctrine/dbal doctrine/doctrine-bundle symfony/messenger symfony/twig-bundle symfony/cache symfony/http-client --dev --no-update
 
       - name: Install dependencies
-        uses: ramsey/composer-install@a8d0d959dab41457692a5e2041bd9b757a119e3f # v3
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v3
         with:
           dependency-versions: ${{ matrix.dependencies }}
           composer-options: --prefer-dist --no-security-blocking
