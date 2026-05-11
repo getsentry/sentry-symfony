@@ -1,0 +1,4 @@
+sentry:
+  options:
+    strict_trace_continuation: false
+    org_id: 1

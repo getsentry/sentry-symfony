@@ -1,0 +1,4 @@
+sentry:
+  options:
+    integrations:
+      - Sentry\Integration\OTLPIntegration

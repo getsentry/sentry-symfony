@@ -26,6 +26,10 @@ notice:
   path:  /notice
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::notice' }
 
+runtime_context:
+  path: /runtime-context
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::runtimeContext' }
+
 dispatch:
   path: /dispatch-message
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MessengerController::dispatchMessage' }
@@ -37,6 +41,10 @@ dispatch_unrecoverable:
 tracing_ping_database:
   path: /tracing/ping-database
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::pingDatabase' }
+
+tracing_ping_prepared_database:
+  path: /tracing/ping-prepared-database
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::pingPreparedDatabase' }
 
 tracing_ignored_transaction:
   path: /tracing/ignored-transaction

@@ -67,6 +67,17 @@ final class TracingDriverConnectionFactoryV3Test extends DoctrineTestCase
         $this->assertEquals($expectedDriverConnection, $driverConnection);
     }
 
+    public function testCreateCanIgnorePrepareSpans(): void
+    {
+        $connection = $this->createMock(Connection::class);
+        $databasePlatform = $this->createMock(AbstractPlatform::class);
+        $tracingDriverConnectionFactory = new TracingDriverConnectionFactory($this->hub, true);
+        $driverConnection = $tracingDriverConnectionFactory->create($connection, $databasePlatform, []);
+        $expectedDriverConnection = new TracingDriverConnectionForV2V3($this->hub, $connection, 'other_sql', [], true);
+
+        $this->assertEquals($expectedDriverConnection, $driverConnection);
+    }
+
     public static function createDataProvider(): \Generator
     {
         yield [
@@ -110,6 +121,16 @@ final class TracingDriverConnectionFactoryV3Test extends DoctrineTestCase
         $connection = $this->createMock(ServerInfoAwareConnectionStub::class);
         $driverConnection = $this->tracingDriverConnectionFactory->create($connection, $this->databasePlatform, []);
         $expectedDriverConnection = new TracingServerInfoAwareDriverConnection(new TracingDriverConnection($this->hub, $connection, 'other_sql', []));
+
+        $this->assertEquals($expectedDriverConnection, $driverConnection);
+    }
+
+    public function testCreateWithServerInfoAwareConnectionCanIgnorePrepareSpans(): void
+    {
+        $connection = $this->createMock(ServerInfoAwareConnectionStub::class);
+        $tracingDriverConnectionFactory = new TracingDriverConnectionFactory($this->hub, true);
+        $driverConnection = $tracingDriverConnectionFactory->create($connection, $this->databasePlatform, []);
+        $expectedDriverConnection = new TracingServerInfoAwareDriverConnection(new TracingDriverConnection($this->hub, $connection, 'other_sql', [], true));
 
         $this->assertEquals($expectedDriverConnection, $driverConnection);
     }

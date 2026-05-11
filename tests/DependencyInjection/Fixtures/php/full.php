@@ -9,7 +9,10 @@ $container->loadFromExtension('sentry', [
     'dsn' => 'https://examplePublicKey@o0.ingest.sentry.io/0',
     'logger' => 'app.logger',
     'options' => [
-        'integrations' => ['App\\Sentry\\Integration\\FooIntegration'],
+        'integrations' => [
+            'App\\Sentry\\Integration\\FooIntegration',
+            'Sentry\\Integration\\OTLPIntegration',
+        ],
         'default_integrations' => false,
         'prefixes' => ['%kernel.project_dir%'],
         'sample_rate' => 1,
@@ -18,6 +21,7 @@ $container->loadFromExtension('sentry', [
         'traces_sampler' => 'App\\Sentry\\Tracing\\TracesSampler',
         'profiles_sample_rate' => 1,
         'enable_logs' => true,
+        'log_flush_threshold' => 2,
         'attach_stacktrace' => true,
         'attach_metric_code_locations' => true,
         'context_lines' => 0,
@@ -26,6 +30,7 @@ $container->loadFromExtension('sentry', [
         'spotlight' => true,
         'spotlight_url' => 'http://localhost:8969',
         'release' => '4.0.x-dev',
+        'org_id' => 1,
         'server_name' => 'localhost',
         'ignore_exceptions' => ['Symfony\Component\HttpKernel\Exception\BadRequestHttpException'],
         'ignore_transactions' => ['GET tracing_ignored_transaction'],
@@ -35,6 +40,7 @@ $container->loadFromExtension('sentry', [
         'before_send_metrics' => 'App\\Sentry\\BeforeSendMetricsCallback',
         'before_send_log' => 'App\\Sentry\\BeforeSendLogsCallback',
         'trace_propagation_targets' => ['website.invalid'],
+        'strict_trace_continuation' => true,
         'tags' => [
             'context' => 'development',
         ],
@@ -61,6 +67,7 @@ $container->loadFromExtension('sentry', [
         'enabled' => true,
         'capture_soft_fails' => false,
         'isolate_breadcrumbs_by_message' => true,
+        'isolate_context_by_message' => true,
     ],
     'tracing' => [
         'dbal' => [

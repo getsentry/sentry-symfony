@@ -27,6 +27,7 @@ final class ConfigurationTest extends TestCase
             'options' => [
                 'integrations' => [],
                 'prefixes' => array_merge(['%kernel.project_dir%'], array_filter(explode(\PATH_SEPARATOR, get_include_path() ?: ''))),
+                'log_flush_threshold' => null,
                 'enable_metrics' => true,
                 'environment' => '%kernel.environment%',
                 'release' => '%env(default::SENTRY_RELEASE)%',
@@ -45,11 +46,13 @@ final class ConfigurationTest extends TestCase
                 'enabled' => interface_exists(MessageBusInterface::class),
                 'capture_soft_fails' => true,
                 'isolate_breadcrumbs_by_message' => false,
+                'isolate_context_by_message' => false,
             ],
             'tracing' => [
                 'enabled' => true,
                 'dbal' => [
                     'enabled' => class_exists(DoctrineBundle::class),
+                    'ignore_prepare_spans' => false,
                     'connections' => [],
                 ],
                 'twig' => [
@@ -265,6 +268,64 @@ final class ConfigurationTest extends TestCase
             1.01,
             'The value 1.01 is too big for path "sentry.options.profiles_sample_rate". Should be less than or equal to 1',
         ];
+    }
+
+    public function testOrgIdOption(): void
+    {
+        /** @var array{options: array{org_id: int}} $config */
+        $config = $this->processConfiguration(['options' => ['org_id' => 1]]);
+
+        $this->assertSame(1, $config['options']['org_id']);
+    }
+
+    public function testLogFlushThresholdOption(): void
+    {
+        /** @var array{options: array{log_flush_threshold: int}} $config */
+        $config = $this->processConfiguration(['options' => ['log_flush_threshold' => 2]]);
+
+        $this->assertSame(2, $config['options']['log_flush_threshold']);
+    }
+
+    public function testLogFlushThresholdOptionCanBeNull(): void
+    {
+        /** @var array{options: array{log_flush_threshold: null}} $config */
+        $config = $this->processConfiguration(['options' => ['log_flush_threshold' => null]]);
+
+        $this->assertNull($config['options']['log_flush_threshold']);
+    }
+
+    /**
+     * @dataProvider strictTraceContinuationOptionDataProvider
+     */
+    public function testStrictTraceContinuationOption(bool $value): void
+    {
+        /** @var array{options: array{strict_trace_continuation: bool}} $config */
+        $config = $this->processConfiguration(['options' => ['strict_trace_continuation' => $value]]);
+
+        $this->assertSame($value, $config['options']['strict_trace_continuation']);
+    }
+
+    public function strictTraceContinuationOptionDataProvider(): \Generator
+    {
+        yield [true];
+        yield [false];
+    }
+
+    /**
+     * @dataProvider ignorePrepareSpansOptionDataProvider
+     */
+    public function testIgnorePrepareSpansOption(bool $value): void
+    {
+        /** @var array{tracing: array{dbal: array{ignore_prepare_spans: bool}}} $config */
+        $config = $this->processConfiguration(['tracing' => ['dbal' => ['ignore_prepare_spans' => $value]]]);
+
+        $this->assertSame($value, $config['tracing']['dbal']['ignore_prepare_spans']);
+    }
+
+    public function ignorePrepareSpansOptionDataProvider(): \Generator
+    {
+        yield [true];
+        yield [false];
     }
 
     /**

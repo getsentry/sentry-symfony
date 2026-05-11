@@ -9,6 +9,7 @@ use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
+use Sentry\Integration\RequestFetcherInterface;
 use Sentry\Logger\DebugStdOutLogger;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
@@ -17,18 +18,22 @@ use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\LoginListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\EventListener\RequestListener;
+use Sentry\SentryBundle\EventListener\RuntimeContextListener;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
 use Sentry\SentryBundle\EventListener\TracingConsoleListener;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
 use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
 use Sentry\SentryBundle\Integration\IntegrationConfigurator;
 use Sentry\SentryBundle\SentryBundle;
+use Sentry\SentryBundle\Serializer\ConsoleInputSerializer;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
+use Sentry\State\HubInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Console\ConsoleEvents;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\DependencyInjection\Compiler\ResolveParameterPlaceHoldersPass;
 use Symfony\Component\DependencyInjection\Compiler\ResolveTaggedIteratorArgumentPass;
 use Symfony\Component\DependencyInjection\Compiler\ValidateEnvPlaceholdersPass;
@@ -149,6 +154,7 @@ abstract class SentryExtensionTest extends TestCase
 
         $this->assertFalse($definition->getArgument(1));
         $this->assertTrue($definition->getArgument(2));
+        $this->assertTrue($definition->getArgument(3));
     }
 
     public function testMessengerListenerIsRemovedWhenDisabled(): void
@@ -180,6 +186,34 @@ abstract class SentryExtensionTest extends TestCase
         ], $definition->getTags());
     }
 
+    public function testRuntimeContextListener(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+        $definition = $container->getDefinition(RuntimeContextListener::class);
+
+        $this->assertSame(RuntimeContextListener::class, $definition->getClass());
+        // Keep this dependency explicit: removing it can break runtime-context bootstrap
+        // in some long-running/no-optional package environments.
+        $this->assertEquals(new Reference(HubInterface::class), $definition->getArgument(0));
+        $this->assertSame([
+            'kernel.event_listener' => [
+                [
+                    'event' => KernelEvents::REQUEST,
+                    'method' => 'handleKernelRequestEvent',
+                    'priority' => 6,
+                ],
+                [
+                    'event' => KernelEvents::TERMINATE,
+                    'method' => 'handleKernelTerminateEvent',
+                    'priority' => -128,
+                ],
+            ],
+            'kernel.reset' => [
+                ['method' => 'reset'],
+            ],
+        ], $definition->getTags());
+    }
+
     public function testSubRequestListener(): void
     {
         $container = $this->createContainerFromFixture('full');
@@ -202,6 +236,16 @@ abstract class SentryExtensionTest extends TestCase
         ], $definition->getTags());
     }
 
+    public function testRequestFetcherIsResettable(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+        $definition = $container->getDefinition(RequestFetcherInterface::class);
+
+        $this->assertSame([
+            ['method' => 'reset'],
+        ], $definition->getTag('kernel.reset'));
+    }
+
     public function testClientIsCreatedFromOptions(): void
     {
         $container = $this->createContainerFromFixture('full');
@@ -217,6 +261,7 @@ abstract class SentryExtensionTest extends TestCase
             'traces_sampler' => new Reference('App\\Sentry\\Tracing\\TracesSampler'),
             'profiles_sample_rate' => 1,
             'enable_logs' => true,
+            'log_flush_threshold' => 2,
             'enable_metrics' => true,
             'attach_stacktrace' => true,
             'attach_metric_code_locations' => true,
@@ -226,6 +271,7 @@ abstract class SentryExtensionTest extends TestCase
             'spotlight' => true,
             'spotlight_url' => 'http://localhost:8969',
             'release' => '4.0.x-dev',
+            'org_id' => 1,
             'server_name' => 'localhost',
             'ignore_exceptions' => [
                 'Symfony\Component\HttpKernel\Exception\BadRequestHttpException',
@@ -239,6 +285,7 @@ abstract class SentryExtensionTest extends TestCase
             'before_send_metrics' => new Reference('App\\Sentry\\BeforeSendMetricsCallback'),
             'before_send_log' => new Reference('App\\Sentry\\BeforeSendLogsCallback'),
             'trace_propagation_targets' => ['website.invalid'],
+            'strict_trace_continuation' => true,
             'tags' => [
                 'context' => 'development',
             ],
@@ -270,6 +317,7 @@ abstract class SentryExtensionTest extends TestCase
         $integrationConfiguratorDefinition = $container->getDefinition(IntegrationConfigurator::class);
         $expectedIntegrations = [
             new Reference('App\\Sentry\\Integration\\FooIntegration'),
+            new Reference('Sentry\\Integration\\OTLPIntegration'),
         ];
 
         $this->assertSame(IntegrationConfigurator::class, $integrationConfiguratorDefinition->getClass());
@@ -302,6 +350,19 @@ abstract class SentryExtensionTest extends TestCase
 
         // 2048 is \E_STRICT which has been deprecated in PHP 8.4 so we should not reference it directly to prevent deprecation notices
         $this->assertSame(\E_ALL & ~(\E_NOTICE | 2048 | \E_DEPRECATED), $optionsDefinition->getArgument(0)['error_types']);
+    }
+
+    public function testConsoleInputSerializerIsRegisteredAndResolvesAsClassSerializer(): void
+    {
+        $container = $this->createContainerFromFixture('console_input_serializer');
+
+        $this->assertTrue($container->hasDefinition(ConsoleInputSerializer::class));
+
+        $optionsDefinition = $container->getDefinition('sentry.client.options');
+        $classSerializers = $optionsDefinition->getArgument(0)['class_serializers'];
+
+        $this->assertArrayHasKey(InputInterface::class, $classSerializers);
+        $this->assertEquals(new Reference(ConsoleInputSerializer::class), $classSerializers[InputInterface::class]);
     }
 
     /**
@@ -366,6 +427,19 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertTrue($container->hasDefinition(TracingDriverMiddleware::class));
         $this->assertTrue($container->hasDefinition(ConnectionConfigurator::class));
         $this->assertNotEmpty($container->getParameter('sentry.tracing.dbal.connections'));
+    }
+
+    public function testTracingDriverConnectionFactoryReceivesIgnorePrepareSpansFlag(): void
+    {
+        if (!class_exists(DoctrineBundle::class)) {
+            $this->expectException(\LogicException::class);
+            $this->expectExceptionMessage('DBAL tracing support cannot be enabled because the doctrine/doctrine-bundle Composer package is not installed.');
+        }
+
+        $container = $this->createContainerFromFixture('dbal_tracing_enabled');
+        $definition = $container->getDefinition('sentry.tracing.dbal.connection_factory');
+
+        $this->assertTrue($definition->getArgument(1));
     }
 
     public function testTracingDriverMiddlewareIsRemovedWhenDbalTracingIsDisabled(): void

@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\End2End\App\Controller;
 
+use Sentry\SentrySdk;
 use Sentry\State\HubInterface;
+use Sentry\State\Scope;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
@@ -75,5 +78,25 @@ class MainController
         $subRequest = $request->duplicate([], null, $path);
 
         return $this->kernel->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
+    }
+
+    public function runtimeContext(Request $request): JsonResponse
+    {
+        $requestTag = (string) $request->query->get('request', 'none');
+        $leakTag = $request->query->get('leak');
+
+        $this->sentry->configureScope(static function (Scope $scope) use ($requestTag, $leakTag): void {
+            $scope->setTag('runtime.request', $requestTag);
+
+            if (\is_string($leakTag) && '' !== $leakTag) {
+                $scope->setTag('runtime.leak', $leakTag);
+            }
+        });
+
+        $this->sentry->captureMessage('Runtime context check');
+
+        return new JsonResponse([
+            'runtime_context_id' => SentrySdk::getCurrentRuntimeContext()->getId(),
+        ]);
     }
 }

@@ -14,6 +14,7 @@
                         sample-rate="1"
                         enable-tracing="true"
                         enable-logs="true"
+                        log-flush-threshold="2"
                         traces-sample-rate="1"
                         traces-sampler="App\Sentry\Tracing\TracesSampler"
                         profiles-sample-rate="1"
@@ -25,6 +26,7 @@
                         spotlight="true"
                         spotlight-url="http://localhost:8969"
                         release="4.0.x-dev"
+                        org-id="1"
                         server-name="localhost"
                         before-send="App\Sentry\BeforeSendCallback"
                         before-send-transaction="App\Sentry\BeforeSendTransactionCallback"
@@ -46,8 +48,10 @@
                         http-compression="true"
                         capture-silenced-errors="true"
                         max-request-body-size="none"
+                        strict-trace-continuation="true"
         >
             <sentry:integration>App\Sentry\Integration\FooIntegration</sentry:integration>
+            <sentry:integration>Sentry\Integration\OTLPIntegration</sentry:integration>
             <sentry:trace-propagation-target>website.invalid</sentry:trace-propagation-target>
             <sentry:prefix>%kernel.project_dir%</sentry:prefix>
             <sentry:tag name="context">development</sentry:tag>
@@ -57,7 +61,7 @@
             <sentry:ignore-exception>Symfony\Component\HttpKernel\Exception\BadRequestHttpException</sentry:ignore-exception>
             <sentry:ignore-transaction>GET tracing_ignored_transaction</sentry:ignore-transaction>
         </sentry:options>
-        <sentry:messenger enabled="true" capture-soft-fails="false" isolate-breadcrumbs-by-message="true"/>
+        <sentry:messenger enabled="true" capture-soft-fails="false" isolate-breadcrumbs-by-message="true" isolate-context-by-message="true"/>
         <sentry:tracing>
             <sentry:dbal enabled="false">
                 <sentry:connection>default</sentry:connection>

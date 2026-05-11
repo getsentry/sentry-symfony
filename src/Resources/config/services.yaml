@@ -12,6 +12,13 @@ services:
     calls:
       - [bindClient, ['@Sentry\ClientInterface']]
 
+  Sentry\SentryBundle\EventListener\RuntimeContextListener:
+    arguments: ['@Sentry\State\HubInterface']
+    tags:
+      - { name: kernel.event_listener, event: kernel.request, method: handleKernelRequestEvent, priority: 6 }
+      - { name: kernel.event_listener, event: kernel.terminate, method: handleKernelTerminateEvent, priority: -128 }
+      - { name: kernel.reset, method: reset }
+
   Sentry\SentryBundle\EventListener\ConsoleListener:
     arguments: ['@Sentry\State\HubInterface']
     tags:
@@ -90,7 +97,7 @@ services:
 
   sentry.tracing.dbal.connection_factory:
     class: Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryForV2V3
-    arguments: ['@Sentry\State\HubInterface']
+    arguments: ['@Sentry\State\HubInterface', false]
 
   Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware:
     arguments: ['@Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactoryInterface']
@@ -116,14 +123,21 @@ services:
   Sentry\SentryBundle\Integration\IntegrationConfigurator:
     arguments: [ [], '' ]
 
+  Sentry\Integration\OTLPIntegration: ~
+
   Sentry\Integration\RequestFetcherInterface:
     class: Sentry\SentryBundle\Integration\RequestFetcher
     arguments:
       - '@Symfony\Component\HttpFoundation\RequestStack'
       - '@?Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface'
+    tags:
+      - { name: kernel.reset, method: reset }
 
   Sentry\SentryBundle\Twig\SentryExtension:
     tags:
       - { name: twig.extension }
+
+  # Serializers
+  Sentry\SentryBundle\Serializer\ConsoleInputSerializer: ~
 
 

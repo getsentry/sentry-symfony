@@ -7,6 +7,7 @@ namespace Sentry\SentryBundle\EventListener;
 use Sentry\Event;
 use Sentry\EventHint;
 use Sentry\ExceptionMechanism;
+use Sentry\SentrySdk;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
@@ -39,17 +40,24 @@ final class MessengerListener
     private $isolateBreadcrumbsByMessage;
 
     /**
+     * @var bool when this is enabled, each message is wrapped in its own runtime context
+     */
+    private $isolateContextByMessage;
+
+    /**
      * @param HubInterface $hub                         The current hub
      * @param bool         $captureSoftFails            Whether to capture errors thrown
      *                                                  while processing a message that
      *                                                  will be retried
      * @param bool         $isolateBreadcrumbsByMessage Whether messages should have isolated breadcrumbs
+     * @param bool         $isolateContextByMessage     Whether messages should have isolated runtime contexts
      */
-    public function __construct(HubInterface $hub, bool $captureSoftFails = true, bool $isolateBreadcrumbsByMessage = false)
+    public function __construct(HubInterface $hub, bool $captureSoftFails = true, bool $isolateBreadcrumbsByMessage = false, bool $isolateContextByMessage = false)
     {
         $this->hub = $hub;
         $this->captureSoftFails = $captureSoftFails;
         $this->isolateBreadcrumbsByMessage = $isolateBreadcrumbsByMessage;
+        $this->isolateContextByMessage = $isolateContextByMessage;
     }
 
     /**
@@ -59,8 +67,12 @@ final class MessengerListener
      */
     public function handleWorkerMessageFailedEvent(WorkerMessageFailedEvent $event): void
     {
+        $shouldFlushClient = true;
+
         try {
             if (!$this->captureSoftFails && $event->willRetry()) {
+                $shouldFlushClient = false;
+
                 return;
             }
 
@@ -80,14 +92,14 @@ final class MessengerListener
 
                 $this->captureException($exception, $event->willRetry());
             });
-
-            $this->flushClient();
         } finally {
             // We always want to pop the scope at the end of this method to add the breadcrumbs
             // to any potential event that is produced.
             if ($this->isolateBreadcrumbsByMessage) {
                 $this->hub->popScope();
             }
+
+            $this->finishMessageHandling($shouldFlushClient);
         }
     }
 
@@ -98,12 +110,11 @@ final class MessengerListener
      */
     public function handleWorkerMessageHandledEvent(WorkerMessageHandledEvent $event): void
     {
-        // Flush normally happens at shutdown... which only happens in the worker if it is run with a lifecycle limit
-        // such as --time=X or --limit=Y. Flush immediately in a background worker.
-        $this->flushClient();
         if ($this->isolateBreadcrumbsByMessage) {
             $this->hub->popScope();
         }
+
+        $this->finishMessageHandling(true);
     }
 
     /**
@@ -116,6 +127,10 @@ final class MessengerListener
      */
     public function handleWorkerMessageReceivedEvent(WorkerMessageReceivedEvent $event): void
     {
+        if ($this->isolateContextByMessage) {
+            SentrySdk::startContext();
+        }
+
         if ($this->isolateBreadcrumbsByMessage) {
             $this->hub->pushScope();
         }
@@ -154,6 +169,19 @@ final class MessengerListener
         ]);
 
         $this->hub->captureEvent(Event::createEvent(), $hint);
+    }
+
+    private function finishMessageHandling(bool $shouldFlushClient): void
+    {
+        if ($this->isolateContextByMessage) {
+            SentrySdk::endContext();
+
+            return;
+        }
+
+        if ($shouldFlushClient) {
+            $this->flushClient();
+        }
     }
 
     private function flushClient(): void

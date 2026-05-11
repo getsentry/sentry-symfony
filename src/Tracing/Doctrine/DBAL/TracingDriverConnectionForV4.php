@@ -65,12 +65,18 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
     private $spanData;
 
     /**
+     * @var bool Whether prepare spans should be ignored
+     */
+    private $ignorePrepareSpans;
+
+    /**
      * Constructor.
      *
      * @param HubInterface              $hub                 The current hub
      * @param DriverConnectionInterface $decoratedConnection The connection to decorate
      * @param string                    $databasePlatform    The name of the database platform
      * @param array<string, mixed>      $params              The connection params
+     * @param bool                      $ignorePrepareSpans  Whether prepare spans should be ignored
      *
      * @phpstan-param ConnectionParams $params
      */
@@ -78,11 +84,13 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
         HubInterface $hub,
         DriverConnectionInterface $decoratedConnection,
         string $databasePlatform,
-        array $params
+        array $params,
+        bool $ignorePrepareSpans = false
     ) {
         $this->hub = $hub;
         $this->decoratedConnection = $decoratedConnection;
         $this->spanData = $this->getSpanData($databasePlatform, $params);
+        $this->ignorePrepareSpans = $ignorePrepareSpans;
     }
 
     /**
@@ -90,9 +98,13 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
      */
     public function prepare($sql): Statement
     {
-        $statement = $this->traceFunction(self::SPAN_OP_CONN_PREPARE, $sql, function () use ($sql): Statement {
-            return $this->decoratedConnection->prepare($sql);
-        });
+        if ($this->ignorePrepareSpans) {
+            $statement = $this->decoratedConnection->prepare($sql);
+        } else {
+            $statement = $this->traceFunction(self::SPAN_OP_CONN_PREPARE, $sql, function () use ($sql): Statement {
+                return $this->decoratedConnection->prepare($sql);
+            });
+        }
 
         return new TracingStatement($this->hub, $statement, $sql, $this->spanData);
     }
