@@ -48,12 +48,12 @@ abstract class AbstractTraceableResponse implements ResponseInterface
         }
     }
 
-    public function __serialize(): array
+    public function __sleep(): array
     {
         throw new \BadMethodCallException('Serializing instances of this class is forbidden.');
     }
 
-    public function __unserialize(array $data)
+    public function __wakeup()
     {
         throw new \BadMethodCallException('Unserializing instances of this class is forbidden.');
     }
@@ -93,11 +93,11 @@ abstract class AbstractTraceableResponse implements ResponseInterface
     }
 
     /**
-     * @internal
-     *
      * @param iterable<AbstractTraceableResponse> $responses
      *
      * @return \Generator<AbstractTraceableResponse, ChunkInterface>
+     *
+     * @internal
      */
     public static function stream(HttpClientInterface $client, iterable $responses, ?float $timeout): \Generator
     {
