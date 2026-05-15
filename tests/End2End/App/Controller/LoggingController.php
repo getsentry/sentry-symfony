@@ -37,7 +37,7 @@ class LoggingController
         return new Response();
     }
 
-    public function loggingWithError()
+    public function loggingWithError(): void
     {
         $this->logger->emergency('Something is not right');
         $this->logger->error('About to crash');
