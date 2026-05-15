@@ -20,6 +20,8 @@ use Symfony\Bundle\TwigBundle\TwigBundle;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
 
+use function Sentry\continueTrace;
+
 final class SentryExtensionTest extends TestCase
 {
     public static function setUpBeforeClass(): void
@@ -121,6 +123,70 @@ final class SentryExtensionTest extends TestCase
         $hub->setSpan($transaction);
 
         $this->assertSame(\sprintf('<meta name="baggage" content="%s" />', $transaction->toBaggage()), $environment->render('foo.twig'));
+    }
+
+    public function testMetaFunctionsPreserveRegularPropagatedSdkValues(): void
+    {
+        $environment = new Environment(new ArrayLoader([
+            'foo.twig' => '{{ sentry_trace_meta() }}{{ sentry_baggage_meta() }}',
+        ]));
+        $environment->addExtension(new SentryExtension());
+
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->atLeastOnce())
+            ->method('getOptions')
+            ->willReturn(new Options([
+                'traces_sample_rate' => 1.0,
+                'release' => '1.0.0',
+                'environment' => 'development',
+            ]));
+
+        $hub = new Hub($client);
+
+        SentrySdk::setCurrentHub($hub);
+
+        $context = continueTrace(
+            'a3c01c41d7b94b90aee23edac90f4319-e69c2aef0ec34f2a-1',
+            'sentry-trace_id=a3c01c41d7b94b90aee23edac90f4319,sentry-public_key=public,sentry-sample_rate=1,sentry-release=1.0.0,sentry-environment=development'
+        );
+
+        $transaction = $hub->startTransaction($context);
+        $hub->setSpan($transaction);
+
+        $this->assertSame(
+            \sprintf('<meta name="sentry-trace" content="%s" />', $transaction->toTraceparent()) .
+            \sprintf('<meta name="baggage" content="%s" />', $transaction->toBaggage()),
+            $environment->render('foo.twig')
+        );
+    }
+
+    public function testBaggageMetaFunctionWithPropagatedBaggage(): void
+    {
+        $environment = new Environment(new ArrayLoader(['foo.twig' => '{{ sentry_baggage_meta() }}']));
+        $environment->addExtension(new SentryExtension());
+
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->atLeastOnce())
+            ->method('getOptions')
+            ->willReturn(new Options([
+                'traces_sample_rate' => 1.0,
+            ]));
+
+        $hub = new Hub($client);
+
+        SentrySdk::setCurrentHub($hub);
+
+        $context = continueTrace(
+            '566e3688a61d4bc888951642d6f14a19-566e3688a61d4bc8-1',
+            'sentry-environment=x"><script>alert(1)</script>&foo=\'bar\''
+        );
+
+        $hub->setSpan($hub->startTransaction($context));
+
+        $this->assertSame(
+            '<meta name="baggage" content="sentry-environment=x%22%3E%3Cscript%3Ealert%281%29%3C%2Fscript%3E%26foo%3D%27bar%27,sentry-sample_rate=1" />',
+            $environment->render('foo.twig')
+        );
     }
 
     private static function isTwigBundlePackageInstalled(): bool
