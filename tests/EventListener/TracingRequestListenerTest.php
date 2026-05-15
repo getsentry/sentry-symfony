@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
+use Sentry\SentryBundle\Integration\RequestFetcher;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\DynamicSamplingContext;
 use Sentry\Tracing\SpanId;
@@ -18,7 +19,9 @@ use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
 use Sentry\Tracing\TransactionSource;
 use Symfony\Bridge\PhpUnit\ClockMock;
+use Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
@@ -512,5 +515,34 @@ final class TracingRequestListenerTest extends TestCase
             new Request(),
             new Response()
         ));
+    }
+
+    public function testHandleKernelTerminateEventClearsRequestFetcherIfNoTransactionIsSetOnHub(): void
+    {
+        $requestStack = $this->createMock(RequestStack::class);
+        $httpMessageFactory = $this->createMock(HttpMessageFactoryInterface::class);
+        $requestFetcher = new RequestFetcher($requestStack, $httpMessageFactory);
+        $listener = new TracingRequestListener($this->hub, $requestFetcher);
+
+        $requestFetcher->setRequest(Request::create('https://www.example.com/manual'));
+
+        $this->hub->expects($this->once())
+            ->method('getTransaction')
+            ->willReturn(null);
+
+        $requestStack->expects($this->once())
+            ->method('getCurrentRequest')
+            ->willReturn(null);
+
+        $httpMessageFactory->expects($this->never())
+            ->method('createRequest');
+
+        $listener->handleKernelTerminateEvent(new TerminateEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            new Response()
+        ));
+
+        $this->assertNull($requestFetcher->fetchRequest());
     }
 }

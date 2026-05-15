@@ -90,15 +90,15 @@ final class TracingRequestListener extends AbstractTracingRequestListener
     {
         $transaction = $this->hub->getTransaction();
 
-        if (null === $transaction) {
-            return;
-        }
-
-        $transaction->finish();
-        metrics()->flush();
-
-        if ($this->requestFetcher instanceof RequestFetcher) {
-            $this->requestFetcher->setRequest(null);
+        try {
+            if (null !== $transaction) {
+                $transaction->finish();
+                metrics()->flush();
+            }
+        } finally {
+            if ($this->requestFetcher instanceof RequestFetcher) {
+                $this->requestFetcher->setRequest(null);
+            }
         }
     }
 
