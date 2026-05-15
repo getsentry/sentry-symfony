@@ -19,7 +19,7 @@ class MetricsRequestListener
      *
      * @return void
      */
-    public function handleKernelTerminateEvent(TerminateEvent $event)
+    public function handleKernelTerminateEvent(TerminateEvent $event): void
     {
         TraceMetrics::getInstance()->flush();
     }

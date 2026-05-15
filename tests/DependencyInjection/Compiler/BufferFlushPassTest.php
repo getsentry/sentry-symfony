@@ -46,7 +46,7 @@ class BufferFlushPassTest extends TestCase
      *
      * @return void
      */
-    public function testProcessWithMultipleHandlers()
+    public function testProcessWithMultipleHandlers(): void
     {
         $container = new ContainerBuilder();
         $container->setDefinition('sentry.handler', new Definition(SentryHandler::class));
@@ -65,7 +65,7 @@ class BufferFlushPassTest extends TestCase
      *
      * @return void
      */
-    public function testProcessWithoutSentryHandler()
+    public function testProcessWithoutSentryHandler(): void
     {
         $container = new ContainerBuilder();
         $container->setDefinition('null.handler', new Definition(NullHandler::class));
@@ -81,7 +81,7 @@ class BufferFlushPassTest extends TestCase
      *
      * @return void
      */
-    public function testProcessWithMultipleSentryHandlers()
+    public function testProcessWithMultipleSentryHandlers(): void
     {
         $container = new ContainerBuilder();
         $container->setDefinition('sentry.handler', new Definition(SentryHandler::class));
@@ -103,7 +103,7 @@ class BufferFlushPassTest extends TestCase
      *
      * @return void
      */
-    public function testProcessWithFakeSentryHandlers()
+    public function testProcessWithFakeSentryHandlers(): void
     {
         $container = new ContainerBuilder();
         $container->setDefinition('sentry.handler', new Definition(SentryHandler::class));
@@ -122,7 +122,7 @@ class BufferFlushPassTest extends TestCase
      *
      * @return void
      */
-    public function testProcessWithNamedArguments()
+    public function testProcessWithNamedArguments(): void
     {
         $container = new ContainerBuilder();
         $container->setDefinition('sentry.handler', new Definition(SentryHandler::class));

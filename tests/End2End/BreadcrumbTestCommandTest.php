@@ -42,7 +42,7 @@ class BreadcrumbTestCommandTest extends WebTestCase
      *
      * @return void
      */
-    public function testBreadcrumbWithConsoleListener()
+    public function testBreadcrumbWithConsoleListener(): void
     {
         try {
             // We need to run this by the application directly because the CommandTester doesn't produce proper events.
@@ -81,7 +81,7 @@ class BreadcrumbTestCommandTest extends WebTestCase
      *
      * @throws \Throwable
      */
-    public function testSubCommandBreadcrumbs()
+    public function testSubCommandBreadcrumbs(): void
     {
         // We need to run this by the application directly because the CommandTester doesn't produce proper events.
         $this->application->doRun(new ArgvInput(['bin/console', 'sentry:subcommand:test']), new NullOutput());
@@ -118,7 +118,7 @@ class BreadcrumbTestCommandTest extends WebTestCase
      *
      * @return void
      */
-    public function testCrashingSubcommand()
+    public function testCrashingSubcommand(): void
     {
         try {
             $this->application->doRun(new ArgvInput(['bin/console', 'sentry:subcommand:crash']), new NullOutput());
@@ -194,7 +194,7 @@ class BreadcrumbTestCommandTest extends WebTestCase
      *
      * @throws \Throwable
      */
-    public function testRunSecondCommandAfterCrashingCommand()
+    public function testRunSecondCommandAfterCrashingCommand(): void
     {
         try {
             // Run first command which crashes but is handled
@@ -227,7 +227,7 @@ class BreadcrumbTestCommandTest extends WebTestCase
      *
      * @throws \Throwable
      */
-    public function testBreadcrumbsAreAvailableAfterCommandTermination()
+    public function testBreadcrumbsAreAvailableAfterCommandTermination(): void
     {
         $this->application->doRun(new ArgvInput(['bin/console', 'sentry:dummy:test']), new NullOutput());
 

@@ -19,7 +19,7 @@ class LogRequestListener
      *
      * @return void
      */
-    public function handleKernelTerminateEvent(TerminateEvent $event)
+    public function handleKernelTerminateEvent(TerminateEvent $event): void
     {
         Logs::getInstance()->flush();
     }

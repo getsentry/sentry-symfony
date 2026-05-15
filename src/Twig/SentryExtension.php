@@ -37,7 +37,7 @@ final class SentryExtension extends AbstractExtension
      */
     public function getTraceMeta(): string
     {
-        return \sprintf('<meta name="sentry-trace" content="%s" />', getTraceparent());
+        return \sprintf('<meta name="sentry-trace" content="%s" />', self::escapeAttributeValue(getTraceparent()));
     }
 
     /**
@@ -55,6 +55,11 @@ final class SentryExtension extends AbstractExtension
      */
     public function getBaggageMeta(): string
     {
-        return \sprintf('<meta name="baggage" content="%s" />', getBaggage());
+        return \sprintf('<meta name="baggage" content="%s" />', self::escapeAttributeValue(getBaggage()));
+    }
+
+    private static function escapeAttributeValue(string $value): string
+    {
+        return htmlspecialchars($value, \ENT_QUOTES | \ENT_SUBSTITUTE, 'UTF-8');
     }
 }
