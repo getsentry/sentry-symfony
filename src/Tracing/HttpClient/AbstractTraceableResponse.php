@@ -93,11 +93,11 @@ abstract class AbstractTraceableResponse implements ResponseInterface
     }
 
     /**
-     * @internal
-     *
      * @param iterable<AbstractTraceableResponse> $responses
      *
      * @return \Generator<AbstractTraceableResponse, ChunkInterface>
+     *
+     * @internal
      */
     public static function stream(HttpClientInterface $client, iterable $responses, ?float $timeout): \Generator
     {
