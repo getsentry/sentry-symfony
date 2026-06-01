@@ -3,8 +3,9 @@ sentry:
   tracing:
     enabled: true
   options:
+    before_send: 'sentry.callback.before_send'
     capture_silenced_errors: true
-    error_types: E_ALL & ~E_USER_DEPRECATED
+    error_types: E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED
     traces_sample_rate: 0
     ignore_exceptions:
       - 'Symfony\Component\HttpKernel\Exception\BadRequestHttpException'
@@ -29,6 +30,13 @@ services:
     public: true
 
   Sentry\SentryBundle\Tests\End2End\StubTransport: ~
+
+  Sentry\SentryBundle\Tests\End2End\App\Callback\IgnoreSilencedDeprecationBeforeSendCallback:
+    autowire: true
+
+  sentry.callback.before_send:
+    class: 'Sentry\SentryBundle\Tests\End2End\App\Callback\IgnoreSilencedDeprecationBeforeSendCallback'
+    factory: ['@Sentry\SentryBundle\Tests\End2End\App\Callback\IgnoreSilencedDeprecationBeforeSendCallback', 'getCallback']
 
   Sentry\SentryBundle\Tests\End2End\App\Controller\MainController:
     autowire: true

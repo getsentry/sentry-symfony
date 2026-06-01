@@ -8,6 +8,7 @@ use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\DB2Platform;
+use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
@@ -78,7 +79,7 @@ final class TracingDriverConnectionFactoryV2Test extends DoctrineTestCase
     public static function createDataProvider(): \Generator
     {
         yield [
-            AbstractMySQLPlatform::class,
+            class_exists(AbstractMySQLPlatform::class) ? AbstractMySQLPlatform::class : MySqlPlatform::class,
             'mysql',
         ];
 
@@ -93,7 +94,7 @@ final class TracingDriverConnectionFactoryV2Test extends DoctrineTestCase
         ];
 
         yield [
-            PostgreSQLPlatform::class,
+            class_exists(PostgreSQLPlatform::class) ? PostgreSQLPlatform::class : 'Doctrine\\DBAL\\Platforms\\PostgreSqlPlatform',
             'postgresql',
         ];
 

@@ -32,6 +32,7 @@ jobs:
           - '8.2'
           - '8.3'
           - '8.4'
+          - '8.5'
         symfony-version:
           - 4.4.*
           - 5.*
@@ -58,6 +59,8 @@ jobs:
           - php: '8.1'
             symfony-version: 7.*
           - php: '8.4'
+            symfony-version: 4.4.*
+          - php: '8.5'
             symfony-version: 4.4.*
           - php: '7.2'
             symfony-version: 8.*
@@ -86,6 +89,9 @@ jobs:
           - php: '8.2'
             symfony-version: 7.*
             dependencies: lowest
+          - php: '8.4'
+            symfony-version: 8.*
+            dependencies: lowest
 
     steps:
       - name: Checkout
@@ -110,6 +116,10 @@ jobs:
       - name: Remove RoadRunner dependencies on unsupported PHP versions
         if: ${{ runner.os == 'Windows' || matrix.php == '7.2' || matrix.php == '7.3' || matrix.php == '7.4' || matrix.php == '8.0' }}
         run: composer remove spiral/roadrunner-http spiral/roadrunner-worker --dev --no-interaction --no-update
+
+      - name: Use PHPUnit 9 for lowest dependencies on newer PHP versions
+        if: ${{ matrix.dependencies == 'lowest' && matrix.php != '7.2' }}
+        run: composer require phpunit/phpunit:^9.6.34 --dev --no-interaction --no-update
 
       - name: Install dependencies
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v3
@@ -171,6 +181,10 @@ jobs:
 
       - name: Remove optional packages
         run: composer remove doctrine/dbal doctrine/doctrine-bundle symfony/messenger symfony/twig-bundle symfony/cache symfony/http-client --dev --no-update
+
+      - name: Use PHPUnit 9 for lowest dependencies on newer PHP versions
+        if: ${{ matrix.dependencies == 'lowest' && matrix.php != '7.2' }}
+        run: composer require phpunit/phpunit:^9.6.34 --dev --no-interaction --no-update
 
       - name: Install dependencies
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v3
