@@ -166,10 +166,15 @@ class End2EndTest extends WebTestCase
             $this->assertSame(500, $response->getStatusCode());
             $this->assertStringNotContainsString('not happen', $response->getContent() ?: '');
         } catch (\RuntimeException $exception) {
-            $this->assertStringContainsStringIgnoringCase('error', $exception->getMessage());
-            $this->assertStringContainsStringIgnoringCase('contains 1 abstract method', $exception->getMessage());
-            $this->assertStringContainsStringIgnoringCase('MainController.php', $exception->getMessage());
-            $this->assertStringContainsStringIgnoringCase('eval()\'d code on line', $exception->getMessage());
+            $message = $exception->getMessage();
+
+            $this->assertStringContainsStringIgnoringCase('error', $message);
+            $this->assertTrue(
+                false !== stripos($message, 'contains 1 abstract method') || false !== stripos($message, 'must implement 1 abstract method'),
+                \sprintf('Failed asserting that the exception message contains an abstract method error. Message: %s', $message)
+            );
+            $this->assertStringContainsStringIgnoringCase('MainController.php', $message);
+            $this->assertStringContainsStringIgnoringCase('eval()\'d code on line', $message);
         }
 
         $this->assertEventCount(1);
