@@ -81,7 +81,9 @@ final class TraceableTagAwareCacheAdapterTest extends AbstractTraceableCacheAdap
         $this->assertNotSame($adapter, $result);
 
         $ref = new \ReflectionProperty($result, 'decoratedAdapter');
-        $ref->setAccessible(true);
+        if (\PHP_VERSION_ID < 80100) {
+            $ref->setAccessible(true);
+        }
 
         $this->assertEquals($namespacedAdapter, $ref->getValue($result));
     }

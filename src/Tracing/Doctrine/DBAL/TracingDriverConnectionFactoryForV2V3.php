@@ -9,6 +9,7 @@ use Doctrine\DBAL\Driver\ServerInfoAwareConnection;
 use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\DB2Platform;
+use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
@@ -67,6 +68,7 @@ final class TracingDriverConnectionFactoryForV2V3 implements TracingDriverConnec
         // https://github.com/open-telemetry/opentelemetry-specification/blob/33113489fb5a1b6da563abb4ffa541447b87f515/specification/trace/semantic_conventions/database.md#connection-level-attributes
         switch (true) {
             case $databasePlatform instanceof AbstractMySQLPlatform:
+            case $databasePlatform instanceof MySqlPlatform:
                 return 'mysql';
 
             case $databasePlatform instanceof DB2Platform:
