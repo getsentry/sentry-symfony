@@ -32,6 +32,7 @@ jobs:
           - '8.2'
           - '8.3'
           - '8.4'
+          - '8.5'
         symfony-version:
           - 4.4.*
           - 5.*
@@ -59,6 +60,8 @@ jobs:
             symfony-version: 7.*
           - php: '8.4'
             symfony-version: 4.4.*
+          - php: '8.5'
+            symfony-version: 4.4.*
           - php: '7.2'
             symfony-version: 8.*
           - php: '7.3'
@@ -85,6 +88,9 @@ jobs:
             dependencies: lowest
           - php: '8.2'
             symfony-version: 7.*
+            dependencies: lowest
+          - php: '8.4'
+            symfony-version: 8.*
             dependencies: lowest
 
     steps:
