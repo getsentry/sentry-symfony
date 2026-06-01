@@ -77,7 +77,7 @@ services:
   Sentry\SentryBundle\EventListener\LoginListener:
     arguments:
       - '@Sentry\State\HubInterface'
-      - '@?security.token_storage'
+      - '@?security.untracked_token_storage'
     tags:
       - { name: kernel.event_listener, event: kernel.request, method: handleKernelRequestEvent }
 
