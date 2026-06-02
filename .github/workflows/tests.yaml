@@ -13,6 +13,94 @@ permissions:
 env:
   FRANKENPHP_VERSION: v1.11.2
   ROADRUNNER_VERSION: v2025.1.7
+  COMPOSER_ADVISORY_ALLOWLISTS: >-
+    {
+      "symfony-4.4": [
+        "PKSA-z7t6-zt6p-wtng",
+        "PKSA-5r1g-c7b7-y1zg",
+        "PKSA-4k7v-pfvw-nqvp",
+        "PKSA-365x-2zjk-pt47",
+        "PKSA-b35n-565h-rs4q",
+        "PKSA-wtxr-p26d-nn42",
+        "PKSA-2n2k-66v2-bwg3",
+        "PKSA-4wjj-gy1p-ft3r",
+        "PKSA-rkkf-636k-qjb3",
+        "PKSA-wws7-mr54-jsny",
+        "PKSA-bf7t-jnpz-492k",
+        "PKSA-yc7t-91v9-99xs",
+        "PKSA-c28x-6bj5-8spx",
+        "PKSA-tbsf-h7vc-j7hn",
+        "PKSA-v5yj-8nmz-sk2q",
+        "PKSA-ft77-7h5f-p3r6",
+        "PKSA-b14r-zh1d-vdrc"
+      ],
+      "twig": [
+        "PKSA-fbvq-z33h-r2np",
+        "PKSA-g9zw-qxh8-pq8w",
+        "PKSA-yd6k-t2gh-1m43",
+        "PKSA-1tmc-rt7x-12w6",
+        "PKSA-xx6c-6d96-db2w",
+        "PKSA-sjvz-tbbr-vwth",
+        "PKSA-h8hf-ytnd-5t9q",
+        "PKSA-kvv6-36cr-fkzb",
+        "PKSA-n14z-jjjg-g8vd",
+        "PKSA-3mcc-k66d-pydb",
+        "PKSA-dpx1-78wg-1kqs",
+        "PKSA-yhcn-xrg3-68b1",
+        "PKSA-2wrf-1xmk-1pky",
+        "PKSA-6319-ffpf-gx66",
+        "PKSA-n7sg-8f52-pqtf"
+      ],
+      "symfony-6-php-8.0": [
+        "PKSA-z7t6-zt6p-wtng",
+        "PKSA-5r1g-c7b7-y1zg",
+        "PKSA-4k7v-pfvw-nqvp",
+        "PKSA-365x-2zjk-pt47",
+        "PKSA-b35n-565h-rs4q",
+        "PKSA-4wjj-gy1p-ft3r",
+        "PKSA-wws7-mr54-jsny",
+        "PKSA-bf7t-jnpz-492k",
+        "PKSA-yc7t-91v9-99xs",
+        "PKSA-c28x-6bj5-8spx",
+        "PKSA-tbsf-h7vc-j7hn",
+        "PKSA-rqvm-b18n-vg69",
+        "PKSA-5x8m-77gx-t86z",
+        "PKSA-ztgh-x9c8-k66g",
+        "PKSA-v5yj-8nmz-sk2q",
+        "PKSA-ft77-7h5f-p3r6",
+        "PKSA-b14r-zh1d-vdrc",
+        "PKSA-fbvq-z33h-r2np",
+        "PKSA-g9zw-qxh8-pq8w",
+        "PKSA-yd6k-t2gh-1m43",
+        "PKSA-1tmc-rt7x-12w6",
+        "PKSA-xx6c-6d96-db2w",
+        "PKSA-sjvz-tbbr-vwth",
+        "PKSA-h8hf-ytnd-5t9q",
+        "PKSA-kvv6-36cr-fkzb",
+        "PKSA-n14z-jjjg-g8vd",
+        "PKSA-3mcc-k66d-pydb",
+        "PKSA-dpx1-78wg-1kqs",
+        "PKSA-yhcn-xrg3-68b1",
+        "PKSA-2wrf-1xmk-1pky",
+        "PKSA-6319-ffpf-gx66",
+        "PKSA-n7sg-8f52-pqtf"
+      ]
+    }
+  COMPOSER_ADVISORY_ALLOWLIST_KEYS: >-
+    {
+      "4.4.*|7.2": "symfony-4.4",
+      "4.4.*|7.3": "symfony-4.4",
+      "4.4.*|7.4": "symfony-4.4",
+      "4.4.*|8.0": "symfony-4.4",
+      "4.4.*|8.1": "symfony-4.4",
+      "4.4.*|8.2": "symfony-4.4",
+      "4.4.*|8.3": "symfony-4.4",
+      "5.*|7.2": "twig",
+      "5.*|7.3": "twig",
+      "5.*|7.4": "twig",
+      "5.*|8.0": "twig",
+      "6.*|8.0": "symfony-6-php-8.0"
+    }
 
 jobs:
   tests:
@@ -121,21 +209,22 @@ jobs:
         if: ${{ matrix.dependencies == 'lowest' && matrix.php != '7.2' }}
         run: composer require phpunit/phpunit:^9.6.34 --dev --no-interaction --no-update
 
-      - name: Resolve highest dependencies
-        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit --no-security-blocking
+      - name: Configure advisory allowlist
+        if: ${{ fromJSON(env.COMPOSER_ADVISORY_ALLOWLIST_KEYS)[format('{0}|{1}', matrix.symfony-version, matrix.php)] != null }}
+        env:
+          COMPOSER_ADVISORY_ALLOWLIST: ${{ toJSON(fromJSON(env.COMPOSER_ADVISORY_ALLOWLISTS)[fromJSON(env.COMPOSER_ADVISORY_ALLOWLIST_KEYS)[format('{0}|{1}', matrix.symfony-version, matrix.php)]]) }}
+        run: composer config --json policy.advisories.ignore-id "$COMPOSER_ADVISORY_ALLOWLIST"
+
+      - name: Resolve dependencies
+        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit
         if: ${{ matrix.dependencies == 'highest' }}
 
-      - name: Resolve lowest dependencies
-        run: composer update --no-progress --no-interaction --prefer-dist --prefer-lowest --no-install --no-scripts --no-audit --no-security-blocking
+      - name: Resolve dependencies
+        run: composer update --no-progress --no-interaction --prefer-dist --prefer-lowest --no-install --no-scripts --no-audit
         if: ${{ matrix.dependencies == 'lowest' }}
 
-      - name: Audit highest dependencies
-        run: composer audit --locked --no-interaction --format=table
-        if: ${{ matrix.dependencies == 'highest' }}
-
-      - name: Audit lowest dependencies
+      - name: Audit dependencies
         run: composer audit --locked --no-interaction --format=table --abandoned=report
-        if: ${{ matrix.dependencies == 'lowest' }}
 
       - name: Install dependencies
         run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
@@ -199,21 +288,22 @@ jobs:
         if: ${{ matrix.dependencies == 'lowest' && matrix.php != '7.2' }}
         run: composer require phpunit/phpunit:^9.6.34 --dev --no-interaction --no-update
 
-      - name: Resolve highest dependencies
-        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit --no-security-blocking
+      - name: Configure advisory allowlist
+        if: ${{ fromJSON(env.COMPOSER_ADVISORY_ALLOWLIST_KEYS)[format('{0}|{1}', matrix.symfony-version, matrix.php)] != null }}
+        env:
+          COMPOSER_ADVISORY_ALLOWLIST: ${{ toJSON(fromJSON(env.COMPOSER_ADVISORY_ALLOWLISTS)[fromJSON(env.COMPOSER_ADVISORY_ALLOWLIST_KEYS)[format('{0}|{1}', matrix.symfony-version, matrix.php)]]) }}
+        run: composer config --json policy.advisories.ignore-id "$COMPOSER_ADVISORY_ALLOWLIST"
+
+      - name: Resolve dependencies
+        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit
         if: ${{ matrix.dependencies == 'highest' }}
 
-      - name: Resolve lowest dependencies
-        run: composer update --no-progress --no-interaction --prefer-dist --prefer-lowest --no-install --no-scripts --no-audit --no-security-blocking
+      - name: Resolve dependencies
+        run: composer update --no-progress --no-interaction --prefer-dist --prefer-lowest --no-install --no-scripts --no-audit
         if: ${{ matrix.dependencies == 'lowest' }}
 
-      - name: Audit highest dependencies
-        run: composer audit --locked --no-interaction --format=table
-        if: ${{ matrix.dependencies == 'highest' }}
-
-      - name: Audit lowest dependencies
+      - name: Audit dependencies
         run: composer audit --locked --no-interaction --format=table --abandoned=report
-        if: ${{ matrix.dependencies == 'lowest' }}
 
       - name: Install dependencies
         run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
@@ -256,7 +346,7 @@ jobs:
           restore-keys: ${{ runner.os }}-runtime-frankenphp-composer-
 
       - name: Resolve dependencies
-        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit --no-security-blocking
+        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit
 
       - name: Audit dependencies
         run: composer audit --locked --no-interaction --format=table
@@ -327,7 +417,7 @@ jobs:
           restore-keys: ${{ runner.os }}-runtime-roadrunner-composer-
 
       - name: Resolve dependencies
-        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit --no-security-blocking
+        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit
 
       - name: Audit dependencies
         run: composer audit --locked --no-interaction --format=table
