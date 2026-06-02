@@ -121,11 +121,24 @@ jobs:
         if: ${{ matrix.dependencies == 'lowest' && matrix.php != '7.2' }}
         run: composer require phpunit/phpunit:^9.6.34 --dev --no-interaction --no-update
 
+      - name: Resolve highest dependencies
+        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit --no-security-blocking
+        if: ${{ matrix.dependencies == 'highest' }}
+
+      - name: Resolve lowest dependencies
+        run: composer update --no-progress --no-interaction --prefer-dist --prefer-lowest --no-install --no-scripts --no-audit --no-security-blocking
+        if: ${{ matrix.dependencies == 'lowest' }}
+
+      - name: Audit highest dependencies
+        run: composer audit --locked --no-interaction --format=table
+        if: ${{ matrix.dependencies == 'highest' }}
+
+      - name: Audit lowest dependencies
+        run: composer audit --locked --no-interaction --format=table --abandoned=report
+        if: ${{ matrix.dependencies == 'lowest' }}
+
       - name: Install dependencies
-        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v3
-        with:
-          dependency-versions: ${{ matrix.dependencies }}
-          composer-options: --prefer-dist --no-security-blocking
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
 
       - name: Run tests
         run: vendor/bin/phpunit --coverage-clover=build/coverage-report.xml
@@ -186,11 +199,24 @@ jobs:
         if: ${{ matrix.dependencies == 'lowest' && matrix.php != '7.2' }}
         run: composer require phpunit/phpunit:^9.6.34 --dev --no-interaction --no-update
 
+      - name: Resolve highest dependencies
+        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit --no-security-blocking
+        if: ${{ matrix.dependencies == 'highest' }}
+
+      - name: Resolve lowest dependencies
+        run: composer update --no-progress --no-interaction --prefer-dist --prefer-lowest --no-install --no-scripts --no-audit --no-security-blocking
+        if: ${{ matrix.dependencies == 'lowest' }}
+
+      - name: Audit highest dependencies
+        run: composer audit --locked --no-interaction --format=table
+        if: ${{ matrix.dependencies == 'highest' }}
+
+      - name: Audit lowest dependencies
+        run: composer audit --locked --no-interaction --format=table --abandoned=report
+        if: ${{ matrix.dependencies == 'lowest' }}
+
       - name: Install dependencies
-        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v3
-        with:
-          dependency-versions: ${{ matrix.dependencies }}
-          composer-options: --prefer-dist --no-security-blocking
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
 
       - name: Run tests
         run: vendor/bin/phpunit --coverage-clover=build/coverage-report.xml
@@ -229,8 +255,14 @@ jobs:
           key: ${{ runner.os }}-runtime-frankenphp-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-runtime-frankenphp-composer-
 
+      - name: Resolve dependencies
+        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit --no-security-blocking
+
+      - name: Audit dependencies
+        run: composer audit --locked --no-interaction --format=table
+
       - name: Install dependencies
-        run: composer install --no-progress --no-interaction --prefer-dist
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
 
       - name: Install FrankenPHP
         env:
@@ -294,8 +326,14 @@ jobs:
           key: ${{ runner.os }}-runtime-roadrunner-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-runtime-roadrunner-composer-
 
+      - name: Resolve dependencies
+        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit --no-security-blocking
+
+      - name: Audit dependencies
+        run: composer audit --locked --no-interaction --format=table
+
       - name: Install dependencies
-        run: composer install --no-progress --no-interaction --prefer-dist
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
 
       - name: Install RoadRunner
         env:

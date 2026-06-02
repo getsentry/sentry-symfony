@@ -22,12 +22,16 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@728c6c6b8cf02c2e48117716a91ee48313958a19 # v2
         with:
-          php-version: '8.3'
+          php-version: '8.5'
+
+      - name: Resolve dependencies
+        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit --no-security-blocking
+
+      - name: Audit dependencies
+        run: composer audit --locked --no-interaction --format=table
 
       - name: Install dependencies
-        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v3
-        with:
-          composer-options: --prefer-dist
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
 
       - name: Run script
         run: vendor/bin/php-cs-fixer fix --verbose --diff --dry-run
@@ -42,12 +46,16 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@728c6c6b8cf02c2e48117716a91ee48313958a19 # v2
         with:
-          php-version: '8.3'
+          php-version: '8.5'
+
+      - name: Resolve dependencies
+        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit --no-security-blocking
+
+      - name: Audit dependencies
+        run: composer audit --locked --no-interaction --format=table
 
       - name: Install dependencies
-        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v3
-        with:
-          composer-options: --prefer-dist
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
 
       - name: Run script
         run: vendor/bin/phpstan analyse
@@ -62,12 +70,16 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@728c6c6b8cf02c2e48117716a91ee48313958a19 # v2
         with:
-          php-version: '8.3'
+          php-version: '8.5'
+
+      - name: Resolve dependencies
+        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit --no-security-blocking
+
+      - name: Audit dependencies
+        run: composer audit --locked --no-interaction --format=table
 
       - name: Install dependencies
-        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v3
-        with:
-          composer-options: --prefer-dist
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
 
       - name: Run script
         run: vendor/bin/psalm --php-version=8.0
