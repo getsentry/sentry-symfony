@@ -24,10 +24,14 @@ jobs:
         with:
           php-version: '8.3'
 
+      - name: Resolve dependencies
+        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit
+
+      - name: Audit dependencies
+        run: composer audit --locked --no-interaction --format=table --abandoned=report
+
       - name: Install dependencies
-        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v3
-        with:
-          composer-options: --prefer-dist
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
 
       - name: Run script
         run: vendor/bin/php-cs-fixer fix --verbose --diff --dry-run
@@ -44,10 +48,14 @@ jobs:
         with:
           php-version: '8.3'
 
+      - name: Resolve dependencies
+        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit
+
+      - name: Audit dependencies
+        run: composer audit --locked --no-interaction --format=table --abandoned=report
+
       - name: Install dependencies
-        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v3
-        with:
-          composer-options: --prefer-dist
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
 
       - name: Run script
         run: vendor/bin/phpstan analyse
@@ -64,10 +72,14 @@ jobs:
         with:
           php-version: '8.3'
 
+      - name: Resolve dependencies
+        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit
+
+      - name: Audit dependencies
+        run: composer audit --locked --no-interaction --format=table --abandoned=report
+
       - name: Install dependencies
-        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v3
-        with:
-          composer-options: --prefer-dist
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
 
       - name: Run script
         run: vendor/bin/psalm --php-version=8.0
