@@ -176,6 +176,12 @@ jobs:
         if: ${{ matrix.dependencies == 'lowest' && matrix.php != '7.2' }}
         run: composer require phpunit/phpunit:^9.6.34 --dev --no-interaction --no-update
 
+        # The following tasks add security advisories to the allowlist to allow proper composer resolution
+        # They are as strict as possible and bound to particular versions so that we only ignore a well known set.
+        # If new ones appear, they will fail CI and will require investigation
+        # The rationale behind that is that we don't want to ignore them for all versions and instead only
+        # ignore them if absolutely necessary for resolution so that composer can select versions without security
+        # concerns if available
       - name: Configure common Symfony advisory allowlist
         if: ${{ matrix.symfony-version == '4.4.*' || (matrix.symfony-version == '5.*' && matrix.php == '7.2' && matrix.dependencies == 'lowest') || (matrix.symfony-version == '6.*' && matrix.php == '8.0') }}
         run: composer config --merge --json policy.advisories.ignore-id "$COMPOSER_ADVISORY_SYMFONY_COMMON"
@@ -199,6 +205,8 @@ jobs:
       - name: Configure Twig advisory allowlist
         if: ${{ contains(fromJSON('["4.4.*","5.*","6.*"]'), matrix.symfony-version) && contains(fromJSON('["7.2","7.3","7.4","8.0"]'), matrix.php) }}
         run: composer config --merge --json policy.advisories.ignore-id "$COMPOSER_ADVISORY_TWIG"
+
+      # End of security advisory tasks
 
       - name: Resolve dependencies
         run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit
