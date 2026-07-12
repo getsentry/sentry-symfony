@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+### Bug fixes
+
+- Start the runtime context before the router and the security firewall (`kernel.request` priority `512` instead of `6`). Log records emitted by those listeners (e.g. "Matched route", authenticator messages) become breadcrumbs on the shared base hub before the context starts; since every runtime context clones the base hub's scope, they leaked across requests on persistent workers (FrankenPHP, RoadRunner). [(#1043)](https://github.com/getsentry/sentry-symfony/pull/1043)
+
 ## 5.10.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.10.0.

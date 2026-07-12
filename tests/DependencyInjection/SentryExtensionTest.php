@@ -200,7 +200,7 @@ abstract class SentryExtensionTest extends TestCase
                 [
                     'event' => KernelEvents::REQUEST,
                     'method' => 'handleKernelRequestEvent',
-                    'priority' => 6,
+                    'priority' => 512,
                 ],
                 [
                     'event' => KernelEvents::TERMINATE,
