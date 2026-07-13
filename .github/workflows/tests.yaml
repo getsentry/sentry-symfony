@@ -359,7 +359,7 @@ jobs:
         shell: bash
 
       - name: Cache Composer dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.composer-cache.outputs.directory }}
           key: ${{ runner.os }}-runtime-frankenphp-composer-${{ hashFiles('**/composer.lock') }}
@@ -430,7 +430,7 @@ jobs:
         shell: bash
 
       - name: Cache Composer dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.composer-cache.outputs.directory }}
           key: ${{ runner.os }}-runtime-roadrunner-composer-${{ hashFiles('**/composer.lock') }}
