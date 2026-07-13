@@ -43,6 +43,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\EnvPlaceholderParameterBa
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\TraceableHttpClient;
+use Symfony\Component\HttpKernel\EventListener\RouterListener;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
@@ -212,6 +213,32 @@ abstract class SentryExtensionTest extends TestCase
                 ['method' => 'reset'],
             ],
         ], $definition->getTags());
+    }
+
+    /**
+     * The runtime context must start before any listener that can write to the hub,
+     * e.g. the router (priority 32) and the security firewall (priority 8) emit log
+     * records that monolog integrations turn into breadcrumbs. Before the context
+     * starts these land on the shared base hub, whose scope is cloned into every new
+     * context - on persistent workers they would leak across requests.
+     */
+    public function testRuntimeContextListenerStartsBeforeAnyListenerThatCanEmitLogs(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+        $tags = $container->getDefinition(RuntimeContextListener::class)->getTag('kernel.event_listener');
+
+        $requestPriority = null;
+
+        foreach ($tags as $attributes) {
+            if (KernelEvents::REQUEST === ($attributes['event'] ?? null)) {
+                $requestPriority = $attributes['priority'];
+            }
+        }
+
+        $routerListenerPriority = RouterListener::getSubscribedEvents()[KernelEvents::REQUEST][0][1];
+
+        $this->assertNotNull($requestPriority);
+        $this->assertGreaterThan($routerListenerPriority, $requestPriority);
     }
 
     public function testSubRequestListener(): void

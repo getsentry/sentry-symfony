@@ -15,11 +15,7 @@ services:
   Sentry\SentryBundle\EventListener\RuntimeContextListener:
     arguments: ['@Sentry\State\HubInterface']
     tags:
-      # The runtime context must start before any listener that can write to the hub:
-      # the router (priority 32) and the security firewall (priority 8) emit log records
-      # that monolog integrations turn into breadcrumbs. Before the context starts these
-      # land on the shared base hub, whose scope is cloned into every new context - on
-      # persistent workers (FrankenPHP, RoadRunner) they would leak across requests.
+      # Use a very high priority to start a context before anything else can emit logs
       - { name: kernel.event_listener, event: kernel.request, method: handleKernelRequestEvent, priority: 512 }
       - { name: kernel.event_listener, event: kernel.terminate, method: handleKernelTerminateEvent, priority: -128 }
       - { name: kernel.reset, method: reset }
