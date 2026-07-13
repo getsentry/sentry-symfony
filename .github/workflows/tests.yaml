@@ -52,6 +52,7 @@ env:
     ]
   COMPOSER_ADVISORY_TWIG: >-
     [
+      "PKSA-8zx5-v2nz-58pb",
       "PKSA-fbvq-z33h-r2np",
       "PKSA-g9zw-qxh8-pq8w",
       "PKSA-yd6k-t2gh-1m43",
