@@ -43,7 +43,6 @@ use Symfony\Component\DependencyInjection\ParameterBag\EnvPlaceholderParameterBa
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\TraceableHttpClient;
-use Symfony\Component\HttpKernel\EventListener\RouterListener;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
@@ -235,10 +234,9 @@ abstract class SentryExtensionTest extends TestCase
             }
         }
 
-        $routerListenerPriority = RouterListener::getSubscribedEvents()[KernelEvents::REQUEST][0][1];
-
         $this->assertNotNull($requestPriority);
-        $this->assertGreaterThan($routerListenerPriority, $requestPriority);
+        // RouterListener (priority 32) is the earliest core listener emitting log records
+        $this->assertGreaterThan(32, $requestPriority);
     }
 
     public function testSubRequestListener(): void
