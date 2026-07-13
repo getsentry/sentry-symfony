@@ -1,10 +1,14 @@
 # CHANGELOG
 
-## Unreleased
+## 5.11.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.11.0.
 
 ### Bug fixes
 
-- Start the runtime context before the router and the security firewall (`kernel.request` priority `512` instead of `6`). Log records emitted by those listeners (e.g. "Matched route", authenticator messages) become breadcrumbs on the shared base hub before the context starts; since every runtime context clones the base hub's scope, they leaked across requests on persistent workers (FrankenPHP, RoadRunner). [(#1043)](https://github.com/getsentry/sentry-symfony/pull/1043)
+- Escape values rendered by the Twig `sentry_trace_meta()` and `sentry_baggage_meta()` helpers. [(#1025)](https://github.com/getsentry/sentry-symfony/pull/1025)
+- Clear the active request from `RequestFetcher` during kernel termination even when no transaction is set on the hub. [(#1026)](https://github.com/getsentry/sentry-symfony/pull/1026)
+- Use Symfony's `security.untracked_token_storage` service in `LoginListener`. [(#1028)](https://github.com/getsentry/sentry-symfony/pull/1028)
 
 ## 5.10.0
 
