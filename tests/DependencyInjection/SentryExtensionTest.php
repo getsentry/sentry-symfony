@@ -200,7 +200,7 @@ abstract class SentryExtensionTest extends TestCase
                 [
                     'event' => KernelEvents::REQUEST,
                     'method' => 'handleKernelRequestEvent',
-                    'priority' => 6,
+                    'priority' => 512,
                 ],
                 [
                     'event' => KernelEvents::TERMINATE,
@@ -212,6 +212,31 @@ abstract class SentryExtensionTest extends TestCase
                 ['method' => 'reset'],
             ],
         ], $definition->getTags());
+    }
+
+    /**
+     * The runtime context must start before any listener that can write to the hub,
+     * e.g. the router (priority 32) and the security firewall (priority 8) emit log
+     * records that monolog integrations turn into breadcrumbs. Before the context
+     * starts these land on the shared base hub, whose scope is cloned into every new
+     * context - on persistent workers they would leak across requests.
+     */
+    public function testRuntimeContextListenerStartsBeforeAnyListenerThatCanEmitLogs(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+        $tags = $container->getDefinition(RuntimeContextListener::class)->getTag('kernel.event_listener');
+
+        $requestPriority = null;
+
+        foreach ($tags as $attributes) {
+            if (KernelEvents::REQUEST === ($attributes['event'] ?? null)) {
+                $requestPriority = $attributes['priority'];
+            }
+        }
+
+        $this->assertNotNull($requestPriority);
+        // RouterListener (priority 32) is the earliest core listener emitting log records
+        $this->assertGreaterThan(32, $requestPriority);
     }
 
     public function testSubRequestListener(): void

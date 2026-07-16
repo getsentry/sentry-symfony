@@ -15,7 +15,8 @@ services:
   Sentry\SentryBundle\EventListener\RuntimeContextListener:
     arguments: ['@Sentry\State\HubInterface']
     tags:
-      - { name: kernel.event_listener, event: kernel.request, method: handleKernelRequestEvent, priority: 6 }
+      # Use a very high priority to start a context before anything else can emit logs
+      - { name: kernel.event_listener, event: kernel.request, method: handleKernelRequestEvent, priority: 512 }
       - { name: kernel.event_listener, event: kernel.terminate, method: handleKernelTerminateEvent, priority: -128 }
       - { name: kernel.reset, method: reset }
 
