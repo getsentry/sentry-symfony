@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
+use Composer\InstalledVersions;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
-use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
@@ -565,7 +565,7 @@ abstract class SentryExtensionTest extends TestCase
 
         yield 'If both the release option and the SENTRY_RELEASE environment variable are unset, then the root package version is used as fallback' => [
             'release_option_fallback_to_composer_version',
-            PrettyVersions::getRootPackageVersion()->getPrettyVersion(),
+            InstalledVersions::getRootPackage()['pretty_version'],
         ];
     }
 

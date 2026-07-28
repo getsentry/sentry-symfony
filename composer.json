@@ -13,8 +13,8 @@
     ],
     "require": {
         "php": "^7.2||^8.0",
+        "composer-runtime-api": "^2.0",
         "guzzlehttp/psr7": "^2.1.1",
-        "jean85/pretty-package-versions": "^1.5||^2.0",
         "sentry/sentry": "^4.23.0",
         "symfony/cache-contracts": "^1.1||^2.4||^3.0",
         "symfony/config": "^4.4.20||^5.0.11||^6.0||^7.0||^8.0",
@@ -85,7 +85,6 @@
     "config": {
         "sort-packages": true,
         "allow-plugins": {
-            "composer/package-versions-deprecated": true,
             "phpstan/extension-installer": true
         }
     }
