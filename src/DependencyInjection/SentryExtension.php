@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\DependencyInjection;
 
+use Composer\InstalledVersions;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
-use Jean85\PrettyVersions;
 use Psr\Log\NullLogger;
 use Sentry\Client;
 use Sentry\ClientBuilder;
@@ -66,7 +66,7 @@ final class SentryExtension extends ConfigurableExtension
         $loader->load('services.yaml');
 
         if (!$container->hasParameter('env(SENTRY_RELEASE)')) {
-            $container->setParameter('env(SENTRY_RELEASE)', PrettyVersions::getRootPackageVersion()->getPrettyVersion());
+            $container->setParameter('env(SENTRY_RELEASE)', InstalledVersions::getRootPackage()['pretty_version']);
         }
 
         // Remove Twig extension service if Twig is not installed to avoid autoloading failures on Symfony 8
