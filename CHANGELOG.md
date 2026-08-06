@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 5.12.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.12.0.
+
+### Bug fixes
+
+- Start the runtime context before the router and security firewall to prevent logs and breadcrumbs from leaking across requests on persistent workers. [(#1043)](https://github.com/getsentry/sentry-symfony/pull/1043)
+
+### Misc
+
+- Add support for `guzzlehttp/psr7` 3.x for Guzzle 8 compatibility. [(#1046)](https://github.com/getsentry/sentry-symfony/pull/1046)
+
 ## 5.11.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.11.0.
