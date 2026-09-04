@@ -320,6 +320,39 @@ abstract class SentryExtensionTest extends TestCase
             'in_app_exclude' => [$container->getParameter('kernel.cache_dir')],
             'in_app_include' => [$container->getParameter('kernel.project_dir')],
             'send_default_pii' => true,
+            'data_collection' => [
+                'user_info' => false,
+                'cookies' => [
+                    'mode' => 'allowList',
+                    'terms' => ['theme'],
+                ],
+                'http_headers' => [
+                    'request' => [
+                        'mode' => 'denyList',
+                        'terms' => ['x-request'],
+                    ],
+                    'response' => [
+                        'mode' => 'off',
+                        'terms' => [],
+                    ],
+                ],
+                'http_bodies' => ['incomingRequest', 'incomingResponse'],
+                'url_query_params' => [
+                    'mode' => 'allowList',
+                    'terms' => ['page'],
+                ],
+                'gen_ai' => [
+                    'inputs' => false,
+                    'outputs' => true,
+                ],
+                'database_query_data' => false,
+                'queues' => false,
+                'stack_frame_variables' => [
+                    'mode' => 'denyList',
+                    'terms' => ['local_secret'],
+                ],
+                'frame_context_lines' => 3,
+            ],
             'max_value_length' => 255,
             'transport' => new Reference('App\\Sentry\\Transport'),
             'http_client' => new Reference('App\\Sentry\\HttpClient'),
