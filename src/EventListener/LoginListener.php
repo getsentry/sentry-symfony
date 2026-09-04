@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\SentryBundle\DataCollection\DataCollectionPolicy;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Sentry\UserDataBag;
@@ -90,7 +91,7 @@ final class LoginListener
 
         $client = $this->hub->getClient();
 
-        if (null === $client || !$client->getOptions()->shouldSendDefaultPii()) {
+        if (null === $client || !DataCollectionPolicy::shouldCollectUserInfo($client->getOptions())) {
             return;
         }
 

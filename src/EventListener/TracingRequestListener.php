@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\Integration\RequestFetcherInterface;
+use Sentry\SentryBundle\DataCollection\DataCollectionPolicy;
 use Sentry\SentryBundle\Integration\RequestFetcher;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\TransactionSource;
@@ -131,7 +132,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
             $data['net.host.name'] = $request->getHost();
         }
 
-        if (null !== $request->getClientIp() && null !== $client && $client->getOptions()->shouldSendDefaultPii()) {
+        if (null !== $request->getClientIp() && null !== $client && DataCollectionPolicy::shouldCollectUserInfo($client->getOptions())) {
             $data['net.peer.ip'] = $request->getClientIp();
         }
 
