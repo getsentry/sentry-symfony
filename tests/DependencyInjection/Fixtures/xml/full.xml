@@ -60,6 +60,26 @@
             <sentry:class-serializer class="App\FooClass">App\Sentry\Serializer\FooClassSerializer</sentry:class-serializer>
             <sentry:ignore-exception>Symfony\Component\HttpKernel\Exception\BadRequestHttpException</sentry:ignore-exception>
             <sentry:ignore-transaction>GET tracing_ignored_transaction</sentry:ignore-transaction>
+            <sentry:data-collection user-info="false" database-query-data="false" queues="false" frame-context-lines="3">
+                <sentry:cookies mode="allowList">
+                    <sentry:term>theme</sentry:term>
+                </sentry:cookies>
+                <sentry:http-headers>
+                    <sentry:request mode="denyList">
+                        <sentry:term>x-request</sentry:term>
+                    </sentry:request>
+                    <sentry:response mode="off" />
+                </sentry:http-headers>
+                <sentry:http-body>incomingRequest</sentry:http-body>
+                <sentry:http-body>incomingResponse</sentry:http-body>
+                <sentry:url-query-params mode="allowList">
+                    <sentry:term>page</sentry:term>
+                </sentry:url-query-params>
+                <sentry:gen-ai inputs="false" outputs="true" />
+                <sentry:stack-frame-variables mode="denyList">
+                    <sentry:term>local_secret</sentry:term>
+                </sentry:stack-frame-variables>
+            </sentry:data-collection>
         </sentry:options>
         <sentry:messenger enabled="true" capture-soft-fails="false" isolate-breadcrumbs-by-message="true" isolate-context-by-message="true"/>
         <sentry:tracing>

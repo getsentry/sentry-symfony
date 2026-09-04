@@ -340,6 +340,53 @@ final class ConfigurationTest extends TestCase
         return $processor->processConfiguration(new Configuration(), ['sentry' => $values]);
     }
 
+    public function testDataCollectionOptionIsAbsentByDefault(): void
+    {
+        /** @var array{options: array<string, mixed>} $config */
+        $config = $this->processConfiguration([]);
+
+        $this->assertArrayNotHasKey('data_collection', $config['options']);
+    }
+
+    public function testEmptyDataCollectionOptionUsesCoreDefaults(): void
+    {
+        /** @var array{options: array<string, mixed>} $config */
+        $config = $this->processConfiguration(['options' => ['data_collection' => []]]);
+        $options = new Options($config['options']);
+        $dataCollection = $options->getDataCollection();
+
+        $this->assertNotNull($dataCollection);
+        $this->assertSame([
+            'incomingRequest',
+            'outgoingRequest',
+            'incomingResponse',
+            'outgoingResponse',
+        ], $dataCollection->getHttpBodies());
+    }
+
+    /**
+     * @dataProvider stackFrameVariablesBooleanDataProvider
+     */
+    public function testDataCollectionNormalizesStackFrameVariablesBoolean(bool $value, string $expectedMode): void
+    {
+        /** @var array{options: array{data_collection: array{stack_frame_variables: array{mode: string}}}} $config */
+        $config = $this->processConfiguration([
+            'options' => [
+                'data_collection' => [
+                    'stack_frame_variables' => $value,
+                ],
+            ],
+        ]);
+
+        $this->assertSame($expectedMode, $config['options']['data_collection']['stack_frame_variables']['mode']);
+    }
+
+    public function stackFrameVariablesBooleanDataProvider(): \Generator
+    {
+        yield [true, 'denyList'];
+        yield [false, 'off'];
+    }
+
     /**
      * @dataProvider maxRequestBodySizeValuesDataProvider
      */
