@@ -50,6 +50,7 @@ final class ConfigurationTest extends TestCase
             ],
             'tracing' => [
                 'enabled' => true,
+                'ignored_http_status_codes' => [404],
                 'dbal' => [
                     'enabled' => class_exists(DoctrineBundle::class),
                     'ignore_prepare_spans' => false,
@@ -326,6 +327,14 @@ final class ConfigurationTest extends TestCase
     {
         yield [true];
         yield [false];
+    }
+
+    public function testIgnoredHttpStatusCodesOption(): void
+    {
+        /** @var array{tracing: array{ignored_http_status_codes: int[]}} $config */
+        $config = $this->processConfiguration(['tracing' => ['ignored_http_status_codes' => [404, 405]]]);
+
+        $this->assertSame([404, 405], $config['tracing']['ignored_http_status_codes']);
     }
 
     /**

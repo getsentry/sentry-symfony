@@ -454,6 +454,14 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertNotEmpty($container->getParameter('sentry.tracing.dbal.connections'));
     }
 
+    public function testTracingRequestListenerReceivesIgnoredHttpStatusCodes(): void
+    {
+        $container = $this->createContainerFromFixture('tracing_ignored_status_codes');
+        $definition = $container->getDefinition(TracingRequestListener::class);
+
+        $this->assertSame([404, 405], $definition->getArgument(2));
+    }
+
     public function testTracingDriverConnectionFactoryReceivesIgnorePrepareSpansFlag(): void
     {
         if (!class_exists(DoctrineBundle::class)) {

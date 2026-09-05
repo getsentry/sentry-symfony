@@ -1,0 +1,5 @@
+sentry:
+    tracing:
+        ignored_http_status_codes:
+            - 404
+            - 405
