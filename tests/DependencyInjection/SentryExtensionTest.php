@@ -53,6 +53,14 @@ abstract class SentryExtensionTest extends TestCase
 {
     abstract protected function loadFixture(ContainerBuilder $container, string $fixtureFile): void;
 
+    public function testDataCollectionBodiesCanBeDisabled(): void
+    {
+        $container = $this->createContainerFromFixture('data_collection_bodies_disabled');
+        /** @var array{data_collection: array{http_bodies: string[]}} $options */
+        $options = $container->getDefinition('sentry.client.options')->getArgument(0);
+        $this->assertSame([], $options['data_collection']['http_bodies']);
+    }
+
     public function testErrorListener(): void
     {
         $container = $this->createContainerFromFixture('full');
