@@ -113,12 +113,13 @@ final class TracingRequestListener extends AbstractTracingRequestListener
     private function getData(Request $request): array
     {
         $client = $this->hub->getClient();
+        $options = null === $client ? null : $client->getOptions();
         $httpFlavor = $this->getHttpFlavor($request);
 
         $data = [
             'net.host.port' => (string) $request->getPort(),
             'http.request.method' => $request->getMethod(),
-            'http.url' => $request->getUri(),
+            'http.url' => $this->getRequestUrl($request, $options),
             'route' => $this->getRouteName($request),
         ];
 
@@ -132,7 +133,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
             $data['net.host.name'] = $request->getHost();
         }
 
-        if (null !== $request->getClientIp() && null !== $client && DataCollectionPolicy::shouldCollectUserInfo($client->getOptions())) {
+        if (null !== $request->getClientIp() && null !== $options && DataCollectionPolicy::shouldCollectUserInfo($options)) {
             $data['net.peer.ip'] = $request->getClientIp();
         }
 

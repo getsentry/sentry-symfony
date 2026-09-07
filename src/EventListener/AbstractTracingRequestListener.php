@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\DataCollection\HttpDataCollector;
+use Sentry\Options;
 use Sentry\State\HubInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,6 +49,23 @@ abstract class AbstractTracingRequestListener
         }
 
         $span->setHttpStatus($response->getStatusCode());
+    }
+
+    protected function getRequestUrl(Request $request, ?Options $options): string
+    {
+        $dataCollection = null === $options ? null : $options->getDataCollection();
+        if (null === $dataCollection) {
+            return $request->getUri();
+        }
+
+        // getUri() normalizes the query, losing repeated parameters and original encoding.
+        $url = $request->getSchemeAndHttpHost() . $request->getBaseUrl() . $request->getPathInfo();
+        $query = (string) $request->server->get('QUERY_STRING', '');
+        if ('' !== $query) {
+            $url .= '?' . $query;
+        }
+
+        return HttpDataCollector::collectUrl($dataCollection, $url);
     }
 
     /**
