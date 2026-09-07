@@ -81,7 +81,13 @@
         <xsd:sequence>
             <xsd:element name="cookies" type="key-value-collection" minOccurs="0" maxOccurs="1" />
             <xsd:element name="http-headers" type="http-headers" minOccurs="0" maxOccurs="1" />
-            <xsd:element name="http-body" type="http-body-type" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:choice minOccurs="0">
+                <xsd:element name="http-body" type="http-body-type" maxOccurs="unbounded" />
+                <!-- An explicitly empty list disables collection of all bodies. -->
+                <xsd:element name="http-bodies">
+                    <xsd:complexType />
+                </xsd:element>
+            </xsd:choice>
             <xsd:element name="url-query-params" type="key-value-collection" minOccurs="0" maxOccurs="1" />
             <xsd:element name="gen-ai" type="gen-ai" minOccurs="0" maxOccurs="1" />
             <xsd:element name="stack-frame-variables" type="key-value-collection" minOccurs="0" maxOccurs="1" />

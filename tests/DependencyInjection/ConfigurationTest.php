@@ -340,6 +340,43 @@ final class ConfigurationTest extends TestCase
         return $processor->processConfiguration(new Configuration(), ['sentry' => $values]);
     }
 
+    /**
+     * @dataProvider collectionListOverrideProvider
+     *
+     * @param array<string, mixed> $base
+     * @param array<string, mixed> $override
+     */
+    public function testCollectionListsAreReplacedAcrossConfigFiles(array $base, array $override): void
+    {
+        $processor = new Processor();
+        /** @var array{options: array<string, mixed>} $merged */
+        $merged = $processor->processConfiguration(new Configuration(), [
+            ['options' => ['data_collection' => $base]],
+            ['options' => ['data_collection' => $override]],
+        ]);
+        /** @var array{options: array<string, mixed>} $expected */
+        $expected = $this->processConfiguration(['options' => ['data_collection' => $override]]);
+        $this->assertSame($expected['options']['data_collection'], $merged['options']['data_collection']);
+    }
+
+    public function collectionListOverrideProvider(): \Generator
+    {
+        yield 'disable bodies' => [['http_bodies' => ['incomingRequest']], ['http_bodies' => []]];
+        yield 'restrict bodies' => [['http_bodies' => ['incomingRequest', 'outgoingResponse']], ['http_bodies' => ['incomingRequest']]];
+        foreach (['cookies', 'url_query_params', 'stack_frame_variables', 'http_headers'] as $key) {
+            yield $key => [
+                [$key => ['mode' => 'allowList', 'terms' => ['email']]],
+                [$key => ['mode' => 'allowList', 'terms' => []]],
+            ];
+        }
+        foreach (['request', 'response'] as $direction) {
+            yield $direction . ' headers' => [
+                ['http_headers' => [$direction => ['mode' => 'allowList', 'terms' => ['email']]]],
+                ['http_headers' => [$direction => ['mode' => 'allowList', 'terms' => []]]],
+            ];
+        }
+    }
+
     public function testDataCollectionOptionIsAbsentByDefault(): void
     {
         /** @var array{options: array<string, mixed>} $config */
