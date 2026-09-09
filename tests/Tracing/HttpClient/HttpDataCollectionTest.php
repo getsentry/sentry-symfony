@@ -497,12 +497,11 @@ final class HttpDataCollectionTest extends TestCase
         if (!method_exists(MockHttpClient::class, 'withOptions')) {
             $this->markTestSkipped('withOptions is not available.');
         }
-        $defaults = ['json' => ['name' => 'default']];
+        $defaults = ['body' => ['name' => 'default']];
         $mock = new MockResponse();
         $transaction = null;
         $client = $this->client((new MockHttpClient($mock))->withOptions($defaults), ['data_collection' => []], $transaction, $defaults);
         $client->request('POST', 'https://example.com', [
-            'json' => null,
             'body' => ['name' => 'form'],
         ])->getContent();
 

@@ -20,6 +20,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 use Symfony\Contracts\HttpClient\ResponseStreamInterface;
 use Symfony\Contracts\Service\ResetInterface;
+
 use function Sentry\getBaggage;
 use function Sentry\getTraceparent;
 
@@ -93,10 +94,10 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
         $context = SpanContext::make()
             ->setOp('http.client')
             ->setOrigin('auto.http.client')
-            ->setDescription($method . ' ' . (string)$partialUri);
+            ->setDescription($method . ' ' . (string) $partialUri);
 
         $contextData = [
-            'http.url' => (string)$partialUri,
+            'http.url' => (string) $partialUri,
             'http.request.method' => $method,
         ];
         $dataCollection = DataCollectionOptions::fromOptions($sdkOptions);

@@ -331,11 +331,6 @@ parameters:
 			path: tests/EventListener/LoginListenerTest.php
 
 		-
-			message: "#^Call to function method_exists\\(\\) with \\$this\\(Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\AuthenticatedTokenStub\\) and 'setAuthenticated' will always evaluate to false\\.$#"
-			count: 1
-			path: tests/EventListener/LoginListenerTest.php
-
-		-
 			message: "#^Parameter \\#2 \\$firewallName of class Symfony\\\\Component\\\\Security\\\\Core\\\\Authentication\\\\Token\\\\SwitchUserToken constructor expects string, null given\\.$#"
 			count: 1
 			path: tests/EventListener/LoginListenerTest.php

@@ -33,7 +33,7 @@ final class LoginListener
     /**
      * Constructor.
      *
-     * @param HubInterface $hub The current hub
+     * @param HubInterface               $hub          The current hub
      * @param TokenStorageInterface|null $tokenStorage The token storage
      */
     public function __construct(HubInterface $hub, ?TokenStorageInterface $tokenStorage)
@@ -151,7 +151,7 @@ final class LoginListener
         }
 
         if (\is_object($user) && method_exists($user, '__toString')) {
-            return (string)$user;
+            return (string) $user;
         }
 
         return null;
