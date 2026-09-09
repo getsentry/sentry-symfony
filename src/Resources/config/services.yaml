@@ -51,6 +51,8 @@ services:
     tags:
       - { name: kernel.event_listener, event: kernel.request, method: handleKernelRequestEvent, priority: 4 }
       - { name: kernel.event_listener, event: kernel.response, method: handleKernelResponseEvent, priority: 15 }
+      # Collect main and subrequest response data once, after response preparation and session cookies.
+      - { name: kernel.event_listener, event: kernel.response, method: collectKernelResponseEvent, priority: -1024 }
       - { name: kernel.event_listener, event: kernel.terminate, method: handleKernelTerminateEvent, priority: 5 }
 
   Sentry\SentryBundle\EventListener\TracingSubRequestListener:
@@ -140,5 +142,4 @@ services:
 
   # Serializers
   Sentry\SentryBundle\Serializer\ConsoleInputSerializer: ~
-
 

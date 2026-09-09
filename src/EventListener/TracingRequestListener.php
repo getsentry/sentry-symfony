@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\DataCollection\DataCollectionOptions;
+use Sentry\DataCollection\RequestDataCollector;
 use Sentry\Integration\RequestFetcherInterface;
-use Sentry\SentryBundle\DataCollection\DataCollectionPolicy;
 use Sentry\SentryBundle\Integration\RequestFetcher;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\TransactionSource;
@@ -75,10 +76,16 @@ final class TracingRequestListener extends AbstractTracingRequestListener
             $context->setSource(TransactionSource::url());
         }
 
+        $client = $this->hub->getClient();
+        $options = null === $client ? null : $client->getOptions();
+        $dataCollection = DataCollectionOptions::fromOptions($options);
+        $collector = RequestDataCollector::fromOptions($options);
         $context->setStartTimestamp($requestStartTime);
-        $context->setData($this->getData($request));
+        $context->setData($this->getData($request, $dataCollection, $collector));
 
-        $this->hub->setSpan($this->hub->startTransaction($context));
+        $transaction = $this->hub->startTransaction($context);
+        $this->collectRequestData($transaction, $request, $dataCollection);
+        $this->hub->setSpan($transaction);
     }
 
     /**
@@ -110,16 +117,14 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      *
      * @return array<string, string>
      */
-    private function getData(Request $request): array
+    private function getData(Request $request, ?DataCollectionOptions $dataCollection, RequestDataCollector $collector): array
     {
-        $client = $this->hub->getClient();
-        $options = null === $client ? null : $client->getOptions();
         $httpFlavor = $this->getHttpFlavor($request);
 
         $data = [
             'net.host.port' => (string) $request->getPort(),
             'http.request.method' => $request->getMethod(),
-            'http.url' => $this->getRequestUrl($request, $options),
+            'http.url' => $this->getRequestUrl($request, $dataCollection),
             'route' => $this->getRouteName($request),
         ];
 
@@ -133,11 +138,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
             $data['net.host.name'] = $request->getHost();
         }
 
-        if (null !== $request->getClientIp() && null !== $options && DataCollectionPolicy::shouldCollectUserInfo($options)) {
-            $data['net.peer.ip'] = $request->getClientIp();
-        }
-
-        return $data;
+        return $data + $collector->collectClientIpData($request->getClientIp());
     }
 
     /**

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\SentryBundle\DataCollection\DataCollectionPolicy;
+use Sentry\DataCollection\RequestDataCollector;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Sentry\UserDataBag;
@@ -49,16 +49,20 @@ final class RequestListener
 
         $client = $this->hub->getClient();
 
-        if (null === $client || !DataCollectionPolicy::shouldCollectUserInfo($client->getOptions())) {
+        $collector = RequestDataCollector::fromOptions(null === $client ? null : $client->getOptions());
+        /** @var string|null $ipAddress */
+        $ipAddress = $event->getRequest()->getClientIp();
+        $data = $collector->collectUserInfo(['ip_address' => $ipAddress]);
+        if ([] === $data) {
             return;
         }
 
-        $this->hub->configureScope(static function (Scope $scope) use ($event): void {
+        $this->hub->configureScope(static function (Scope $scope) use ($data): void {
             $user = $scope->getUser() ?? new UserDataBag();
 
             if (null === $user->getIpAddress()) {
                 try {
-                    $user->setIpAddress($event->getRequest()->getClientIp());
+                    $user->setIpAddress($data['ip_address']);
                 } catch (\InvalidArgumentException $e) {
                     // If the IP is in an invalid format, we ignore it
                 }

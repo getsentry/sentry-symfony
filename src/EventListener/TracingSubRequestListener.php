@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\DataCollection\DataCollectionOptions;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
@@ -34,22 +35,21 @@ final class TracingSubRequestListener extends AbstractTracingRequestListener
             return;
         }
 
-        $client = $this->hub->getClient();
-        $options = null === $client ? null : $client->getOptions();
+        $dataCollection = DataCollectionOptions::fromHub($this->hub);
 
-        $this->hub->setSpan(
-            $span->startChild(
-                SpanContext::make()
-                    ->setOp('http.server')
-                    ->setData([
-                        'http.request.method' => $request->getMethod(),
-                        'http.url' => $this->getRequestUrl($request, $options),
-                        'route' => $this->getRouteName($request),
-                    ])
-                    ->setOrigin('auto.http.server')
-                    ->setDescription(\sprintf('%s %s%s%s', $request->getMethod(), $request->getSchemeAndHttpHost(), $request->getBaseUrl(), $request->getPathInfo()))
-            )
+        $childSpan = $span->startChild(
+            SpanContext::make()
+                ->setOp('http.server')
+                ->setData([
+                    'http.request.method' => $request->getMethod(),
+                    'http.url' => $this->getRequestUrl($request, $dataCollection),
+                    'route' => $this->getRouteName($request),
+                ])
+                ->setOrigin('auto.http.server')
+                ->setDescription(\sprintf('%s %s%s%s', $request->getMethod(), $request->getSchemeAndHttpHost(), $request->getBaseUrl(), $request->getPathInfo()))
         );
+        $this->collectRequestData($childSpan, $request, $dataCollection);
+        $this->hub->setSpan($childSpan);
     }
 
     /**

@@ -55,6 +55,46 @@ final class LoginListenerTest extends TestCase
     }
 
     /**
+     * @dataProvider collectionConfigurationProvider
+     *
+     * @param array<string, mixed> $configuration
+     */
+    public function testUserCollectionUsesSharedCollector(array $configuration, bool $enabled): void
+    {
+        $client = $this->createMock(ClientInterface::class);
+        $client->method('getOptions')->willReturn(new Options($configuration));
+        $this->hub->method('getClient')->willReturn($client);
+        $scope = new Scope();
+        $scope->setUser(new UserDataBag(null, 'explicit@example.com'));
+        $this->hub->expects($this->exactly($enabled ? 1 : 0))->method('configureScope')->willReturnCallback(static function (callable $callback) use ($scope): void {
+            $callback($scope);
+        });
+
+        $token = new AuthenticatedTokenStub(new UserWithIdentifierStub('collected-user'));
+        $this->tokenStorage->method('getToken')->willReturn($token);
+
+        $this->listener->handleKernelRequestEvent(new RequestEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            (int) \constant(HttpKernelInterface::class . '::' . (\defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? 'MAIN_REQUEST' : 'MASTER_REQUEST'))
+        ));
+
+        $collectedUser = $scope->getUser();
+        $this->assertNotNull($collectedUser);
+        $this->assertSame($enabled ? 'collected-user' : null, $collectedUser->getId());
+        $this->assertSame('explicit@example.com', $collectedUser->getEmail());
+    }
+
+    /**
+     * @return \Generator<string, array{array<string, mixed>, bool}>
+     */
+    public function collectionConfigurationProvider(): \Generator
+    {
+        yield 'configured defaults override legacy off' => [['send_default_pii' => false, 'data_collection' => []], true];
+        yield 'disabled collection overrides legacy on' => [['send_default_pii' => true, 'data_collection' => ['user_info' => false]], false];
+    }
+
+    /**
      * @dataProvider authenticationTokenDataProvider
      * @dataProvider authenticationTokenForSymfonyVersionLowerThan54DataProvider
      */

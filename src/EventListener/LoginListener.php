@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\SentryBundle\DataCollection\DataCollectionPolicy;
+use Sentry\DataCollection\RequestDataCollector;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Sentry\UserDataBag;
@@ -33,7 +33,7 @@ final class LoginListener
     /**
      * Constructor.
      *
-     * @param HubInterface               $hub          The current hub
+     * @param HubInterface $hub The current hub
      * @param TokenStorageInterface|null $tokenStorage The token storage
      */
     public function __construct(HubInterface $hub, ?TokenStorageInterface $tokenStorage)
@@ -91,21 +91,31 @@ final class LoginListener
 
         $client = $this->hub->getClient();
 
-        if (null === $client || !DataCollectionPolicy::shouldCollectUserInfo($client->getOptions())) {
+        $collector = RequestDataCollector::fromOptions(null === $client ? null : $client->getOptions());
+        if (!$collector->shouldCollectUserInfo()) {
             return;
         }
 
-        $this->hub->configureScope(function (Scope $scope) use ($token): void {
+        $this->hub->configureScope(function (Scope $scope) use ($token, $collector): void {
             $user = $scope->getUser() ?? new UserDataBag();
 
+            $data = [];
             if (null === $user->getId()) {
-                $user->setId($this->getUserIdentifier($token->getUser()));
+                $data['id'] = $this->getUserIdentifier($token->getUser());
             }
 
             $impersonatorUser = $this->getImpersonatorUser($token);
 
             if (null !== $impersonatorUser) {
-                $user->setMetadata('impersonator_username', $impersonatorUser);
+                $data['impersonator_username'] = $impersonatorUser;
+            }
+
+            $data = $collector->collectUserInfo($data);
+            if (\array_key_exists('id', $data)) {
+                $user->setId($data['id']);
+            }
+            if (isset($data['impersonator_username'])) {
+                $user->setMetadata('impersonator_username', $data['impersonator_username']);
             }
 
             $scope->setUser($user);
@@ -141,7 +151,7 @@ final class LoginListener
         }
 
         if (\is_object($user) && method_exists($user, '__toString')) {
-            return (string) $user;
+            return (string)$user;
         }
 
         return null;
