@@ -16,6 +16,7 @@ final class TraceableHttpClientForV6 extends AbstractTraceableHttpClient
     {
         $clone = clone $this;
         $clone->client = $this->client->withOptions($options);
+        $clone->defaultRequestOptions = $clone->resolveRequestOptions($options);
 
         return $clone;
     }

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\DataCollection\DataCollectionOptions;
+use Sentry\DataCollection\HttpDataCollector;
+use Sentry\DataCollection\HttpHeaderNormalizer;
 use Sentry\State\HubInterface;
+use Sentry\Tracing\Span;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\Routing\Route;
 
@@ -47,6 +50,52 @@ abstract class AbstractTracingRequestListener
         }
 
         $span->setHttpStatus($response->getStatusCode());
+    }
+
+    /**
+     * Collects prepared response data for both main requests and subrequests.
+     *
+     * @internal
+     */
+    public function collectKernelResponseEvent(ResponseEvent $event): void
+    {
+        $span = $this->hub->getSpan();
+
+        if (null === $span || !$span->getSampled()) {
+            return;
+        }
+
+        $dataCollection = DataCollectionOptions::fromHub($this->hub);
+        $response = $event->getResponse();
+        $headers = HttpHeaderNormalizer::normalize($response->headers->getIterator()->getArrayCopy());
+        $cookies = [];
+        foreach ($response->headers->getCookies() as $cookie) {
+            $cookies[] = [$cookie->getName(), $cookie->getValue()];
+        }
+        HttpDataCollector::setMissingSpanData($span, HttpDataCollector::collectResponseData($dataCollection, $headers, $cookies));
+    }
+
+    protected function collectRequestData(Span $span, Request $request, ?DataCollectionOptions $dataCollection): void
+    {
+        if (!$span->getSampled()) {
+            return;
+        }
+
+        $headers = HttpHeaderNormalizer::normalize($request->headers->getIterator()->getArrayCopy());
+        HttpDataCollector::setMissingSpanData($span, HttpDataCollector::collectRequestData($dataCollection, $headers, $request->cookies->all()));
+    }
+
+    protected function getRequestUrl(Request $request, ?DataCollectionOptions $dataCollection): string
+    {
+        // getUri() normalizes the query, losing repeated parameters and original encoding.
+        $url = $request->getSchemeAndHttpHost() . $request->getBaseUrl() . $request->getPathInfo();
+        /** @var string $query */
+        $query = $request->server->get('QUERY_STRING', '');
+        if ('' !== $query) {
+            $url .= '?' . $query;
+        }
+
+        return HttpDataCollector::collectUrl($dataCollection, $url, $request->getUri());
     }
 
     /**

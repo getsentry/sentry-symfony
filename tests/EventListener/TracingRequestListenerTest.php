@@ -484,6 +484,24 @@ final class TracingRequestListenerTest extends TestCase
         ));
     }
 
+    public function testCollectResponseRequestEventDoesNothingIfNoTransactionIsSetOnHub(): void
+    {
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn(null);
+
+        $this->hub->expects($this->never())
+            ->method('getClient');
+
+        $requestType = (int) \constant(HttpKernelInterface::class . '::' . (\defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? 'MAIN_REQUEST' : 'MASTER_REQUEST'));
+        $this->listener->collectKernelResponseEvent(new ResponseEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            $requestType,
+            new Response()
+        ));
+    }
+
     /**
      * @group time-sensitive
      */

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tracing\HttpClient;
 
+use Sentry\DataCollection\DataCollectionOptions;
+use Sentry\DataCollection\HttpDataCollector;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanStatus;
 use Symfony\Contracts\HttpClient\ChunkInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
@@ -30,11 +33,17 @@ abstract class AbstractTraceableResponse implements ResponseInterface
      */
     protected $span;
 
-    public function __construct(HttpClientInterface $client, ResponseInterface $response, ?Span $span)
+    /**
+     * @var DataCollectionOptions|null
+     */
+    private $collectionOptions;
+
+    public function __construct(HttpClientInterface $client, ResponseInterface $response, ?Span $span, ?DataCollectionOptions $options = null)
     {
         $this->client = $client;
         $this->response = $response;
         $this->span = $span;
+        $this->collectionOptions = $options;
     }
 
     public function __destruct()
@@ -93,11 +102,11 @@ abstract class AbstractTraceableResponse implements ResponseInterface
     }
 
     /**
-     * @internal
-     *
      * @param iterable<AbstractTraceableResponse> $responses
      *
      * @return \Generator<AbstractTraceableResponse, ChunkInterface>
+     *
+     * @internal
      */
     public static function stream(HttpClientInterface $client, iterable $responses, ?float $timeout): \Generator
     {
@@ -124,27 +133,33 @@ abstract class AbstractTraceableResponse implements ResponseInterface
 
     private function finishSpan(): void
     {
-        if (null === $this->span) {
+        $span = $this->span;
+        if (null === $span) {
             return;
         }
 
-        // We finish the span (which means setting the span end timestamp) first
-        // to ensure the measured time is as close as possible to the duration of
-        // the HTTP request
-        $this->span->finish();
+        $span->finish();
 
         /** @var int $statusCode */
         $statusCode = $this->response->getInfo('http_code');
 
-        // If the returned status code is 0, it means that this info isn't available
-        // yet (e.g. an error happened before the request was sent), hence we cannot
-        // determine what happened.
         if (0 === $statusCode) {
-            $this->span->setStatus(SpanStatus::unknownError());
+            $span->setStatus(SpanStatus::unknownError());
         } else {
-            $this->span->setStatus(SpanStatus::createFromHttpStatusCode($statusCode));
+            $span->setStatus(SpanStatus::createFromHttpStatusCode($statusCode));
         }
 
         $this->span = null;
+
+        if (!$span->getSampled() || null === $this->collectionOptions) {
+            return;
+        }
+
+        try {
+            $headers = $this->response->getHeaders(false);
+        } catch (TransportExceptionInterface $exception) {
+            return;
+        }
+        HttpDataCollector::setMissingSpanData($span, HttpDataCollector::collectResponseData($this->collectionOptions, $headers));
     }
 }
