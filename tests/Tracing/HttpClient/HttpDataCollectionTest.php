@@ -31,11 +31,116 @@ final class HttpDataCollectionTest extends TestCase
     }
 
     /**
-     * @dataProvider policyProvider
-     *
-     * @param array{http_headers?: array{mode?: string, request?: array{mode?: string}, response?: array{mode?: string}}, cookies?: array{mode?: string}, http_bodies?: string[]}|null $collection
+     * @dataProvider legacyPiiProvider
      */
-    public function testCollection(?array $collection, bool $pii): void
+    public function testConfiguredDefaultsCollectHeadersAndCookies(bool $pii): void
+    {
+        $data = $this->collect(['data_collection' => [], 'send_default_pii' => $pii]);
+
+        $this->assertCollectedHeaders($data, 'request');
+        $this->assertCollectedHeaders($data, 'response');
+        $this->assertCollectedCookies($data);
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testLegacyConfigurationDoesNotAddHeadersOrCookies(bool $pii): void
+    {
+        $data = $this->collect(['data_collection' => null, 'send_default_pii' => $pii]);
+
+        $this->assertArrayNotHasKey('http.request.header.x-request', $data);
+        $this->assertArrayNotHasKey('http.response.header.x-response', $data);
+        $this->assertArrayNotHasKey('http.request.header.cookie.theme', $data);
+        $this->assertArrayNotHasKey('http.response.header.set_cookie.theme', $data);
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testDisablingHeadersStillCollectsCookies(bool $pii): void
+    {
+        $data = $this->collect(['data_collection' => ['http_headers' => ['mode' => 'off']], 'send_default_pii' => $pii]);
+
+        $this->assertArrayNotHasKey('http.request.header.x-request', $data);
+        $this->assertArrayNotHasKey('http.response.header.x-response', $data);
+        $this->assertCollectedCookies($data);
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testRequestHeadersCanBeDisabledIndependently(bool $pii): void
+    {
+        $data = $this->collect(['data_collection' => ['http_headers' => ['request' => ['mode' => 'off']]], 'send_default_pii' => $pii]);
+
+        $this->assertArrayNotHasKey('http.request.header.x-request', $data);
+        $this->assertCollectedHeaders($data, 'response');
+        $this->assertCollectedCookies($data);
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testResponseHeadersCanBeDisabledIndependently(bool $pii): void
+    {
+        $data = $this->collect(['data_collection' => ['http_headers' => ['response' => ['mode' => 'off']]], 'send_default_pii' => $pii]);
+
+        $this->assertCollectedHeaders($data, 'request');
+        $this->assertArrayNotHasKey('http.response.header.x-response', $data);
+        $this->assertCollectedCookies($data);
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testDisablingCookiesStillCollectsHeaders(bool $pii): void
+    {
+        $data = $this->collect(['data_collection' => ['cookies' => ['mode' => 'off']], 'send_default_pii' => $pii]);
+
+        $this->assertCollectedHeaders($data, 'request');
+        $this->assertCollectedHeaders($data, 'response');
+        $this->assertArrayNotHasKey('http.request.header.cookie.theme', $data);
+        $this->assertArrayNotHasKey('http.response.header.set_cookie.theme', $data);
+    }
+
+    /**
+     * @dataProvider bodyConfigurationProvider
+     *
+     * @param string[] $bodyTypes
+     */
+    public function testBodyConfigurationDoesNotChangeHeaderOrCookieCollection(array $bodyTypes, bool $pii): void
+    {
+        $data = $this->collect(['data_collection' => ['http_bodies' => $bodyTypes], 'send_default_pii' => $pii]);
+
+        $this->assertCollectedHeaders($data, 'request');
+        $this->assertCollectedHeaders($data, 'response');
+        $this->assertCollectedCookies($data);
+        $this->assertArrayNotHasKey('http.request.body.data', $data);
+        $this->assertArrayNotHasKey('http.response.body.data', $data);
+    }
+
+    public function legacyPiiProvider(): \Generator
+    {
+        yield 'legacy PII disabled' => [false];
+        yield 'legacy PII enabled' => [true];
+    }
+
+    public function bodyConfigurationProvider(): \Generator
+    {
+        foreach ([false, true] as $pii) {
+            yield 'bodies disabled pii=' . (int) $pii => [[], $pii];
+            yield 'outgoing body enabled pii=' . (int) $pii => [['outgoingRequest'], $pii];
+            yield 'incoming body enabled pii=' . (int) $pii => [['incomingResponse'], $pii];
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     *
+     * @return array<string, mixed>
+     */
+    private function collect(array $options): array
     {
         $transaction = null;
         $responseBody = '{"name":"Bob","token":"response-secret"}';
@@ -43,7 +148,7 @@ final class HttpDataCollectionTest extends TestCase
             'Content-Type: application/json', 'X-Response: visible', 'Authorization: response-secret',
             'Set-Cookie: session_id=response-secret; HttpOnly', 'Set-Cookie: theme=light; Path=/',
         ]]);
-        $client = $this->client(new MockHttpClient($mock), ['data_collection' => $collection, 'send_default_pii' => $pii], $transaction);
+        $client = $this->client(new MockHttpClient($mock), $options, $transaction);
         $requestBody = '{"name":"Alice","password":"request-secret"}';
         $response = $client->request('POST', 'https://example.com', ['headers' => [
             'Content-Type' => 'application/json', 'X-Request' => 'visible', 'Authorization' => 'request-secret',
@@ -53,35 +158,31 @@ final class HttpDataCollectionTest extends TestCase
         $this->assertSame($requestBody, $mock->getRequestOptions()['body']);
         $this->assertSame(['Cookie: session_id=request-secret; theme=dark'], $mock->getRequestOptions()['normalized_headers']['cookie']);
         $data = $this->span($transaction)->getData();
-        foreach (['request' => 'cookie', 'response' => 'set_cookie'] as $direction => $cookieAttribute) {
-            $headersEnabled = null !== $collection && 'off' !== ($collection['http_headers'][$direction]['mode'] ?? $collection['http_headers']['mode'] ?? null);
-            $cookiesEnabled = null !== $collection && 'off' !== ($collection['cookies']['mode'] ?? null);
-            $prefix = 'http.' . $direction . '.';
-            if ($headersEnabled) {
-                $this->assertSame(['visible'], $data[$prefix . 'header.x-' . $direction]);
-                $this->assertSame(['[Filtered]'], $data[$prefix . 'header.authorization']);
-            } else {
-                $this->assertArrayNotHasKey($prefix . 'header.x-' . $direction, $data);
-            }
-            if ($cookiesEnabled) {
-                $this->assertSame('[Filtered]', $data[$prefix . 'header.' . $cookieAttribute . '.session_id']);
-                $this->assertSame('request' === $direction ? 'dark' : 'light', $data[$prefix . 'header.' . $cookieAttribute . '.theme']);
-            } else {
-                $this->assertArrayNotHasKey($prefix . 'header.' . $cookieAttribute . '.theme', $data);
-            }
-            $this->assertArrayNotHasKey($prefix . 'body.data', $data);
-            $this->assertArrayNotHasKey($prefix . 'header.cookie', $data);
-            $this->assertArrayNotHasKey($prefix . 'header.set-cookie', $data);
+        foreach (['http.request.body.data', 'http.response.body.data', 'http.request.header.cookie', 'http.request.header.set-cookie', 'http.response.header.cookie', 'http.response.header.set-cookie'] as $key) {
+            $this->assertArrayNotHasKey($key, $data);
         }
+
+        return $data;
     }
 
-    public function policyProvider(): \Generator
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function assertCollectedHeaders(array $data, string $direction): void
     {
-        foreach ([false, true] as $pii) {
-            foreach ([null, [], ['http_headers' => ['mode' => 'off']], ['cookies' => ['mode' => 'off']], ['http_bodies' => []], ['http_bodies' => ['outgoingRequest']], ['http_bodies' => ['incomingResponse']], ['http_headers' => ['request' => ['mode' => 'off']]], ['http_headers' => ['response' => ['mode' => 'off']]]] as $collection) {
-                yield [$collection, $pii];
-            }
-        }
+        $this->assertSame(['visible'], $data['http.' . $direction . '.header.x-' . $direction]);
+        $this->assertSame(['[Filtered]'], $data['http.' . $direction . '.header.authorization']);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function assertCollectedCookies(array $data): void
+    {
+        $this->assertSame('dark', $data['http.request.header.cookie.theme']);
+        $this->assertSame('light', $data['http.response.header.set_cookie.theme']);
+        $this->assertSame('[Filtered]', $data['http.request.header.cookie.session_id']);
+        $this->assertSame('[Filtered]', $data['http.response.header.set_cookie.session_id']);
     }
 
     public function testToArrayCollectsHeadersWithoutRereadingContent(): void
@@ -185,9 +286,8 @@ final class HttpDataCollectionTest extends TestCase
         $response = $client->request('GET', 'https://example.com', ['buffer' => false]);
         $content = '';
         foreach ($client->stream($response) as $chunk) {
-            if (!$chunk->isTimeout()) {
-                $content .= $chunk->getContent();
-            }
+            $this->assertFalse($chunk->isTimeout());
+            $content .= $chunk->getContent();
         }
         $this->assertSame('secret', $content);
         $this->assertSame(['visible'], $this->span($transaction)->getData()['http.response.header.x-response']);
@@ -211,32 +311,41 @@ final class HttpDataCollectionTest extends TestCase
         }
     }
 
-    public function testUnavailableHeadersDoNotMaskTransportErrorsOrCancellation(): void
+    public function testUnavailableHeadersDoNotMaskTransportErrors(): void
     {
-        foreach (['getContent', 'cancel'] as $method) {
-            $span = (new Span())->setSampled(true);
-            $error = new TransportException('Request failed');
-            $underlying = $this->createMock(ResponseInterface::class);
-            $underlying->method('getInfo')->willReturn(0);
-            $underlying->expects($this->once())->method('getHeaders')->with(false)->willThrowException(new TransportException('Headers unavailable'));
-            if ('getContent' === $method) {
-                $underlying->expects($this->once())->method('getContent')->willThrowException($error);
-            } else {
-                $underlying->expects($this->once())->method('cancel');
-                $underlying->expects($this->never())->method('getContent');
-            }
-            $response = new TraceableResponse($this->createMock(HttpClientInterface::class), $underlying, $span, new DataCollectionOptions());
+        $span = (new Span())->setSampled(true);
+        $error = new TransportException('Request failed');
+        $underlying = $this->createMock(ResponseInterface::class);
+        $underlying->method('getInfo')->willReturn(0);
+        $underlying->expects($this->once())->method('getHeaders')->with(false)->willThrowException(new TransportException('Headers unavailable'));
+        $underlying->expects($this->once())->method('getContent')->willThrowException($error);
+        $response = new TraceableResponse($this->createMock(HttpClientInterface::class), $underlying, $span, new DataCollectionOptions());
 
-            try {
-                $response->{$method}();
-                $this->assertSame('cancel', $method);
-            } catch (TransportException $exception) {
-                $this->assertSame($error, $exception);
-            }
+        $this->expectExceptionObject($error);
+        try {
+            $response->getContent();
+        } finally {
             $this->assertNotNull($span->getEndTimestamp());
             $this->assertSame([], $span->getData());
             unset($response);
         }
+    }
+
+    public function testUnavailableHeadersDoNotPreventCancellation(): void
+    {
+        $span = (new Span())->setSampled(true);
+        $underlying = $this->createMock(ResponseInterface::class);
+        $underlying->method('getInfo')->willReturn(0);
+        $underlying->expects($this->once())->method('getHeaders')->with(false)->willThrowException(new TransportException('Headers unavailable'));
+        $underlying->expects($this->once())->method('cancel');
+        $underlying->expects($this->never())->method('getContent');
+        $response = new TraceableResponse($this->createMock(HttpClientInterface::class), $underlying, $span, new DataCollectionOptions());
+
+        $response->cancel();
+
+        $this->assertNotNull($span->getEndTimestamp());
+        $this->assertSame([], $span->getData());
+        unset($response);
     }
 
     public function testResourceAndCallbackRequestBodiesAreNotRead(): void
@@ -261,22 +370,30 @@ final class HttpDataCollectionTest extends TestCase
         }
     }
 
-    public function testHeadersAreReadOnlyWhenSampledResponsesFinish(): void
+    public function testSampledResponsesReadHeadersWhenFinished(): void
     {
-        foreach ([0.0, 1.0] as $rate) {
-            $underlyingResponse = $this->createMock(ResponseInterface::class);
-            $underlyingResponse->expects($this->never())->method('getContent');
-            $underlyingResponse->expects($this->exactly(1.0 === $rate ? 1 : 0))->method('getHeaders')->with(false)->willReturn([]);
-            $underlyingResponse->expects($this->never())->method('toArray');
-            $underlyingResponse->expects($this->never())->method('getStatusCode');
-            $underlyingResponse->expects($this->once())->method('getInfo')->with('http_code')->willReturn(200);
-            $underlying = $this->createMock(HttpClientInterface::class);
-            $underlying->method('request')->willReturn($underlyingResponse);
-            $transaction = null;
-            $client = $this->client($underlying, ['data_collection' => [], 'traces_sample_rate' => $rate], $transaction);
-            $response = $client->request('GET', 'https://example.com');
-            unset($response);
-        }
+        $this->assertHeaderReadsOnFinish(1.0, 1);
+    }
+
+    public function testUnsampledResponsesDoNotReadHeaders(): void
+    {
+        $this->assertHeaderReadsOnFinish(0.0, 0);
+    }
+
+    private function assertHeaderReadsOnFinish(float $rate, int $expectedReads): void
+    {
+        $underlyingResponse = $this->createMock(ResponseInterface::class);
+        $underlyingResponse->expects($this->never())->method('getContent');
+        $underlyingResponse->expects($this->exactly($expectedReads))->method('getHeaders')->with(false)->willReturn([]);
+        $underlyingResponse->expects($this->never())->method('toArray');
+        $underlyingResponse->expects($this->never())->method('getStatusCode');
+        $underlyingResponse->expects($this->once())->method('getInfo')->with('http_code')->willReturn(200);
+        $underlying = $this->createMock(HttpClientInterface::class);
+        $underlying->method('request')->willReturn($underlyingResponse);
+        $transaction = null;
+        $client = $this->client($underlying, ['data_collection' => [], 'traces_sample_rate' => $rate], $transaction);
+        $response = $client->request('GET', 'https://example.com');
+        unset($response);
     }
 
     public function testExplicitAttributesArePreserved(): void
@@ -427,27 +544,34 @@ final class HttpDataCollectionTest extends TestCase
         }
     }
 
-    public function testDeclaredHeadersArePreservedWhenTransportCorrectsThem(): void
+    public function testDeclaredContentLengthIsPreservedWhenTransportCorrectsIt(): void
     {
-        foreach ([
-            ['body' => 'hello', 'headers' => ['Content-Length' => '1', 'Content-Type' => 'text/plain']],
-            ['body' => ['name' => 'Alice'], 'headers' => ['Content-Type' => 'text/plain']],
-        ] as $options) {
-            $transaction = null;
-            $mock = new MockResponse();
-            $client = $this->client(new MockHttpClient($mock), ['data_collection' => []], $transaction);
-            $client->request('POST', 'https://example.com', $options)->getContent();
+        $transaction = null;
+        $mock = new MockResponse();
+        $client = $this->client(new MockHttpClient($mock), ['data_collection' => []], $transaction);
+        $client->request('POST', 'https://example.com', [
+            'body' => 'hello',
+            'headers' => ['Content-Length' => '1', 'Content-Type' => 'text/plain'],
+        ])->getContent();
 
-            $data = $this->span($transaction)->getData();
-            $this->assertSame(['text/plain'], $data['http.request.header.content-type']);
-            $prepared = $mock->getRequestOptions()['normalized_headers'];
-            if (isset($options['headers']['Content-Length'])) {
-                $this->assertSame(['1'], $data['http.request.header.content-length']);
-                $this->assertSame(['Content-Length: 5'], $prepared['content-length']);
-            } else {
-                $this->assertSame(['Content-Type: application/x-www-form-urlencoded'], $prepared['content-type']);
-            }
-        }
+        $data = $this->span($transaction)->getData();
+        $this->assertSame(['text/plain'], $data['http.request.header.content-type']);
+        $this->assertSame(['1'], $data['http.request.header.content-length']);
+        $this->assertSame(['Content-Length: 5'], $mock->getRequestOptions()['normalized_headers']['content-length']);
+    }
+
+    public function testDeclaredContentTypeIsPreservedWhenTransportCorrectsIt(): void
+    {
+        $transaction = null;
+        $mock = new MockResponse();
+        $client = $this->client(new MockHttpClient($mock), ['data_collection' => []], $transaction);
+        $client->request('POST', 'https://example.com', [
+            'body' => ['name' => 'Alice'],
+            'headers' => ['Content-Type' => 'text/plain'],
+        ])->getContent();
+
+        $this->assertSame(['text/plain'], $this->span($transaction)->getData()['http.request.header.content-type']);
+        $this->assertSame(['Content-Type: application/x-www-form-urlencoded'], $mock->getRequestOptions()['normalized_headers']['content-type']);
     }
 
     public function testResponseHeadersCanBeCollectedAfterAnHttpException(): void

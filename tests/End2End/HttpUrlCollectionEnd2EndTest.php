@@ -21,22 +21,29 @@ final class HttpUrlCollectionEnd2EndTest extends TestCase
         StubTransport::$events = [];
     }
 
-    /**
-     * @dataProvider collectionProvider
-     */
-    public function testMainAndSubrequestUrls(bool $configured): void
+    public function testLegacyUrlsUseSymfonyNormalization(): void
     {
-        $config = [__DIR__ . '/App/tracing.yml'];
-        if ($configured) {
-            $config[] = __DIR__ . '/App/url_data_collection.yml';
-        }
+        $url = 'http://localhost/subrequest?page=one+two&tag=a&tag=b&%74oken=secret&a.b=dot';
+        $this->assertRequestUrls([__DIR__ . '/App/tracing.yml'], Request::create($url)->getUri());
+    }
+
+    public function testConfiguredUrlsPreserveEncodingAndFilterSensitiveValues(): void
+    {
+        $this->assertRequestUrls(
+            [__DIR__ . '/App/tracing.yml', __DIR__ . '/App/url_data_collection.yml'],
+            'http://localhost/subrequest?page=one+two&tag=a&tag=b&%74oken=[Filtered]&a.b=dot'
+        );
+    }
+
+    /**
+     * @param string[] $config
+     */
+    private function assertRequestUrls(array $config, string $expectedUrl): void
+    {
         $kernel = new KernelWithExtraConfig($config);
         // Boot lazily so the SDK's first request fetcher belongs to this request's kernel.
         $client = new KernelBrowser($kernel);
         $url = 'http://localhost/subrequest?page=one+two&tag=a&tag=b&%74oken=secret&a.b=dot';
-        $expectedUrl = $configured
-            ? 'http://localhost/subrequest?page=one+two&tag=a&tag=b&%74oken=[Filtered]&a.b=dot'
-            : Request::create($url)->getUri();
 
         try {
             $client->request('GET', $url);
@@ -60,14 +67,5 @@ final class HttpUrlCollectionEnd2EndTest extends TestCase
         } finally {
             $kernel->shutdown();
         }
-    }
-
-    /**
-     * @return \Generator<mixed>
-     */
-    public function collectionProvider(): \Generator
-    {
-        yield 'legacy' => [false];
-        yield 'configured' => [true];
     }
 }

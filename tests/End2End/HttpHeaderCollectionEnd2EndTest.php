@@ -11,9 +11,12 @@ use Sentry\Tracing\Span;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @runTestsInSeparateProcesses
+ *
+ * @phpstan-type Exchange array{spans: array<string, array<string, mixed>>, event: Event, request: Request, response: Response, eventRequest: array{headers?: array<string, string[]>, cookies?: array<string, mixed>}}
  */
 final class HttpHeaderCollectionEnd2EndTest extends TestCase
 {
@@ -23,21 +26,304 @@ final class HttpHeaderCollectionEnd2EndTest extends TestCase
     }
 
     /**
-     * @dataProvider policyProvider
-     *
-     * @param array{user_info?: bool, http_headers?: array{mode?: string, request?: array{mode?: string}, response?: array{mode?: string}, terms?: string[]}, cookies?: array{mode?: string, terms?: string[]}}|null $collection
+     * @dataProvider legacyPiiProvider
      */
-    public function testServerHeaders(?array $collection, bool $pii, bool $requestHeaders, bool $responseHeaders, string $debugValue): void
+    public function testDefaultHeadersAreCollectedForMainAndSubrequests(bool $pii): void
     {
-        $options = ['send_default_pii' => $pii];
-        if (null !== $collection) {
-            $options['data_collection'] = $collection;
+        $result = $this->request(['data_collection' => [], 'send_default_pii' => $pii]);
+
+        $this->assertCollectedHeaders($result['spans']);
+        $this->assertArrayHasKey('headers', $result['eventRequest']);
+        $this->assertSame(['[Filtered]'], $result['eventRequest']['headers']['authorization']);
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testDefaultCookiesAreCollectedForMainAndSubrequests(bool $pii): void
+    {
+        $result = $this->request(['data_collection' => [], 'send_default_pii' => $pii]);
+
+        $this->assertCollectedCookies($result['spans']);
+        $this->assertArrayHasKey('cookies', $result['eventRequest']);
+        $this->assertSame('dark', $result['eventRequest']['cookies']['theme']);
+        $this->assertSame('[Filtered]', $result['eventRequest']['cookies']['session_id']);
+    }
+
+    /**
+     * @dataProvider legacyHeadersProvider
+     */
+    public function testLegacyConfigurationPreservesEventHeadersWithoutAddingSpanHeaders(bool $pii, string $authorization): void
+    {
+        $result = $this->request(['send_default_pii' => $pii]);
+
+        foreach ($result['spans'] as $data) {
+            $this->assertArrayNotHasKey('http.request.header.x-test', $data);
+            $this->assertArrayNotHasKey('http.response.header.x-test', $data);
+            $this->assertArrayNotHasKey('http.request.header.cookie.theme', $data);
+            $this->assertArrayNotHasKey('http.response.header.set_cookie.theme', $data);
         }
+        $this->assertArrayHasKey('headers', $result['eventRequest']);
+        $this->assertSame([$authorization], $result['eventRequest']['headers']['authorization']);
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testRequestHeadersCanBeDisabledIndependently(bool $pii): void
+    {
+        $result = $this->request(['data_collection' => ['http_headers' => ['request' => ['mode' => 'off']]], 'send_default_pii' => $pii]);
+
+        foreach ($result['spans'] as $name => $data) {
+            $this->assertArrayNotHasKey('http.request.header.x-test', $data);
+            $this->assertArrayNotHasKey('http.request.header.authorization', $data);
+            $this->assertSame([$name, 'second'], $data['http.response.header.x-test']);
+            $this->assertSame(['[Filtered]'], $data['http.response.header.authorization']);
+        }
+        $this->assertArrayNotHasKey('headers', $result['eventRequest']);
+        $this->assertCollectedCookies($result['spans']);
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testResponseHeadersCanBeDisabledIndependently(bool $pii): void
+    {
+        $result = $this->request(['data_collection' => ['http_headers' => ['response' => ['mode' => 'off']]], 'send_default_pii' => $pii]);
+
+        foreach ($result['spans'] as $name => $data) {
+            $this->assertSame([$name], $data['http.request.header.x-test']);
+            $this->assertSame(['[Filtered]'], $data['http.request.header.authorization']);
+            $this->assertArrayNotHasKey('http.response.header.x-test', $data);
+            $this->assertArrayNotHasKey('http.response.header.authorization', $data);
+        }
+        $this->assertArrayHasKey('headers', $result['eventRequest']);
+        $this->assertSame(['[Filtered]'], $result['eventRequest']['headers']['authorization']);
+        $this->assertCollectedCookies($result['spans']);
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testDisablingBothHeaderDirectionsStillCollectsCookies(bool $pii): void
+    {
+        $result = $this->request(['data_collection' => ['http_headers' => ['mode' => 'off']], 'send_default_pii' => $pii]);
+
+        foreach ($result['spans'] as $data) {
+            $this->assertArrayNotHasKey('http.request.header.x-test', $data);
+            $this->assertArrayNotHasKey('http.response.header.x-test', $data);
+        }
+        $this->assertArrayNotHasKey('headers', $result['eventRequest']);
+        $this->assertCollectedCookies($result['spans']);
+        $this->assertArrayHasKey('cookies', $result['eventRequest']);
+        $this->assertSame('dark', $result['eventRequest']['cookies']['theme']);
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testDisablingCookiesStillCollectsHeaders(bool $pii): void
+    {
+        $result = $this->request(['data_collection' => ['cookies' => ['mode' => 'off']], 'send_default_pii' => $pii]);
+
+        foreach ($result['spans'] as $data) {
+            $this->assertArrayNotHasKey('http.request.header.cookie.theme', $data);
+            $this->assertArrayNotHasKey('http.request.header.cookie.session_id', $data);
+            $this->assertArrayNotHasKey('http.response.header.set_cookie.theme', $data);
+            $this->assertArrayNotHasKey('http.response.header.set_cookie.session_id', $data);
+        }
+        $this->assertArrayNotHasKey('cookies', $result['eventRequest']);
+        $this->assertCollectedHeaders($result['spans']);
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testHeadersAndCookiesCanBothBeDisabled(bool $pii): void
+    {
+        $result = $this->request(['data_collection' => ['http_headers' => ['mode' => 'off'], 'cookies' => ['mode' => 'off']], 'send_default_pii' => $pii]);
+
+        foreach ($result['spans'] as $data) {
+            foreach (['http.request.header.x-test', 'http.response.header.x-test', 'http.request.header.authorization', 'http.response.header.authorization', 'http.request.header.cookie.theme', 'http.response.header.set_cookie.theme', 'http.request.header.cookie.session_id', 'http.response.header.set_cookie.session_id'] as $key) {
+                $this->assertArrayNotHasKey($key, $data);
+            }
+        }
+        $this->assertArrayNotHasKey('headers', $result['eventRequest']);
+        $this->assertArrayNotHasKey('cookies', $result['eventRequest']);
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testHeaderAllowListKeepsExactMatchesAndFiltersSensitiveValues(bool $pii): void
+    {
+        $result = $this->request(['data_collection' => ['http_headers' => ['mode' => 'allowList', 'terms' => ['x-test', 'authorization']]], 'send_default_pii' => $pii]);
+
+        $this->assertCollectedHeaders($result['spans'], '[Filtered]', '[Filtered]');
+        $this->assertArrayHasKey('headers', $result['eventRequest']);
+        $this->assertSame(['[Filtered]'], $result['eventRequest']['headers']['authorization']);
+        $this->assertSame(['[Filtered]'], $result['eventRequest']['headers']['x-debug']);
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testHeaderDenyListFiltersOnlyExactCustomMatches(bool $pii): void
+    {
+        $result = $this->request(['data_collection' => ['http_headers' => ['mode' => 'denyList', 'terms' => ['x-debug']]], 'send_default_pii' => $pii]);
+
+        $this->assertCollectedHeaders($result['spans'], '[Filtered]', 'visible');
+        $this->assertArrayHasKey('headers', $result['eventRequest']);
+        $this->assertSame(['[Filtered]'], $result['eventRequest']['headers']['x-debug']);
+        $this->assertSame(['visible'], $result['eventRequest']['headers']['x-debug-extra']);
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testCookieAllowListFiltersUnlistedAndSensitiveCookies(bool $pii): void
+    {
+        $result = $this->request(['data_collection' => ['cookies' => ['mode' => 'allowList', 'terms' => ['session']]], 'send_default_pii' => $pii]);
+
+        foreach ($result['spans'] as $data) {
+            $this->assertSame('[Filtered]', $data['http.request.header.cookie.theme']);
+            $this->assertSame('[Filtered]', $data['http.request.header.cookie.session_id']);
+            $this->assertSame('[Filtered]', $data['http.response.header.set_cookie.theme']);
+            $this->assertSame('[Filtered]', $data['http.response.header.set_cookie.session_id']);
+        }
+        $this->assertArrayHasKey('cookies', $result['eventRequest']);
+        $this->assertSame('[Filtered]', $result['eventRequest']['cookies']['theme']);
+        $this->assertSame('[Filtered]', $result['eventRequest']['cookies']['session_id']);
+    }
+
+    /**
+     * @dataProvider userCollectionEnabledProvider
+     *
+     * @param array<string, mixed> $options
+     */
+    public function testUserIpIsCollectedOnEventsAndTransactions(array $options): void
+    {
+        $result = $this->request($options);
+        $user = $result['event']->getUser();
+
+        $this->assertNotNull($user);
+        $this->assertSame($result['request']->getClientIp(), $user->getIpAddress());
+        $this->assertSame($result['request']->getClientIp(), $result['spans']['main']['net.peer.ip']);
+    }
+
+    /**
+     * @dataProvider userCollectionDisabledProvider
+     *
+     * @param array<string, mixed> $options
+     */
+    public function testDisabledUserInfoDoesNotAddIpToEventsOrTransactions(array $options): void
+    {
+        $result = $this->request($options);
+
+        $this->assertNull($result['event']->getUser());
+        $this->assertArrayNotHasKey('net.peer.ip', $result['spans']['main']);
+    }
+
+    /**
+     * @dataProvider explicitDataProvider
+     *
+     * @param array<string, mixed> $options
+     */
+    public function testExplicitSpanValuesArePreserved(array $options): void
+    {
+        $result = $this->request($options);
+
+        foreach ($result['spans'] as $data) {
+            $this->assertArrayHasKey('http.response.header.x-explicit', $data);
+            $this->assertNull($data['http.response.header.x-explicit']);
+            $this->assertArrayHasKey('http.response.header.set_cookie.explicit', $data);
+            $this->assertNull($data['http.response.header.set_cookie.explicit']);
+        }
+    }
+
+    /**
+     * @dataProvider rawCookieHeadersProvider
+     *
+     * @param array<string, mixed> $collection
+     */
+    public function testRawCookieHeadersAreExcluded(array $collection): void
+    {
+        $result = $this->request(['data_collection' => $collection]);
+
+        foreach ($result['spans'] as $data) {
+            foreach (['http.request.header.cookie', 'http.request.header.set-cookie', 'http.response.header.cookie', 'http.response.header.set-cookie'] as $key) {
+                $this->assertArrayNotHasKey($key, $data);
+            }
+        }
+        $this->assertArrayNotHasKey('cookie', $result['eventRequest']['headers'] ?? []);
+        $this->assertArrayNotHasKey('set-cookie', $result['eventRequest']['headers'] ?? []);
+    }
+
+    public function testCollectionDoesNotModifyTheRequestOrResponse(): void
+    {
+        $result = $this->request(['data_collection' => []]);
+
+        $this->assertSame('Bearer request-secret', $result['request']->headers->get('Authorization'));
+        $this->assertSame('main', $result['request']->headers->get('X-Test'));
+        $this->assertSame('response-secret', $result['response']->headers->get('Authorization'));
+        $this->assertSame('response-cookie', $result['response']->headers->getCookies()[0]->getValue());
+    }
+
+    public function legacyPiiProvider(): \Generator
+    {
+        yield 'legacy PII disabled' => [false];
+        yield 'legacy PII enabled' => [true];
+    }
+
+    public function legacyHeadersProvider(): \Generator
+    {
+        yield 'legacy PII disabled' => [false, '[Filtered]'];
+        yield 'legacy PII enabled' => [true, 'Bearer request-secret'];
+    }
+
+    public function userCollectionEnabledProvider(): \Generator
+    {
+        yield 'legacy enabled' => [['send_default_pii' => true]];
+        yield 'configured defaults override legacy off' => [['data_collection' => [], 'send_default_pii' => false]];
+        yield 'configured defaults with legacy on' => [['data_collection' => [], 'send_default_pii' => true]];
+    }
+
+    public function userCollectionDisabledProvider(): \Generator
+    {
+        yield 'legacy disabled' => [['send_default_pii' => false]];
+        yield 'user info off with legacy off' => [['data_collection' => ['user_info' => false], 'send_default_pii' => false]];
+        yield 'user info off overrides legacy on' => [['data_collection' => ['user_info' => false], 'send_default_pii' => true]];
+    }
+
+    public function explicitDataProvider(): \Generator
+    {
+        yield 'legacy off' => [['send_default_pii' => false]];
+        yield 'legacy on' => [['send_default_pii' => true]];
+        yield 'configured defaults' => [['data_collection' => []]];
+        yield 'headers off' => [['data_collection' => ['http_headers' => ['mode' => 'off']]]];
+        yield 'cookies off' => [['data_collection' => ['cookies' => ['mode' => 'off']]]];
+        yield 'all off' => [['data_collection' => ['http_headers' => ['mode' => 'off'], 'cookies' => ['mode' => 'off']]]];
+    }
+
+    public function rawCookieHeadersProvider(): \Generator
+    {
+        yield 'configured defaults' => [[]];
+        yield 'headers off' => [['http_headers' => ['mode' => 'off']]];
+        yield 'cookies off' => [['cookies' => ['mode' => 'off']]];
+        yield 'explicitly allowed header names' => [['http_headers' => ['mode' => 'allowList', 'terms' => ['cookie', 'set-cookie']]]];
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     *
+     * @phpstan-return Exchange
+     */
+    private function request(array $options): array
+    {
         $kernel = new KernelWithHttpHeaders($options);
         $client = new KernelBrowser($kernel);
         $client->getCookieJar()->set(new Cookie('theme', 'dark'));
         $client->getCookieJar()->set(new Cookie('session_id', 'request-cookie'));
-
         try {
             $client->request('GET', '/header-collection', [], [], [
                 'HTTP_AUTHORIZATION' => 'Bearer request-secret',
@@ -47,120 +333,68 @@ final class HttpHeaderCollectionEnd2EndTest extends TestCase
                 'HTTP_X_TEST_EXTRA' => 'visible',
                 'HTTP_COOKIE' => 'session_id=request-cookie',
             ]);
-            $response = $client->getResponse();
-            $this->assertSame(200, $response->getStatusCode());
-            $this->assertSame('response-secret', $response->headers->get('Authorization'));
-            $this->assertSame('response-cookie', $response->headers->getCookies()[0]->getValue());
             $request = $client->getRequest();
             $this->assertInstanceOf(Request::class, $request);
-            $this->assertSame('Bearer request-secret', $request->headers->get('Authorization'));
-            $this->assertSame('main', $request->headers->get('X-Test'));
-
+            $response = $client->getResponse();
+            $this->assertSame(200, $response->getStatusCode());
             $transactions = array_values(array_filter(StubTransport::$events, static function (Event $event): bool {
                 return null !== $event->getTransaction();
             }));
             $this->assertCount(1, $transactions);
             $mainData = $transactions[0]->getContexts()['trace']['data'];
             $this->assertIsArray($mainData);
-            $collectUserInfo = null === $collection ? $pii : ($collection['user_info'] ?? true);
-            if ($collectUserInfo) {
-                $this->assertSame($request->getClientIp(), $mainData['net.peer.ip']);
-            } else {
-                $this->assertArrayNotHasKey('net.peer.ip', $mainData);
-            }
             $subspans = array_values(array_filter($transactions[0]->getSpans(), static function (Span $span): bool {
                 return 'http.server' === $span->getOp();
             }));
             $this->assertCount(1, $subspans);
-            foreach (['main' => $mainData, 'subrequest' => $subspans[0]->getData()] as $name => $data) {
-                $this->assertArrayHasKey('http.response.header.x-explicit', $data);
-                $this->assertNull($data['http.response.header.x-explicit']);
-                $this->assertArrayHasKey('http.response.header.set_cookie.explicit', $data);
-                $this->assertNull($data['http.response.header.set_cookie.explicit']);
-                $cookiesEnabled = null !== $collection && 'off' !== ($collection['cookies']['mode'] ?? null);
-                $themeFiltered = isset($collection['cookies']['terms']) && ['session'] === $collection['cookies']['terms'];
-                foreach (['request' => 'cookie', 'response' => 'set_cookie'] as $direction => $attribute) {
-                    $prefix = 'http.' . $direction . '.header.' . $attribute . '.';
-                    if ($cookiesEnabled) {
-                        $theme = 'subrequest' === $name ? 'subrequest' : ('request' === $direction ? 'dark' : 'light');
-                        $this->assertSame($themeFiltered ? '[Filtered]' : $theme, $data[$prefix . 'theme']);
-                        $this->assertSame('[Filtered]', $data[$prefix . 'session_id']);
-                    } else {
-                        $this->assertArrayNotHasKey($prefix . 'theme', $data);
-                        $this->assertArrayNotHasKey($prefix . 'session_id', $data);
-                    }
-                }
-                foreach (['request' => $requestHeaders, 'response' => $responseHeaders] as $direction => $enabled) {
-                    $prefix = 'http.' . $direction . '.header.';
-                    if ($enabled) {
-                        $this->assertSame('request' === $direction ? [$name] : [$name, 'second'], $data[$prefix . 'x-test']);
-                        $this->assertSame(['[Filtered]'], $data[$prefix . 'authorization']);
-                        $this->assertSame([$debugValue], $data[$prefix . 'x-debug']);
-                        $extraValue = 'allowList' === ($collection['http_headers']['mode'] ?? null) ? '[Filtered]' : 'visible';
-                        $this->assertSame([$extraValue], $data[$prefix . 'x-debug-extra']);
-                        $this->assertSame([$extraValue], $data[$prefix . 'x-test-extra']);
-                    } else {
-                        $this->assertArrayNotHasKey($prefix . 'x-test', $data);
-                        $this->assertArrayNotHasKey($prefix . 'authorization', $data);
-                    }
-                }
-                foreach (['request', 'response'] as $direction) {
-                    $this->assertArrayNotHasKey('http.' . $direction . '.header.cookie', $data);
-                    $this->assertArrayNotHasKey('http.' . $direction . '.header.set-cookie', $data);
-                }
-            }
-
-            // Request events retain their SDK-owned legacy behavior and configuration precedence.
             $messages = array_values(array_filter(StubTransport::$events, static function (Event $event): bool {
                 return 'Header collection' === $event->getMessage();
             }));
             $this->assertCount(1, $messages);
-            $user = $messages[0]->getUser();
-            $this->assertSame($collectUserInfo ? $request->getClientIp() : null, null === $user ? null : $user->getIpAddress());
-            /** @var array{headers?: array<string, string[]>, cookies?: array<string, string>} $eventRequest */
+            /** @var array{headers?: array<string, string[]>, cookies?: array<string, mixed>} $eventRequest */
             $eventRequest = $messages[0]->getRequest();
-            if (null !== $collection) {
-                $this->assertArrayNotHasKey('cookie', $eventRequest['headers'] ?? []);
-                $this->assertArrayNotHasKey('set-cookie', $eventRequest['headers'] ?? []);
-                if ('off' === ($collection['cookies']['mode'] ?? null)) {
-                    $this->assertArrayNotHasKey('cookies', $eventRequest);
-                } else {
-                    $this->assertArrayHasKey('cookies', $eventRequest);
-                    $this->assertSame(isset($collection['cookies']['terms']) ? '[Filtered]' : 'dark', $eventRequest['cookies']['theme']);
-                    $this->assertSame('[Filtered]', $eventRequest['cookies']['session_id']);
-                }
-            }
-            if (null === $collection || $requestHeaders) {
-                $this->assertArrayHasKey('headers', $eventRequest);
-                $eventHeaders = $eventRequest['headers'];
-                $this->assertIsArray($eventHeaders);
-                $this->assertSame([null === $collection && $pii ? 'Bearer request-secret' : '[Filtered]'], $eventHeaders['authorization']);
-            } else {
-                $this->assertArrayNotHasKey('headers', $eventRequest);
-            }
+
+            return [
+                'spans' => ['main' => $mainData, 'subrequest' => $subspans[0]->getData()],
+                'event' => $messages[0],
+                'eventRequest' => $eventRequest,
+                'request' => $request,
+                'response' => $response,
+            ];
         } finally {
             $kernel->shutdown();
         }
     }
 
     /**
-     * @return \Generator<mixed>
+     * @param array<string, array<string, mixed>> $spans
      */
-    public function policyProvider(): \Generator
+    private function assertCollectedHeaders(array $spans, string $debugValue = 'visible', string $extraValue = 'visible'): void
     {
-        foreach ([false, true] as $pii) {
-            $suffix = ' pii=' . (int) $pii;
-            yield 'legacy' . $suffix => [null, $pii, false, false, 'visible'];
-            yield 'defaults' . $suffix => [[], $pii, true, true, 'visible'];
-            yield 'user info off' . $suffix => [['user_info' => false], $pii, true, true, 'visible'];
-            yield 'request off' . $suffix => [['http_headers' => ['request' => ['mode' => 'off']]], $pii, false, true, 'visible'];
-            yield 'response off' . $suffix => [['http_headers' => ['response' => ['mode' => 'off']]], $pii, true, false, 'visible'];
-            yield 'cookies off' . $suffix => [['cookies' => ['mode' => 'off']], $pii, true, true, 'visible'];
-            yield 'cookie allow list' . $suffix => [['cookies' => ['mode' => 'allowList', 'terms' => ['session']]], $pii, true, true, 'visible'];
-            yield 'all off' . $suffix => [['http_headers' => ['mode' => 'off'], 'cookies' => ['mode' => 'off']], $pii, false, false, 'visible'];
-            yield 'cookies enabled, headers off' . $suffix => [['http_headers' => ['mode' => 'off']], $pii, false, false, 'visible'];
-            yield 'allow list' . $suffix => [['http_headers' => ['mode' => 'allowList', 'terms' => ['x-test', 'authorization']]], $pii, true, true, '[Filtered]'];
-            yield 'deny list' . $suffix => [['http_headers' => ['mode' => 'denyList', 'terms' => ['x-debug']]], $pii, true, true, '[Filtered]'];
+        foreach ($spans as $name => $data) {
+            $this->assertSame([$name], $data['http.request.header.x-test']);
+            $this->assertSame([$name, 'second'], $data['http.response.header.x-test']);
+            foreach (['http.request.header.', 'http.response.header.'] as $prefix) {
+                $this->assertSame(['[Filtered]'], $data[$prefix . 'authorization']);
+                $this->assertSame([$debugValue], $data[$prefix . 'x-debug']);
+                $this->assertSame([$extraValue], $data[$prefix . 'x-debug-extra']);
+                $this->assertSame([$extraValue], $data[$prefix . 'x-test-extra']);
+            }
+        }
+    }
+
+    /**
+     * @param array<string, array<string, mixed>> $spans
+     */
+    private function assertCollectedCookies(array $spans): void
+    {
+        $this->assertSame('dark', $spans['main']['http.request.header.cookie.theme']);
+        $this->assertSame('light', $spans['main']['http.response.header.set_cookie.theme']);
+        $this->assertSame('subrequest', $spans['subrequest']['http.request.header.cookie.theme']);
+        $this->assertSame('subrequest', $spans['subrequest']['http.response.header.set_cookie.theme']);
+        foreach ($spans as $data) {
+            $this->assertSame('[Filtered]', $data['http.request.header.cookie.session_id']);
+            $this->assertSame('[Filtered]', $data['http.response.header.set_cookie.session_id']);
         }
     }
 }

@@ -23,23 +23,38 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 final class HttpHeaderCollectionTest extends TestCase
 {
     /**
-     * @dataProvider skippedCollectionProvider
+     * @dataProvider legacyCollectionProvider
      *
      * @param array<string, mixed> $options
      */
-    public function testLegacyAndUnsampledSpansDoNotCollectHeaders(array $options): void
+    public function testLegacySpansDoNotCollectHeaders(array $options): void
+    {
+        $this->assertHeadersAreNotCollected($options, 2);
+    }
+
+    public function testUnsampledSpansDoNotReadHeaders(): void
+    {
+        $this->assertHeadersAreNotCollected(['data_collection' => [], 'traces_sample_rate' => 0.0], 0);
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     */
+    private function assertHeadersAreNotCollected(array $options, int $expectedReads): void
     {
         $hub = $this->createHub($options);
         $request = Request::create('https://example.com');
         $request->headers = $this->getMockBuilder(HeaderBag::class)->setConstructorArgs([$request->headers->all()])->onlyMethods(['getIterator'])->getMock();
-        $request->headers->expects($this->exactly(0.0 === ($options['traces_sample_rate'] ?? null) ? 0 : 2))->method('getIterator')->willReturn(new \ArrayIterator(['x-test' => ['visible']]));
+        $request->headers->expects($this->exactly($expectedReads))->method('getIterator')->willReturn(new \ArrayIterator(['x-test' => ['visible']]));
         $response = new Response();
         $response->headers = $this->createMock(ResponseHeaderBag::class);
-        $response->headers->expects($this->exactly(0.0 === ($options['traces_sample_rate'] ?? null) ? 0 : 2))->method('getIterator')->willReturn(new \ArrayIterator(['x-test' => ['visible']]));
-        $response->headers->expects($this->exactly(0.0 === ($options['traces_sample_rate'] ?? null) ? 0 : 2))->method('getCookies')->willReturn([]);
+        $response->headers->expects($this->exactly($expectedReads))->method('getIterator')->willReturn(new \ArrayIterator(['x-test' => ['visible']]));
+        $response->headers->expects($this->exactly($expectedReads))->method('getCookies')->willReturn([]);
         $kernel = $this->createMock(HttpKernelInterface::class);
-        foreach ([new TracingRequestListener($hub), new TracingSubRequestListener($hub)] as $index => $listener) {
-            $type = 0 === $index ? $this->mainRequestType() : HttpKernelInterface::SUB_REQUEST;
+        foreach ([
+            [new TracingRequestListener($hub), $this->mainRequestType()],
+            [new TracingSubRequestListener($hub), HttpKernelInterface::SUB_REQUEST],
+        ] as [$listener, $type]) {
             $listener->handleKernelRequestEvent(new RequestEvent($kernel, $request, $type));
             $listener->collectKernelResponseEvent(new ResponseEvent($kernel, $request, $type, $response));
             $span = $hub->getSpan();
@@ -124,13 +139,12 @@ final class HttpHeaderCollectionTest extends TestCase
     /**
      * @return \Generator<mixed>
      */
-    public function skippedCollectionProvider(): \Generator
+    public function legacyCollectionProvider(): \Generator
     {
         yield 'legacy pii off' => [['send_default_pii' => false]];
         yield 'legacy pii on' => [['send_default_pii' => true]];
         yield 'null collection pii off' => [['data_collection' => null, 'send_default_pii' => false]];
         yield 'null collection pii on' => [['data_collection' => null, 'send_default_pii' => true]];
-        yield 'unsampled' => [['data_collection' => [], 'traces_sample_rate' => 0.0]];
     }
 
     /**

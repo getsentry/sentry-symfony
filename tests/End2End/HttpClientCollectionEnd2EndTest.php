@@ -16,32 +16,147 @@ use Symfony\Component\HttpClient\MockHttpClient;
  */
 final class HttpClientCollectionEnd2EndTest extends TestCase
 {
-    /**
-     * @dataProvider policyProvider
-     *
-     * @param array{http_headers?: array{mode?: string}, cookies?: array{mode?: string}, http_bodies?: string[]}|null $collection
-     */
-    public function testOutgoingHttpData(?array $collection, bool $pii, bool $stream, bool $asArray = false, string $extraQuery = ''): void
+    protected function setUp(): void
     {
         if (!class_exists(MockHttpClient::class)) {
             $this->markTestSkipped('This test requires symfony/http-client.');
         }
-        if ('defaults=1' === $extraQuery && !method_exists(MockHttpClient::class, 'withOptions')) {
+        StubTransport::$events = [];
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testConfiguredDefaultsCollectHeadersAndCookies(bool $pii): void
+    {
+        $data = $this->request(['data_collection' => [], 'send_default_pii' => $pii]);
+
+        $this->assertCollectedHeaders($data);
+        $this->assertCollectedCookies($data);
+        $this->assertNoBodiesOrRawCookieHeaders($data);
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testLegacyConfigurationDoesNotAddHeadersOrCookies(bool $pii): void
+    {
+        $data = $this->request(['send_default_pii' => $pii]);
+
+        $this->assertArrayNotHasKey('http.request.header.x-test', $data);
+        $this->assertArrayNotHasKey('http.response.header.x-test', $data);
+        $this->assertArrayNotHasKey('http.request.header.cookie.theme', $data);
+        $this->assertArrayNotHasKey('http.response.header.set_cookie.theme', $data);
+        $this->assertNoBodiesOrRawCookieHeaders($data);
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testDisablingHeadersStillCollectsCookies(bool $pii): void
+    {
+        $data = $this->request(['data_collection' => ['http_headers' => ['mode' => 'off']], 'send_default_pii' => $pii]);
+
+        $this->assertArrayNotHasKey('http.request.header.x-test', $data);
+        $this->assertArrayNotHasKey('http.response.header.x-test', $data);
+        $this->assertCollectedCookies($data);
+        $this->assertNoBodiesOrRawCookieHeaders($data);
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testDisablingCookiesStillCollectsHeaders(bool $pii): void
+    {
+        $data = $this->request(['data_collection' => ['cookies' => ['mode' => 'off']], 'send_default_pii' => $pii]);
+
+        $this->assertCollectedHeaders($data);
+        $this->assertArrayNotHasKey('http.request.header.cookie.theme', $data);
+        $this->assertArrayNotHasKey('http.response.header.set_cookie.theme', $data);
+        $this->assertNoBodiesOrRawCookieHeaders($data);
+    }
+
+    /**
+     * @dataProvider legacyPiiProvider
+     */
+    public function testDisablingBodiesStillCollectsHeadersAndCookies(bool $pii): void
+    {
+        $data = $this->request(['data_collection' => ['http_bodies' => []], 'send_default_pii' => $pii]);
+
+        $this->assertCollectedHeaders($data);
+        $this->assertCollectedCookies($data);
+        $this->assertNoBodiesOrRawCookieHeaders($data);
+    }
+
+    public function testStreamingCollectsHeadersAndCookies(): void
+    {
+        $data = $this->request(['data_collection' => []], 'stream=1');
+
+        $this->assertCollectedHeaders($data);
+        $this->assertCollectedCookies($data);
+        $this->assertNoBodiesOrRawCookieHeaders($data);
+    }
+
+    public function testDecodingJsonCollectsHeadersAndCookies(): void
+    {
+        $data = $this->request(['data_collection' => []], 'array=1');
+
+        $this->assertCollectedHeaders($data);
+        $this->assertCollectedCookies($data);
+        $this->assertNoBodiesOrRawCookieHeaders($data);
+    }
+
+    public function testClientDefaultsAreCollected(): void
+    {
+        if (!method_exists(MockHttpClient::class, 'withOptions')) {
             $this->markTestSkipped('withOptions is not available.');
         }
-        StubTransport::$events = [];
-        $options = ['send_default_pii' => $pii];
-        if (null !== $collection) {
-            $options['data_collection'] = $collection;
-        }
+        $data = $this->request(['data_collection' => []], 'defaults=1');
+
+        $this->assertCollectedHeaders($data);
+        $this->assertCollectedCookies($data);
+        $this->assertNoBodiesOrRawCookieHeaders($data);
+    }
+
+    public function testGeneratedBodyHeadersAreNotCollected(): void
+    {
+        $data = $this->request(['data_collection' => []], 'body=1');
+
+        $this->assertArrayNotHasKey('http.request.header.content-type', $data);
+        $this->assertArrayNotHasKey('http.request.header.content-length', $data);
+        $this->assertCollectedHeaders($data);
+        $this->assertCollectedCookies($data);
+        $this->assertNoBodiesOrRawCookieHeaders($data);
+    }
+
+    public function testHttpErrorResponsesCollectHeadersAndCookies(): void
+    {
+        $data = $this->request(['data_collection' => []], 'error=1');
+
+        $this->assertCollectedHeaders($data);
+        $this->assertCollectedCookies($data);
+        $this->assertNoBodiesOrRawCookieHeaders($data);
+    }
+
+    public function legacyPiiProvider(): \Generator
+    {
+        yield 'legacy PII disabled' => [false];
+        yield 'legacy PII enabled' => [true];
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     *
+     * @return array<string, mixed>
+     */
+    private function request(array $options, string $query = ''): array
+    {
         $kernel = new KernelWithHttpHeaders($options);
         $client = new KernelBrowser($kernel);
         try {
-            $client->request('GET', '/http-client-collection?' . ($stream ? 'stream=1' : ($asArray ? 'array=1' : $extraQuery)));
+            $client->request('GET', '/http-client-collection?' . $query);
             $this->assertSame('{"name":"Bob","token":"secret"}', $client->getResponse()->getContent());
-            /** @var Event[] $events */
-            $events = StubTransport::$events;
-            $transactions = array_values(array_filter($events, static function (Event $event): bool {
+            $transactions = array_values(array_filter(StubTransport::$events, static function (Event $event): bool {
                 return null !== $event->getTransaction();
             }));
             $this->assertCount(1, $transactions);
@@ -50,45 +165,41 @@ final class HttpClientCollectionEnd2EndTest extends TestCase
             }));
             $this->assertCount(1, $spans);
             $data = $spans[0]->getData();
-            if ('body=1' === $extraQuery) {
-                $this->assertArrayNotHasKey('http.request.header.content-type', $data);
-                $this->assertArrayNotHasKey('http.request.header.content-length', $data);
-            }
             $this->assertSame('search=old', $data['http.query']);
-            foreach (['request' => 'cookie', 'response' => 'set_cookie'] as $direction => $cookieAttribute) {
-                $prefix = 'http.' . $direction . '.';
-                $collected = null !== $collection;
-                if ($collected && 'off' !== ($collection['http_headers']['mode'] ?? null)) {
-                    $this->assertSame([$direction], $data[$prefix . 'header.x-test']);
-                } else {
-                    $this->assertArrayNotHasKey($prefix . 'header.x-test', $data);
-                }
-                if ($collected && 'off' !== ($collection['cookies']['mode'] ?? null)) {
-                    $this->assertSame('request' === $direction ? 'dark' : 'light', $data[$prefix . 'header.' . $cookieAttribute . '.theme']);
-                    $this->assertSame('[Filtered]', $data[$prefix . 'header.' . $cookieAttribute . '.session_id']);
-                } else {
-                    $this->assertArrayNotHasKey($prefix . 'header.' . $cookieAttribute . '.theme', $data);
-                }
-                $this->assertArrayNotHasKey($prefix . 'body.data', $data);
-                $this->assertArrayNotHasKey($prefix . 'header.cookie', $data);
-                $this->assertArrayNotHasKey($prefix . 'header.set-cookie', $data);
-            }
+
+            return $data;
         } finally {
             $kernel->shutdown();
         }
     }
 
-    public function policyProvider(): \Generator
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function assertCollectedHeaders(array $data): void
     {
-        foreach ([false, true] as $pii) {
-            foreach ([null, [], ['http_headers' => ['mode' => 'off']], ['cookies' => ['mode' => 'off']], ['http_bodies' => []]] as $collection) {
-                yield [$collection, $pii, false];
-            }
+        $this->assertSame(['request'], $data['http.request.header.x-test']);
+        $this->assertSame(['response'], $data['http.response.header.x-test']);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function assertCollectedCookies(array $data): void
+    {
+        $this->assertSame('dark', $data['http.request.header.cookie.theme']);
+        $this->assertSame('light', $data['http.response.header.set_cookie.theme']);
+        $this->assertSame('[Filtered]', $data['http.request.header.cookie.session_id']);
+        $this->assertSame('[Filtered]', $data['http.response.header.set_cookie.session_id']);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function assertNoBodiesOrRawCookieHeaders(array $data): void
+    {
+        foreach (['http.request.body.data', 'http.response.body.data', 'http.request.header.cookie', 'http.request.header.set-cookie', 'http.response.header.cookie', 'http.response.header.set-cookie'] as $key) {
+            $this->assertArrayNotHasKey($key, $data);
         }
-        yield [[], false, true];
-        yield 'parsed response without size metadata' => [[], false, false, true];
-        yield 'client defaults' => [[], false, false, false, 'defaults=1'];
-        yield 'generated body headers' => [[], false, false, false, 'body=1'];
-        yield 'body read after HTTP exception' => [[], false, false, false, 'error=1'];
     }
 }
