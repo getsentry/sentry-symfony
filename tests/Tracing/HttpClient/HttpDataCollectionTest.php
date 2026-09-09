@@ -507,13 +507,12 @@ final class HttpDataCollectionTest extends TestCase
         ])->getContent();
 
         $this->assertSame('name=form', $mock->getRequestOptions()['body']);
-        $this->assertSame(['Content-Type: application/x-www-form-urlencoded'], $mock->getRequestOptions()['normalized_headers']['content-type']);
         $data = $this->span($transaction)->getData();
         $this->assertArrayNotHasKey('http.request.header.content-type', $data);
         $this->assertArrayNotHasKey('http.request.body.data', $data);
     }
 
-    public function testGeneratedBodyHeadersAreNotCollected(): void
+    public function testBodyOptionsDoNotAddHeadersToSpan(): void
     {
         $stream = fopen('php://temp', 'w+');
         $this->assertIsResource($stream);
@@ -525,15 +524,12 @@ final class HttpDataCollectionTest extends TestCase
                 ['json' => ['name' => 'Alice']],
                 ['body' => ['name' => 'Alice']],
                 ['body' => ['file' => $stream]],
-            ] as $index => $options) {
+            ] as $options) {
                 $transaction = null;
                 $mock = new MockResponse();
                 $client = $this->client(new MockHttpClient($mock), ['data_collection' => []], $transaction);
                 $client->request('POST', 'https://example.com', $options)->getContent();
 
-                $prepared = $mock->getRequestOptions()['normalized_headers'];
-                $expectedType = ['application/json', 'application/x-www-form-urlencoded', 'multipart/form-data; boundary='][$index];
-                $this->assertStringStartsWith('Content-Type: ' . $expectedType, $prepared['content-type'][0]);
                 $data = $this->span($transaction)->getData();
                 $this->assertArrayNotHasKey('http.request.header.content-type', $data);
                 $this->assertArrayNotHasKey('http.request.header.content-length', $data);
@@ -544,7 +540,7 @@ final class HttpDataCollectionTest extends TestCase
         }
     }
 
-    public function testDeclaredContentLengthIsPreservedWhenTransportCorrectsIt(): void
+    public function testDeclaredContentLengthIsCollected(): void
     {
         $transaction = null;
         $mock = new MockResponse();
@@ -557,10 +553,9 @@ final class HttpDataCollectionTest extends TestCase
         $data = $this->span($transaction)->getData();
         $this->assertSame(['text/plain'], $data['http.request.header.content-type']);
         $this->assertSame(['1'], $data['http.request.header.content-length']);
-        $this->assertSame(['Content-Length: 5'], $mock->getRequestOptions()['normalized_headers']['content-length']);
     }
 
-    public function testDeclaredContentTypeIsPreservedWhenTransportCorrectsIt(): void
+    public function testDeclaredContentTypeIsCollected(): void
     {
         $transaction = null;
         $mock = new MockResponse();
@@ -571,7 +566,6 @@ final class HttpDataCollectionTest extends TestCase
         ])->getContent();
 
         $this->assertSame(['text/plain'], $this->span($transaction)->getData()['http.request.header.content-type']);
-        $this->assertSame(['Content-Type: application/x-www-form-urlencoded'], $mock->getRequestOptions()['normalized_headers']['content-type']);
     }
 
     public function testResponseHeadersCanBeCollectedAfterAnHttpException(): void

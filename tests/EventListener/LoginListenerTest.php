@@ -253,7 +253,7 @@ final class LoginListenerTest extends TestCase
 
         yield 'If the user is being impersonated, then the username of the impersonator is set on the User context' => [
             (static function (): SwitchUserToken {
-                if (version_compare(Kernel::VERSION, '5.0.0', '<')) {
+                if ((new \ReflectionMethod(SwitchUserToken::class, '__construct'))->getNumberOfRequiredParameters() >= 5) {
                     return new SwitchUserToken(
                         new UserWithIdentifierStub(),
                         null,
@@ -597,11 +597,7 @@ final class AuthenticatedTokenStub extends AbstractToken
             $this->setUser($user);
         }
 
-        if (version_compare(Kernel::VERSION, '5.4', '<') && method_exists($this, 'setAuthenticated')) {
-            $this->setAuthenticated(true);
-        } else {
-            $this->authenticated = true;
-        }
+        $this->authenticated = true;
     }
 
     public function isAuthenticated(): bool
