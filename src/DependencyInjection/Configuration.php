@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use Sentry\DataCollection\DataCollectionOptions;
 use Sentry\SentryBundle\ErrorTypesParser;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
@@ -54,6 +55,15 @@ final class Configuration implements ConfigurationInterface
                     ->defaultNull()
                 ->end()
                 ->arrayNode('options')
+                    ->beforeNormalization()
+                        ->always(static function ($value) {
+                            if (\is_array($value) && \array_key_exists('data_collection', $value) && null === $value['data_collection']) {
+                                unset($value['data_collection']);
+                            }
+
+                            return $value;
+                        })
+                    ->end()
                     ->addDefaultsIfNotSet()
                     ->fixXmlConfig('integration')
                     ->fixXmlConfig('trace_propagation_target')
@@ -145,6 +155,86 @@ final class Configuration implements ConfigurationInterface
                             ->beforeNormalization()->castToArray()->end()
                         ->end()
                         ->booleanNode('send_default_pii')->end()
+                        ->arrayNode('data_collection')
+                            ->fixXmlConfig('http_body', 'http_bodies')
+                            ->children()
+                                ->booleanNode('user_info')->end()
+                                ->arrayNode('cookies')
+                                    ->fixXmlConfig('term')
+                                    ->children()
+                                        ->enumNode('mode')->values(['off', 'denyList', 'allowList'])->end()
+                                        ->arrayNode('terms')->performNoDeepMerging()->scalarPrototype()->end()->end()
+                                    ->end()
+                                ->end()
+                                ->arrayNode('http_headers')
+                                    ->fixXmlConfig('term')
+                                    ->children()
+                                        ->enumNode('mode')->values(['off', 'denyList', 'allowList'])->end()
+                                        ->arrayNode('terms')->performNoDeepMerging()->scalarPrototype()->end()->end()
+                                        ->arrayNode('request')
+                                            ->fixXmlConfig('term')
+                                            ->children()
+                                                ->enumNode('mode')->values(['off', 'denyList', 'allowList'])->end()
+                                                ->arrayNode('terms')->performNoDeepMerging()->scalarPrototype()->end()->end()
+                                            ->end()
+                                        ->end()
+                                        ->arrayNode('response')
+                                            ->fixXmlConfig('term')
+                                            ->children()
+                                                ->enumNode('mode')->values(['off', 'denyList', 'allowList'])->end()
+                                                ->arrayNode('terms')->performNoDeepMerging()->scalarPrototype()->end()->end()
+                                            ->end()
+                                        ->end()
+                                    ->end()
+                                    ->validate()
+                                        ->always(static function (array $value): array {
+                                            if (!\array_key_exists('mode', $value) && (\array_key_exists('request', $value) || \array_key_exists('response', $value))) {
+                                                unset($value['terms']);
+                                            }
+
+                                            return $value;
+                                        })
+                                    ->end()
+                                ->end()
+                                ->arrayNode('http_bodies')
+                                    ->performNoDeepMerging()
+                                    ->treatNullLike([])
+                                    ->defaultValue(DataCollectionOptions::HTTP_BODY_TYPES)
+                                    ->enumPrototype()->values(DataCollectionOptions::HTTP_BODY_TYPES)->end()
+                                ->end()
+                                ->arrayNode('url_query_params')
+                                    ->fixXmlConfig('term')
+                                    ->children()
+                                        ->enumNode('mode')->values(['off', 'denyList', 'allowList'])->end()
+                                        ->arrayNode('terms')->performNoDeepMerging()->scalarPrototype()->end()->end()
+                                    ->end()
+                                ->end()
+                                ->arrayNode('gen_ai')
+                                    ->children()
+                                        ->booleanNode('inputs')->end()
+                                        ->booleanNode('outputs')->end()
+                                    ->end()
+                                ->end()
+                                ->booleanNode('database_query_data')->end()
+                                ->booleanNode('queues')->end()
+                                ->arrayNode('stack_frame_variables')
+                                    ->beforeNormalization()
+                                        ->ifTrue(static function ($value): bool {
+                                            return \is_bool($value);
+                                        })
+                                        ->then(static function (bool $value): array {
+                                            return ['mode' => $value ? 'denyList' : 'off'];
+                                        })
+                                    ->end()
+                                    ->fixXmlConfig('term')
+                                    ->children()
+                                        ->enumNode('mode')->values(['off', 'denyList', 'allowList'])->end()
+                                        ->arrayNode('terms')->performNoDeepMerging()->scalarPrototype()->end()->end()
+                                    ->end()
+                                ->end()
+                                ->integerNode('frame_context_lines')->min(0)->end()
+                            ->end()
+                        ->end()
                         ->integerNode('max_value_length')->min(0)->end()
                         ->scalarNode('transport')->end()
                         ->scalarNode('http_client')->end()

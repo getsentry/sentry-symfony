@@ -64,7 +64,20 @@ final class RequestFetcher implements RequestFetcherInterface, ResetInterface
         }
 
         try {
-            return $this->httpMessageFactory->createRequest($request);
+            $serverRequest = $this->httpMessageFactory->createRequest($request);
+
+            // The bridge exposes Symfony's form bag as the parsed body even
+            // for content types that Symfony does not parse into that bag.
+            $contentType = strtolower(trim(explode(';', (string) $request->headers->get('Content-Type'), 2)[0]));
+            $isForm = 'application/x-www-form-urlencoded' === $contentType || 'multipart/form-data' === $contentType;
+            if (!$isForm
+                && [] === $serverRequest->getParsedBody()
+                && [] === $request->request->all()
+                && '' !== $request->getContent()) {
+                $serverRequest = $serverRequest->withParsedBody(null);
+            }
+
+            return $serverRequest;
         } catch (\Throwable $exception) {
             return null;
         }
