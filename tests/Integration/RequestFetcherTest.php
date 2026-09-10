@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\Integration;
 
+use GuzzleHttp\Psr7\ServerRequest;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
@@ -51,6 +52,44 @@ final class RequestFetcherTest extends TestCase
             ->willReturn($expectedRequest);
 
         $this->assertSame($expectedRequest, $this->requestFetcher->fetchRequest());
+    }
+
+    public function testEmptyBridgeFormBagDoesNotMaskRawBody(): void
+    {
+        $request = Request::create('/', 'POST', [], [], [], ['CONTENT_TYPE' => 'application/json'], '{"name":"Alice"}');
+        $psrRequest = (new ServerRequest('POST', '/', [], '{"name":"Alice"}'))->withParsedBody([]);
+        $this->requestStack->method('getCurrentRequest')->willReturn($request);
+        $this->httpMessageFactory->method('createRequest')->willReturn($psrRequest);
+
+        $result = $this->requestFetcher->fetchRequest();
+        $this->assertNotNull($result);
+        $this->assertNull($result->getParsedBody());
+        $this->assertSame('{"name":"Alice"}', (string) $result->getBody());
+        $this->assertSame('{"name":"Alice"}', $request->getContent());
+    }
+
+    public function testEmptyParsedFormBodyIsPreserved(): void
+    {
+        $request = Request::create('/', 'POST', [], [], [], ['CONTENT_TYPE' => 'application/x-www-form-urlencoded'], 'malformed');
+        $psrRequest = (new ServerRequest('POST', '/'))->withParsedBody([]);
+        $this->requestStack->method('getCurrentRequest')->willReturn($request);
+        $this->httpMessageFactory->method('createRequest')->willReturn($psrRequest);
+
+        $result = $this->requestFetcher->fetchRequest();
+        $this->assertNotNull($result);
+        $this->assertSame([], $result->getParsedBody());
+    }
+
+    public function testEmptyParsedBodyIsPreservedWhenTheRawBodyIsEmpty(): void
+    {
+        $request = Request::create('/', 'POST');
+        $psrRequest = (new ServerRequest('POST', '/'))->withParsedBody([]);
+        $this->requestStack->method('getCurrentRequest')->willReturn($request);
+        $this->httpMessageFactory->method('createRequest')->willReturn($psrRequest);
+
+        $result = $this->requestFetcher->fetchRequest();
+        $this->assertNotNull($result);
+        $this->assertSame([], $result->getParsedBody());
     }
 
     public function testFetchRequestReturnsNullIfTheRequestStackIsEmpty(): void
