@@ -13,7 +13,7 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 /**
  * @runTestsInSeparateProcesses
  *
- * @phpstan-type BodyData array{http.request.body.data?: mixed, http.response.body.data?: mixed}
+ * @phpstan-type BodyData array{'http.request.body.data'?: mixed, 'http.response.body.data'?: mixed}
  * @phpstan-type BodyExchange array{main: BodyData, subrequest: BodyData, eventRequestBody: mixed, requestContent: string, responseContent: string}
  */
 final class HttpBodyCollectionEnd2EndTest extends TestCase
@@ -237,9 +237,11 @@ final class HttpBodyCollectionEnd2EndTest extends TestCase
             }));
             $this->assertCount(1, $subspans);
             $eventRequest = $transactions[0]->getRequest();
+            $transactionData = $transactions[0]->getContexts()['trace']['data'];
+            $this->assertIsArray($transactionData);
 
             return [
-                'main' => $this->bodyData($transactions[0]->getContexts()['trace']['data']),
+                'main' => $this->bodyData($transactionData),
                 'subrequest' => $this->bodyData($subspans[0]->getData()),
                 'eventRequestBody' => $eventRequest['data'] ?? null,
                 'requestContent' => $client->getRequest()->getContent(),
