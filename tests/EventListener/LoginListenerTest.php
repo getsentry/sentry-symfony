@@ -519,7 +519,10 @@ final class LoginListenerTest extends TestCase
         $this->hub->expects($this->exactly($expectedScopeUpdates))->method('configureScope')->willReturnCallback(static function (callable $callback) use ($scope): void {
             $callback($scope);
         });
-        $this->tokenStorage->method('getToken')->willReturn(new AuthenticatedTokenStub(new UserWithIdentifierStub('collected-user')));
+        $token = version_compare(Kernel::VERSION, '5.4', '<')
+            ? new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub('collected-user'))
+            : new AuthenticatedTokenStub(new UserWithIdentifierStub('collected-user'));
+        $this->tokenStorage->method('getToken')->willReturn($token);
 
         $this->listener->handleKernelRequestEvent(new RequestEvent(
             $this->createMock(HttpKernelInterface::class),

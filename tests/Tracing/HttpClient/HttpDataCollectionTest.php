@@ -531,9 +531,14 @@ final class HttpDataCollectionTest extends TestCase
      */
     public function testEmptyAuthenticationOptionsDoNotCollectAuthorizationHeader(array $authenticationOption): void
     {
-        $data = $this->collectRequestOptions($authenticationOption);
+        $underlying = $this->createMock(HttpClientInterface::class);
+        $underlying->expects($this->once())->method('request')->willReturn(new MockResponse());
+        $transaction = null;
+        $client = $this->client($underlying, ['data_collection' => []], $transaction);
+        $response = $client->request('GET', 'https://example.com', $authenticationOption);
 
-        $this->assertArrayNotHasKey('http.request.header.authorization', $data);
+        $this->assertArrayNotHasKey('http.request.header.authorization', $this->span($transaction)->getData());
+        unset($response);
     }
 
     public function emptyAuthenticationOptionProvider(): \Generator
