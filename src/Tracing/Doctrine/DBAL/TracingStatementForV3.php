@@ -19,7 +19,13 @@ final class TracingStatementForV3 extends AbstractTracingStatement implements St
      */
     public function bindValue($param, $value, $type = ParameterType::STRING): bool
     {
-        return $this->decoratedStatement->bindValue($param, $value, $type);
+        $result = $this->decoratedStatement->bindValue($param, $value, $type);
+
+        if (true === $result) {
+            $this->recordBoundValue($param, $value);
+        }
+
+        return $result;
     }
 
     /**
@@ -27,7 +33,13 @@ final class TracingStatementForV3 extends AbstractTracingStatement implements St
      */
     public function bindParam($param, &$variable, $type = ParameterType::STRING, $length = null): bool
     {
-        return $this->decoratedStatement->bindParam($param, $variable, $type, ...\array_slice(\func_get_args(), 3));
+        $result = $this->decoratedStatement->bindParam($param, $variable, $type, ...\array_slice(\func_get_args(), 3));
+
+        if (true === $result) {
+            $this->recordBoundReference($param, $variable);
+        }
+
+        return $result;
     }
 
     /**

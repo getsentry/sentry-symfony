@@ -9,6 +9,7 @@ use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
+use Sentry\DataCollection\DataCollectionPolicy;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\Logger\DebugStdOutLogger;
 use Sentry\Options;
@@ -59,6 +60,30 @@ abstract class SentryExtensionTest extends TestCase
         /** @var array{data_collection: array{http_bodies: string[]}} $options */
         $options = $container->getDefinition('sentry.client.options')->getArgument(0);
         $this->assertSame([], $options['data_collection']['http_bodies']);
+    }
+
+    /**
+     * @dataProvider databaseDataCollectionFixtureProvider
+     */
+    public function testDatabaseDataCollectionFixtures(string $fixture, bool $expected, bool $expectedPii): void
+    {
+        $container = $this->createContainerFromFixture($fixture);
+        /** @var array{send_default_pii: bool, data_collection: array{database_query_data: bool}} $options */
+        $options = $container->getDefinition('sentry.client.options')->getArgument(0);
+
+        $this->assertSame($expectedPii, $options['send_default_pii']);
+        $this->assertSame($expected, $options['data_collection']['database_query_data']);
+
+        foreach ([false, true] as $sendDefaultPii) {
+            $options['send_default_pii'] = $sendDefaultPii;
+            $this->assertSame($expected, DataCollectionPolicy::fromOptions(new Options($options))->shouldCollectDatabaseQueryData());
+        }
+    }
+
+    public function databaseDataCollectionFixtureProvider(): \Generator
+    {
+        yield 'enabled ignores disabled PII' => ['data_collection_database_enabled', true, false];
+        yield 'disabled ignores enabled PII' => ['data_collection_database_disabled', false, true];
     }
 
     public function testErrorListener(): void
