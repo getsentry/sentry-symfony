@@ -175,7 +175,7 @@ abstract class SentryExtensionTest extends TestCase
                 [
                     'event' => KernelEvents::REQUEST,
                     'method' => 'handleKernelRequestEvent',
-                    'priority' => 5,
+                    'priority' => 64,
                 ],
                 [
                     'event' => KernelEvents::CONTROLLER,
@@ -184,6 +184,34 @@ abstract class SentryExtensionTest extends TestCase
                 ],
             ],
         ], $definition->getTags());
+    }
+
+    /**
+     * The user context must be filled before any listener that can throw, otherwise
+     * RequestIntegration falls back to $_SERVER['REMOTE_ADDR'] - which behind a reverse
+     * proxy is the proxy itself, not the client. The router (priority 32) throws
+     * NotFoundHttpException on every unknown URL, so a 404 would be attributed to the
+     * proxy while a controller-thrown 404 on the same site would not.
+     */
+    public function testRequestListenerFillsUserContextBeforeTheRouterCanThrow(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+        $tags = $container->getDefinition(RequestListener::class)->getTag('kernel.event_listener');
+
+        $requestPriority = null;
+
+        foreach ($tags as $attributes) {
+            if (KernelEvents::REQUEST === ($attributes['event'] ?? null)) {
+                $requestPriority = $attributes['priority'];
+            }
+        }
+
+        $this->assertNotNull($requestPriority);
+        // RouterListener runs at priority 32
+        $this->assertGreaterThan(32, $requestPriority);
+        // ValidateRequestListener runs at priority 256 and rejects conflicting forwarded
+        // headers; getClientIp() must not be reached before it has had its say.
+        $this->assertLessThan(256, $requestPriority);
     }
 
     public function testRuntimeContextListener(): void
