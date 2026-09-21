@@ -58,6 +58,26 @@ tracing_ping_prepared_database:
   path: /tracing/ping-prepared-database
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::pingPreparedDatabase' }
 
+tracing_database_data_collection_positional:
+  path: /tracing/database-data-collection/positional
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::databaseDataCollectionPositional' }
+
+tracing_database_data_collection_sensitive_named:
+  path: /tracing/database-data-collection/sensitive-named
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::databaseDataCollectionSensitiveNamed' }
+
+tracing_database_data_collection_reused_statement:
+  path: /tracing/database-data-collection/reused-statement
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::databaseDataCollectionReusedStatement' }
+
+tracing_database_data_collection_returned_rows:
+  path: /tracing/database-data-collection/returned-rows
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::databaseDataCollectionReturnedRows' }
+
+tracing_database_data_collection_other_operations:
+  path: /tracing/database-data-collection/other-operations
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::databaseDataCollectionOtherOperations' }
+
 tracing_ignored_transaction:
   path: /tracing/ignored-transaction
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::ignoredTransaction' }

@@ -20,6 +20,7 @@ final class TracingStatementForV4 extends AbstractTracingStatement implements St
     public function bindValue(int|string $param, mixed $value, ParameterType $type): void
     {
         $this->decoratedStatement->bindValue($param, $value, $type);
+        $this->recordBoundValue($param, $value);
     }
 
     /**

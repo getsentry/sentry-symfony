@@ -100,7 +100,13 @@ final class TracingStatementForV2 extends AbstractTracingStatement implements \I
      */
     public function bindValue($param, $value, $type = ParameterType::STRING): bool
     {
-        return $this->decoratedStatement->bindValue($param, $value, $type);
+        $result = $this->decoratedStatement->bindValue($param, $value, $type);
+
+        if (true === $result) {
+            $this->recordBoundValue($param, $value);
+        }
+
+        return $result;
     }
 
     /**
@@ -108,7 +114,13 @@ final class TracingStatementForV2 extends AbstractTracingStatement implements \I
      */
     public function bindParam($param, &$variable, $type = ParameterType::STRING, $length = null): bool
     {
-        return $this->decoratedStatement->bindParam($param, $variable, $type, $length ?? 0, ...\array_slice(\func_get_args(), 4));
+        $result = $this->decoratedStatement->bindParam($param, $variable, $type, $length ?? 0, ...\array_slice(\func_get_args(), 4));
+
+        if (true === $result) {
+            $this->recordBoundReference($param, $variable);
+        }
+
+        return $result;
     }
 
     /**

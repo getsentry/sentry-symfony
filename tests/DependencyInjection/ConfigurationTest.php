@@ -6,6 +6,7 @@ namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use PHPUnit\Framework\TestCase;
+use Sentry\DataCollection\DataCollectionPolicy;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
 use Symfony\Bundle\TwigBundle\TwigBundle;
@@ -402,12 +403,61 @@ final class ConfigurationTest extends TestCase
         $dataCollection = $options->getDataCollection();
 
         $this->assertNotNull($dataCollection);
+        $this->assertTrue(DataCollectionPolicy::fromOptions($options)->shouldCollectDatabaseQueryData());
         $this->assertSame([
             'incomingRequest',
             'outgoingRequest',
             'incomingResponse',
             'outgoingResponse',
         ], $dataCollection->getHttpBodies());
+    }
+
+    /**
+     * @dataProvider databaseCollectionConfigurationProvider
+     *
+     * @param array<string, mixed> $values
+     */
+    public function testDatabaseCollectionPolicy(array $values, bool $expected): void
+    {
+        /** @var array{options: array<string, mixed>} $config */
+        $config = $this->processConfiguration(['options' => $values]);
+
+        $this->assertSame($expected, DataCollectionPolicy::fromOptions(new Options($config['options']))->shouldCollectDatabaseQueryData());
+    }
+
+    public function databaseCollectionConfigurationProvider(): \Generator
+    {
+        foreach ([false, true] as $sendDefaultPii) {
+            $pii = $sendDefaultPii ? 'with PII' : 'without PII';
+
+            yield 'absent ' . $pii => [['send_default_pii' => $sendDefaultPii], false];
+            yield 'null ' . $pii => [['send_default_pii' => $sendDefaultPii, 'data_collection' => null], false];
+            yield 'configured defaults ' . $pii => [['send_default_pii' => $sendDefaultPii, 'data_collection' => []], true];
+            yield 'enabled ' . $pii => [['send_default_pii' => $sendDefaultPii, 'data_collection' => ['database_query_data' => true]], true];
+            yield 'disabled ' . $pii => [['send_default_pii' => $sendDefaultPii, 'data_collection' => ['database_query_data' => false]], false];
+        }
+    }
+
+    /**
+     * @dataProvider databaseCollectionOverrideProvider
+     */
+    public function testDatabaseCollectionCanBeOverriddenAcrossConfigFiles(bool $base, bool $override): void
+    {
+        $processor = new Processor();
+        /** @var array{options: array{data_collection: array{database_query_data: bool}}} $merged */
+        $merged = $processor->processConfiguration(new Configuration(), [
+            ['options' => ['data_collection' => ['database_query_data' => $base]]],
+            ['options' => ['data_collection' => ['database_query_data' => $override]]],
+        ]);
+
+        $this->assertSame($override, $merged['options']['data_collection']['database_query_data']);
+        $this->assertSame($override, DataCollectionPolicy::fromOptions(new Options($merged['options']))->shouldCollectDatabaseQueryData());
+    }
+
+    public function databaseCollectionOverrideProvider(): \Generator
+    {
+        yield 'true to false' => [true, false];
+        yield 'false to true' => [false, true];
     }
 
     /**

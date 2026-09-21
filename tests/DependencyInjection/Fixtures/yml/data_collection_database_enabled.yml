@@ -1,0 +1,5 @@
+sentry:
+    options:
+        send_default_pii: false
+        data_collection:
+            database_query_data: true
