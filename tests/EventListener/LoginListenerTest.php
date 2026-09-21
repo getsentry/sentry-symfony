@@ -54,6 +54,22 @@ final class LoginListenerTest extends TestCase
         $this->listener = new LoginListener($this->hub, $this->tokenStorage);
     }
 
+    public function testConfiguredDefaultsCollectUserDespiteLegacyPiiBeingDisabled(): void
+    {
+        $user = $this->handleRequestWithCollection(['send_default_pii' => false, 'data_collection' => []], 1);
+
+        $this->assertSame('collected-user', $user->getId());
+        $this->assertSame('explicit@example.com', $user->getEmail());
+    }
+
+    public function testDisabledUserCollectionOverridesLegacyPiiBeingEnabled(): void
+    {
+        $user = $this->handleRequestWithCollection(['send_default_pii' => true, 'data_collection' => ['user_info' => false]], 0);
+
+        $this->assertNull($user->getId());
+        $this->assertSame('explicit@example.com', $user->getEmail());
+    }
+
     /**
      * @dataProvider authenticationTokenDataProvider
      * @dataProvider authenticationTokenForSymfonyVersionLowerThan54DataProvider
@@ -488,6 +504,36 @@ final class LoginListenerTest extends TestCase
         } else {
             $this->listener->handleAuthenticationSuccessEvent(new AuthenticationSuccessEvent(new AuthenticatedTokenStub(new UserWithIdentifierStub())));
         }
+    }
+
+    /**
+     * @param array<string, mixed> $configuration
+     */
+    private function handleRequestWithCollection(array $configuration, int $expectedScopeUpdates): UserDataBag
+    {
+        $client = $this->createMock(ClientInterface::class);
+        $client->method('getOptions')->willReturn(new Options($configuration));
+        $this->hub->method('getClient')->willReturn($client);
+        $scope = new Scope();
+        $scope->setUser(new UserDataBag(null, 'explicit@example.com'));
+        $this->hub->expects($this->exactly($expectedScopeUpdates))->method('configureScope')->willReturnCallback(static function (callable $callback) use ($scope): void {
+            $callback($scope);
+        });
+        $token = version_compare(Kernel::VERSION, '5.4', '<')
+            ? new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub('collected-user'))
+            : new AuthenticatedTokenStub(new UserWithIdentifierStub('collected-user'));
+        $this->tokenStorage->method('getToken')->willReturn($token);
+
+        $this->listener->handleKernelRequestEvent(new RequestEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            (int) \constant(HttpKernelInterface::class . '::' . (\defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? 'MAIN_REQUEST' : 'MASTER_REQUEST'))
+        ));
+
+        $user = $scope->getUser();
+        $this->assertNotNull($user);
+
+        return $user;
     }
 }
 

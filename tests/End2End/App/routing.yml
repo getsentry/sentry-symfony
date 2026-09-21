@@ -26,6 +26,18 @@ notice:
   path:  /notice
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::notice' }
 
+header_collection:
+  path: /header-collection
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::headerCollection' }
+
+prepared_response:
+  path: /prepared-response
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::preparedResponse' }
+
+http_client_collection:
+  path: /http-client-collection
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::httpClientCollection' }
+
 runtime_context:
   path: /runtime-context
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::runtimeContext' }
@@ -85,6 +97,10 @@ namespaced_tracing_cache_populate:
 just_logging:
   path: /just-logging
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\LoggingController::justLogging' }
+
+body_collection:
+  path: /body-collection
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::bodyCollection' }
 
 logging_With_Error:
   path: /logging-with-error

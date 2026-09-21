@@ -89,6 +89,34 @@ final class RequestListenerTest extends TestCase
             new UserDataBag(),
         ];
 
+        yield 'options.data_collection.user_info = FALSE overrides send_default_pii' => [
+            new RequestEvent(
+                $this->createMock(HttpKernelInterface::class),
+                new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
+                \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : (int) \constant(HttpKernelInterface::class . '::MASTER_REQUEST')
+            ),
+            $this->getMockedClientWithOptions(new Options([
+                'send_default_pii' => true,
+                'data_collection' => ['user_info' => false],
+            ])),
+            new UserDataBag(),
+            new UserDataBag(),
+        ];
+
+        yield 'options.data_collection.user_info = TRUE overrides send_default_pii' => [
+            new RequestEvent(
+                $this->createMock(HttpKernelInterface::class),
+                new Request([], [], [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
+                \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : (int) \constant(HttpKernelInterface::class . '::MASTER_REQUEST')
+            ),
+            $this->getMockedClientWithOptions(new Options([
+                'send_default_pii' => false,
+                'data_collection' => ['user_info' => true],
+            ])),
+            new UserDataBag(),
+            new UserDataBag(null, null, '127.0.0.1'),
+        ];
+
         yield 'request.clientIp IS NULL' => [
             new RequestEvent(
                 $this->createMock(HttpKernelInterface::class),

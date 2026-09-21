@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\DataCollection\DataCollectionPolicy;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\SentryBundle\Integration\RequestFetcher;
 use Sentry\State\HubInterface;
@@ -74,10 +75,13 @@ final class TracingRequestListener extends AbstractTracingRequestListener
             $context->setSource(TransactionSource::url());
         }
 
+        $policy = DataCollectionPolicy::fromHub($this->hub);
         $context->setStartTimestamp($requestStartTime);
-        $context->setData($this->getData($request));
+        $context->setData($this->getData($request, $policy));
 
-        $this->hub->setSpan($this->hub->startTransaction($context));
+        $transaction = $this->hub->startTransaction($context);
+        $this->collectRequestData($transaction, $request, $policy);
+        $this->hub->setSpan($transaction);
     }
 
     /**
@@ -109,15 +113,14 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      *
      * @return array<string, string>
      */
-    private function getData(Request $request): array
+    private function getData(Request $request, DataCollectionPolicy $policy): array
     {
-        $client = $this->hub->getClient();
         $httpFlavor = $this->getHttpFlavor($request);
 
         $data = [
             'net.host.port' => (string) $request->getPort(),
             'http.request.method' => $request->getMethod(),
-            'http.url' => $request->getUri(),
+            'http.url' => $this->getRequestUrl($request, $policy),
             'route' => $this->getRouteName($request),
         ];
 
@@ -131,8 +134,9 @@ final class TracingRequestListener extends AbstractTracingRequestListener
             $data['net.host.name'] = $request->getHost();
         }
 
-        if (null !== $request->getClientIp() && null !== $client && $client->getOptions()->shouldSendDefaultPii()) {
-            $data['net.peer.ip'] = $request->getClientIp();
+        $clientIp = $request->getClientIp();
+        if (null !== $clientIp && $policy->shouldCollectUserInfo()) {
+            $data['net.peer.ip'] = $clientIp;
         }
 
         return $data;

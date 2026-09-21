@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tracing\HttpClient;
 
+use Sentry\DataCollection\DataCollectionOptions;
+use Sentry\DataCollection\DataCollectionPolicy;
+use Sentry\DataCollection\HttpBodyCollector;
+use Sentry\DataCollection\HttpDataCollector;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanStatus;
 use Symfony\Contracts\HttpClient\ChunkInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
@@ -26,15 +31,40 @@ abstract class AbstractTraceableResponse implements ResponseInterface
     protected $client;
 
     /**
+     * Kept after timing finishes because response bodies can be materialized later.
+     *
      * @var Span|null
      */
     protected $span;
 
-    public function __construct(HttpClientInterface $client, ResponseInterface $response, ?Span $span)
+    /**
+     * Retained so delayed response collection observes live option updates.
+     *
+     * @var DataCollectionPolicy
+     */
+    private $policy;
+
+    /**
+     * @var bool
+     */
+    private $timingFinished = false;
+
+    /**
+     * @var bool
+     */
+    private $responseDataCollected = false;
+
+    /**
+     * @var string
+     */
+    private $contentType = '';
+
+    public function __construct(HttpClientInterface $client, ResponseInterface $response, ?Span $span, ?DataCollectionPolicy $policy = null)
     {
         $this->client = $client;
         $this->response = $response;
         $this->span = $span;
+        $this->policy = $policy ?? DataCollectionPolicy::fromOptions(null);
     }
 
     public function __destruct()
@@ -71,19 +101,27 @@ abstract class AbstractTraceableResponse implements ResponseInterface
     public function getContent(bool $throw = true): string
     {
         try {
-            return $this->response->getContent($throw);
+            $body = $this->response->getContent($throw);
         } finally {
             $this->finishSpan();
         }
+
+        $this->collectBody($body);
+
+        return $body;
     }
 
     public function toArray(bool $throw = true): array
     {
         try {
-            return $this->response->toArray($throw);
+            $body = $this->response->toArray($throw);
         } finally {
             $this->finishSpan();
         }
+
+        $this->collectBody($body);
+
+        return $body;
     }
 
     public function cancel(): void
@@ -93,11 +131,11 @@ abstract class AbstractTraceableResponse implements ResponseInterface
     }
 
     /**
-     * @internal
-     *
      * @param iterable<AbstractTraceableResponse> $responses
      *
      * @return \Generator<AbstractTraceableResponse, ChunkInterface>
+     *
+     * @internal
      */
     public static function stream(HttpClientInterface $client, iterable $responses, ?float $timeout): \Generator
     {
@@ -122,29 +160,64 @@ abstract class AbstractTraceableResponse implements ResponseInterface
         }
     }
 
-    private function finishSpan(): void
+    /**
+     * @param string|array<array-key, mixed> $body
+     */
+    private function collectBody($body): void
     {
-        if (null === $this->span) {
+        $span = $this->span;
+        if (null === $span || !$span->getSampled()
+            || \array_key_exists('http.response.body.data', $span->getData())
+            || 0 === HttpBodyCollector::getMaxBodyLength($this->policy, DataCollectionOptions::HTTP_BODY_INCOMING_RESPONSE)) {
             return;
         }
 
-        // We finish the span (which means setting the span end timestamp) first
-        // to ensure the measured time is as close as possible to the duration of
-        // the HTTP request
-        $this->span->finish();
+        $this->collectResponseData();
+        $data = HttpDataCollector::collectBodyData($this->policy, DataCollectionOptions::HTTP_BODY_INCOMING_RESPONSE, $body, $this->contentType);
+        $span->setData(array_diff_key($data, $span->getData()));
+    }
 
-        /** @var int $statusCode */
-        $statusCode = $this->response->getInfo('http_code');
-
-        // If the returned status code is 0, it means that this info isn't available
-        // yet (e.g. an error happened before the request was sent), hence we cannot
-        // determine what happened.
-        if (0 === $statusCode) {
-            $this->span->setStatus(SpanStatus::unknownError());
-        } else {
-            $this->span->setStatus(SpanStatus::createFromHttpStatusCode($statusCode));
+    private function finishSpan(): void
+    {
+        $span = $this->span;
+        if (null === $span) {
+            return;
         }
 
-        $this->span = null;
+        if (!$this->timingFinished) {
+            $this->timingFinished = true;
+            $span->finish();
+
+            /** @var int $statusCode */
+            $statusCode = $this->response->getInfo('http_code');
+            $span->setStatus(0 === $statusCode
+                ? SpanStatus::unknownError()
+                : SpanStatus::createFromHttpStatusCode($statusCode));
+        }
+
+        $this->collectResponseData();
+    }
+
+    private function collectResponseData(): void
+    {
+        $span = $this->span;
+        if ($this->responseDataCollected || null === $span || !$span->getSampled()) {
+            return;
+        }
+
+        if ($this->policy->isLegacyMode()) {
+            return;
+        }
+
+        $this->responseDataCollected = true;
+        try {
+            $headers = $this->response->getHeaders(false);
+        } catch (TransportExceptionInterface $exception) {
+            return;
+        }
+
+        $this->contentType = $headers['content-type'][0] ?? '';
+        $data = HttpDataCollector::collectResponseData($this->policy, $headers);
+        $span->setData(array_diff_key($data, $span->getData()));
     }
 }

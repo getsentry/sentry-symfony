@@ -1,0 +1,4 @@
+sentry:
+    options:
+        data_collection:
+            http_bodies: []

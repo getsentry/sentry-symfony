@@ -9,6 +9,7 @@ use Sentry\State\HubInterface;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\HttpClient\HttpClient;
 
 final class HttpClientTracingPass implements CompilerPassInterface
 {
@@ -38,9 +39,17 @@ final class HttpClientTracingPass implements CompilerPassInterface
             return;
         }
 
+        $definition = $container->getDefinition($decoratedService[0]);
+        // The framework's mock replaces the transport without inheriting its defaults.
+        $hasMockTransport = 'http_client.transport' === $decoratedService[0] && $container->hasDefinition('http_client.mock_client');
+        $defaultOptions = !$hasMockTransport && [HttpClient::class, 'create'] === $definition->getFactory()
+            ? ($definition->getArguments()[0] ?? [])
+            : [];
+
         $container->register(TraceableHttpClient::class, TraceableHttpClient::class)
             ->setArgument(0, new Reference(TraceableHttpClient::class . '.inner'))
             ->setArgument(1, new Reference(HubInterface::class))
+            ->setArgument(2, $defaultOptions)
             ->setDecoratedService($decoratedService[0], null, $decoratedService[1]);
     }
 

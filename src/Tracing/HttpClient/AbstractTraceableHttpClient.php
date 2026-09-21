@@ -7,8 +7,14 @@ namespace Sentry\SentryBundle\Tracing\HttpClient;
 use GuzzleHttp\Psr7\Uri;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
-use Sentry\ClientInterface;
+use Sentry\DataCollection\DataCollectionOptions;
+use Sentry\DataCollection\DataCollectionPolicy;
+use Sentry\DataCollection\HttpDataCollector;
+use Sentry\DataCollection\HttpHeaderNormalizer;
+use Sentry\DataCollection\KeyValueDataFilter;
+use Sentry\Options;
 use Sentry\State\HubInterface;
+use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 use Symfony\Component\HttpClient\Response\ResponseStream;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -37,10 +43,21 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
      */
     protected $hub;
 
-    public function __construct(HttpClientInterface $client, HubInterface $hub)
+    /**
+     * Request defaults that are not visible in individual request arguments.
+     *
+     * @var array<string, mixed>
+     */
+    protected $defaultRequestOptions = ['headers' => []];
+
+    /**
+     * @param array<string, mixed> $defaultOptions
+     */
+    public function __construct(HttpClientInterface $client, HubInterface $hub, array $defaultOptions = [])
     {
         $this->client = $client;
         $this->hub = $hub;
+        $this->defaultRequestOptions = $this->resolveRequestOptions($defaultOptions);
     }
 
     /**
@@ -50,19 +67,18 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
     {
         $uri = new Uri($url);
         $headers = $options['headers'] ?? [];
+        $parentSpan = $this->hub->getSpan();
+        $policy = DataCollectionPolicy::fromHub($this->hub);
 
-        $span = $this->hub->getSpan();
-        $client = $this->hub->getClient();
-
-        if (null === $span) {
-            if (self::shouldAttachTracingHeaders($client, $uri)) {
+        if (null === $parentSpan) {
+            if (self::shouldAttachTracingHeaders($policy->getOptions(), $uri)) {
                 $headers['baggage'] = getBaggage();
                 $headers['sentry-trace'] = getTraceparent();
             }
 
             $options['headers'] = $headers;
 
-            return new TraceableResponse($this->client, $this->client->request($method, $url, $options), $span);
+            return new TraceableResponse($this->client, $this->client->request($method, $url, $options), null, $policy);
         }
 
         $partialUri = Uri::fromParts([
@@ -71,34 +87,77 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
             'port' => $uri->getPort(),
             'path' => $uri->getPath(),
         ]);
-
-        $context = SpanContext::make()
-            ->setOp('http.client')
-            ->setOrigin('auto.http.client')
-            ->setDescription($method . ' ' . (string) $partialUri);
-
         $contextData = [
             'http.url' => (string) $partialUri,
             'http.request.method' => $method,
         ];
-        if ('' !== $uri->getQuery()) {
-            $contextData['http.query'] = $uri->getQuery();
-        }
+        $contextData += HttpDataCollector::collectQueryData($policy, $uri->getQuery());
         if ('' !== $uri->getFragment()) {
             $contextData['http.fragment'] = $uri->getFragment();
         }
-        $context->setData($contextData);
 
-        $childSpan = $span->startChild($context);
+        $context = SpanContext::make()
+            ->setOp('http.client')
+            ->setOrigin('auto.http.client')
+            ->setDescription($method . ' ' . (string) $partialUri)
+            ->setData($contextData);
+        $childSpan = $parentSpan->startChild($context);
 
-        if (self::shouldAttachTracingHeaders($client, $uri)) {
+        if (self::shouldAttachTracingHeaders($policy->getOptions(), $uri)) {
             $headers['baggage'] = $childSpan->toBaggage();
             $headers['sentry-trace'] = $childSpan->toTraceparent();
         }
 
         $options['headers'] = $headers;
+        $this->collectRequestData($childSpan, $policy, $options);
 
-        return new TraceableResponse($this->client, $this->client->request($method, $url, $options), $childSpan);
+        return new TraceableResponse(
+            $this->client,
+            $this->client->request($method, $url, $options),
+            $childSpan,
+            $policy
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     */
+    private function collectRequestData(Span $span, DataCollectionPolicy $policy, array $options): void
+    {
+        if (!$span->getSampled()) {
+            return;
+        }
+
+        $requestOptions = $this->resolveRequestOptions($options);
+        /** @var array<array-key, string[]> $headers */
+        $headers = $requestOptions['headers'];
+        $hasAuthenticationOption = ($requestOptions['auth_basic'] ?? false) || ($requestOptions['auth_bearer'] ?? false);
+        if ($hasAuthenticationOption && !($headers['authorization'] ?? false)) {
+            $headers['authorization'] = [KeyValueDataFilter::FILTERED_VALUE];
+        }
+
+        $data = HttpDataCollector::collectRequestData($policy, $headers);
+        $body = $requestOptions['json'] ?? $requestOptions['body'] ?? null;
+        $contentType = isset($requestOptions['json']) ? '' : ($headers['content-type'][0] ?? '');
+        if (\is_string($body) || \is_array($body)) {
+            $data += HttpDataCollector::collectBodyData($policy, DataCollectionOptions::HTTP_BODY_OUTGOING_REQUEST, $body, $contentType);
+        }
+
+        $span->setData(array_diff_key($data, $span->getData()));
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     *
+     * @return array<string, mixed>
+     */
+    protected function resolveRequestOptions(array $options): array
+    {
+        /** @var array<array-key, mixed> $headers */
+        $headers = $options['headers'] ?? [];
+        $options['headers'] = HttpHeaderNormalizer::normalize($headers) + $this->defaultRequestOptions['headers'];
+
+        return $options + $this->defaultRequestOptions;
     }
 
     /**
@@ -132,20 +191,13 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
         }
     }
 
-    private static function shouldAttachTracingHeaders(?ClientInterface $client, Uri $uri): bool
+    private static function shouldAttachTracingHeaders(?Options $options, Uri $uri): bool
     {
-        if (null !== $client) {
-            $sdkOptions = $client->getOptions();
-
-            // Check if the request destination is allow listed in the trace_propagation_targets option.
-            if (
-                null === $sdkOptions->getTracePropagationTargets()
-                || \in_array($uri->getHost(), $sdkOptions->getTracePropagationTargets())
-            ) {
-                return true;
-            }
+        if (null === $options) {
+            return false;
         }
 
-        return false;
+        return null === $options->getTracePropagationTargets()
+            || \in_array($uri->getHost(), $options->getTracePropagationTargets());
     }
 }
