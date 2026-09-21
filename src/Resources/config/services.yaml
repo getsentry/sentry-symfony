@@ -35,7 +35,10 @@ services:
   Sentry\SentryBundle\EventListener\RequestListener:
     arguments: ['@Sentry\State\HubInterface']
     tags:
-      - { name: kernel.event_listener, event: kernel.request, method: handleKernelRequestEvent, priority: 5 }
+      # Run before the router (priority 32), which throws NotFoundHttpException on an
+      # unknown URL. Below ValidateRequestListener (priority 256), so that conflicting
+      # forwarded headers are rejected before getClientIp() is called on them.
+      - { name: kernel.event_listener, event: kernel.request, method: handleKernelRequestEvent, priority: 64 }
       - { name: kernel.event_listener, event: kernel.controller, method: handleKernelControllerEvent, priority: 10 }
 
   Sentry\SentryBundle\EventListener\SubRequestListener:
