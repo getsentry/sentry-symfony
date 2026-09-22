@@ -10,6 +10,7 @@ use Sentry\State\HubInterface;
 use Sentry\Tracing\TransactionSource;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
 use function Sentry\continueTrace;
@@ -28,11 +29,20 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      */
     private $requestFetcher;
 
-    public function __construct(HubInterface $hub, ?RequestFetcherInterface $requestFetcher = null)
+    /**
+     * @var int[]
+     */
+    private $ignoredHttpStatusCodes;
+
+    /**
+     * @param int[] $ignoredHttpStatusCodes
+     */
+    public function __construct(HubInterface $hub, ?RequestFetcherInterface $requestFetcher = null, array $ignoredHttpStatusCodes = [])
     {
         parent::__construct($hub);
 
         $this->requestFetcher = $requestFetcher;
+        $this->ignoredHttpStatusCodes = $ignoredHttpStatusCodes;
     }
 
     /**
@@ -78,6 +88,23 @@ final class TracingRequestListener extends AbstractTracingRequestListener
         $context->setData($this->getData($request));
 
         $this->hub->setSpan($this->hub->startTransaction($context));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function handleKernelResponseEvent(ResponseEvent $event): void
+    {
+        parent::handleKernelResponseEvent($event);
+
+        if (!$this->isMainRequest($event) || !\in_array($event->getResponse()->getStatusCode(), $this->ignoredHttpStatusCodes, true)) {
+            return;
+        }
+
+        $transaction = $this->hub->getTransaction();
+        if (null !== $transaction) {
+            $transaction->setSampled(false);
+        }
     }
 
     /**
