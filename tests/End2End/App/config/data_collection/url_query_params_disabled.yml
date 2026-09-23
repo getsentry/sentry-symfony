@@ -1,0 +1,5 @@
+sentry:
+  options:
+    data_collection:
+      url_query_params:
+        mode: off

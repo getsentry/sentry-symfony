@@ -118,7 +118,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
         $data = [
             'net.host.port' => (string) $request->getPort(),
             'http.request.method' => $request->getMethod(),
-            'http.url' => $request->getUri(),
+            'http.url' => $this->getRequestUrl($request, $policy),
             'route' => $this->getRouteName($request),
         ];
 
