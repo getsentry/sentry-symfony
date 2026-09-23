@@ -1,0 +1,3 @@
+sentry:
+  options:
+    data_collection: {}
