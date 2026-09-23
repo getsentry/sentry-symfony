@@ -6,6 +6,8 @@ namespace Sentry\SentryBundle\Tests\EventListener;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Sentry\ClientInterface;
+use Sentry\Options;
 use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\Span;
@@ -135,6 +137,61 @@ final class TracingSubRequestListenerTest extends TestCase
         yield 'request.attributes.controller IS ARRAY and NOT VALID CALLABLE' => [
             $request,
             $span,
+        ];
+    }
+
+    /**
+     * @dataProvider handleKernelRequestEventCollectsRequestUrlDataProvider
+     */
+    public function testHandleKernelRequestEventCollectsRequestUrl(Options $options, string $expectedUrl): void
+    {
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->once())
+            ->method('getOptions')
+            ->willReturn($options);
+
+        $this->hub->expects($this->once())
+            ->method('getClient')
+            ->willReturn($client);
+
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn(new Span());
+
+        $this->hub->expects($this->once())
+            ->method('setSpan')
+            ->with($this->callback(function (Span $span) use ($expectedUrl): bool {
+                $this->assertSame($expectedUrl, $span->getData()['http.url'] ?? null);
+
+                return true;
+            }))
+            ->willReturnSelf();
+
+        $this->listener->handleKernelRequestEvent(new RequestEvent(
+            $this->createMock(HttpKernelInterface::class),
+            Request::create('http://www.example.com/path?token=secret&q=a%20b%26c&page=5'),
+            HttpKernelInterface::SUB_REQUEST
+        ));
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function handleKernelRequestEventCollectsRequestUrlDataProvider(): \Generator
+    {
+        yield 'client.options.data_collection IS NULL' => [
+            new Options(),
+            'http://www.example.com/path?page=5&q=a%20b%26c&token=secret',
+        ];
+
+        yield 'client.options.data_collection.url_query_params defaults to denyList' => [
+            new Options(['data_collection' => []]),
+            'http://www.example.com/path?token=[Filtered]&q=a%20b%26c&page=5',
+        ];
+
+        yield 'client.options.data_collection.url_query_params.mode = off' => [
+            new Options(['data_collection' => ['url_query_params' => ['mode' => 'off']]]),
+            'http://www.example.com/path',
         ];
     }
 
