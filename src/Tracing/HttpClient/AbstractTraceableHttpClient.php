@@ -8,6 +8,7 @@ use GuzzleHttp\Psr7\Uri;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Sentry\DataCollection\DataCollectionPolicy;
+use Sentry\DataCollection\HttpBodyCollector;
 use Sentry\DataCollection\HttpCookieCollector;
 use Sentry\DataCollection\HttpCookieParser;
 use Sentry\DataCollection\HttpHeaderCollector;
@@ -135,6 +136,11 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
                 $spanData['http.request.header.cookie.' . $name] = $value;
             }
 
+            $requestBody = self::collectRequestBody($policy, $options, $requestHeaders);
+            if (null !== $requestBody) {
+                $spanData['http.request.body.data'] = $requestBody;
+            }
+
             $childSpan->setData($spanData);
         }
 
@@ -226,6 +232,26 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
         }
 
         return $normalizedHeaders;
+    }
+
+    /**
+     * @param array<array-key, mixed> $options
+     * @param array<string, string[]> $requestHeaders
+     *
+     * @return array<array-key, mixed>|string|null
+     */
+    private static function collectRequestBody(DataCollectionPolicy $policy, array $options, array $requestHeaders)
+    {
+        if (isset($options['json'])) {
+            return HttpBodyCollector::collect($policy, HttpMessageType::outgoingRequest(), json_encode($options['json']), 'application/json');
+        }
+
+        $body = $options['body'] ?? null;
+        if (!\is_string($body) && !\is_array($body)) {
+            return null;
+        }
+
+        return HttpBodyCollector::collect($policy, HttpMessageType::outgoingRequest(), $body, $requestHeaders['content-type'][0] ?? '');
     }
 
     private static function shouldAttachTracingHeaders(?Options $sdkOptions, Uri $uri): bool

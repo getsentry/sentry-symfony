@@ -213,6 +213,91 @@ final class TraceableResponseTest extends TestCase
         $this->assertSame(['http.response.header.content-type' => 'application/json'], $span->getData());
     }
 
+    /**
+     * @param array<string, mixed>|string|null $expectedBody
+     *
+     * @dataProvider getContentCollectsResponseBodyDataProvider
+     */
+    public function testGetContentCollectsResponseBody(Options $options, string $contentType, string $content, $expectedBody): void
+    {
+        $spanContext = new SpanContext();
+        $spanContext->setSampled(true);
+
+        $span = new Span($spanContext);
+        $httpClient = new MockHttpClient(new MockResponse($content, ['response_headers' => ['Content-Type: ' . $contentType]]));
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, DataCollectionPolicy::fromOptions($options));
+
+        $this->assertSame($content, $response->getContent());
+        $this->assertSame($expectedBody, $span->getData()['http.response.body.data'] ?? null);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function getContentCollectsResponseBodyDataProvider(): \Generator
+    {
+        yield 'The legacy options do not collect the body' => [
+            new Options(['send_default_pii' => true]),
+            'application/json',
+            '{"username":"jane","password":"secret"}',
+            null,
+        ];
+
+        yield 'A JSON body is collected and filtered' => [
+            new Options(['data_collection' => []]),
+            'application/json',
+            '{"username":"jane","password":"secret"}',
+            ['username' => 'jane', 'password' => '[Filtered]'],
+        ];
+
+        yield 'A body that cannot be parsed is filtered' => [
+            new Options(['data_collection' => []]),
+            'text/html',
+            '<p>Hello World</p>',
+            '[Filtered]',
+        ];
+
+        yield 'The body is not collected if incoming response bodies are disabled' => [
+            new Options(['data_collection' => ['http_bodies' => ['outgoingRequest']]]),
+            'application/json',
+            '{"username":"jane"}',
+            null,
+        ];
+    }
+
+    public function testToArrayCollectsResponseBody(): void
+    {
+        $spanContext = new SpanContext();
+        $spanContext->setSampled(true);
+
+        $span = new Span($spanContext);
+        $httpClient = new MockHttpClient(new MockResponse('{"username":"jane","password":"secret"}', ['response_headers' => ['Content-Type: application/json']]));
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, DataCollectionPolicy::fromOptions(new Options(['data_collection' => []])));
+
+        $this->assertSame(['username' => 'jane', 'password' => 'secret'], $response->toArray());
+        $this->assertSame(['username' => 'jane', 'password' => '[Filtered]'], $span->getData()['http.response.body.data'] ?? null);
+    }
+
+    public function testResponseBodyIsCollectedWhenReadAfterStreaming(): void
+    {
+        $spanContext = new SpanContext();
+        $spanContext->setSampled(true);
+
+        $span = new Span($spanContext);
+        $httpClient = new MockHttpClient(new MockResponse('{"password":"secret"}', ['response_headers' => ['Content-Type: application/json']]));
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, DataCollectionPolicy::fromOptions(new Options(['data_collection' => []])));
+
+        foreach (TraceableResponse::stream($httpClient, [$response], null) as $chunk) {
+        }
+
+        $this->assertSame(['application/json'], $span->getData()['http.response.header.content-type'] ?? null);
+        $this->assertArrayNotHasKey('http.response.body.data', $span->getData());
+
+        $response->getContent();
+
+        $this->assertSame(['password' => '[Filtered]'], $span->getData()['http.response.body.data'] ?? null);
+    }
+
     public function testToArray(): void
     {
         $span = new Span();
