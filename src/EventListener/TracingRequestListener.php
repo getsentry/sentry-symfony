@@ -17,6 +17,7 @@ use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionSource;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
 use function Sentry\continueTrace;
@@ -85,6 +86,24 @@ final class TracingRequestListener extends AbstractTracingRequestListener
         $context->setData($this->getData($request));
 
         $this->hub->setSpan($this->hub->startTransaction($context));
+    }
+
+    /**
+     * @param ResponseEvent $event
+     */
+    public function collectKernelResponseData(ResponseEvent $event): void
+    {
+        if (!$this->isMainRequest($event)) {
+            return;
+        }
+
+        $transaction = $this->hub->getTransaction();
+
+        if (null === $transaction) {
+            return;
+        }
+
+        $this->collectResponseData($transaction, $event->getResponse());
     }
 
     /**

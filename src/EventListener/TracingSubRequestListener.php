@@ -9,6 +9,7 @@ use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
 /**
  * This event listener acts on the sub requests and starts a child span of the
@@ -48,6 +49,24 @@ final class TracingSubRequestListener extends AbstractTracingRequestListener
                     ->setDescription(\sprintf('%s %s%s%s', $request->getMethod(), $request->getSchemeAndHttpHost(), $request->getBaseUrl(), $request->getPathInfo()))
             )
         );
+    }
+
+    /**
+     * @param ResponseEvent $event
+     */
+    public function collectKernelResponseData(ResponseEvent $event): void
+    {
+        if ($this->isMainRequest($event)) {
+            return;
+        }
+
+        $span = $this->hub->getSpan();
+
+        if (null === $span) {
+            return;
+        }
+
+        $this->collectResponseData($span, $event->getResponse());
     }
 
     /**
