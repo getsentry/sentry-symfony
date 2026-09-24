@@ -72,6 +72,11 @@ final class DataCollectionIncomingRequestEnd2EndTest extends WebTestCase
             'http://localhost/200?token=[Filtered]&q=a%20b%26c&page=5',
         ];
 
+        yield 'A null value in a later config file restores the legacy options' => [
+            [__DIR__ . '/App/config/data_collection/defaults.yml', __DIR__ . '/App/config/data_collection/legacy.yml'],
+            'http://localhost/200?page=5&q=a%20b%26c&token=secret',
+        ];
+
         yield 'The data collection options omit the query string if query parameters are not collected' => [
             [__DIR__ . '/App/config/data_collection/url_query_params_disabled.yml'],
             'http://localhost/200',
