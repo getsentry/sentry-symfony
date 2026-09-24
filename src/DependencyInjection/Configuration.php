@@ -56,17 +56,6 @@ final class Configuration implements ConfigurationInterface
                     ->defaultNull()
                 ->end()
                 ->arrayNode('options')
-                    ->beforeNormalization()
-                        // A null value keeps the legacy options such as `send_default_pii`
-                        ->ifTrue(static function ($value): bool {
-                            return \is_array($value) && \array_key_exists('data_collection', $value) && null === $value['data_collection'];
-                        })
-                        ->then(static function (array $value): array {
-                            unset($value['data_collection']);
-
-                            return $value;
-                        })
-                    ->end()
                     ->addDefaultsIfNotSet()
                     ->fixXmlConfig('integration')
                     ->fixXmlConfig('trace_propagation_target')
@@ -208,7 +197,17 @@ final class Configuration implements ConfigurationInterface
 
         // @phpstan-ignore-next-line
         $node
-            ->info('Opts into the data collection options, which replace legacy options such as "send_default_pii". An empty array applies the default of every option.')
+            ->info('Opts into the data collection options, which replace legacy options such as "send_default_pii". An empty array applies the default of every option, null keeps the legacy options even if an earlier config file opted in.')
+            // A null value is unset after merging, which keeps the legacy options such as `send_default_pii`
+            // even if an earlier config file opted in. The false value is only used internally for this.
+            ->treatNullLike(false)
+            ->canBeUnset()
+            ->beforeNormalization()
+                ->ifTrue(static function ($value): bool {
+                    return false === $value;
+                })
+                ->thenInvalid('Invalid configuration for path "sentry.options.data_collection": the value %s is not supported, use null to keep the legacy options.')
+            ->end()
             ->fixXmlConfig('http_body', 'http_bodies')
             ->children()
                 ->booleanNode('user_info')->end()
