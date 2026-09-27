@@ -38,7 +38,7 @@ final class RequestFetcher implements RequestFetcherInterface, ResetInterface
     /**
      * Class constructor.
      *
-     * @param RequestStack $requestStack The request stack
+     * @param RequestStack                     $requestStack       The request stack
      * @param HttpMessageFactoryInterface|null $httpMessageFactory The factory to convert Symfony requests to PSR-7 requests
      */
     public function __construct(RequestStack $requestStack, ?HttpMessageFactoryInterface $httpMessageFactory = null)
@@ -90,7 +90,7 @@ final class RequestFetcher implements RequestFetcherInterface, ResetInterface
 
     private static function isFormRequest(Request $request): bool
     {
-        $mediaType = strtolower(trim(explode(';', (string)$request->headers->get('Content-Type', ''), 2)[0]));
+        $mediaType = strtolower(trim(explode(';', (string) $request->headers->get('Content-Type', ''), 2)[0]));
 
         return 'application/x-www-form-urlencoded' === $mediaType || 'multipart/form-data' === $mediaType;
     }

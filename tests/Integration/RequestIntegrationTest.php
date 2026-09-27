@@ -24,8 +24,9 @@ final class RequestIntegrationTest extends TestCase
 {
     public function testUrlHeadersAndCookiesAreFiltered(): void
     {
+        // The query parameters are sorted, as symfony/psr-http-message-bridge < 2.0.1 sorts them when converting the request
         $request = Request::create(
-            'http://www.example.com/path?token=secret&q=a%20b%26c&page=5',
+            'http://www.example.com/path?page=5&q=a%20b%26c&token=secret',
             'GET',
             [],
             ['session_id' => 'foo', 'theme' => 'dark'],
@@ -42,8 +43,8 @@ final class RequestIntegrationTest extends TestCase
         /** @var array<string, string[]> $headers */
         $headers = $requestData['headers'];
 
-        $this->assertSame('http://www.example.com/path?token=[Filtered]&q=a%20b%26c&page=5', $requestData['url']);
-        $this->assertSame('token=[Filtered]&q=a%20b%26c&page=5', $requestData['query_string']);
+        $this->assertSame('http://www.example.com/path?page=5&q=a%20b%26c&token=[Filtered]', $requestData['url']);
+        $this->assertSame('page=5&q=a%20b%26c&token=[Filtered]', $requestData['query_string']);
         $this->assertSame(['REMOTE_ADDR' => '1.2.3.4'], $requestData['env']);
         $this->assertSame(['session_id' => '[Filtered]', 'theme' => 'dark'], $requestData['cookies']);
         $this->assertSame(['[Filtered]'], $headers['authorization']);
