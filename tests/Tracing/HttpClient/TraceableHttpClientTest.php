@@ -317,6 +317,117 @@ final class TraceableHttpClientTest extends TestCase
         ];
     }
 
+    /**
+     * @param array<string, mixed>             $requestOptions
+     * @param array<string, mixed>|string|null $expectedBody
+     *
+     * @dataProvider requestCollectsBodyDataProvider
+     */
+    public function testRequestCollectsBody(Options $options, array $requestOptions, $expectedBody): void
+    {
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->once())
+            ->method('getOptions')
+            ->willReturn($options);
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setSampled(true);
+
+        $transaction = new Transaction($transactionContext);
+        $transaction->initSpanRecorder();
+
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn($transaction);
+        $this->hub->expects($this->once())
+            ->method('getClient')
+            ->willReturn($client);
+
+        $httpClient = new TraceableHttpClient(new MockHttpClient(new MockResponse()), $this->hub);
+        $httpClient->request('POST', 'https://www.example.com/', $requestOptions)->getContent();
+
+        $this->assertNotNull($transaction->getSpanRecorder());
+
+        $spans = $transaction->getSpanRecorder()->getSpans();
+
+        $this->assertCount(2, $spans);
+        $this->assertSame($expectedBody, $spans[1]->getData()['http.request.body.data'] ?? null);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function requestCollectsBodyDataProvider(): \Generator
+    {
+        yield 'The legacy options do not collect the body' => [
+            new Options(['send_default_pii' => true]),
+            ['json' => ['username' => 'jane', 'password' => 'secret']],
+            null,
+        ];
+
+        yield 'The body of the json option is collected and filtered' => [
+            new Options(['data_collection' => []]),
+            ['json' => ['username' => 'jane', 'password' => 'secret']],
+            ['username' => 'jane', 'password' => '[Filtered]'],
+        ];
+
+        yield 'The body of the json option is encoded like the HTTP client does' => [
+            new Options(['data_collection' => []]),
+            [
+                'json' => new class implements \JsonSerializable {
+                    /**
+                     * @return array<string, mixed>
+                     */
+                    public function jsonSerialize(): array
+                    {
+                        return ['token' => 'secret', 'page' => 1];
+                    }
+                },
+            ],
+            ['token' => '[Filtered]', 'page' => 1],
+        ];
+
+        yield 'A body given as a string is decoded based on its content type' => [
+            new Options(['data_collection' => []]),
+            [
+                'headers' => ['Content-Type' => 'application/json'],
+                'body' => '{"username":"jane","password":"secret"}',
+            ],
+            ['username' => 'jane', 'password' => '[Filtered]'],
+        ];
+
+        yield 'A body given as a string that cannot be parsed is filtered' => [
+            new Options(['data_collection' => []]),
+            [
+                'headers' => ['Content-Type' => 'text/plain'],
+                'body' => 'Hello World',
+            ],
+            '[Filtered]',
+        ];
+
+        yield 'A body given as form fields is collected and filtered' => [
+            new Options(['data_collection' => []]),
+            ['body' => ['username' => 'jane', 'password' => 'secret']],
+            ['username' => 'jane', 'password' => '[Filtered]'],
+        ];
+
+        yield 'A body given as a closure is not collected to not consume it' => [
+            new Options(['data_collection' => []]),
+            [
+                'body' => static function (): string {
+                    return '';
+                },
+            ],
+            null,
+        ];
+
+        yield 'The body is not collected if outgoing request bodies are disabled' => [
+            new Options(['data_collection' => ['http_bodies' => ['incomingResponse']]]),
+            ['json' => ['username' => 'jane']],
+            null,
+        ];
+    }
+
     public function testRequestDoesNotContainTracingHeaders(): void
     {
         $options = new Options([
