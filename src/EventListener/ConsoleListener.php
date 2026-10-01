@@ -42,8 +42,8 @@ class ConsoleListener
     /**
      * Constructor.
      *
-     * @param HubInterface $hub The current hub
-     * @param bool $captureErrors Whether to capture console errors
+     * @param HubInterface $hub           The current hub
+     * @param bool         $captureErrors Whether to capture console errors
      */
     public function __construct(HubInterface $hub, bool $captureErrors = true)
     {
@@ -78,7 +78,7 @@ class ConsoleListener
      */
     private function getFullCommand(ArgvInput $input, ?Command $command): string
     {
-        $fullCommand = (string)$input;
+        $fullCommand = (string) $input;
 
         if (DataCollectionPolicy::fromHub($this->hub)->isLegacyMode()) {
             return $fullCommand;
@@ -87,7 +87,7 @@ class ConsoleListener
         // The tokens after an invalid one, e.g. an unknown option, are not parsed,
         // so it is unknown whether their values are sensitive so we assume they are.
         if (null !== $command && !self::isValidInput($input, $command)) {
-            return $input->escapeToken((string)$command->getName()) . ' ' . KeyValueDataFilter::FILTERED_VALUE;
+            return $input->escapeToken((string) $command->getName()) . ' ' . KeyValueDataFilter::FILTERED_VALUE;
         }
 
         $parameters = array_merge($input->getArguments(), $input->getOptions());
@@ -102,7 +102,7 @@ class ConsoleListener
                 continue;
             }
 
-            foreach ((array)$parameters[$name] as $sensitiveValue) {
+            foreach ((array) $parameters[$name] as $sensitiveValue) {
                 if (!\is_string($sensitiveValue) || '' === $sensitiveValue) {
                     continue;
                 }
@@ -148,7 +148,7 @@ class ConsoleListener
     public function handleConsoleErrorEvent(ConsoleErrorEvent $event): void
     {
         $this->hub->configureScope(function (Scope $scope) use ($event): void {
-            $scope->setTag('console.command.exit_code', (string)$event->getExitCode());
+            $scope->setTag('console.command.exit_code', (string) $event->getExitCode());
 
             if ($this->captureErrors) {
                 $hint = EventHint::fromArray([
