@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tracing\Doctrine\DBAL;
 
 use Doctrine\DBAL\Driver\Statement;
+use Sentry\DataCollection\DatabaseDataCollector;
+use Sentry\DataCollection\DataCollectionPolicy;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
@@ -35,6 +37,11 @@ abstract class AbstractTracingStatement
      * @var array<string, string> The span data
      */
     protected $spanData;
+
+    /**
+     * @var array<array-key, mixed> The parameters bound to the decorated statement
+     */
+    private $parameters = [];
 
     /**
      * Constructor.
@@ -71,6 +78,7 @@ abstract class AbstractTracingStatement
 
         if (null !== $span) {
             $span = $span->startChild($spanContext);
+            $this->addQueryData($span, $args[0] ?? null);
         }
 
         try {
@@ -80,5 +88,59 @@ abstract class AbstractTracingStatement
                 $span->finish();
             }
         }
+    }
+
+    /**
+     * @param int|string $param The name or 1-indexed position of the parameter
+     * @param mixed      $value
+     */
+    protected function recordBoundValue($param, $value): void
+    {
+        $key = self::getParameterKey($param);
+
+        // Unset the parameter first to not write through a parameter that was bound by reference
+        unset($this->parameters[$key]);
+        $this->parameters[$key] = $value;
+    }
+
+    /**
+     * @param int|string $param    The name or 1-indexed position of the parameter
+     * @param mixed      $variable
+     */
+    protected function recordBoundReference($param, &$variable): void
+    {
+        $this->parameters[self::getParameterKey($param)] = &$variable;
+    }
+
+    /**
+     * @param mixed $params The parameters passed to the execution, which replace the bound ones
+     */
+    private function addQueryData(Span $span, $params): void
+    {
+        if (!$span->getSampled()) {
+            return;
+        }
+
+        $data = DatabaseDataCollector::collectQueryData(
+            DataCollectionPolicy::fromHub($this->hub),
+            \is_array($params) && [] !== $params ? $params : $this->parameters
+        );
+
+        if ([] !== $data) {
+            $span->setData($data);
+        }
+    }
+
+    /**
+     * Positional parameters are bound 1-indexed, but reported 0-indexed like
+     * the parameters passed to the execution.
+     *
+     * @param int|string $param
+     *
+     * @return int|string
+     */
+    private static function getParameterKey($param)
+    {
+        return \is_int($param) ? $param - 1 : $param;
     }
 }
