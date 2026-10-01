@@ -337,6 +337,38 @@ final class ConfigurationTest extends TestCase
         $this->assertArrayNotHasKey('data_collection', $config['options']);
     }
 
+    public function testDataCollectionOptionIsUnsetWhenNullOverridesAnEarlierConfig(): void
+    {
+        $processor = new Processor();
+        /** @var array{options: array<string, mixed>} $config */
+        $config = $processor->processConfiguration(new Configuration(), [
+            ['options' => ['data_collection' => ['user_info' => true]]],
+            ['options' => ['data_collection' => null]],
+        ]);
+
+        $this->assertArrayNotHasKey('data_collection', $config['options']);
+    }
+
+    public function testDataCollectionOptionOverridesAnEarlierNullConfig(): void
+    {
+        $processor = new Processor();
+        /** @var array{options: array{data_collection: array<string, mixed>}} $config */
+        $config = $processor->processConfiguration(new Configuration(), [
+            ['options' => ['data_collection' => null]],
+            ['options' => ['data_collection' => ['user_info' => true]]],
+        ]);
+
+        $this->assertSame(['user_info' => true, 'http_bodies' => HttpMessageType::TYPES], $config['options']['data_collection']);
+    }
+
+    public function testDataCollectionOptionDoesNotAcceptFalse(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid configuration for path "sentry.options.data_collection": the value false is not supported, use null to keep the legacy options.');
+
+        $this->processConfiguration(['options' => ['data_collection' => false]]);
+    }
+
     public function testDataCollectionOptionWithEmptyArrayUsesDefaults(): void
     {
         /** @var array{options: array{data_collection: array<string, mixed>}} $config */
