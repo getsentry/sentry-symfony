@@ -415,6 +415,57 @@ final class TracingRequestListenerTest extends TestCase
             $transactionContext,
         ];
 
+        $request = Request::create('http://www.example.com/');
+        $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setName('GET http://www.example.com/');
+        $transactionContext->setSource(TransactionSource::url());
+        $transactionContext->setOp('http.server');
+        $transactionContext->setOrigin('auto.http.server');
+        $transactionContext->setStartTimestamp(1613493597.010275);
+        $transactionContext->setData([
+            'net.host.port' => '80',
+            'http.request.method' => 'GET',
+            'http.url' => 'http://www.example.com/',
+            'http.flavor' => '1.1',
+            'route' => '<unknown>',
+            'net.host.name' => 'www.example.com',
+            'net.peer.ip' => '127.0.0.1',
+        ]);
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
+
+        yield 'request.server.REMOTE_ADDR EXISTS and client.options.data_collection.user_info defaults to TRUE' => [
+            new Options(['send_default_pii' => false, 'data_collection' => []]),
+            $request,
+            $transactionContext,
+        ];
+
+        $request = Request::create('http://www.example.com/');
+        $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setName('GET http://www.example.com/');
+        $transactionContext->setSource(TransactionSource::url());
+        $transactionContext->setOp('http.server');
+        $transactionContext->setOrigin('auto.http.server');
+        $transactionContext->setStartTimestamp(1613493597.010275);
+        $transactionContext->setData([
+            'net.host.port' => '80',
+            'http.request.method' => 'GET',
+            'http.url' => 'http://www.example.com/',
+            'http.flavor' => '1.1',
+            'route' => '<unknown>',
+            'net.host.name' => 'www.example.com',
+        ]);
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
+
+        yield 'request.server.REMOTE_ADDR EXISTS and client.options.data_collection.user_info = FALSE' => [
+            new Options(['send_default_pii' => true, 'data_collection' => ['user_info' => false]]),
+            $request,
+            $transactionContext,
+        ];
+
         $request = Request::createFromGlobals();
         $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
 
