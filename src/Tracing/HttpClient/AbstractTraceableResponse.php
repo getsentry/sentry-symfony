@@ -13,6 +13,7 @@ use Sentry\DataCollection\HttpMessageType;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanStatus;
 use Symfony\Contracts\HttpClient\ChunkInterface;
+use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
@@ -96,6 +97,10 @@ abstract class AbstractTraceableResponse implements ResponseInterface
 
         try {
             return $content = $this->response->getContent($throw);
+        } catch (HttpExceptionInterface $exception) {
+            $content = $this->getErrorResponseContent();
+
+            throw $exception;
         } finally {
             $this->finishSpan($content);
         }
@@ -107,6 +112,10 @@ abstract class AbstractTraceableResponse implements ResponseInterface
 
         try {
             return $content = $this->response->toArray($throw);
+        } catch (HttpExceptionInterface $exception) {
+            $content = $this->getErrorResponseContent();
+
+            throw $exception;
         } finally {
             $this->finishSpan($content);
         }
@@ -217,6 +226,27 @@ abstract class AbstractTraceableResponse implements ResponseInterface
         }
 
         $span->setData($spanData);
+    }
+
+    /**
+     * Used to retrieve the content of error responses in the case that getContent or toArray
+     * was invoked with $throw = true.
+     */
+    private function getErrorResponseContent(): ?string
+    {
+        if (null === $this->span || null === $this->policy || $this->responseContentCollected) {
+            return null;
+        }
+
+        if (null === $this->policy->getHttpBodyLimit(HttpMessageType::incomingResponse())) {
+            return null;
+        }
+
+        try {
+            return $this->response->getContent(false);
+        } catch (\Throwable $exception) {
+            return null;
+        }
     }
 
     /**
