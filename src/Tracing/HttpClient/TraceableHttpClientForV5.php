@@ -16,6 +16,7 @@ final class TraceableHttpClientForV5 extends AbstractTraceableHttpClient
     {
         $clone = clone $this;
         $clone->client = $this->client->withOptions($options);
+        $clone->defaultHeaders = self::normalizeHeaders($options['headers'] ?? []) + $this->defaultHeaders;
 
         return $clone;
     }
