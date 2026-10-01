@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\Integration;
 
+use GuzzleHttp\Psr7\ServerRequest;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
@@ -76,6 +77,82 @@ final class RequestFetcherTest extends TestCase
             ->willThrowException(new \Exception());
 
         $this->assertNull($this->requestFetcher->fetchRequest());
+    }
+
+    /**
+     * @param array<string, mixed>|null $parsedBody
+     * @param array<string, mixed>|null $expectedParsedBody
+     *
+     * @dataProvider fetchRequestParsedBodyDataProvider
+     */
+    public function testFetchRequestOnlyKeepsAnEmptyParsedBodyForForms(?string $contentType, ?array $parsedBody, ?array $expectedParsedBody): void
+    {
+        // Symfony sets a form content type for POST requests without one
+        $request = null === $contentType
+            ? Request::create('https://www.example.com')
+            : Request::create('https://www.example.com', 'POST', [], [], [], ['CONTENT_TYPE' => $contentType], 'foo');
+
+        $this->requestStack->expects($this->once())
+            ->method('getCurrentRequest')
+            ->willReturn($request);
+
+        $this->httpMessageFactory->expects($this->once())
+            ->method('createRequest')
+            ->with($request)
+            ->willReturn((new ServerRequest('POST', 'https://www.example.com'))->withParsedBody($parsedBody));
+
+        $serverRequest = $this->requestFetcher->fetchRequest();
+
+        $this->assertNotNull($serverRequest);
+        $this->assertSame($expectedParsedBody, $serverRequest->getParsedBody());
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function fetchRequestParsedBodyDataProvider(): \Generator
+    {
+        yield 'For a request without a content type, the empty parsed body is dropped' => [
+            null,
+            [],
+            null,
+        ];
+
+        yield 'For a body that is not parsed by Symfony, the empty parsed body is dropped' => [
+            'text/plain',
+            [],
+            null,
+        ];
+
+        yield 'For a JSON body not parsed by the bridge, the empty parsed body is dropped' => [
+            'application/json',
+            [],
+            null,
+        ];
+
+        yield 'For a JSON body parsed by the bridge, the parsed body is kept' => [
+            'application/json',
+            ['foo' => 'bar'],
+            ['foo' => 'bar'],
+        ];
+
+        yield 'For a URL encoded form, the empty parsed body is kept' => [
+            'Application/X-WWW-Form-Urlencoded; charset=UTF-8',
+            [],
+            [],
+        ];
+
+        yield 'For a multipart form, the empty parsed body is kept' => [
+            'multipart/form-data; boundary=foo',
+            [],
+            [],
+        ];
+
+        yield 'A missing parsed body is kept' => [
+            'text/plain',
+            null,
+            null,
+        ];
     }
 
     public function testFetchRequestUsesManuallySetRequestBeforeRequestStack(): void
