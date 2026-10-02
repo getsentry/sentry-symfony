@@ -180,6 +180,7 @@ final class Configuration implements ConfigurationInterface
             ->end();
 
         $this->addMessengerSection($rootNode);
+        $this->addSchedulerSection($rootNode);
         $this->addDistributedTracingSection($rootNode);
 
         return $treeBuilder;
@@ -200,6 +201,21 @@ final class Configuration implements ConfigurationInterface
                         ->booleanNode('isolate_breadcrumbs_by_message')->defaultFalse()->end()
                         ->booleanNode('isolate_context_by_message')->defaultFalse()->end()
                     ->end()
+                ->end()
+            ->end();
+    }
+
+    /**
+     * @phpstan-param ArrayNodeDefinition<NodeParentInterface|null> $rootNode
+     */
+    private function addSchedulerSection(ArrayNodeDefinition $rootNode): void
+    {
+        // @phpstan-ignore-next-line
+        $rootNode
+            ->children()
+                ->arrayNode('scheduler')
+                    ->info('Sends cron check-ins for Symfony Scheduler messages. Every recurring message with a cron or whole-minute interval schedule creates a cron monitor in Sentry.')
+                    ->canBeEnabled()
                 ->end()
             ->end();
     }

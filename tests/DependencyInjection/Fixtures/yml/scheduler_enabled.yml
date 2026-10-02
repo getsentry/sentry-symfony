@@ -1,0 +1,3 @@
+sentry:
+    scheduler:
+        enabled: true

@@ -17,6 +17,7 @@ use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
 use Sentry\SentryBundle\EventListener\LoginListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
+use Sentry\SentryBundle\EventListener\SchedulerListener;
 use Sentry\SentryBundle\EventListener\TracingConsoleListener;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
 use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
@@ -35,6 +36,7 @@ use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
+use Symfony\Component\Scheduler\Event\PreRunEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 final class SentryExtension extends ConfigurableExtension
@@ -77,6 +79,7 @@ final class SentryExtension extends ConfigurableExtension
         $this->registerConfiguration($container, $mergedConfig);
         $this->registerErrorListenerConfiguration($container, $mergedConfig);
         $this->registerMessengerListenerConfiguration($container, $mergedConfig['messenger']);
+        $this->registerSchedulerListenerConfiguration($container, $mergedConfig['scheduler']);
         $this->registerTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerDbalTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerTwigTracingConfiguration($container, $mergedConfig['tracing']);
@@ -221,6 +224,22 @@ final class SentryExtension extends ConfigurableExtension
             ->setArgument(1, $config['capture_soft_fails'])
             ->setArgument(2, $config['isolate_breadcrumbs_by_message'])
             ->setArgument(3, $config['isolate_context_by_message']);
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function registerSchedulerListenerConfiguration(ContainerBuilder $container, array $config): void
+    {
+        if (!$this->isConfigEnabled($container, $config)) {
+            $container->removeDefinition(SchedulerListener::class);
+
+            return;
+        }
+
+        if (!class_exists(PreRunEvent::class)) {
+            throw new \LogicException('Scheduler cron monitoring cannot be enabled because the symfony/scheduler Composer package (6.4 or newer) is not installed.');
+        }
     }
 
     /**

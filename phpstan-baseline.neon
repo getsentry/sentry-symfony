@@ -136,6 +136,11 @@ parameters:
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
+			message: "#^Parameter \\#2 \\$config of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:registerSchedulerListenerConfiguration\\(\\) expects array\\<string, mixed\\>, mixed given\\.$#"
+			count: 1
+			path: src/DependencyInjection/SentryExtension.php
+
+		-
 			message: "#^Parameter \\#2 \\$config of method Sentry\\\\SentryBundle\\\\DependencyInjection\\\\SentryExtension\\:\\:registerTracingConfiguration\\(\\) expects array\\<string, mixed\\>, mixed given\\.$#"
 			count: 1
 			path: src/DependencyInjection/SentryExtension.php

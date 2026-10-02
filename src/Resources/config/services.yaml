@@ -78,6 +78,13 @@ services:
       - { name: kernel.event_listener, event: 'Symfony\Component\Messenger\Event\WorkerMessageHandledEvent', method: handleWorkerMessageHandledEvent, priority: 50 }
       - { name: kernel.event_listener, event: 'Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent', method: handleWorkerMessageReceivedEvent, priority: 50 }
 
+  Sentry\SentryBundle\EventListener\SchedulerListener:
+    arguments: ['@Sentry\State\HubInterface']
+    tags:
+      - { name: kernel.event_listener, event: 'Symfony\Component\Scheduler\Event\PreRunEvent', method: handlePreRunEvent, priority: -100 }
+      - { name: kernel.event_listener, event: 'Symfony\Component\Scheduler\Event\PostRunEvent', method: handlePostRunEvent }
+      - { name: kernel.event_listener, event: 'Symfony\Component\Scheduler\Event\FailureEvent', method: handleFailureEvent }
+
   Sentry\SentryBundle\EventListener\LoginListener:
     arguments:
       - '@Sentry\State\HubInterface'

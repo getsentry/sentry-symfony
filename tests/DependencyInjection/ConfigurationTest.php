@@ -48,6 +48,9 @@ final class ConfigurationTest extends TestCase
                 'isolate_breadcrumbs_by_message' => false,
                 'isolate_context_by_message' => false,
             ],
+            'scheduler' => [
+                'enabled' => false,
+            ],
             'tracing' => [
                 'enabled' => true,
                 'dbal' => [
