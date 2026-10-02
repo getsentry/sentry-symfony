@@ -13,14 +13,20 @@ use Sentry\SentryBundle\Tests\EventListener\Fixtures\SendDailyReportMessage;
 use Sentry\SentryBundle\Tests\EventListener\Fixtures\StringableReportMessage;
 use Sentry\State\HubInterface;
 use Symfony\Component\Console\Messenger\RunCommandMessage;
+use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
+use Symfony\Component\Messenger\Message\RedispatchMessage;
+use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Symfony\Component\Scheduler\Event\FailureEvent;
 use Symfony\Component\Scheduler\Event\PostRunEvent;
 use Symfony\Component\Scheduler\Event\PreRunEvent;
 use Symfony\Component\Scheduler\Generator\MessageContext;
+use Symfony\Component\Scheduler\Messenger\ScheduledStamp;
 use Symfony\Component\Scheduler\Messenger\ServiceCallMessage;
 use Symfony\Component\Scheduler\Schedule;
 use Symfony\Component\Scheduler\Trigger\CallbackTrigger;
 use Symfony\Component\Scheduler\Trigger\CronExpressionTrigger;
+use Symfony\Component\Scheduler\Trigger\ExcludeTimeTrigger;
 use Symfony\Component\Scheduler\Trigger\JitterTrigger;
 use Symfony\Component\Scheduler\Trigger\PeriodicalTrigger;
 use Symfony\Component\Scheduler\Trigger\TriggerInterface;
@@ -133,6 +139,90 @@ final class SchedulerListenerTest extends TestCase
         $this->assertSame([], $this->checkIns);
     }
 
+    public function testResetDropsStartedCheckIns(): void
+    {
+        $context = $this->createContext(CronExpressionTrigger::fromSpec('*/5 * * * *'));
+        $message = new SendDailyReportMessage();
+
+        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $context, $message));
+        $this->listener->reset();
+        $this->listener->handlePostRunEvent(new PostRunEvent(new Schedule(), $context, $message));
+
+        $this->assertCount(1, $this->checkIns);
+        $this->assertSame(CheckInStatus::inProgress(), $this->checkIns[0]['status']);
+    }
+
+    public function testRedispatchMessageIsNotReported(): void
+    {
+        $context = $this->createContext(CronExpressionTrigger::fromSpec('*/5 * * * *'));
+
+        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $context, new RedispatchMessage(new SendDailyReportMessage(), 'async')));
+
+        $this->assertSame([], $this->checkIns);
+    }
+
+    public function testAnonymousMessageIsNotReported(): void
+    {
+        $context = $this->createContext(CronExpressionTrigger::fromSpec('*/5 * * * *'));
+
+        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $context, new class {
+        }));
+
+        $this->assertSame([], $this->checkIns);
+    }
+
+    public function testRedeliveredMessageIsNotReported(): void
+    {
+        $context = $this->createContext(CronExpressionTrigger::fromSpec('*/5 * * * *'));
+        $message = new SendDailyReportMessage();
+        $envelope = new Envelope($message, [new ScheduledStamp($context), new RedeliveryStamp(1)]);
+
+        $this->listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent($envelope, 'async'));
+        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $context, $message));
+
+        $this->assertCount(0, $this->checkIns);
+
+        $this->listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent(new Envelope($message, [new ScheduledStamp($context)]), 'async'));
+        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $context, $message));
+
+        $this->assertCount(1, $this->checkIns);
+    }
+
+    public function testJitterWidensCheckInMargin(): void
+    {
+        $trigger = new JitterTrigger(new JitterTrigger(CronExpressionTrigger::fromSpec('0 * * * *'), 90), 30);
+
+        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $this->createContext($trigger), new SendDailyReportMessage()));
+
+        $this->assertCount(1, $this->checkIns);
+        $this->assertNotNull($this->checkIns[0]['monitor_config']);
+        $this->assertSame(3, $this->checkIns[0]['monitor_config']->getCheckinMargin());
+    }
+
+    /**
+     * @dataProvider unsupportedCronExpressionDataProvider
+     */
+    public function testUnsupportedCronExpressionIsNotReported(string $expression): void
+    {
+        // These expressions are accepted by the parser but can't compute run dates, so build the context by hand
+        $trigger = CronExpressionTrigger::fromSpec($expression);
+        $context = new MessageContext('default', 'id', $trigger, new \DateTimeImmutable('2026-01-01 00:00:00'));
+
+        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $context, new SendDailyReportMessage()));
+
+        $this->assertSame([], $this->checkIns);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public function unsupportedCronExpressionDataProvider(): iterable
+    {
+        yield 'wrapping hour range' => ['0 22-2 * * *'];
+        yield 'wrapping weekday range' => ['0 0 * * 5-1'];
+        yield 'last day of month with step' => ['0 0 L/2 * *'];
+    }
+
     /**
      * @dataProvider scheduleDataProvider
      *
@@ -161,7 +251,19 @@ final class SchedulerListenerTest extends TestCase
         yield 'cron' => ['cron', '15 * * * 1', ['type' => 'crontab', 'value' => '15 * * * 1', 'unit' => '']];
         yield 'cron alias' => ['cron', '@daily', ['type' => 'crontab', 'value' => '0 0 * * *', 'unit' => '']];
         yield 'cron with jitter' => ['jitter', '0 * * * *', ['type' => 'crontab', 'value' => '0 * * * *', 'unit' => '']];
+        yield 'cron with excluded time' => ['exclude', '0 * * * *', null];
+        yield 'cron with jitter and excluded time' => ['jitter-exclude', '0 * * * *', null];
+        yield 'cron with names' => ['cron', '0 9 * JAN-JUN mon-fri', ['type' => 'crontab', 'value' => '0 9 * JAN-JUN mon-fri', 'unit' => '']];
+        yield 'cron with steps and lists' => ['cron', '*/15 8-18/2 1,15 * *', ['type' => 'crontab', 'value' => '*/15 8-18/2 1,15 * *', 'unit' => '']];
+        yield 'cron last day of month' => ['cron', '0 0 L * *', ['type' => 'crontab', 'value' => '0 0 L * *', 'unit' => '']];
+        yield 'cron last weekday of month' => ['cron', '0 0 LW * *', ['type' => 'crontab', 'value' => '0 0 LW * *', 'unit' => '']];
+        yield 'cron last friday' => ['cron', '0 0 * * 5L', ['type' => 'crontab', 'value' => '0 0 * * 5L', 'unit' => '']];
+        yield 'cron second friday' => ['cron', '0 0 * * FRI#2', ['type' => 'crontab', 'value' => '0 0 * * FRI#2', 'unit' => '']];
+        yield 'cron nearest weekday' => ['cron', '0 0 15W * *', null];
+        yield 'cron question mark' => ['cron', '0 0 ? * *', null];
         yield 'every minute' => ['every', '60', ['type' => 'interval', 'value' => 1, 'unit' => 'minute']];
+        yield 'every 5 minutes' => ['every', '300', ['type' => 'interval', 'value' => 5, 'unit' => 'minute']];
+        yield 'every 5 minutes as interval' => ['every', 'PT5M', ['type' => 'interval', 'value' => 5, 'unit' => 'minute']];
         yield 'every 90 minutes' => ['every', '90 minutes', ['type' => 'interval', 'value' => 90, 'unit' => 'minute']];
         yield 'every 2 hours' => ['every', 'PT2H', ['type' => 'interval', 'value' => 2, 'unit' => 'hour']];
         yield 'every day' => ['every', 'P1D', ['type' => 'interval', 'value' => 1, 'unit' => 'day']];
@@ -219,9 +321,13 @@ final class SchedulerListenerTest extends TestCase
     {
         switch ($type) {
             case 'cron':
-                return CronExpressionTrigger::fromSpec($spec);
+                return CronExpressionTrigger::fromSpec($spec, 'context');
             case 'jitter':
                 return new JitterTrigger(CronExpressionTrigger::fromSpec($spec));
+            case 'exclude':
+                return new ExcludeTimeTrigger(CronExpressionTrigger::fromSpec($spec), new \DateTimeImmutable('2026-06-01'), new \DateTimeImmutable('2026-06-02'));
+            case 'jitter-exclude':
+                return new JitterTrigger(new ExcludeTimeTrigger(CronExpressionTrigger::fromSpec($spec), new \DateTimeImmutable('2026-06-01'), new \DateTimeImmutable('2026-06-02')));
             case 'every':
                 return new PeriodicalTrigger(ctype_digit($spec) ? (int) $spec : $spec);
             default:

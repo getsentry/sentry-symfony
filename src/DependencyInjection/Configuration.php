@@ -214,7 +214,7 @@ final class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->arrayNode('scheduler')
-                    ->info('Sends cron check-ins for Symfony Scheduler messages. Every recurring message with a cron or whole-minute interval schedule creates a cron monitor in Sentry.')
+                    ->info('Sends cron check-ins for Symfony Scheduler messages. Every recurring message with a cron or whole-minute interval schedule creates a cron monitor in Sentry. Messages of the same class share a monitor unless they implement __toString() to tell them apart.')
                     ->canBeEnabled()
                 ->end()
             ->end();

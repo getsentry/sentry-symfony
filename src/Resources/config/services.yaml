@@ -81,9 +81,13 @@ services:
   Sentry\SentryBundle\EventListener\SchedulerListener:
     arguments: ['@Sentry\State\HubInterface']
     tags:
-      - { name: kernel.event_listener, event: 'Symfony\Component\Scheduler\Event\PreRunEvent', method: handlePreRunEvent, priority: -100 }
+      # Run before the Scheduler dispatches PreRunEvent, which it does with the default priority
+      - { name: kernel.event_listener, event: 'Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent', method: handleWorkerMessageReceivedEvent, priority: 10 }
+      # Run last so that runs cancelled by other listeners are not reported
+      - { name: kernel.event_listener, event: 'Symfony\Component\Scheduler\Event\PreRunEvent', method: handlePreRunEvent, priority: -1024 }
       - { name: kernel.event_listener, event: 'Symfony\Component\Scheduler\Event\PostRunEvent', method: handlePostRunEvent }
       - { name: kernel.event_listener, event: 'Symfony\Component\Scheduler\Event\FailureEvent', method: handleFailureEvent }
+      - { name: kernel.reset, method: reset }
 
   Sentry\SentryBundle\EventListener\LoginListener:
     arguments:

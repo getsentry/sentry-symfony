@@ -188,9 +188,14 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertSame([
             'kernel.event_listener' => [
                 [
+                    'event' => WorkerMessageReceivedEvent::class,
+                    'method' => 'handleWorkerMessageReceivedEvent',
+                    'priority' => 10,
+                ],
+                [
                     'event' => PreRunEvent::class,
                     'method' => 'handlePreRunEvent',
-                    'priority' => -100,
+                    'priority' => -1024,
                 ],
                 [
                     'event' => PostRunEvent::class,
@@ -200,6 +205,9 @@ abstract class SentryExtensionTest extends TestCase
                     'event' => FailureEvent::class,
                     'method' => 'handleFailureEvent',
                 ],
+            ],
+            'kernel.reset' => [
+                ['method' => 'reset'],
             ],
         ], $definition->getTags());
     }
