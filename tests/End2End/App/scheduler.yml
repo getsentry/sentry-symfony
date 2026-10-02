@@ -1,0 +1,23 @@
+services:
+  _defaults:
+    autoconfigure: true
+
+  Sentry\SentryBundle\Tests\End2End\App\Scheduler\ScheduledMessageHandler:
+    tags: [messenger.message_handler]
+
+  Sentry\SentryBundle\Tests\End2End\App\Scheduler\FailingScheduledMessageHandler:
+    tags: [messenger.message_handler]
+
+  sentry.test.schedule_provider.default:
+    class: Sentry\SentryBundle\Tests\End2End\App\Scheduler\ScheduleProvider
+    arguments: ['default']
+    tags: [{ scheduler.schedule_provider: { name: default } }]
+
+  sentry.test.schedule_provider.redispatch:
+    class: Sentry\SentryBundle\Tests\End2End\App\Scheduler\ScheduleProvider
+    arguments: ['redispatch']
+    tags: [{ scheduler.schedule_provider: { name: redispatch } }]
+
+sentry:
+  scheduler:
+    enabled: true
