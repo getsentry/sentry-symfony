@@ -291,7 +291,7 @@ final class TraceableResponseTest extends TestCase
         foreach (TraceableResponse::stream($httpClient, [$response], null) as $chunk) {
         }
 
-        $this->assertSame(['application/json'], $span->getData()['http.response.header.content-type'] ?? null);
+        $this->assertSame('application/json', $span->getData()['http.response.header.content-type'] ?? null);
         $this->assertArrayNotHasKey('http.response.body.data', $span->getData());
 
         $response->getContent();
