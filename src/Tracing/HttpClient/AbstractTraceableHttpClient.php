@@ -127,7 +127,7 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
             $spanData = [];
 
             foreach (HttpHeaderCollector::collect($policy, HttpMessageType::outgoingRequest(), $requestHeaders) ?? [] as $name => $values) {
-                $spanData['http.request.header.' . $name] = $values;
+                $spanData['http.request.header.' . $name] = implode(', ', $values);
             }
 
             $cookies = HttpCookieCollector::collectGroupedPairs($policy, HttpMessageType::outgoingRequest(), $requestCookies);

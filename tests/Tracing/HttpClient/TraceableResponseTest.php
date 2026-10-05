@@ -144,9 +144,9 @@ final class TraceableResponseTest extends TestCase
         yield 'The data collection options collect and filter response headers and cookies' => [
             new Options(['data_collection' => []]),
             [
-                'http.response.header.content-type' => ['application/json'],
-                'http.response.header.x-auth-token' => ['[Filtered]'],
-                'http.response.header.vary' => ['Accept', 'Accept-Encoding'],
+                'http.response.header.content-type' => 'application/json',
+                'http.response.header.x-auth-token' => '[Filtered]',
+                'http.response.header.vary' => 'Accept, Accept-Encoding',
                 'http.response.header.set_cookie.session_id' => '[Filtered]',
                 'http.response.header.set_cookie.theme' => 'dark',
             ],
@@ -188,7 +188,7 @@ final class TraceableResponseTest extends TestCase
         $response->getContent();
 
         $this->assertSame($endTimestamp, $span->getEndTimestamp());
-        $this->assertSame(['http.response.header.content-type' => ['application/json']], $span->getData());
+        $this->assertSame(['http.response.header.content-type' => 'application/json'], $span->getData());
     }
 
     public function testResponseDataOnlyContainsTheHeadersOfTheLastResponseOfARedirectChain(): void
@@ -210,7 +210,7 @@ final class TraceableResponseTest extends TestCase
 
         $response->getContent();
 
-        $this->assertSame(['http.response.header.content-type' => ['application/json']], $span->getData());
+        $this->assertSame(['http.response.header.content-type' => 'application/json'], $span->getData());
     }
 
     public function testToArray(): void

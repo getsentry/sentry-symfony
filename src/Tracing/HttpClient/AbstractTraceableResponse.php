@@ -183,7 +183,7 @@ abstract class AbstractTraceableResponse implements ResponseInterface
         $spanData = [];
 
         foreach (HttpHeaderCollector::collect($this->policy, HttpMessageType::incomingResponse(), $responseHeaders) ?? [] as $name => $values) {
-            $spanData['http.response.header.' . $name] = $values;
+            $spanData['http.response.header.' . $name] = implode(', ', $values);
         }
 
         $cookies = HttpCookieCollector::collectGroupedPairs($this->policy, HttpMessageType::incomingResponse(), $responseCookies);

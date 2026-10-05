@@ -193,10 +193,10 @@ final class TraceableHttpClientTest extends TestCase
                 'http.query' => 'token=[Filtered]&page=1',
                 'http.fragment' => 'baz',
                 'url.full' => 'https://[Filtered]:[Filtered]@www.example.com/test-page?token=[Filtered]&page=1#baz',
-                'http.request.header.authorization' => ['[Filtered]'],
-                'http.request.header.accept' => ['application/json'],
+                'http.request.header.authorization' => '[Filtered]',
+                'http.request.header.accept' => 'application/json',
                 'http.request.header.cookie.theme' => 'dark',
-                'http.response.header.content-type' => ['application/json'],
+                'http.response.header.content-type' => 'application/json',
                 'http.response.header.set_cookie.session_id' => '[Filtered]',
             ],
         ];
@@ -266,17 +266,17 @@ final class TraceableHttpClientTest extends TestCase
                 'X-Request-Id' => 1234,
             ],
             [
-                'http.request.header.authorization' => ['[Filtered]'],
-                'http.request.header.accept' => ['application/json', 'text/html'],
-                'http.request.header.x-request-id' => ['1234'],
+                'http.request.header.authorization' => '[Filtered]',
+                'http.request.header.accept' => 'application/json, text/html',
+                'http.request.header.x-request-id' => '1234',
             ],
         ];
 
         yield 'Headers given as a list' => [
             ['Authorization: Bearer foo', 'Accept:application/json'],
             [
-                'http.request.header.authorization' => ['[Filtered]'],
-                'http.request.header.accept' => ['application/json'],
+                'http.request.header.authorization' => '[Filtered]',
+                'http.request.header.accept' => 'application/json',
             ],
         ];
 
@@ -296,15 +296,15 @@ final class TraceableHttpClientTest extends TestCase
                 },
             ],
             [
-                'http.request.header.x-request-id' => ['abc'],
-                'http.request.header.x-trace-id' => ['def'],
+                'http.request.header.x-request-id' => 'abc',
+                'http.request.header.x-trace-id' => 'def',
             ],
         ];
 
         yield 'Header names are case-insensitive' => [
             ['accept' => 'text/html', 'Accept' => 'application/json'],
             [
-                'http.request.header.accept' => ['application/json'],
+                'http.request.header.accept' => 'application/json',
             ],
         ];
 
@@ -634,8 +634,8 @@ final class TraceableHttpClientTest extends TestCase
         $spans = $transaction->getSpanRecorder()->getSpans();
 
         $this->assertCount(2, $spans);
-        $this->assertSame(['application/json'], $spans[1]->getData()['http.request.header.accept'] ?? null);
-        $this->assertSame(['my-app'], $spans[1]->getData()['http.request.header.user-agent'] ?? null);
+        $this->assertSame('application/json', $spans[1]->getData()['http.request.header.accept'] ?? null);
+        $this->assertSame('my-app', $spans[1]->getData()['http.request.header.user-agent'] ?? null);
     }
 
     public function testRequestCollectsHeadersOfWithOptions(): void
@@ -671,8 +671,8 @@ final class TraceableHttpClientTest extends TestCase
         $spans = $transaction->getSpanRecorder()->getSpans();
 
         $this->assertCount(2, $spans);
-        $this->assertSame(['my-other-app'], $spans[1]->getData()['http.request.header.user-agent'] ?? null);
-        $this->assertSame(['2'], $spans[1]->getData()['http.request.header.x-api-version'] ?? null);
+        $this->assertSame('my-other-app', $spans[1]->getData()['http.request.header.user-agent'] ?? null);
+        $this->assertSame('2', $spans[1]->getData()['http.request.header.x-api-version'] ?? null);
     }
 }
 
