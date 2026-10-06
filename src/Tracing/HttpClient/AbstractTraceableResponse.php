@@ -10,6 +10,7 @@ use Sentry\DataCollection\HttpCookieCollector;
 use Sentry\DataCollection\HttpCookieParser;
 use Sentry\DataCollection\HttpHeaderCollector;
 use Sentry\DataCollection\HttpMessageType;
+use Sentry\DataCollection\KeyValueDataFilter;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanStatus;
 use Symfony\Contracts\HttpClient\ChunkInterface;
@@ -259,6 +260,10 @@ abstract class AbstractTraceableResponse implements ResponseInterface
 
         if (null === $responseBody) {
             return;
+        }
+
+        if (\is_array($responseBody)) {
+            $responseBody = json_encode($responseBody) ?: KeyValueDataFilter::FILTERED_VALUE;
         }
 
         $span->setData(['http.response.body.data' => $responseBody]);

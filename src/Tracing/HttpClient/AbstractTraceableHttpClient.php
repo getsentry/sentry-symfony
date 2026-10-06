@@ -14,6 +14,7 @@ use Sentry\DataCollection\HttpCookieParser;
 use Sentry\DataCollection\HttpHeaderCollector;
 use Sentry\DataCollection\HttpMessageType;
 use Sentry\DataCollection\HttpUrlCollector;
+use Sentry\DataCollection\KeyValueDataFilter;
 use Sentry\Options;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\SpanContext;
@@ -137,6 +138,10 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
             }
 
             $requestBody = self::collectRequestBody($policy, $options, $requestHeaders);
+            if (\is_array($requestBody)) {
+                $requestBody = json_encode($requestBody) ?: KeyValueDataFilter::FILTERED_VALUE;
+            }
+
             if (null !== $requestBody) {
                 $spanData['http.request.body.data'] = $requestBody;
             }

@@ -318,12 +318,11 @@ final class TraceableHttpClientTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed>             $requestOptions
-     * @param array<string, mixed>|string|null $expectedBody
+     * @param array<string, mixed> $requestOptions
      *
      * @dataProvider requestCollectsBodyDataProvider
      */
-    public function testRequestCollectsBody(Options $options, array $requestOptions, $expectedBody): void
+    public function testRequestCollectsBody(Options $options, array $requestOptions, ?string $expectedBody): void
     {
         $client = $this->createMock(ClientInterface::class);
         $client->expects($this->once())
@@ -368,7 +367,7 @@ final class TraceableHttpClientTest extends TestCase
         yield 'The body of the json option is collected and filtered' => [
             new Options(['data_collection' => []]),
             ['json' => ['username' => 'jane', 'password' => 'secret']],
-            ['username' => 'jane', 'password' => '[Filtered]'],
+            '{"username":"jane","password":"[Filtered]"}',
         ];
 
         yield 'The body of the json option is encoded like the HTTP client does' => [
@@ -384,7 +383,7 @@ final class TraceableHttpClientTest extends TestCase
                     }
                 },
             ],
-            ['token' => '[Filtered]', 'page' => 1],
+            '{"token":"[Filtered]","page":1}',
         ];
 
         yield 'A body given as a string is decoded based on its content type' => [
@@ -393,7 +392,7 @@ final class TraceableHttpClientTest extends TestCase
                 'headers' => ['Content-Type' => 'application/json'],
                 'body' => '{"username":"jane","password":"secret"}',
             ],
-            ['username' => 'jane', 'password' => '[Filtered]'],
+            '{"username":"jane","password":"[Filtered]"}',
         ];
 
         yield 'A body given as a string that cannot be parsed is filtered' => [
@@ -408,7 +407,7 @@ final class TraceableHttpClientTest extends TestCase
         yield 'A body given as form fields is collected and filtered' => [
             new Options(['data_collection' => []]),
             ['body' => ['username' => 'jane', 'password' => 'secret']],
-            ['username' => 'jane', 'password' => '[Filtered]'],
+            '{"username":"jane","password":"[Filtered]"}',
         ];
 
         yield 'A body given as a closure is not collected to not consume it' => [

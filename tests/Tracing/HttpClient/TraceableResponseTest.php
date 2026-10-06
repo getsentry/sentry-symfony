@@ -215,11 +215,9 @@ final class TraceableResponseTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed>|string|null $expectedBody
-     *
      * @dataProvider getContentCollectsResponseBodyDataProvider
      */
-    public function testGetContentCollectsResponseBody(Options $options, string $contentType, string $content, $expectedBody): void
+    public function testGetContentCollectsResponseBody(Options $options, string $contentType, string $content, ?string $expectedBody): void
     {
         $spanContext = new SpanContext();
         $spanContext->setSampled(true);
@@ -248,7 +246,7 @@ final class TraceableResponseTest extends TestCase
             new Options(['data_collection' => []]),
             'application/json',
             '{"username":"jane","password":"secret"}',
-            ['username' => 'jane', 'password' => '[Filtered]'],
+            '{"username":"jane","password":"[Filtered]"}',
         ];
 
         yield 'A body that cannot be parsed is filtered' => [
@@ -276,7 +274,7 @@ final class TraceableResponseTest extends TestCase
         $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, DataCollectionPolicy::fromOptions(new Options(['data_collection' => []])));
 
         $this->assertSame(['username' => 'jane', 'password' => 'secret'], $response->toArray());
-        $this->assertSame(['username' => 'jane', 'password' => '[Filtered]'], $span->getData()['http.response.body.data'] ?? null);
+        $this->assertSame('{"username":"jane","password":"[Filtered]"}', $span->getData()['http.response.body.data'] ?? null);
     }
 
     public function testResponseBodyIsCollectedWhenReadAfterStreaming(): void
@@ -296,15 +294,13 @@ final class TraceableResponseTest extends TestCase
 
         $response->getContent();
 
-        $this->assertSame(['password' => '[Filtered]'], $span->getData()['http.response.body.data'] ?? null);
+        $this->assertSame('{"password":"[Filtered]"}', $span->getData()['http.response.body.data'] ?? null);
     }
 
     /**
-     * @param array<string, mixed> $expectedBody
-     *
      * @dataProvider errorResponseBodyIsCollectedDataProvider
      */
-    public function testErrorResponseBodyIsCollected(string $method, string $contentType, string $content, array $expectedBody): void
+    public function testErrorResponseBodyIsCollected(string $method, string $contentType, string $content, string $expectedBody): void
     {
         $spanContext = new SpanContext();
         $spanContext->setSampled(true);
@@ -335,14 +331,14 @@ final class TraceableResponseTest extends TestCase
             'getContent',
             'application/json',
             '{"error":"Not Found","password":"secret"}',
-            ['error' => 'Not Found', 'password' => '[Filtered]'],
+            '{"error":"Not Found","password":"[Filtered]"}',
         ];
 
         yield 'toArray() with a JSON body' => [
             'toArray',
             'application/json',
             '{"error":"Not Found","password":"secret"}',
-            ['error' => 'Not Found', 'password' => '[Filtered]'],
+            '{"error":"Not Found","password":"[Filtered]"}',
         ];
 
         // Unlike JSON bodies, the exception of the HTTP client does not read these
@@ -350,7 +346,7 @@ final class TraceableResponseTest extends TestCase
             'getContent',
             'application/x-www-form-urlencoded',
             'error=Not+Found&password=secret',
-            ['error' => 'Not Found', 'password' => '[Filtered]'],
+            '{"error":"Not Found","password":"[Filtered]"}',
         ];
     }
 
