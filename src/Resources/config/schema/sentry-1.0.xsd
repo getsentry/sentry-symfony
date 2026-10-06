@@ -110,6 +110,7 @@
 
     <xsd:complexType name="tracing">
         <xsd:choice maxOccurs="unbounded">
+            <xsd:element name="ignored-http-status-code" type="xsd:integer" minOccurs="0" maxOccurs="unbounded" />
             <xsd:element name="dbal" type="tracing-dbal" minOccurs="0" maxOccurs="1" />
             <xsd:element name="twig" type="tracing-twig" minOccurs="0" maxOccurs="1" />
             <xsd:element name="cache" type="tracing-cache" minOccurs="0" maxOccurs="1" />

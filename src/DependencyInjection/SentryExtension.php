@@ -238,7 +238,11 @@ final class SentryExtension extends ConfigurableExtension
             return;
         }
 
-        $container->getDefinition(TracingConsoleListener::class)->replaceArgument(1, $config['console']['excluded_commands']);
+        $container->getDefinition(TracingRequestListener::class)
+            ->setArgument(2, $config['ignored_http_status_codes']);
+
+        $container->getDefinition(TracingConsoleListener::class)
+            ->replaceArgument(1, $config['console']['excluded_commands']);
     }
 
     /**

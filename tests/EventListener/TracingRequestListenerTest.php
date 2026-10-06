@@ -484,6 +484,54 @@ final class TracingRequestListenerTest extends TestCase
         ));
     }
 
+    public function testHandleResponseRequestEventDoesNotSampleIgnoredStatusCode(): void
+    {
+        $listener = new TracingRequestListener($this->hub, null, [404]);
+        $transactionContext = new TransactionContext();
+        $transactionContext->setSampled(true);
+        $transaction = new Transaction($transactionContext);
+
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn($transaction);
+
+        $this->hub->expects($this->once())
+            ->method('getTransaction')
+            ->willReturn($transaction);
+
+        $listener->handleKernelResponseEvent(new ResponseEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST,
+            new Response('', 404)
+        ));
+
+        $this->assertSame(SpanStatus::notFound(), $transaction->getStatus());
+        $this->assertFalse($transaction->getSampled());
+    }
+
+    public function testHandleResponseRequestEventDoesNotIgnoreStatusCodesForSubRequests(): void
+    {
+        $listener = new TracingRequestListener($this->hub, null, [404]);
+        $transaction = new Transaction(new TransactionContext());
+
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn($transaction);
+
+        $this->hub->expects($this->never())
+            ->method('getTransaction');
+
+        $listener->handleKernelResponseEvent(new ResponseEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            HttpKernelInterface::SUB_REQUEST,
+            new Response('', 404)
+        ));
+
+        $this->assertNull($transaction->getSampled());
+    }
+
     /**
      * @group time-sensitive
      */
