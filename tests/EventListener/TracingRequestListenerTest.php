@@ -648,7 +648,7 @@ final class TracingRequestListenerTest extends TestCase
                 'http.response.header.x-served-by' => 'web-1, web-2',
                 'http.response.header.set_cookie.session_id' => '[Filtered]',
                 'http.response.header.set_cookie.theme' => 'dark',
-                'http.response.body.data' => ['username' => 'jane', 'password' => '[Filtered]'],
+                'http.response.body.data' => '{"username":"jane","password":"[Filtered]"}',
             ],
         ];
 

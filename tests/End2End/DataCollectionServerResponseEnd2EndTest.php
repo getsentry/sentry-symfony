@@ -27,7 +27,7 @@ final class DataCollectionServerResponseEnd2EndTest extends WebTestCase
         'http.response.header.x-auth-token' => '[Filtered]',
         'http.response.header.set_cookie.session_id' => '[Filtered]',
         'http.response.header.set_cookie.theme' => 'dark',
-        'http.response.body.data' => ['username' => 'jane', 'password' => '[Filtered]'],
+        'http.response.body.data' => '{"username":"jane","password":"[Filtered]"}',
     ];
 
     /**

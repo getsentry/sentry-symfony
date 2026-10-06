@@ -296,7 +296,7 @@ final class TracingSubRequestListenerTest extends TestCase
 
         $this->assertSame('application/json', $data['http.response.header.content-type'] ?? null);
         $this->assertSame('dark', $data['http.response.header.set_cookie.theme'] ?? null);
-        $this->assertSame(['username' => 'jane', 'password' => '[Filtered]'], $data['http.response.body.data'] ?? null);
+        $this->assertSame('{"username":"jane","password":"[Filtered]"}', $data['http.response.body.data'] ?? null);
     }
 
     public function testCollectKernelResponseDataDoesNothingIfRequestTypeIsMasterRequest(): void

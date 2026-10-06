@@ -122,6 +122,9 @@ abstract class AbstractTracingRequestListener
         $content = $response->getContent();
         if (false !== $content) {
             $body = HttpBodyCollector::collect($policy, HttpMessageType::outgoingResponse(), $content, (string) $response->headers->get('Content-Type', ''));
+            if (\is_array($body)) {
+                $body = json_encode($body) ?: KeyValueDataFilter::FILTERED_VALUE;
+            }
 
             if (null !== $body) {
                 $spanData['http.response.body.data'] = $body;
