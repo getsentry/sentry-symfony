@@ -609,6 +609,7 @@ final class TracingRequestListenerTest extends TestCase
         $response = new Response('{"username":"jane","password":"secret"}', 200, [
             'Content-Type' => 'application/json',
             'X-Auth-Token' => 'foo',
+            'X-Served-By' => ['web-1', 'web-2'],
         ]);
         $response->headers->setCookie(Cookie::create('session_id', 'abc'));
         $response->headers->setCookie(Cookie::create('theme', 'dark'));
@@ -641,9 +642,10 @@ final class TracingRequestListenerTest extends TestCase
         yield 'The data collection options collect and filter the headers, cookies and body' => [
             new Options(['data_collection' => []]),
             [
-                'http.response.header.content-type' => ['application/json'],
-                'http.response.header.x-auth-token' => ['[Filtered]'],
-                'http.response.header.cache-control' => ['no-cache, private'],
+                'http.response.header.content-type' => 'application/json',
+                'http.response.header.x-auth-token' => '[Filtered]',
+                'http.response.header.cache-control' => 'no-cache, private',
+                'http.response.header.x-served-by' => 'web-1, web-2',
                 'http.response.header.set_cookie.session_id' => '[Filtered]',
                 'http.response.header.set_cookie.theme' => 'dark',
                 'http.response.body.data' => ['username' => 'jane', 'password' => '[Filtered]'],
@@ -653,9 +655,10 @@ final class TracingRequestListenerTest extends TestCase
         yield 'The body is not collected if outgoing response bodies are disabled' => [
             new Options(['data_collection' => ['http_bodies' => ['incomingRequest']]]),
             [
-                'http.response.header.content-type' => ['application/json'],
-                'http.response.header.x-auth-token' => ['[Filtered]'],
-                'http.response.header.cache-control' => ['no-cache, private'],
+                'http.response.header.content-type' => 'application/json',
+                'http.response.header.x-auth-token' => '[Filtered]',
+                'http.response.header.cache-control' => 'no-cache, private',
+                'http.response.header.x-served-by' => 'web-1, web-2',
                 'http.response.header.set_cookie.session_id' => '[Filtered]',
                 'http.response.header.set_cookie.theme' => 'dark',
             ],

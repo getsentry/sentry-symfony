@@ -23,8 +23,8 @@ if (!class_exists(KernelBrowser::class) && class_exists(Client::class)) {
 final class DataCollectionServerResponseEnd2EndTest extends WebTestCase
 {
     private const EXPECTED_RESPONSE_DATA = [
-        'http.response.header.content-type' => ['application/json'],
-        'http.response.header.x-auth-token' => ['[Filtered]'],
+        'http.response.header.content-type' => 'application/json',
+        'http.response.header.x-auth-token' => '[Filtered]',
         'http.response.header.set_cookie.session_id' => '[Filtered]',
         'http.response.header.set_cookie.theme' => 'dark',
         'http.response.body.data' => ['username' => 'jane', 'password' => '[Filtered]'],

@@ -103,7 +103,7 @@ abstract class AbstractTracingRequestListener
         $headers = HttpHeaderCollector::collect($policy, HttpMessageType::outgoingResponse(), $responseHeaders);
         if (null !== $headers) {
             foreach ($headers as $name => $values) {
-                $spanData['http.response.header.' . $name] = $values;
+                $spanData['http.response.header.' . $name] = implode(', ', $values);
             }
         }
 
