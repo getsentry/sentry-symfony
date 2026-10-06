@@ -673,4 +673,109 @@ final class TracingRequestListenerTest extends TestCase
 
         $this->assertNull($requestFetcher->fetchRequest());
     }
+
+    /**
+     * @param array<string, string> $expectedData
+     *
+     * @dataProvider handleKernelTerminateEventCollectsRequestDataDataProvider
+     */
+    public function testHandleKernelTerminateEventCollectsRequestData(Options $options, Request $request, array $expectedData, bool $sampled = true): void
+    {
+        $client = $this->createMock(ClientInterface::class);
+        $client->method('getOptions')->willReturn($options);
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setSampled($sampled);
+        $transaction = new Transaction($transactionContext);
+
+        $this->hub->method('getClient')->willReturn($client);
+        $this->hub->method('getTransaction')->willReturn($transaction);
+
+        $requestFetcher = new RequestFetcher($this->createMock(RequestStack::class));
+        $requestFetcher->setRequest($request);
+
+        (new TracingRequestListener($this->hub, $requestFetcher))->handleKernelTerminateEvent(new TerminateEvent(
+            $this->createMock(HttpKernelInterface::class),
+            $request,
+            new Response()
+        ));
+
+        $this->assertEquals($expectedData, array_filter($transaction->getData(), static function (string $key): bool {
+            return str_starts_with($key, 'http.request.header.') || 'http.request.body.data' === $key;
+        }, \ARRAY_FILTER_USE_KEY));
+    }
+
+    public function handleKernelTerminateEventCollectsRequestDataDataProvider(): \Generator
+    {
+        $server = ['HTTP_HOST' => 'www.example.com', 'CONTENT_TYPE' => 'application/json'];
+
+        yield 'Headers, cookies and the body are collected and filtered' => [
+            new Options(['data_collection' => []]),
+            new Request([], [], [], ['theme' => 'dark', 'PHPSESSID' => 'secret'], [], $server + [
+                'HTTP_AUTHORIZATION' => 'Bearer secret',
+                'HTTP_COOKIE' => 'theme=dark; PHPSESSID=secret',
+            ], '{"username":"jane","password":"secret"}'),
+            [
+                'http.request.header.host' => 'www.example.com',
+                'http.request.header.content-type' => 'application/json',
+                'http.request.header.authorization' => '[Filtered]',
+                'http.request.header.cookie.theme' => 'dark',
+                'http.request.header.cookie.PHPSESSID' => '[Filtered]',
+                'http.request.body.data' => '{"username":"jane","password":"[Filtered]"}',
+            ],
+        ];
+
+        yield 'A form body is collected and filtered' => [
+            new Options(['data_collection' => []]),
+            new Request([], ['username' => 'jane', 'password' => 'secret'], [], [], [], ['HTTP_HOST' => 'www.example.com', 'CONTENT_TYPE' => 'application/x-www-form-urlencoded']),
+            [
+                'http.request.header.host' => 'www.example.com',
+                'http.request.header.content-type' => 'application/x-www-form-urlencoded',
+                'http.request.body.data' => '{"username":"jane","password":"[Filtered]"}',
+            ],
+        ];
+
+        yield 'A body that cannot be parsed is filtered' => [
+            new Options(['data_collection' => []]),
+            new Request([], [], [], [], [], ['HTTP_HOST' => 'www.example.com', 'CONTENT_TYPE' => 'text/plain'], 'Hello World'),
+            [
+                'http.request.header.host' => 'www.example.com',
+                'http.request.header.content-type' => 'text/plain',
+                'http.request.body.data' => '[Filtered]',
+            ],
+        ];
+
+        yield 'A body over the size limit is not collected' => [
+            new Options(['data_collection' => [], 'max_request_body_size' => 'small']),
+            new Request([], [], [], [], [], $server + ['CONTENT_LENGTH' => '2000'], '{}'),
+            [
+                'http.request.header.host' => 'www.example.com',
+                'http.request.header.content-type' => 'application/json',
+                'http.request.header.content-length' => '2000',
+            ],
+        ];
+
+        yield 'Nothing is collected if headers, cookies and request bodies are disabled' => [
+            new Options(['data_collection' => [
+                'cookies' => ['mode' => 'off'],
+                'http_headers' => ['request' => ['mode' => 'off']],
+                'http_bodies' => ['outgoingRequest', 'incomingResponse', 'outgoingResponse'],
+            ]]),
+            new Request([], [], [], ['theme' => 'dark'], [], $server, '{"username":"jane"}'),
+            [],
+        ];
+
+        yield 'The legacy options only collect the request data on the event' => [
+            new Options(['send_default_pii' => true]),
+            new Request([], [], [], ['theme' => 'dark'], [], $server, '{"username":"jane"}'),
+            [],
+        ];
+
+        yield 'Nothing is collected for transactions that are not sampled' => [
+            new Options(['data_collection' => []]),
+            new Request([], [], [], ['theme' => 'dark'], [], $server, '{"username":"jane"}'),
+            [],
+            false,
+        ];
+    }
 }

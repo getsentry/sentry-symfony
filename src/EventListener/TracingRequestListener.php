@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\DataCollection\DataCollectionPolicy;
+use Sentry\DataCollection\HttpBodyCollector;
+use Sentry\DataCollection\HttpCookieCollector;
+use Sentry\DataCollection\HttpHeaderCollector;
+use Sentry\DataCollection\HttpMessageType;
+use Sentry\DataCollection\KeyValueDataFilter;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\SentryBundle\Integration\RequestFetcher;
 use Sentry\State\HubInterface;
+use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionSource;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -93,6 +99,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
 
         try {
             if (null !== $transaction) {
+                $this->collectRequestData($transaction);
                 $transaction->finish();
                 metrics()->flush();
             }
@@ -101,6 +108,49 @@ final class TracingRequestListener extends AbstractTracingRequestListener
                 $this->requestFetcher->setRequest(null);
             }
         }
+    }
+
+    /**
+     * Adds the headers, cookies and body of the request to the transaction.
+     */
+    private function collectRequestData(Transaction $transaction): void
+    {
+        if (!$transaction->getSampled() || null === $this->requestFetcher) {
+            return;
+        }
+
+        $policy = DataCollectionPolicy::fromHub($this->hub);
+
+        // The legacy options only collected the request data on the event
+        if ($policy->isLegacyMode()) {
+            return;
+        }
+
+        $request = $this->requestFetcher->fetchRequest();
+        if (null === $request) {
+            return;
+        }
+
+        $spanData = [];
+
+        foreach (HttpHeaderCollector::collect($policy, HttpMessageType::incomingRequest(), $request->getHeaders()) ?? [] as $name => $values) {
+            $spanData['http.request.header.' . strtolower((string) $name)] = implode(', ', $values);
+        }
+
+        foreach (HttpCookieCollector::collect($policy, HttpMessageType::incomingRequest(), $request->getCookieParams()) ?? [] as $name => $value) {
+            $spanData['http.request.header.cookie.' . $name] = $value;
+        }
+
+        $body = HttpBodyCollector::collectServerRequest($policy, $request);
+        if (\is_array($body)) {
+            $body = json_encode($body) ?: KeyValueDataFilter::FILTERED_VALUE;
+        }
+
+        if (null !== $body) {
+            $spanData['http.request.body.data'] = $body;
+        }
+
+        $transaction->setData($spanData);
     }
 
     /**

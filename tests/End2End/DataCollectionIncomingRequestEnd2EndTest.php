@@ -9,6 +9,7 @@ use Sentry\SentryBundle\Tests\End2End\App\KernelWithExtraConfig;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\KernelInterface;
 
@@ -76,6 +77,53 @@ final class DataCollectionIncomingRequestEnd2EndTest extends WebTestCase
             [__DIR__ . '/App/config/data_collection/url_query_params_disabled.yml'],
             'http://localhost/200',
         ];
+    }
+
+    public function testTransactionContainsRequestData(): void
+    {
+        $client = static::createClient(['extra_config_files' => [__DIR__ . '/App/config/data_collection/defaults.yml']]);
+        $client->getCookieJar()->set(new Cookie('theme', 'dark'));
+
+        $client->request('POST', '/200', [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_AUTHORIZATION' => 'Bearer secret',
+            'HTTP_X_REQUEST_ID' => 'bar',
+        ], '{"username":"jane","password":"secret"}');
+
+        $response = $client->getResponse();
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
+
+        /** @var array<string, mixed> $transactionData */
+        $transactionData = $this->getTransactionEvent()->getContexts()['trace']['data'] ?? [];
+
+        $this->assertSame('bar', $transactionData['http.request.header.x-request-id'] ?? null);
+        $this->assertSame('[Filtered]', $transactionData['http.request.header.authorization'] ?? null);
+        $this->assertArrayNotHasKey('http.request.header.cookie', $transactionData);
+        $this->assertSame('dark', $transactionData['http.request.header.cookie.theme'] ?? null);
+        $this->assertSame('{"username":"jane","password":"[Filtered]"}', $transactionData['http.request.body.data'] ?? null);
+    }
+
+    public function testTransactionDoesNotContainRequestDataWithLegacyOptions(): void
+    {
+        $client = static::createClient();
+
+        $client->request('POST', '/200', [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_X_REQUEST_ID' => 'bar',
+        ], '{"username":"jane"}');
+
+        $response = $client->getResponse();
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
+
+        /** @var array<string, mixed> $transactionData */
+        $transactionData = $this->getTransactionEvent()->getContexts()['trace']['data'] ?? [];
+
+        $this->assertArrayNotHasKey('http.request.header.x-request-id', $transactionData);
+        $this->assertArrayNotHasKey('http.request.body.data', $transactionData);
     }
 
     private function getTransactionEvent(): Event
