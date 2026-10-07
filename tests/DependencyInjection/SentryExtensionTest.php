@@ -292,6 +292,35 @@ abstract class SentryExtensionTest extends TestCase
         ], $definition->getTags());
     }
 
+    /**
+     * The session listener can still add the session cookie to the response,
+     * so the response data must be collected after it but before the streamed
+     * response listener of Symfony < 7.0 sends the response.
+     */
+    public function testTracingListenersCollectResponseDataAfterTheSessionListener(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+
+        foreach ([TracingRequestListener::class, TracingSubRequestListener::class] as $listener) {
+            $collectPriority = null;
+
+            foreach ($container->getDefinition($listener)->getTag('kernel.event_listener') as $attributes) {
+                if ('collectKernelResponseData' !== ($attributes['method'] ?? null)) {
+                    continue;
+                }
+
+                $this->assertSame(KernelEvents::RESPONSE, $attributes['event'] ?? null);
+                $collectPriority = $attributes['priority'];
+            }
+
+            $this->assertNotNull($collectPriority);
+            // SessionListener runs at priority -1000
+            $this->assertLessThan(-1000, $collectPriority);
+            // StreamedResponseListener runs at priority -1024
+            $this->assertGreaterThan(-1024, $collectPriority);
+        }
+    }
+
     public function testRequestFetcherIsResettable(): void
     {
         $container = $this->createContainerFromFixture('full');

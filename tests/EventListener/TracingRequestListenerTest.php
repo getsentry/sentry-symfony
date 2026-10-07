@@ -20,9 +20,12 @@ use Sentry\Tracing\TransactionContext;
 use Sentry\Tracing\TransactionSource;
 use Symfony\Bridge\PhpUnit\ClockMock;
 use Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
@@ -577,6 +580,186 @@ final class TracingRequestListenerTest extends TestCase
             $this->createMock(HttpKernelInterface::class),
             new Request(),
             HttpKernelInterface::SUB_REQUEST
+        ));
+    }
+
+    /**
+     * @param array<string, mixed> $expectedData
+     *
+     * @dataProvider collectKernelResponseDataDataProvider
+     */
+    public function testCollectKernelResponseData(Options $options, array $expectedData): void
+    {
+        $client = $this->createMock(ClientInterface::class);
+        $client->method('getOptions')
+            ->willReturn($options);
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setSampled(true);
+
+        $transaction = new Transaction($transactionContext);
+
+        $this->hub->method('getClient')
+            ->willReturn($client);
+
+        $this->hub->expects($this->once())
+            ->method('getTransaction')
+            ->willReturn($transaction);
+
+        $response = new Response('{"username":"jane","password":"secret"}', 200, [
+            'Content-Type' => 'application/json',
+            'X-Auth-Token' => 'foo',
+            'X-Served-By' => ['web-1', 'web-2'],
+        ]);
+        $response->headers->setCookie(Cookie::create('session_id', 'abc'));
+        $response->headers->setCookie(Cookie::create('theme', 'dark'));
+
+        $this->listener->collectKernelResponseData(new ResponseEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST,
+            $response
+        ));
+
+        $data = $transaction->getData();
+
+        // The date header changes with every response
+        unset($data['http.response.header.date']);
+
+        $this->assertEquals($expectedData, $data);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function collectKernelResponseDataDataProvider(): \Generator
+    {
+        yield 'The legacy options do not collect the response' => [
+            new Options(['send_default_pii' => true]),
+            [],
+        ];
+
+        yield 'The data collection options collect and filter the headers, cookies and body' => [
+            new Options(['data_collection' => []]),
+            [
+                'http.response.header.content-type' => 'application/json',
+                'http.response.header.x-auth-token' => '[Filtered]',
+                'http.response.header.cache-control' => 'no-cache, private',
+                'http.response.header.x-served-by' => 'web-1, web-2',
+                'http.response.header.set_cookie.session_id' => '[Filtered]',
+                'http.response.header.set_cookie.theme' => 'dark',
+                'http.response.body.data' => '{"username":"jane","password":"[Filtered]"}',
+            ],
+        ];
+
+        yield 'The body is not collected if outgoing response bodies are disabled' => [
+            new Options(['data_collection' => ['http_bodies' => ['incomingRequest']]]),
+            [
+                'http.response.header.content-type' => 'application/json',
+                'http.response.header.x-auth-token' => '[Filtered]',
+                'http.response.header.cache-control' => 'no-cache, private',
+                'http.response.header.x-served-by' => 'web-1, web-2',
+                'http.response.header.set_cookie.session_id' => '[Filtered]',
+                'http.response.header.set_cookie.theme' => 'dark',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider collectKernelResponseDataWithUnavailableContentDataProvider
+     */
+    public function testCollectKernelResponseDataWithUnavailableContent(Options $options, Response $response, ?string $expectedBody): void
+    {
+        $client = $this->createMock(ClientInterface::class);
+        $client->method('getOptions')
+            ->willReturn($options);
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setSampled(true);
+
+        $transaction = new Transaction($transactionContext);
+
+        $this->hub->method('getClient')
+            ->willReturn($client);
+
+        $this->hub->expects($this->once())
+            ->method('getTransaction')
+            ->willReturn($transaction);
+
+        $this->listener->collectKernelResponseData(new ResponseEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST,
+            $response
+        ));
+
+        $this->assertSame($expectedBody, $transaction->getData()['http.response.body.data'] ?? null);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function collectKernelResponseDataWithUnavailableContentDataProvider(): \Generator
+    {
+        yield 'The body of a streamed response is filtered, as it cannot be parsed' => [
+            new Options(['data_collection' => []]),
+            new StreamedResponse(static function (): void {}, 200, ['Content-Type' => 'application/json']),
+            '[Filtered]',
+        ];
+
+        yield 'The body of a file response is filtered, as it cannot be parsed' => [
+            new Options(['data_collection' => []]),
+            new BinaryFileResponse(__FILE__),
+            '[Filtered]',
+        ];
+
+        yield 'The body is not collected if outgoing response bodies are disabled' => [
+            new Options(['data_collection' => ['http_bodies' => ['incomingRequest']]]),
+            new StreamedResponse(static function (): void {}, 200, ['Content-Type' => 'application/json']),
+            null,
+        ];
+
+        yield 'The legacy options do not collect the body' => [
+            new Options(['send_default_pii' => true]),
+            new StreamedResponse(static function (): void {}, 200, ['Content-Type' => 'application/json']),
+            null,
+        ];
+    }
+
+    public function testCollectKernelResponseDataDoesNothingIfTransactionIsNotSampled(): void
+    {
+        $transactionContext = new TransactionContext();
+        $transactionContext->setSampled(false);
+
+        $transaction = new Transaction($transactionContext);
+
+        $this->hub->expects($this->never())
+            ->method('getClient');
+
+        $this->hub->expects($this->once())
+            ->method('getTransaction')
+            ->willReturn($transaction);
+
+        $this->listener->collectKernelResponseData(new ResponseEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST,
+            new Response('foo')
+        ));
+
+        $this->assertSame([], $transaction->getData());
+    }
+
+    public function testCollectKernelResponseDataIgnoresSubRequests(): void
+    {
+        $this->hub->expects($this->never())
+            ->method('getTransaction');
+
+        $this->listener->collectKernelResponseData(new ResponseEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            HttpKernelInterface::SUB_REQUEST,
+            new Response('foo')
         ));
     }
 

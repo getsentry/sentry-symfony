@@ -5,9 +5,16 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\DataCollection\DataCollectionPolicy;
+use Sentry\DataCollection\HttpBodyCollector;
+use Sentry\DataCollection\HttpCookieCollector;
+use Sentry\DataCollection\HttpHeaderCollector;
+use Sentry\DataCollection\HttpMessageType;
 use Sentry\DataCollection\HttpUrlCollector;
+use Sentry\DataCollection\KeyValueDataFilter;
 use Sentry\State\HubInterface;
+use Sentry\Tracing\Span;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\Routing\Route;
 
@@ -71,6 +78,62 @@ abstract class AbstractTracingRequestListener
         }
 
         return $url;
+    }
+
+    /**
+     * Adds the headers, cookies and body of the response to the span.
+     *
+     * @internal
+     */
+    protected function collectResponseData(Span $span, Response $response): void
+    {
+        if (!$span->getSampled()) {
+            return;
+        }
+
+        $policy = DataCollectionPolicy::fromHub($this->hub);
+        $spanData = [];
+
+        // Headers can be set to null, which removes their value
+        $responseHeaders = [];
+        foreach ($response->headers->all() as $name => $values) {
+            $responseHeaders[$name] = array_values(array_filter($values, '\is_string'));
+        }
+
+        $headers = HttpHeaderCollector::collect($policy, HttpMessageType::outgoingResponse(), $responseHeaders);
+        if (null !== $headers) {
+            foreach ($headers as $name => $values) {
+                $spanData['http.response.header.' . $name] = implode(', ', $values);
+            }
+        }
+
+        $cookies = [];
+        foreach ($response->headers->getCookies() as $cookie) {
+            $cookies[] = [$cookie->getName(), $cookie->getValue()];
+        }
+
+        $collectedCookies = HttpCookieCollector::collectGroupedPairs($policy, HttpMessageType::outgoingResponse(), $cookies);
+        if (\is_array($collectedCookies)) {
+            foreach ($collectedCookies as $name => $value) {
+                $spanData['http.response.header.set_cookie.' . $name] = $value;
+            }
+        }
+
+        $content = $response->getContent();
+        if (false !== $content) {
+            $body = HttpBodyCollector::collect($policy, HttpMessageType::outgoingResponse(), $content, (string) $response->headers->get('Content-Type', ''));
+            if (\is_array($body)) {
+                $body = json_encode($body) ?: KeyValueDataFilter::FILTERED_VALUE;
+            }
+
+            if (null !== $body) {
+                $spanData['http.response.body.data'] = $body;
+            }
+        } elseif (null !== $policy->getHttpBodyLimit(HttpMessageType::outgoingResponse())) {
+            $spanData['http.response.body.data'] = KeyValueDataFilter::FILTERED_VALUE;
+        }
+
+        $span->setData($spanData);
     }
 
     /**
