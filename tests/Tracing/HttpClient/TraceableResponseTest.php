@@ -14,6 +14,7 @@ use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
+use Symfony\Component\HttpClient\Exception\ClientException;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
@@ -211,6 +212,213 @@ final class TraceableResponseTest extends TestCase
         $response->getContent();
 
         $this->assertSame(['http.response.header.content-type' => 'application/json'], $span->getData());
+    }
+
+    /**
+     * @dataProvider getContentCollectsResponseBodyDataProvider
+     */
+    public function testGetContentCollectsResponseBody(Options $options, string $contentType, string $content, ?string $expectedBody): void
+    {
+        $spanContext = new SpanContext();
+        $spanContext->setSampled(true);
+
+        $span = new Span($spanContext);
+        $httpClient = new MockHttpClient(new MockResponse($content, ['response_headers' => ['Content-Type: ' . $contentType]]));
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, DataCollectionPolicy::fromOptions($options));
+
+        $this->assertSame($content, $response->getContent());
+        $this->assertSame($expectedBody, $span->getData()['http.response.body.data'] ?? null);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function getContentCollectsResponseBodyDataProvider(): \Generator
+    {
+        yield 'The legacy options do not collect the body' => [
+            new Options(['send_default_pii' => true]),
+            'application/json',
+            '{"username":"jane","password":"secret"}',
+            null,
+        ];
+
+        yield 'A JSON body is collected and filtered' => [
+            new Options(['data_collection' => []]),
+            'application/json',
+            '{"username":"jane","password":"secret"}',
+            '{"username":"jane","password":"[Filtered]"}',
+        ];
+
+        yield 'A body that cannot be parsed is filtered' => [
+            new Options(['data_collection' => []]),
+            'text/html',
+            '<p>Hello World</p>',
+            '[Filtered]',
+        ];
+
+        yield 'The body is not collected if incoming response bodies are disabled' => [
+            new Options(['data_collection' => ['http_bodies' => ['outgoingRequest']]]),
+            'application/json',
+            '{"username":"jane"}',
+            null,
+        ];
+    }
+
+    public function testToArrayCollectsResponseBody(): void
+    {
+        $spanContext = new SpanContext();
+        $spanContext->setSampled(true);
+
+        $span = new Span($spanContext);
+        $httpClient = new MockHttpClient(new MockResponse('{"username":"jane","password":"secret"}', ['response_headers' => ['Content-Type: application/json']]));
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, DataCollectionPolicy::fromOptions(new Options(['data_collection' => []])));
+
+        $this->assertSame(['username' => 'jane', 'password' => 'secret'], $response->toArray());
+        $this->assertSame('{"username":"jane","password":"[Filtered]"}', $span->getData()['http.response.body.data'] ?? null);
+    }
+
+    public function testResponseBodyIsCollectedWhenReadAfterStreaming(): void
+    {
+        $spanContext = new SpanContext();
+        $spanContext->setSampled(true);
+
+        $span = new Span($spanContext);
+        $httpClient = new MockHttpClient(new MockResponse('{"password":"secret"}', ['response_headers' => ['Content-Type: application/json']]));
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, DataCollectionPolicy::fromOptions(new Options(['data_collection' => []])));
+
+        foreach (TraceableResponse::stream($httpClient, [$response], null) as $chunk) {
+        }
+
+        $this->assertSame('application/json', $span->getData()['http.response.header.content-type'] ?? null);
+        $this->assertArrayNotHasKey('http.response.body.data', $span->getData());
+
+        $response->getContent();
+
+        $this->assertSame('{"password":"[Filtered]"}', $span->getData()['http.response.body.data'] ?? null);
+    }
+
+    /**
+     * @dataProvider errorResponseBodyIsCollectedDataProvider
+     */
+    public function testErrorResponseBodyIsCollected(string $method, string $contentType, string $content, string $expectedBody): void
+    {
+        $spanContext = new SpanContext();
+        $spanContext->setSampled(true);
+
+        $span = new Span($spanContext);
+        $httpClient = new MockHttpClient(new MockResponse($content, [
+            'http_code' => 404,
+            'response_headers' => ['Content-Type: ' . $contentType],
+        ]));
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, DataCollectionPolicy::fromOptions(new Options(['data_collection' => []])));
+
+        try {
+            $response->{$method}();
+
+            $this->fail('The status code check should have thrown.');
+        } catch (ClientException $exception) {
+        }
+
+        $this->assertSame($expectedBody, $span->getData()['http.response.body.data'] ?? null);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function errorResponseBodyIsCollectedDataProvider(): \Generator
+    {
+        yield 'getContent() with a JSON body' => [
+            'getContent',
+            'application/json',
+            '{"error":"Not Found","password":"secret"}',
+            '{"error":"Not Found","password":"[Filtered]"}',
+        ];
+
+        yield 'toArray() with a JSON body' => [
+            'toArray',
+            'application/json',
+            '{"error":"Not Found","password":"secret"}',
+            '{"error":"Not Found","password":"[Filtered]"}',
+        ];
+
+        // Unlike JSON bodies, the exception of the HTTP client does not read these
+        yield 'getContent() with a form body' => [
+            'getContent',
+            'application/x-www-form-urlencoded',
+            'error=Not+Found&password=secret',
+            '{"error":"Not Found","password":"[Filtered]"}',
+        ];
+    }
+
+    /**
+     * @dataProvider errorResponseBodyIsNotReadIfItIsNotCollectedDataProvider
+     */
+    public function testErrorResponseBodyIsNotReadIfItIsNotCollected(Options $options): void
+    {
+        $spanContext = new SpanContext();
+        $spanContext->setSampled(true);
+
+        $span = new Span($spanContext);
+        $exception = new ClientException(new MockResponse());
+        $decoratedResponse = $this->createMock(ResponseInterface::class);
+        $decoratedResponse->method('getInfo')
+            ->willReturnCallback(static function (?string $type) {
+                return 'http_code' === $type ? 404 : null;
+            });
+        $decoratedResponse->expects($this->once())
+            ->method('getContent')
+            ->with(true)
+            ->willThrowException($exception);
+
+        $response = new TraceableResponse($this->client, $decoratedResponse, $span, DataCollectionPolicy::fromOptions($options));
+
+        try {
+            $response->getContent();
+
+            $this->fail('The status code check should have thrown.');
+        } catch (ClientException $caughtException) {
+            $this->assertSame($exception, $caughtException);
+        }
+
+        $this->assertArrayNotHasKey('http.response.body.data', $span->getData());
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function errorResponseBodyIsNotReadIfItIsNotCollectedDataProvider(): \Generator
+    {
+        yield 'The legacy options' => [
+            new Options(['send_default_pii' => true]),
+        ];
+
+        yield 'Incoming response bodies are disabled' => [
+            new Options(['data_collection' => ['http_bodies' => ['outgoingRequest']]]),
+        ];
+    }
+
+    public function testStatusCodeExceptionIsRethrownIfErrorResponseBodyCannotBeRead(): void
+    {
+        $spanContext = new SpanContext();
+        $spanContext->setSampled(true);
+
+        $span = new Span($spanContext);
+        $httpClient = new MockHttpClient(new MockResponse('{"error":"Not Found"}', [
+            'http_code' => 404,
+            'response_headers' => ['Content-Type: application/json'],
+        ]));
+        // The exception reads the JSON body, which cannot be read again without buffering
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/', ['buffer' => false]), $span, DataCollectionPolicy::fromOptions(new Options(['data_collection' => []])));
+
+        try {
+            $response->getContent();
+
+            $this->fail('The status code check should have thrown.');
+        } catch (ClientException $exception) {
+            $this->assertSame('HTTP 404 returned for "https://www.example.org/".', $exception->getMessage());
+        }
+
+        $this->assertArrayNotHasKey('http.response.body.data', $span->getData());
     }
 
     public function testToArray(): void
