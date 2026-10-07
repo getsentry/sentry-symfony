@@ -32,6 +32,7 @@
             <xsd:element name="class-serializer" type="class-serializer" minOccurs="0" maxOccurs="unbounded" />
             <xsd:element name="ignore-exception" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
             <xsd:element name="ignore-transaction" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="data-collection" type="data-collection" minOccurs="0" maxOccurs="1" />
         </xsd:sequence>
 
         <xsd:attribute name="default-integrations" type="xsd:boolean" />
@@ -98,6 +99,68 @@
             <xsd:enumeration value="small" />
             <xsd:enumeration value="medium" />
             <xsd:enumeration value="always" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="data-collection">
+        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="cookies" type="data-collection-key-value" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="http-headers" type="data-collection-http-headers" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="http-body" type="data-collection-http-body" minOccurs="0" maxOccurs="unbounded" />
+            <!-- An empty element disables the collection of all HTTP bodies -->
+            <xsd:element name="http-bodies" minOccurs="0" maxOccurs="1">
+                <xsd:complexType />
+            </xsd:element>
+            <xsd:element name="url-query-params" type="data-collection-key-value" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="gen-ai" type="data-collection-gen-ai" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="stack-frame-variables" type="data-collection-key-value" minOccurs="0" maxOccurs="1" />
+        </xsd:choice>
+
+        <xsd:attribute name="user-info" type="xsd:boolean" />
+        <xsd:attribute name="database-query-data" type="xsd:boolean" />
+        <xsd:attribute name="queues" type="xsd:boolean" />
+        <xsd:attribute name="stack-frame-variables" type="xsd:boolean" />
+        <xsd:attribute name="frame-context-lines" type="xsd:nonNegativeInteger" />
+    </xsd:complexType>
+
+    <xsd:complexType name="data-collection-key-value">
+        <xsd:sequence>
+            <xsd:element name="term" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+
+        <xsd:attribute name="mode" type="data-collection-mode" />
+    </xsd:complexType>
+
+    <xsd:complexType name="data-collection-http-headers">
+        <!-- Either terms and a mode for both directions, or a request and response element -->
+        <xsd:sequence>
+            <xsd:element name="term" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="request" type="data-collection-key-value" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="response" type="data-collection-key-value" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+
+        <xsd:attribute name="mode" type="data-collection-mode" />
+    </xsd:complexType>
+
+    <xsd:complexType name="data-collection-gen-ai">
+        <xsd:attribute name="inputs" type="xsd:boolean" />
+        <xsd:attribute name="outputs" type="xsd:boolean" />
+    </xsd:complexType>
+
+    <xsd:simpleType name="data-collection-mode">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="off" />
+            <xsd:enumeration value="denyList" />
+            <xsd:enumeration value="allowList" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="data-collection-http-body">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="incomingRequest" />
+            <xsd:enumeration value="outgoingRequest" />
+            <xsd:enumeration value="incomingResponse" />
+            <xsd:enumeration value="outgoingResponse" />
         </xsd:restriction>
     </xsd:simpleType>
 
