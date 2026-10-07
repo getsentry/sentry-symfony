@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\DataCollection\DataCollectionPolicy;
+use Sentry\DataCollection\HttpUrlCollector;
 use Sentry\State\HubInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\Routing\Route;
 
@@ -47,6 +48,29 @@ abstract class AbstractTracingRequestListener
         }
 
         $span->setHttpStatus($response->getStatusCode());
+    }
+
+    /**
+     * This method will return the query string as it was received, compared
+     * to {@see Request::getUri()} that normalizes it.
+     *
+     * @internal
+     */
+    protected function getRequestUrl(Request $request, DataCollectionPolicy $policy): string
+    {
+        if ($policy->isLegacyMode()) {
+            return $request->getUri();
+        }
+
+        $url = $request->getSchemeAndHttpHost() . $request->getBaseUrl() . $request->getPathInfo();
+        $queryString = $request->server->get('QUERY_STRING');
+        $queryString = HttpUrlCollector::collectQueryString($policy, \is_string($queryString) ? $queryString : '');
+
+        if (null !== $queryString) {
+            $url .= '?' . $queryString;
+        }
+
+        return $url;
     }
 
     /**

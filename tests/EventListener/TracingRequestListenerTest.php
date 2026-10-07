@@ -466,6 +466,83 @@ final class TracingRequestListenerTest extends TestCase
             $transactionContext,
         ];
 
+        $request = Request::create('http://www.example.com/?token=secret&q=a%20b%26c&page=5');
+        $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setName('GET http://www.example.com/');
+        $transactionContext->setSource(TransactionSource::url());
+        $transactionContext->setOp('http.server');
+        $transactionContext->setOrigin('auto.http.server');
+        $transactionContext->setStartTimestamp(1613493597.010275);
+        $transactionContext->setData([
+            'net.host.port' => '80',
+            'http.request.method' => 'GET',
+            'http.url' => 'http://www.example.com/?page=5&q=a%20b%26c&token=secret',
+            'http.flavor' => '1.1',
+            'route' => '<unknown>',
+            'net.host.name' => 'www.example.com',
+        ]);
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
+
+        yield 'request.server.QUERY_STRING EXISTS and client.options.data_collection IS NULL' => [
+            new Options(),
+            $request,
+            $transactionContext,
+        ];
+
+        $request = Request::create('http://www.example.com/?token=secret&q=a%20b%26c&page=5');
+        $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setName('GET http://www.example.com/');
+        $transactionContext->setSource(TransactionSource::url());
+        $transactionContext->setOp('http.server');
+        $transactionContext->setOrigin('auto.http.server');
+        $transactionContext->setStartTimestamp(1613493597.010275);
+        $transactionContext->setData([
+            'net.host.port' => '80',
+            'http.request.method' => 'GET',
+            'http.url' => 'http://www.example.com/?token=[Filtered]&q=a%20b%26c&page=5',
+            'http.flavor' => '1.1',
+            'route' => '<unknown>',
+            'net.host.name' => 'www.example.com',
+            'net.peer.ip' => '127.0.0.1',
+        ]);
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
+
+        yield 'request.server.QUERY_STRING EXISTS and client.options.data_collection.url_query_params defaults to denyList' => [
+            new Options(['data_collection' => []]),
+            $request,
+            $transactionContext,
+        ];
+
+        $request = Request::create('http://www.example.com/?token=secret&q=a%20b%26c&page=5');
+        $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setName('GET http://www.example.com/');
+        $transactionContext->setSource(TransactionSource::url());
+        $transactionContext->setOp('http.server');
+        $transactionContext->setOrigin('auto.http.server');
+        $transactionContext->setStartTimestamp(1613493597.010275);
+        $transactionContext->setData([
+            'net.host.port' => '80',
+            'http.request.method' => 'GET',
+            'http.url' => 'http://www.example.com/',
+            'http.flavor' => '1.1',
+            'route' => '<unknown>',
+            'net.host.name' => 'www.example.com',
+            'net.peer.ip' => '127.0.0.1',
+        ]);
+        $transactionContext->getMetadata()->setSampleRand(0.1337);
+
+        yield 'request.server.QUERY_STRING EXISTS and client.options.data_collection.url_query_params.mode = off' => [
+            new Options(['data_collection' => ['url_query_params' => ['mode' => 'off']]]),
+            $request,
+            $transactionContext,
+        ];
+
         $request = Request::createFromGlobals();
         $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
 
@@ -595,5 +672,110 @@ final class TracingRequestListenerTest extends TestCase
         ));
 
         $this->assertNull($requestFetcher->fetchRequest());
+    }
+
+    /**
+     * @param array<string, string> $expectedData
+     *
+     * @dataProvider handleKernelTerminateEventCollectsRequestDataDataProvider
+     */
+    public function testHandleKernelTerminateEventCollectsRequestData(Options $options, Request $request, array $expectedData, bool $sampled = true): void
+    {
+        $client = $this->createMock(ClientInterface::class);
+        $client->method('getOptions')->willReturn($options);
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setSampled($sampled);
+        $transaction = new Transaction($transactionContext);
+
+        $this->hub->method('getClient')->willReturn($client);
+        $this->hub->method('getTransaction')->willReturn($transaction);
+
+        $requestFetcher = new RequestFetcher($this->createMock(RequestStack::class));
+        $requestFetcher->setRequest($request);
+
+        (new TracingRequestListener($this->hub, $requestFetcher))->handleKernelTerminateEvent(new TerminateEvent(
+            $this->createMock(HttpKernelInterface::class),
+            $request,
+            new Response()
+        ));
+
+        $this->assertEquals($expectedData, array_filter($transaction->getData(), static function (string $key): bool {
+            return str_starts_with($key, 'http.request.header.') || 'http.request.body.data' === $key;
+        }, \ARRAY_FILTER_USE_KEY));
+    }
+
+    public function handleKernelTerminateEventCollectsRequestDataDataProvider(): \Generator
+    {
+        $server = ['HTTP_HOST' => 'www.example.com', 'CONTENT_TYPE' => 'application/json'];
+
+        yield 'Headers, cookies and the body are collected and filtered' => [
+            new Options(['data_collection' => []]),
+            new Request([], [], [], ['theme' => 'dark', 'PHPSESSID' => 'secret'], [], $server + [
+                'HTTP_AUTHORIZATION' => 'Bearer secret',
+                'HTTP_COOKIE' => 'theme=dark; PHPSESSID=secret',
+            ], '{"username":"jane","password":"secret"}'),
+            [
+                'http.request.header.host' => 'www.example.com',
+                'http.request.header.content-type' => 'application/json',
+                'http.request.header.authorization' => '[Filtered]',
+                'http.request.header.cookie.theme' => 'dark',
+                'http.request.header.cookie.PHPSESSID' => '[Filtered]',
+                'http.request.body.data' => '{"username":"jane","password":"[Filtered]"}',
+            ],
+        ];
+
+        yield 'A form body is collected and filtered' => [
+            new Options(['data_collection' => []]),
+            new Request([], ['username' => 'jane', 'password' => 'secret'], [], [], [], ['HTTP_HOST' => 'www.example.com', 'CONTENT_TYPE' => 'application/x-www-form-urlencoded']),
+            [
+                'http.request.header.host' => 'www.example.com',
+                'http.request.header.content-type' => 'application/x-www-form-urlencoded',
+                'http.request.body.data' => '{"username":"jane","password":"[Filtered]"}',
+            ],
+        ];
+
+        yield 'A body that cannot be parsed is filtered' => [
+            new Options(['data_collection' => []]),
+            new Request([], [], [], [], [], ['HTTP_HOST' => 'www.example.com', 'CONTENT_TYPE' => 'text/plain'], 'Hello World'),
+            [
+                'http.request.header.host' => 'www.example.com',
+                'http.request.header.content-type' => 'text/plain',
+                'http.request.body.data' => '[Filtered]',
+            ],
+        ];
+
+        yield 'A body over the size limit is not collected' => [
+            new Options(['data_collection' => [], 'max_request_body_size' => 'small']),
+            new Request([], [], [], [], [], $server + ['CONTENT_LENGTH' => '2000'], '{}'),
+            [
+                'http.request.header.host' => 'www.example.com',
+                'http.request.header.content-type' => 'application/json',
+                'http.request.header.content-length' => '2000',
+            ],
+        ];
+
+        yield 'Nothing is collected if headers, cookies and request bodies are disabled' => [
+            new Options(['data_collection' => [
+                'cookies' => ['mode' => 'off'],
+                'http_headers' => ['request' => ['mode' => 'off']],
+                'http_bodies' => ['outgoingRequest', 'incomingResponse', 'outgoingResponse'],
+            ]]),
+            new Request([], [], [], ['theme' => 'dark'], [], $server, '{"username":"jane"}'),
+            [],
+        ];
+
+        yield 'The legacy options only collect the request data on the event' => [
+            new Options(['send_default_pii' => true]),
+            new Request([], [], [], ['theme' => 'dark'], [], $server, '{"username":"jane"}'),
+            [],
+        ];
+
+        yield 'Nothing is collected for transactions that are not sampled' => [
+            new Options(['data_collection' => []]),
+            new Request([], [], [], ['theme' => 'dark'], [], $server, '{"username":"jane"}'),
+            [],
+            false,
+        ];
     }
 }
