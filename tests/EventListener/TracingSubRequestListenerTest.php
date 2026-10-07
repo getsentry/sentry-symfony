@@ -295,7 +295,7 @@ final class TracingSubRequestListenerTest extends TestCase
         $data = $span->getData();
 
         $this->assertSame('application/json', $data['http.response.header.content-type'] ?? null);
-        $this->assertSame('dark', $data['http.response.header.set_cookie.theme'] ?? null);
+        $this->assertSame(['theme=dark'], $data['http.response.header.set-cookie'] ?? null);
         $this->assertSame('{"username":"jane","password":"[Filtered]"}', $data['http.response.body.data'] ?? null);
     }
 

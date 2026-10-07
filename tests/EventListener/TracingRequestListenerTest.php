@@ -646,8 +646,7 @@ final class TracingRequestListenerTest extends TestCase
                 'http.response.header.x-auth-token' => '[Filtered]',
                 'http.response.header.cache-control' => 'no-cache, private',
                 'http.response.header.x-served-by' => 'web-1, web-2',
-                'http.response.header.set_cookie.session_id' => '[Filtered]',
-                'http.response.header.set_cookie.theme' => 'dark',
+                'http.response.header.set-cookie' => ['session_id=[Filtered]', 'theme=dark'],
                 'http.response.body.data' => '{"username":"jane","password":"[Filtered]"}',
             ],
         ];
@@ -659,8 +658,7 @@ final class TracingRequestListenerTest extends TestCase
                 'http.response.header.x-auth-token' => '[Filtered]',
                 'http.response.header.cache-control' => 'no-cache, private',
                 'http.response.header.x-served-by' => 'web-1, web-2',
-                'http.response.header.set_cookie.session_id' => '[Filtered]',
-                'http.response.header.set_cookie.theme' => 'dark',
+                'http.response.header.set-cookie' => ['session_id=[Filtered]', 'theme=dark'],
             ],
         ];
     }
@@ -902,8 +900,7 @@ final class TracingRequestListenerTest extends TestCase
                 'http.request.header.host' => 'www.example.com',
                 'http.request.header.content-type' => 'application/json',
                 'http.request.header.authorization' => '[Filtered]',
-                'http.request.header.cookie.theme' => 'dark',
-                'http.request.header.cookie.PHPSESSID' => '[Filtered]',
+                'http.request.header.cookie' => ['theme=dark', 'PHPSESSID=[Filtered]'],
                 'http.request.body.data' => '{"username":"jane","password":"[Filtered]"}',
             ],
         ];

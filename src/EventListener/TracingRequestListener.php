@@ -5,11 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\DataCollection\DataCollectionPolicy;
-use Sentry\DataCollection\HttpBodyCollector;
-use Sentry\DataCollection\HttpCookieCollector;
-use Sentry\DataCollection\HttpHeaderCollector;
-use Sentry\DataCollection\HttpMessageType;
-use Sentry\DataCollection\KeyValueDataFilter;
+use Sentry\DataCollection\HttpSpanDataCollector;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\SentryBundle\Integration\RequestFetcher;
 use Sentry\State\HubInterface;
@@ -150,26 +146,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
             return;
         }
 
-        $spanData = [];
-
-        foreach (HttpHeaderCollector::collect($policy, HttpMessageType::incomingRequest(), $request->getHeaders()) ?? [] as $name => $values) {
-            $spanData['http.request.header.' . strtolower((string) $name)] = implode(', ', $values);
-        }
-
-        foreach (HttpCookieCollector::collect($policy, HttpMessageType::incomingRequest(), $request->getCookieParams()) ?? [] as $name => $value) {
-            $spanData['http.request.header.cookie.' . $name] = $value;
-        }
-
-        $body = HttpBodyCollector::collectServerRequest($policy, $request);
-        if (\is_array($body)) {
-            $body = json_encode($body) ?: KeyValueDataFilter::FILTERED_VALUE;
-        }
-
-        if (null !== $body) {
-            $spanData['http.request.body.data'] = $body;
-        }
-
-        $transaction->setData($spanData);
+        $transaction->setData(HttpSpanDataCollector::collectServerRequest($policy, $request));
     }
 
     /**

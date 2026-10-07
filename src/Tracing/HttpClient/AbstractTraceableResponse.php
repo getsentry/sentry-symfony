@@ -5,12 +5,8 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tracing\HttpClient;
 
 use Sentry\DataCollection\DataCollectionPolicy;
-use Sentry\DataCollection\HttpBodyCollector;
-use Sentry\DataCollection\HttpCookieCollector;
-use Sentry\DataCollection\HttpCookieParser;
-use Sentry\DataCollection\HttpHeaderCollector;
 use Sentry\DataCollection\HttpMessageType;
-use Sentry\DataCollection\KeyValueDataFilter;
+use Sentry\DataCollection\HttpSpanDataCollector;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanStatus;
 use Symfony\Contracts\HttpClient\ChunkInterface;
@@ -214,19 +210,12 @@ abstract class AbstractTraceableResponse implements ResponseInterface
 
         $this->responseHeadersCollected = true;
         $responseHeaders = $this->getResponseHeaders();
-        $responseCookies = HttpCookieParser::parseSetCookieHeaders($responseHeaders['set-cookie'] ?? []);
-        $spanData = [];
+        $type = HttpMessageType::incomingResponse();
 
-        foreach (HttpHeaderCollector::collect($policy, HttpMessageType::incomingResponse(), $responseHeaders) ?? [] as $name => $values) {
-            $spanData['http.response.header.' . $name] = implode(', ', $values);
-        }
-
-        $cookies = HttpCookieCollector::collectGroupedPairs($policy, HttpMessageType::incomingResponse(), $responseCookies);
-        foreach (\is_array($cookies) ? $cookies : [] as $name => $value) {
-            $spanData['http.response.header.set_cookie.' . $name] = $value;
-        }
-
-        $span->setData($spanData);
+        $span->setData(
+            HttpSpanDataCollector::collectHeaders($policy, $type, $responseHeaders)
+            + HttpSpanDataCollector::collectCookieHeaders($policy, $type, $responseHeaders['set-cookie'] ?? [])
+        );
     }
 
     /**
@@ -256,17 +245,7 @@ abstract class AbstractTraceableResponse implements ResponseInterface
     private function collectResponseContent(Span $span, DataCollectionPolicy $policy, $content): void
     {
         $this->responseContentCollected = true;
-        $responseBody = HttpBodyCollector::collect($policy, HttpMessageType::incomingResponse(), $content, $this->getResponseHeaders()['content-type'][0] ?? '');
-
-        if (null === $responseBody) {
-            return;
-        }
-
-        if (\is_array($responseBody)) {
-            $responseBody = json_encode($responseBody) ?: KeyValueDataFilter::FILTERED_VALUE;
-        }
-
-        $span->setData(['http.response.body.data' => $responseBody]);
+        $span->setData(HttpSpanDataCollector::collectBody($policy, HttpMessageType::incomingResponse(), $content, $this->getResponseHeaders()['content-type'][0] ?? ''));
     }
 
     /**

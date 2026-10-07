@@ -8,13 +8,9 @@ use GuzzleHttp\Psr7\Uri;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Sentry\DataCollection\DataCollectionPolicy;
-use Sentry\DataCollection\HttpBodyCollector;
-use Sentry\DataCollection\HttpCookieCollector;
-use Sentry\DataCollection\HttpCookieParser;
-use Sentry\DataCollection\HttpHeaderCollector;
 use Sentry\DataCollection\HttpMessageType;
+use Sentry\DataCollection\HttpSpanDataCollector;
 use Sentry\DataCollection\HttpUrlCollector;
-use Sentry\DataCollection\KeyValueDataFilter;
 use Sentry\Options;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\SpanContext;
@@ -125,28 +121,22 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
         if ($shouldCollectData) {
             // Headers added by the HTTP client itself, e.g. by the `auth_bearer` or `json` options, are not collected
             $requestHeaders = self::normalizeHeaders($headers) + $this->defaultHeaders;
-            $requestCookies = HttpCookieParser::parseCookieHeaders($requestHeaders['cookie'] ?? []);
-            $spanData = [];
+            $type = HttpMessageType::outgoingRequest();
 
-            foreach (HttpHeaderCollector::collect($policy, HttpMessageType::outgoingRequest(), $requestHeaders) ?? [] as $name => $values) {
-                $spanData['http.request.header.' . $name] = implode(', ', $values);
+            if (isset($options['json'])) {
+                $body = json_encode($options['json']);
+                $contentType = 'application/json';
+            } else {
+                // Bodies given as closures, resources or iterables are skipped by the collector without being read
+                $body = $options['body'] ?? null;
+                $contentType = $requestHeaders['content-type'][0] ?? '';
             }
 
-            $cookies = HttpCookieCollector::collectGroupedPairs($policy, HttpMessageType::outgoingRequest(), $requestCookies);
-            foreach (\is_array($cookies) ? $cookies : [] as $name => $value) {
-                $spanData['http.request.header.cookie.' . $name] = $value;
-            }
-
-            $requestBody = self::collectRequestBody($policy, $options, $requestHeaders);
-            if (\is_array($requestBody)) {
-                $requestBody = json_encode($requestBody) ?: KeyValueDataFilter::FILTERED_VALUE;
-            }
-
-            if (null !== $requestBody) {
-                $spanData['http.request.body.data'] = $requestBody;
-            }
-
-            $childSpan->setData($spanData);
+            $childSpan->setData(
+                HttpSpanDataCollector::collectHeaders($policy, $type, $requestHeaders)
+                + HttpSpanDataCollector::collectCookieHeaders($policy, $type, $requestHeaders['cookie'] ?? [])
+                + HttpSpanDataCollector::collectBody($policy, $type, $body, $contentType)
+            );
         }
 
         if (self::shouldAttachTracingHeaders($sdkOptions, $uri)) {
@@ -237,26 +227,6 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
         }
 
         return $normalizedHeaders;
-    }
-
-    /**
-     * @param array<array-key, mixed> $options
-     * @param array<string, string[]> $requestHeaders
-     *
-     * @return array<array-key, mixed>|string|null
-     */
-    private static function collectRequestBody(DataCollectionPolicy $policy, array $options, array $requestHeaders)
-    {
-        if (isset($options['json'])) {
-            return HttpBodyCollector::collect($policy, HttpMessageType::outgoingRequest(), json_encode($options['json']), 'application/json');
-        }
-
-        $body = $options['body'] ?? null;
-        if (!\is_string($body) && !\is_array($body)) {
-            return null;
-        }
-
-        return HttpBodyCollector::collect($policy, HttpMessageType::outgoingRequest(), $body, $requestHeaders['content-type'][0] ?? '');
     }
 
     private static function shouldAttachTracingHeaders(?Options $sdkOptions, Uri $uri): bool

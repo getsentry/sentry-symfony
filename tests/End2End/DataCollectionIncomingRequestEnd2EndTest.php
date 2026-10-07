@@ -88,6 +88,7 @@ final class DataCollectionIncomingRequestEnd2EndTest extends WebTestCase
     {
         $client = static::createClient(['extra_config_files' => [__DIR__ . '/App/config/data_collection/defaults.yml']]);
         $client->getCookieJar()->set(new Cookie('theme', 'dark'));
+        $client->getCookieJar()->set(new Cookie('REMEMBERME', 'token'));
 
         $client->request('POST', '/200', [], [], [
             'CONTENT_TYPE' => 'application/json',
@@ -105,8 +106,7 @@ final class DataCollectionIncomingRequestEnd2EndTest extends WebTestCase
 
         $this->assertSame('bar', $transactionData['http.request.header.x-request-id'] ?? null);
         $this->assertSame('[Filtered]', $transactionData['http.request.header.authorization'] ?? null);
-        $this->assertArrayNotHasKey('http.request.header.cookie', $transactionData);
-        $this->assertSame('dark', $transactionData['http.request.header.cookie.theme'] ?? null);
+        $this->assertSame(['theme=dark', 'REMEMBERME=[Filtered]'], $transactionData['http.request.header.cookie'] ?? null);
         $this->assertSame('{"username":"jane","password":"[Filtered]"}', $transactionData['http.request.body.data'] ?? null);
     }
 

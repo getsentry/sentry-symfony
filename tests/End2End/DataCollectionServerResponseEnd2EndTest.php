@@ -25,8 +25,7 @@ final class DataCollectionServerResponseEnd2EndTest extends WebTestCase
     private const EXPECTED_RESPONSE_DATA = [
         'http.response.header.content-type' => 'application/json',
         'http.response.header.x-auth-token' => '[Filtered]',
-        'http.response.header.set_cookie.session_id' => '[Filtered]',
-        'http.response.header.set_cookie.theme' => 'dark',
+        'http.response.header.set-cookie' => ['session_id=[Filtered]', 'theme=dark', 'REMEMBERME=[Filtered]'],
         'http.response.body.data' => '{"username":"jane","password":"[Filtered]"}',
     ];
 

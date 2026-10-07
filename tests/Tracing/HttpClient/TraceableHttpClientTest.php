@@ -195,9 +195,9 @@ final class TraceableHttpClientTest extends TestCase
                 'url.full' => 'https://[Filtered]:[Filtered]@www.example.com/test-page?token=[Filtered]&page=1#baz',
                 'http.request.header.authorization' => '[Filtered]',
                 'http.request.header.accept' => 'application/json',
-                'http.request.header.cookie.theme' => 'dark',
+                'http.request.header.cookie' => ['theme=dark'],
                 'http.response.header.content-type' => 'application/json',
-                'http.response.header.set_cookie.session_id' => '[Filtered]',
+                'http.response.header.set-cookie' => ['session_id=[Filtered]'],
             ],
         ];
 
@@ -311,8 +311,7 @@ final class TraceableHttpClientTest extends TestCase
         yield 'Cookies are collected separately from the headers' => [
             ['Cookie' => 'session_id=foo; theme=dark'],
             [
-                'http.request.header.cookie.session_id' => '[Filtered]',
-                'http.request.header.cookie.theme' => 'dark',
+                'http.request.header.cookie' => ['session_id=[Filtered]', 'theme=dark'],
             ],
         ];
     }
