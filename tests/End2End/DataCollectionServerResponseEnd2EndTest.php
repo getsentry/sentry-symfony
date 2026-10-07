@@ -64,6 +64,7 @@ final class DataCollectionServerResponseEnd2EndTest extends WebTestCase
 
         $this->assertResponseIsOk($client->getResponse());
         $this->assertNoResponseData($this->getTransactionData());
+        $this->assertSame(200, $this->getTransactionData()['http.response.status_code'] ?? null);
     }
 
     public function testTransactionContainsFilteredBodyOfFileResponse(): void
@@ -115,11 +116,13 @@ final class DataCollectionServerResponseEnd2EndTest extends WebTestCase
     }
 
     /**
+     * The status code is not response data, as it is always collected.
+     *
      * @param array<string, mixed> $data
      */
     private function assertNoResponseData(array $data): void
     {
-        $this->assertSame([], preg_grep('/^http\.response\./', array_keys($data)));
+        $this->assertSame([], preg_grep('/^http\.response\.(?!status_code$)/', array_keys($data)));
     }
 
     /**

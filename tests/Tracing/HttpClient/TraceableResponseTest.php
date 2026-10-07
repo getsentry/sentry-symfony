@@ -139,12 +139,15 @@ final class TraceableResponseTest extends TestCase
     {
         yield 'The legacy options do not collect response headers' => [
             new Options(['send_default_pii' => true]),
-            [],
+            [
+                'http.response.status_code' => 200,
+            ],
         ];
 
         yield 'The data collection options collect and filter response headers and cookies' => [
             new Options(['data_collection' => []]),
             [
+                'http.response.status_code' => 200,
                 'http.response.header.content-type' => 'application/json',
                 'http.response.header.x-auth-token' => '[Filtered]',
                 'http.response.header.vary' => 'Accept, Accept-Encoding',
@@ -155,6 +158,7 @@ final class TraceableResponseTest extends TestCase
         yield 'The data collection options only collect cookies if response headers are disabled' => [
             new Options(['data_collection' => ['http_headers' => ['response' => ['mode' => 'off']]]]),
             [
+                'http.response.status_code' => 200,
                 'http.response.header.set-cookie' => ['session_id=[Filtered]', 'theme=dark'],
             ],
         ];
@@ -209,7 +213,10 @@ final class TraceableResponseTest extends TestCase
 
         $response->getContent();
 
-        $this->assertSame(['http.response.header.content-type' => 'application/json'], $span->getData());
+        $this->assertSame([
+            'http.response.status_code' => 200,
+            'http.response.header.content-type' => 'application/json',
+        ], $span->getData());
     }
 
     /**

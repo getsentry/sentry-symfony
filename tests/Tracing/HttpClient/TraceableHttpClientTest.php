@@ -104,6 +104,7 @@ final class TraceableHttpClientTest extends TestCase
             'http.request.method' => 'GET',
             'http.query' => 'foo=bar',
             'http.fragment' => 'baz',
+            'http.response.status_code' => 200,
         ];
 
         // Call gc to invoke destructors at the right time.
@@ -182,6 +183,7 @@ final class TraceableHttpClientTest extends TestCase
                 'http.request.method' => 'GET',
                 'http.query' => 'token=secret&page=1',
                 'http.fragment' => 'baz',
+                'http.response.status_code' => 200,
             ],
         ];
 
@@ -196,6 +198,7 @@ final class TraceableHttpClientTest extends TestCase
                 'http.request.header.authorization' => '[Filtered]',
                 'http.request.header.accept' => 'application/json',
                 'http.request.header.cookie' => ['theme=dark'],
+                'http.response.status_code' => 200,
                 'http.response.header.content-type' => 'application/json',
                 'http.response.header.set-cookie' => ['session_id=[Filtered]'],
             ],
@@ -208,6 +211,7 @@ final class TraceableHttpClientTest extends TestCase
                 'http.request.method' => 'GET',
                 'http.fragment' => 'baz',
                 'url.full' => 'https://[Filtered]:[Filtered]@www.example.com/test-page#baz',
+                'http.response.status_code' => 200,
             ],
         ];
     }
@@ -599,6 +603,7 @@ final class TraceableHttpClientTest extends TestCase
 
         $this->assertCount(2, $spans);
         $this->assertSame(SpanStatus::ok(), $spans[1]->getStatus());
+        $this->assertSame(200, $spans[1]->getData('http.response.status_code'));
     }
 
     public function testStream(): void
@@ -627,6 +632,7 @@ final class TraceableHttpClientTest extends TestCase
         $expectedData = [
             'http.url' => 'https://www.example.com/test-page',
             'http.request.method' => 'GET',
+            'http.response.status_code' => 200,
         ];
 
         $this->assertSame('foobar', implode('', $chunks));

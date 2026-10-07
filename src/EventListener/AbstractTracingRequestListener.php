@@ -53,6 +53,7 @@ abstract class AbstractTracingRequestListener
         }
 
         $span->setHttpStatus($response->getStatusCode());
+        $span->setData(['http.response.status_code' => $response->getStatusCode()]);
     }
 
     /**

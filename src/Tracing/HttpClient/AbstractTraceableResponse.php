@@ -179,6 +179,7 @@ abstract class AbstractTraceableResponse implements ResponseInterface
                 $this->span->setStatus(SpanStatus::unknownError());
             } else {
                 $this->span->setStatus(SpanStatus::createFromHttpStatusCode($statusCode));
+                $this->span->setData(['http.response.status_code' => $statusCode]);
             }
         }
 
