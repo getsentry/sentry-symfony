@@ -8,6 +8,8 @@ use Doctrine\DBAL\Driver\Result;
 use Doctrine\DBAL\Driver\Statement;
 use Doctrine\DBAL\ParameterType;
 use PHPUnit\Framework\MockObject\MockObject;
+use Sentry\ClientInterface;
+use Sentry\Options;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatementForV3;
 use Sentry\State\HubInterface;
@@ -145,5 +147,97 @@ final class TracingStatementForV3Test extends DoctrineTestCase
             ->willReturn($driverResult);
 
         $this->assertSame($driverResult, $this->statement->execute(['foo' => 'bar']));
+    }
+
+    public function testExecuteCollectsBoundParameters(): void
+    {
+        $transaction = $this->createSampledTransactionWithDataCollection();
+
+        $this->decoratedStatement->method('bindValue')->willReturn(true);
+        $this->decoratedStatement->method('bindParam')->willReturn(true);
+        $this->decoratedStatement->method('execute')->willReturn($this->createMock(Result::class));
+
+        $variable = 'foo';
+
+        $this->statement->bindParam(1, $variable);
+        $this->statement->bindValue('password', 'secret');
+
+        $variable = 'bar';
+
+        $this->statement->execute();
+
+        $this->assertSame([
+            'db.system' => 'sqlite',
+            'db.query.parameter.0' => 'bar',
+            'db.query.parameter.password' => '[Filtered]',
+        ], $this->getExecutedSpanData($transaction));
+    }
+
+    public function testExecuteCollectsParametersPassedToIt(): void
+    {
+        $transaction = $this->createSampledTransactionWithDataCollection();
+
+        $this->decoratedStatement->method('bindValue')->willReturn(true);
+        $this->decoratedStatement->method('execute')->willReturn($this->createMock(Result::class));
+
+        $this->statement->bindValue(1, 'foo');
+        $this->statement->execute(['bar', 'baz']);
+
+        $this->assertSame([
+            'db.system' => 'sqlite',
+            'db.query.parameter.0' => 'bar',
+            'db.query.parameter.1' => 'baz',
+        ], $this->getExecutedSpanData($transaction));
+    }
+
+    public function testBindValueDoesNotChangeAVariableBoundByReference(): void
+    {
+        $this->decoratedStatement->method('bindValue')->willReturn(true);
+        $this->decoratedStatement->method('bindParam')->willReturn(true);
+
+        $variable = 'foo';
+
+        $this->statement->bindParam(1, $variable);
+        $this->statement->bindValue(1, 'bar');
+
+        $this->assertSame('foo', $variable);
+    }
+
+    private function createSampledTransactionWithDataCollection(): Transaction
+    {
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->any())
+            ->method('getOptions')
+            ->willReturn(new Options(['data_collection' => []]));
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setSampled(true);
+
+        $transaction = new Transaction($transactionContext, $this->hub);
+        $transaction->initSpanRecorder();
+
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn($transaction);
+
+        $this->hub->expects($this->any())
+            ->method('getClient')
+            ->willReturn($client);
+
+        return $transaction;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function getExecutedSpanData(Transaction $transaction): array
+    {
+        $this->assertNotNull($transaction->getSpanRecorder());
+
+        $spans = $transaction->getSpanRecorder()->getSpans();
+
+        $this->assertCount(2, $spans);
+
+        return $spans[1]->getData();
     }
 }
