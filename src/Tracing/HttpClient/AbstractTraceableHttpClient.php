@@ -7,7 +7,13 @@ namespace Sentry\SentryBundle\Tracing\HttpClient;
 use GuzzleHttp\Psr7\Uri;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
-use Sentry\ClientInterface;
+use Sentry\DataCollection\DataCollectionPolicy;
+use Sentry\DataCollection\HttpCookieCollector;
+use Sentry\DataCollection\HttpCookieParser;
+use Sentry\DataCollection\HttpHeaderCollector;
+use Sentry\DataCollection\HttpMessageType;
+use Sentry\DataCollection\HttpUrlCollector;
+use Sentry\Options;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\SpanContext;
 use Symfony\Component\HttpClient\Response\ResponseStream;
@@ -37,10 +43,19 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
      */
     protected $hub;
 
-    public function __construct(HttpClientInterface $client, HubInterface $hub)
+    /**
+     * @var array<string, string[]>
+     */
+    protected $defaultHeaders;
+
+    /**
+     * @param array<array-key, mixed> $defaultHeaders
+     */
+    public function __construct(HttpClientInterface $client, HubInterface $hub, array $defaultHeaders = [])
     {
         $this->client = $client;
         $this->hub = $hub;
+        $this->defaultHeaders = self::normalizeHeaders($defaultHeaders);
     }
 
     /**
@@ -53,9 +68,10 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
 
         $span = $this->hub->getSpan();
         $client = $this->hub->getClient();
+        $sdkOptions = null !== $client ? $client->getOptions() : null;
 
         if (null === $span) {
-            if (self::shouldAttachTracingHeaders($client, $uri)) {
+            if (self::shouldAttachTracingHeaders($sdkOptions, $uri)) {
                 $headers['baggage'] = getBaggage();
                 $headers['sentry-trace'] = getTraceparent();
             }
@@ -65,6 +81,7 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
             return new TraceableResponse($this->client, $this->client->request($method, $url, $options), $span);
         }
 
+        $policy = DataCollectionPolicy::fromOptions($sdkOptions);
         $partialUri = Uri::fromParts([
             'scheme' => $uri->getScheme(),
             'host' => $uri->getHost(),
@@ -81,24 +98,54 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
             'http.url' => (string) $partialUri,
             'http.request.method' => $method,
         ];
-        if ('' !== $uri->getQuery()) {
-            $contextData['http.query'] = $uri->getQuery();
+
+        $queryString = HttpUrlCollector::collectQueryString($policy, $uri->getQuery());
+        if (null !== $queryString) {
+            $contextData['http.query'] = $queryString;
         }
+
         if ('' !== $uri->getFragment()) {
             $contextData['http.fragment'] = $uri->getFragment();
         }
+
+        $fullUrl = HttpUrlCollector::collect($policy, HttpMessageType::outgoingRequest(), $uri);
+        if (null !== $fullUrl) {
+            $contextData['url.full'] = $fullUrl;
+        }
+
         $context->setData($contextData);
 
         $childSpan = $span->startChild($context);
 
-        if (self::shouldAttachTracingHeaders($client, $uri)) {
+        // The legacy options collect nothing from outgoing requests and their responses
+        $shouldCollectData = $childSpan->getSampled() && !$policy->isLegacyMode();
+
+        if ($shouldCollectData) {
+            // Headers added by the HTTP client itself, e.g. by the `auth_bearer` or `json` options, are not collected
+            $requestHeaders = self::normalizeHeaders($headers) + $this->defaultHeaders;
+            $requestCookies = HttpCookieParser::parseCookieHeaders($requestHeaders['cookie'] ?? []);
+            $spanData = [];
+
+            foreach (HttpHeaderCollector::collect($policy, HttpMessageType::outgoingRequest(), $requestHeaders) ?? [] as $name => $values) {
+                $spanData['http.request.header.' . $name] = implode(', ', $values);
+            }
+
+            $cookies = HttpCookieCollector::collectGroupedPairs($policy, HttpMessageType::outgoingRequest(), $requestCookies);
+            foreach (\is_array($cookies) ? $cookies : [] as $name => $value) {
+                $spanData['http.request.header.cookie.' . $name] = $value;
+            }
+
+            $childSpan->setData($spanData);
+        }
+
+        if (self::shouldAttachTracingHeaders($sdkOptions, $uri)) {
             $headers['baggage'] = $childSpan->toBaggage();
             $headers['sentry-trace'] = $childSpan->toTraceparent();
         }
 
         $options['headers'] = $headers;
 
-        return new TraceableResponse($this->client, $this->client->request($method, $url, $options), $childSpan);
+        return new TraceableResponse($this->client, $this->client->request($method, $url, $options), $childSpan, $shouldCollectData ? $policy : null);
     }
 
     /**
@@ -132,11 +179,58 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
         }
     }
 
-    private static function shouldAttachTracingHeaders(?ClientInterface $client, Uri $uri): bool
+    /**
+     * @param mixed $headers
+     *
+     * @return array<string, string[]>
+     */
+    protected static function normalizeHeaders($headers): array
     {
-        if (null !== $client) {
-            $sdkOptions = $client->getOptions();
+        $normalizedHeaders = [];
+        if (!is_iterable($headers)) {
+            return $normalizedHeaders;
+        }
 
+        /** @var mixed $values */
+        foreach ($headers as $name => $values) {
+            if (\is_object($values) && method_exists($values, '__toString')) {
+                $values = (string) $values;
+            }
+
+            if (\is_int($name)) {
+                if (!\is_string($values)) {
+                    continue;
+                }
+
+                $headerLine = explode(':', $values, 2);
+
+                if (2 !== \count($headerLine)) {
+                    continue;
+                }
+
+                [$name, $values] = $headerLine;
+                $values = [ltrim($values)];
+            } elseif (!is_iterable($values)) {
+                $values = [$values];
+            }
+
+            $name = strtolower((string) $name);
+            $normalizedHeaders[$name] = [];
+
+            /** @var mixed $value */
+            foreach ($values as $value) {
+                if (\is_scalar($value) || (\is_object($value) && method_exists($value, '__toString'))) {
+                    $normalizedHeaders[$name][] = (string) $value;
+                }
+            }
+        }
+
+        return $normalizedHeaders;
+    }
+
+    private static function shouldAttachTracingHeaders(?Options $sdkOptions, Uri $uri): bool
+    {
+        if (null !== $sdkOptions) {
             // Check if the request destination is allow listed in the trace_propagation_targets option.
             if (
                 null === $sdkOptions->getTracePropagationTargets()

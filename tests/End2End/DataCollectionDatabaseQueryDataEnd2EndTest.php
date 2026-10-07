@@ -68,7 +68,7 @@ final class DataCollectionDatabaseQueryDataEnd2EndTest extends WebTestCase
         $this->assertCount(1, $executeSpans);
 
         $queryData = array_filter($executeSpans[0]->getData(), static function (string $key): bool {
-            return str_starts_with($key, 'db.query.parameter.');
+            return 1 === preg_match('/^db\.query\.parameter\./', $key);
         }, \ARRAY_FILTER_USE_KEY);
 
         $this->assertSame($expectedQueryData, $queryData);

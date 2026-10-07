@@ -6,6 +6,8 @@ namespace Sentry\SentryBundle\Tests\Tracing\HttpClient;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Sentry\DataCollection\DataCollectionPolicy;
+use Sentry\Options;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableResponse;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\Span;
@@ -16,6 +18,7 @@ use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 final class TraceableResponseTest extends TestCase
 {
@@ -97,6 +100,117 @@ final class TraceableResponseTest extends TestCase
 
         $this->assertSame('foobar', $response->getContent());
         $this->assertNotNull($span->getEndTimestamp());
+    }
+
+    /**
+     * @param array<string, mixed> $expectedData
+     *
+     * @dataProvider getContentCollectsResponseDataDataProvider
+     */
+    public function testGetContentCollectsResponseData(Options $options, array $expectedData): void
+    {
+        $spanContext = new SpanContext();
+        $spanContext->setSampled(true);
+
+        $span = new Span($spanContext);
+        $httpClient = new MockHttpClient(new MockResponse('', [
+            'response_headers' => [
+                'HTTP/1.1 200 OK',
+                'Content-Type: application/json',
+                'X-Auth-Token: foo',
+                'Vary: Accept',
+                'vary: Accept-Encoding',
+                'Set-Cookie: session_id=foo; Path=/; HttpOnly',
+                'Set-Cookie: theme=dark',
+            ],
+        ]));
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, DataCollectionPolicy::fromOptions($options));
+
+        $response->getContent();
+
+        $this->assertSame($expectedData, $span->getData());
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function getContentCollectsResponseDataDataProvider(): \Generator
+    {
+        yield 'The legacy options do not collect response headers' => [
+            new Options(['send_default_pii' => true]),
+            [],
+        ];
+
+        yield 'The data collection options collect and filter response headers and cookies' => [
+            new Options(['data_collection' => []]),
+            [
+                'http.response.header.content-type' => 'application/json',
+                'http.response.header.x-auth-token' => '[Filtered]',
+                'http.response.header.vary' => 'Accept, Accept-Encoding',
+                'http.response.header.set_cookie.session_id' => '[Filtered]',
+                'http.response.header.set_cookie.theme' => 'dark',
+            ],
+        ];
+
+        yield 'The data collection options only collect cookies if response headers are disabled' => [
+            new Options(['data_collection' => ['http_headers' => ['response' => ['mode' => 'off']]]]),
+            [
+                'http.response.header.set_cookie.session_id' => '[Filtered]',
+                'http.response.header.set_cookie.theme' => 'dark',
+            ],
+        ];
+    }
+
+    public function testResponseDataIsCollectedOnceTheHeadersAreReceived(): void
+    {
+        $spanContext = new SpanContext();
+        $spanContext->setSampled(true);
+
+        $span = new Span($spanContext);
+        $httpCode = 0;
+        $decoratedResponse = $this->createMock(ResponseInterface::class);
+        $decoratedResponse->method('getInfo')
+            ->willReturnCallback(static function (?string $type) use (&$httpCode) {
+                return 'http_code' === $type ? $httpCode : ['HTTP/1.1 200 OK', 'Content-Type: application/json'];
+            });
+        $decoratedResponse->expects($this->never())
+            ->method('getHeaders');
+
+        $response = new TraceableResponse($this->client, $decoratedResponse, $span, DataCollectionPolicy::fromOptions(new Options(['data_collection' => []])));
+
+        $response->getContent();
+        $endTimestamp = $span->getEndTimestamp();
+
+        $this->assertNotNull($endTimestamp);
+        $this->assertSame([], $span->getData());
+
+        $httpCode = 200;
+        $response->getContent();
+
+        $this->assertSame($endTimestamp, $span->getEndTimestamp());
+        $this->assertSame(['http.response.header.content-type' => 'application/json'], $span->getData());
+    }
+
+    public function testResponseDataOnlyContainsTheHeadersOfTheLastResponseOfARedirectChain(): void
+    {
+        $spanContext = new SpanContext();
+        $spanContext->setSampled(true);
+
+        $span = new Span($spanContext);
+        $httpClient = new MockHttpClient(new MockResponse('', [
+            'response_headers' => [
+                'HTTP/1.1 302 Found',
+                'Location: /target',
+                'Set-Cookie: redirect=foo',
+                'HTTP/1.1 200 OK',
+                'Content-Type: application/json',
+            ],
+        ]));
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, DataCollectionPolicy::fromOptions(new Options(['data_collection' => []])));
+
+        $response->getContent();
+
+        $this->assertSame(['http.response.header.content-type' => 'application/json'], $span->getData());
     }
 
     public function testToArray(): void

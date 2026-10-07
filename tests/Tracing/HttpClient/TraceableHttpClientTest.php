@@ -26,6 +26,7 @@ use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 use Symfony\Contracts\Service\ResetInterface;
 
 final class TraceableHttpClientTest extends TestCase
@@ -117,6 +118,203 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame('GET https://www.example.com/test-page', $spans[1]->getDescription());
         $this->assertSame(SpanStatus::ok(), $spans[1]->getStatus());
         $this->assertSame($expectedData, $spans[1]->getData());
+    }
+
+    /**
+     * @param array<string, mixed> $expectedData
+     *
+     * @dataProvider requestCollectsDataDataProvider
+     */
+    public function testRequestCollectsData(Options $options, array $expectedData): void
+    {
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->once())
+            ->method('getOptions')
+            ->willReturn($options);
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setSampled(true);
+
+        $transaction = new Transaction($transactionContext);
+        $transaction->initSpanRecorder();
+
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn($transaction);
+        $this->hub->expects($this->once())
+            ->method('getClient')
+            ->willReturn($client);
+
+        $mockResponse = new MockResponse('', [
+            'response_headers' => [
+                'Content-Type' => 'application/json',
+                'Set-Cookie' => 'session_id=foo; Path=/',
+            ],
+        ]);
+        $httpClient = new TraceableHttpClient(new MockHttpClient($mockResponse), $this->hub);
+        $response = $httpClient->request('GET', 'https://username:password@www.example.com/test-page?token=secret&page=1#baz', [
+            'headers' => [
+                'Authorization' => 'Bearer foo',
+                'Accept' => 'application/json',
+                'Cookie' => 'theme=dark',
+            ],
+        ]);
+
+        $response->getContent();
+
+        $this->assertNotNull($transaction->getSpanRecorder());
+
+        $spans = $transaction->getSpanRecorder()->getSpans();
+
+        $this->assertCount(2, $spans);
+        $this->assertSame($expectedData, $spans[1]->getData());
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function requestCollectsDataDataProvider(): \Generator
+    {
+        yield 'The legacy options only collect the query string' => [
+            new Options(['send_default_pii' => true]),
+            [
+                'http.url' => 'https://www.example.com/test-page',
+                'http.request.method' => 'GET',
+                'http.query' => 'token=secret&page=1',
+                'http.fragment' => 'baz',
+            ],
+        ];
+
+        yield 'The data collection options collect and filter the URL, headers and cookies' => [
+            new Options(['data_collection' => []]),
+            [
+                'http.url' => 'https://www.example.com/test-page',
+                'http.request.method' => 'GET',
+                'http.query' => 'token=[Filtered]&page=1',
+                'http.fragment' => 'baz',
+                'url.full' => 'https://[Filtered]:[Filtered]@www.example.com/test-page?token=[Filtered]&page=1#baz',
+                'http.request.header.authorization' => '[Filtered]',
+                'http.request.header.accept' => 'application/json',
+                'http.request.header.cookie.theme' => 'dark',
+                'http.response.header.content-type' => 'application/json',
+                'http.response.header.set_cookie.session_id' => '[Filtered]',
+            ],
+        ];
+
+        yield 'The data collection options omit the query string if query parameters are not collected' => [
+            new Options(['data_collection' => ['url_query_params' => ['mode' => 'off'], 'http_headers' => ['mode' => 'off'], 'cookies' => ['mode' => 'off']]]),
+            [
+                'http.url' => 'https://www.example.com/test-page',
+                'http.request.method' => 'GET',
+                'http.fragment' => 'baz',
+                'url.full' => 'https://[Filtered]:[Filtered]@www.example.com/test-page#baz',
+            ],
+        ];
+    }
+
+    /**
+     * @param array<array-key, mixed> $headers
+     * @param array<string, mixed>    $expectedHeaderData
+     *
+     * @dataProvider requestCollectsHeadersDataProvider
+     */
+    public function testRequestCollectsHeaders(array $headers, array $expectedHeaderData): void
+    {
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->once())
+            ->method('getOptions')
+            ->willReturn(new Options(['data_collection' => []]));
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setSampled(true);
+
+        $transaction = new Transaction($transactionContext);
+        $transaction->initSpanRecorder();
+
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn($transaction);
+        $this->hub->expects($this->once())
+            ->method('getClient')
+            ->willReturn($client);
+
+        $httpClient = new TraceableHttpClient(new MockHttpClient(new MockResponse()), $this->hub);
+        $httpClient->request('GET', 'https://www.example.com/', ['headers' => $headers])->getContent();
+
+        $this->assertNotNull($transaction->getSpanRecorder());
+
+        $spans = $transaction->getSpanRecorder()->getSpans();
+
+        $this->assertCount(2, $spans);
+
+        $headerData = array_filter($spans[1]->getData(), static function (string $key): bool {
+            return 1 === preg_match('/^http\.request\.header\./', $key);
+        }, \ARRAY_FILTER_USE_KEY);
+
+        $this->assertSame($expectedHeaderData, $headerData);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function requestCollectsHeadersDataProvider(): \Generator
+    {
+        yield 'Headers given as a map' => [
+            [
+                'Authorization' => 'Bearer foo',
+                'Accept' => ['application/json', 'text/html'],
+                'X-Request-Id' => 1234,
+            ],
+            [
+                'http.request.header.authorization' => '[Filtered]',
+                'http.request.header.accept' => 'application/json, text/html',
+                'http.request.header.x-request-id' => '1234',
+            ],
+        ];
+
+        yield 'Headers given as a list' => [
+            ['Authorization: Bearer foo', 'Accept:application/json'],
+            [
+                'http.request.header.authorization' => '[Filtered]',
+                'http.request.header.accept' => 'application/json',
+            ],
+        ];
+
+        yield 'Headers given as objects that can be converted to strings' => [
+            [
+                new class {
+                    public function __toString(): string
+                    {
+                        return 'X-Request-Id: abc';
+                    }
+                },
+                'X-Trace-Id' => new class {
+                    public function __toString(): string
+                    {
+                        return 'def';
+                    }
+                },
+            ],
+            [
+                'http.request.header.x-request-id' => 'abc',
+                'http.request.header.x-trace-id' => 'def',
+            ],
+        ];
+
+        yield 'Header names are case-insensitive' => [
+            ['accept' => 'text/html', 'Accept' => 'application/json'],
+            [
+                'http.request.header.accept' => 'application/json',
+            ],
+        ];
+
+        yield 'Cookies are collected separately from the headers' => [
+            ['Cookie' => 'session_id=foo; theme=dark'],
+            [
+                'http.request.header.cookie.session_id' => '[Filtered]',
+                'http.request.header.cookie.theme' => 'dark',
+            ],
+        ];
     }
 
     public function testRequestDoesNotContainTracingHeaders(): void
@@ -250,6 +448,50 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame(SpanStatus::unknownError(), $spans[1]->getStatus());
     }
 
+    public function testRequestDoesNotReadResponseDataWithLegacyOptions(): void
+    {
+        $client = $this->createMock(ClientInterface::class);
+        $client->method('getOptions')
+            ->willReturn(new Options(['send_default_pii' => true, 'trace_propagation_targets' => []]));
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setSampled(true);
+
+        $transaction = new Transaction($transactionContext);
+        $transaction->initSpanRecorder();
+
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn($transaction);
+        $this->hub->method('getClient')
+            ->willReturn($client);
+
+        $decoratedResponse = $this->createMock(ResponseInterface::class);
+        // The status code is the only info read, to set the span status
+        $decoratedResponse->expects($this->once())
+            ->method('getInfo')
+            ->with('http_code')
+            ->willReturn(200);
+        $decoratedResponse->method('getContent')
+            ->willReturn('{"foo":"bar"}');
+
+        $this->decoratedHttpClient->expects($this->once())
+            ->method('request')
+            ->willReturn($decoratedResponse);
+
+        $response = $this->httpClient->request('GET', 'https://www.example.com/test-page');
+
+        $this->assertSame('{"foo":"bar"}', $response->getContent());
+        $this->assertSame('{"foo":"bar"}', $response->getContent());
+
+        $this->assertNotNull($transaction->getSpanRecorder());
+
+        $spans = $transaction->getSpanRecorder()->getSpans();
+
+        $this->assertCount(2, $spans);
+        $this->assertSame(SpanStatus::ok(), $spans[1]->getStatus());
+    }
+
     public function testStream(): void
     {
         $transaction = new Transaction(new TransactionContext());
@@ -359,6 +601,78 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame('GET', $response->getInfo('http_method'));
         $this->assertSame('https://www.example.org/test-page', $response->getInfo('url'));
+    }
+
+    public function testRequestCollectsDefaultHeaders(): void
+    {
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->once())
+            ->method('getOptions')
+            ->willReturn(new Options(['data_collection' => [], 'trace_propagation_targets' => []]));
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setSampled(true);
+
+        $transaction = new Transaction($transactionContext);
+        $transaction->initSpanRecorder();
+
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn($transaction);
+        $this->hub->expects($this->once())
+            ->method('getClient')
+            ->willReturn($client);
+
+        $httpClient = new TraceableHttpClient(new MockHttpClient(new MockResponse()), $this->hub, [
+            'User-Agent' => 'my-app',
+            'Accept' => 'text/html',
+        ]);
+        $httpClient->request('GET', 'https://www.example.com/', ['headers' => ['Accept' => 'application/json']])->getContent();
+
+        $this->assertNotNull($transaction->getSpanRecorder());
+
+        $spans = $transaction->getSpanRecorder()->getSpans();
+
+        $this->assertCount(2, $spans);
+        $this->assertSame('application/json', $spans[1]->getData()['http.request.header.accept'] ?? null);
+        $this->assertSame('my-app', $spans[1]->getData()['http.request.header.user-agent'] ?? null);
+    }
+
+    public function testRequestCollectsHeadersOfWithOptions(): void
+    {
+        if (!method_exists(MockHttpClient::class, 'withOptions')) {
+            self::markTestSkipped('This test requires the withOptions() method of the HTTP client.');
+        }
+
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->once())
+            ->method('getOptions')
+            ->willReturn(new Options(['data_collection' => [], 'trace_propagation_targets' => []]));
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setSampled(true);
+
+        $transaction = new Transaction($transactionContext);
+        $transaction->initSpanRecorder();
+
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn($transaction);
+        $this->hub->expects($this->once())
+            ->method('getClient')
+            ->willReturn($client);
+
+        $httpClient = (new TraceableHttpClient(new MockHttpClient(new MockResponse()), $this->hub, ['User-Agent' => 'my-app']))
+            ->withOptions(['headers' => ['User-Agent' => 'my-other-app', 'X-Api-Version' => '2']]);
+        $httpClient->request('GET', 'https://www.example.com/')->getContent();
+
+        $this->assertNotNull($transaction->getSpanRecorder());
+
+        $spans = $transaction->getSpanRecorder()->getSpans();
+
+        $this->assertCount(2, $spans);
+        $this->assertSame('my-other-app', $spans[1]->getData()['http.request.header.user-agent'] ?? null);
+        $this->assertSame('2', $spans[1]->getData()['http.request.header.x-api-version'] ?? null);
     }
 }
 
