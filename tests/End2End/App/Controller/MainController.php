@@ -87,6 +87,7 @@ class MainController
         $response = new JsonResponse(['username' => 'jane', 'password' => 'secret'], 200, ['X-Auth-Token' => 'foo']);
         $response->headers->setCookie(Cookie::create('session_id', 'abc'));
         $response->headers->setCookie(Cookie::create('theme', 'dark'));
+        $response->headers->setCookie(Cookie::create('REMEMBERME', 'token'));
 
         return $response;
     }
