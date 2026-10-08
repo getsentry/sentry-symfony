@@ -1,5 +1,34 @@
 # CHANGELOG
 
+## 5.14.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.14.0.
+
+### Features
+
+- Add the `data_collection` option to control which potentially sensitive data the SDK attaches to events and spans. [(#1087)](https://github.com/getsentry/sentry-symfony/pull/1087)
+
+  ```yaml
+  sentry:
+      options:
+          data_collection:
+              user_info: true
+              http_headers:
+                  mode: allowList
+                  terms:
+                      - x-request-id
+              http_bodies: []
+              database_query_data: false
+  ```
+
+### Bug fixes
+
+- Set the user context before the router runs, so that events for unmatched routes include the client IP address. [(#1068)](https://github.com/getsentry/sentry-symfony/pull/1068)
+
+### Misc
+
+- Bump `sentry-php` version to `4.34.0`. [(#1087)](https://github.com/getsentry/sentry-symfony/pull/1087)
+
 ## 5.13.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.13.0.
