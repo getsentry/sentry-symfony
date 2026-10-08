@@ -9,6 +9,9 @@ use Jean85\PrettyVersions;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
+use Sentry\DataCollection\DataCollectionOptions;
+use Sentry\DataCollection\HttpMessageType;
+use Sentry\DataCollection\KeyValueCollectionBehavior;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\Logger\DebugStdOutLogger;
 use Sentry\Options;
@@ -289,6 +292,35 @@ abstract class SentryExtensionTest extends TestCase
         ], $definition->getTags());
     }
 
+    /**
+     * The session listener can still add the session cookie to the response,
+     * so the response data must be collected after it but before the streamed
+     * response listener of Symfony < 7.0 sends the response.
+     */
+    public function testTracingListenersCollectResponseDataAfterTheSessionListener(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+
+        foreach ([TracingRequestListener::class, TracingSubRequestListener::class] as $listener) {
+            $collectPriority = null;
+
+            foreach ($container->getDefinition($listener)->getTag('kernel.event_listener') as $attributes) {
+                if ('collectKernelResponseData' !== ($attributes['method'] ?? null)) {
+                    continue;
+                }
+
+                $this->assertSame(KernelEvents::RESPONSE, $attributes['event'] ?? null);
+                $collectPriority = $attributes['priority'];
+            }
+
+            $this->assertNotNull($collectPriority);
+            // SessionListener runs at priority -1000
+            $this->assertLessThan(-1000, $collectPriority);
+            // StreamedResponseListener runs at priority -1024
+            $this->assertGreaterThan(-1024, $collectPriority);
+        }
+    }
+
     public function testRequestFetcherIsResettable(): void
     {
         $container = $this->createContainerFromFixture('full');
@@ -348,6 +380,38 @@ abstract class SentryExtensionTest extends TestCase
             'in_app_exclude' => [$container->getParameter('kernel.cache_dir')],
             'in_app_include' => [$container->getParameter('kernel.project_dir')],
             'send_default_pii' => true,
+            'data_collection' => [
+                'user_info' => false,
+                'cookies' => [
+                    'mode' => 'allowList',
+                    'terms' => ['theme'],
+                ],
+                'http_headers' => [
+                    'request' => [
+                        'mode' => 'denyList',
+                        'terms' => ['x-forwarded-for'],
+                    ],
+                    'response' => [
+                        'mode' => 'off',
+                        'terms' => [],
+                    ],
+                ],
+                'http_bodies' => ['incomingRequest', 'outgoingRequest'],
+                'url_query_params' => [
+                    'terms' => ['email'],
+                ],
+                'gen_ai' => [
+                    'inputs' => false,
+                    'outputs' => true,
+                ],
+                'database_query_data' => false,
+                'queues' => false,
+                'stack_frame_variables' => [
+                    'mode' => 'allowList',
+                    'terms' => ['id'],
+                ],
+                'frame_context_lines' => 3,
+            ],
             'max_value_length' => 255,
             'transport' => new Reference('App\\Sentry\\Transport'),
             'http_client' => new Reference('App\\Sentry\\HttpClient'),
@@ -394,6 +458,73 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertInstanceOf(Definition::class, $methodCalls[2][1][0]);
         $this->assertSame(RepresentationSerializer::class, $methodCalls[2][1][0]->getClass());
         $this->assertEquals($methodCalls[2][1][0]->getArgument(0), new Reference('sentry.client.options'));
+    }
+
+    public function testDataCollectionOptionIsAcceptedByTheSdk(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+        $dataCollection = $this->createDataCollectionOptions($container);
+
+        $this->assertFalse($dataCollection->shouldCollectUserInfo());
+        $this->assertEquals(KeyValueCollectionBehavior::allowList(['theme']), $dataCollection->getCookies());
+        $this->assertEquals([
+            'request' => KeyValueCollectionBehavior::denyList(['x-forwarded-for']),
+            'response' => KeyValueCollectionBehavior::off(),
+        ], $dataCollection->getHttpHeaders());
+        $this->assertSame([HttpMessageType::incomingRequest(), HttpMessageType::outgoingRequest()], $dataCollection->getHttpBodies());
+        $this->assertEquals(KeyValueCollectionBehavior::denyList(['email']), $dataCollection->getUrlQueryParams());
+        $this->assertSame(['inputs' => false, 'outputs' => true], $dataCollection->getGenAi());
+        $this->assertFalse($dataCollection->shouldCollectDatabaseQueryData());
+        $this->assertFalse($dataCollection->shouldCollectQueues());
+        $this->assertEquals(KeyValueCollectionBehavior::allowList(['id']), $dataCollection->getStackFrameVariables());
+        $this->assertSame(3, $dataCollection->getFrameContextLines());
+    }
+
+    public function testDataCollectionShorthandsAreExpanded(): void
+    {
+        $container = $this->createContainerFromFixture('data_collection_shorthand');
+        /** @var array{data_collection: array<string, mixed>} $options */
+        $options = $container->getDefinition('sentry.client.options')->getArgument(0);
+
+        $this->assertEquals([
+            'http_headers' => [
+                'request' => [
+                    'mode' => 'allowList',
+                    'terms' => ['x-request-id'],
+                ],
+                'response' => [
+                    'mode' => 'allowList',
+                    'terms' => ['x-request-id'],
+                ],
+            ],
+            'http_bodies' => [],
+            'stack_frame_variables' => [
+                'mode' => 'off',
+                'terms' => [],
+            ],
+        ], $options['data_collection']);
+
+        $dataCollection = $this->createDataCollectionOptions($container);
+
+        $this->assertEquals([
+            'request' => KeyValueCollectionBehavior::allowList(['x-request-id']),
+            'response' => KeyValueCollectionBehavior::allowList(['x-request-id']),
+        ], $dataCollection->getHttpHeaders());
+        $this->assertSame([], $dataCollection->getHttpBodies());
+        $this->assertEquals(KeyValueCollectionBehavior::off(), $dataCollection->getStackFrameVariables());
+    }
+
+    /**
+     * @testWith ["data_collection_null"]
+     *           ["dsn_null"]
+     */
+    public function testDataCollectionOptionIsNotSetUnlessConfigured(string $fixtureFile): void
+    {
+        $container = $this->createContainerFromFixture($fixtureFile);
+        /** @var array<string, mixed> $options */
+        $options = $container->getDefinition('sentry.client.options')->getArgument(0);
+
+        $this->assertArrayNotHasKey('data_collection', $options);
     }
 
     public function testErrorTypesOptionIsParsedFromStringToIntegerValue(): void
@@ -622,6 +753,21 @@ abstract class SentryExtensionTest extends TestCase
         $container->compile();
 
         return $container;
+    }
+
+    /**
+     * The SDK silently falls back to its defaults for values it does not accept, so the
+     * configuration passed by the bundle is resolved by the SDK to ensure it is applied.
+     */
+    private function createDataCollectionOptions(ContainerBuilder $container): DataCollectionOptions
+    {
+        /** @var array{data_collection: array<string, mixed>} $options */
+        $options = $container->getDefinition('sentry.client.options')->getArgument(0);
+        $dataCollection = (new Options(['data_collection' => $options['data_collection']]))->getDataCollection();
+
+        $this->assertNotNull($dataCollection);
+
+        return $dataCollection;
     }
 
     /**

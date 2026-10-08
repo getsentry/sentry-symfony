@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use Sentry\DataCollection\HttpMessageType;
+use Sentry\DataCollection\KeyValueCollectionBehavior;
 use Sentry\SentryBundle\ErrorTypesParser;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
@@ -145,6 +147,7 @@ final class Configuration implements ConfigurationInterface
                             ->beforeNormalization()->castToArray()->end()
                         ->end()
                         ->booleanNode('send_default_pii')->end()
+                        ->append($this->createDataCollectionNode())
                         ->integerNode('max_value_length')->min(0)->end()
                         ->scalarNode('transport')->end()
                         ->scalarNode('http_client')->end()
@@ -183,6 +186,109 @@ final class Configuration implements ConfigurationInterface
         $this->addDistributedTracingSection($rootNode);
 
         return $treeBuilder;
+    }
+
+    /**
+     * @phpstan-return ArrayNodeDefinition<null>
+     */
+    private function createDataCollectionNode(): ArrayNodeDefinition
+    {
+        $node = new ArrayNodeDefinition('data_collection');
+
+        // @phpstan-ignore-next-line
+        $node
+            ->info('Opts into the data collection options, which replace legacy options such as "send_default_pii". An empty array applies the default of every option, null keeps the legacy options even if an earlier config file opted in.')
+            // A null value is unset after merging, which keeps the legacy options such as `send_default_pii`
+            // even if an earlier config file opted in. The false value is only used internally for this.
+            ->treatNullLike(false)
+            ->canBeUnset()
+            ->beforeNormalization()
+                ->ifTrue(static function ($value): bool {
+                    return false === $value;
+                })
+                ->thenInvalid('Invalid configuration for path "sentry.options.data_collection": the value %s is not supported, use null to keep the legacy options.')
+            ->end()
+            ->fixXmlConfig('http_body', 'http_bodies')
+            ->children()
+                ->booleanNode('user_info')->end()
+                ->append($this->createKeyValueCollectionNode('cookies'))
+                ->arrayNode('http_headers')
+                    ->beforeNormalization()
+                        // Expand the shorthand that applies the same behavior to requests and responses
+                        ->ifTrue(static function ($value): bool {
+                            return null === $value || (\is_array($value) && !\array_key_exists('request', $value) && !\array_key_exists('response', $value));
+                        })
+                        ->then(static function (?array $value): array {
+                            return [
+                                'request' => $value ?? [],
+                                'response' => $value ?? [],
+                            ];
+                        })
+                    ->end()
+                    ->children()
+                        ->append($this->createKeyValueCollectionNode('request'))
+                        ->append($this->createKeyValueCollectionNode('response'))
+                    ->end()
+                ->end()
+                ->arrayNode('http_bodies')
+                    ->info('The body types to collect. All body types are collected if omitted, an empty list collects none.')
+                    ->performNoDeepMerging()
+                    ->defaultValue(HttpMessageType::TYPES)
+                    ->enumPrototype()->values(HttpMessageType::TYPES)->end()
+                ->end()
+                ->append($this->createKeyValueCollectionNode('url_query_params'))
+                ->arrayNode('gen_ai')
+                    ->children()
+                        ->booleanNode('inputs')->end()
+                        ->booleanNode('outputs')->end()
+                    ->end()
+                ->end()
+                ->booleanNode('database_query_data')->end()
+                ->booleanNode('queues')->end()
+                ->append(
+                    $this->createKeyValueCollectionNode('stack_frame_variables')
+                        ->treatTrueLike(['mode' => KeyValueCollectionBehavior::MODE_DENY_LIST])
+                        ->treatFalseLike(['mode' => KeyValueCollectionBehavior::MODE_OFF])
+                )
+                ->integerNode('frame_context_lines')->min(0)->end()
+            ->end();
+
+        return $node;
+    }
+
+    /**
+     * @phpstan-return ArrayNodeDefinition<null>
+     */
+    private function createKeyValueCollectionNode(string $name): ArrayNodeDefinition
+    {
+        $node = new ArrayNodeDefinition($name);
+
+        // @phpstan-ignore-next-line
+        $node
+            ->fixXmlConfig('term')
+            ->children()
+                ->enumNode('mode')
+                    ->values([
+                        KeyValueCollectionBehavior::MODE_OFF,
+                        KeyValueCollectionBehavior::MODE_DENY_LIST,
+                        KeyValueCollectionBehavior::MODE_ALLOW_LIST,
+                    ])
+                ->end()
+                ->arrayNode('terms')
+                    ->performNoDeepMerging()
+                    ->scalarPrototype()
+                        // The SDK ignores the whole behavior if a term is not a string
+                        ->validate()
+                            ->ifTrue(static function ($value): bool {
+                                return !\is_string($value);
+                            })
+                            ->thenInvalid('Expected a string, but got %s.')
+                        ->end()
+                    ->end()
+                ->end()
+            ->end();
+
+        return $node;
     }
 
     /**

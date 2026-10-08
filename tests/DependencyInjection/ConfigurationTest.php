@@ -6,6 +6,7 @@ namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use PHPUnit\Framework\TestCase;
+use Sentry\DataCollection\HttpMessageType;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
 use Symfony\Bundle\TwigBundle\TwigBundle;
@@ -326,6 +327,139 @@ final class ConfigurationTest extends TestCase
     {
         yield [true];
         yield [false];
+    }
+
+    public function testDataCollectionOptionIsNotSetWhenNull(): void
+    {
+        /** @var array{options: array<string, mixed>} $config */
+        $config = $this->processConfiguration(['options' => ['data_collection' => null]]);
+
+        $this->assertArrayNotHasKey('data_collection', $config['options']);
+    }
+
+    public function testDataCollectionOptionIsUnsetWhenNullOverridesAnEarlierConfig(): void
+    {
+        $processor = new Processor();
+        /** @var array{options: array<string, mixed>} $config */
+        $config = $processor->processConfiguration(new Configuration(), [
+            ['options' => ['data_collection' => ['user_info' => true]]],
+            ['options' => ['data_collection' => null]],
+        ]);
+
+        $this->assertArrayNotHasKey('data_collection', $config['options']);
+    }
+
+    public function testDataCollectionOptionOverridesAnEarlierNullConfig(): void
+    {
+        $processor = new Processor();
+        /** @var array{options: array{data_collection: array<string, mixed>}} $config */
+        $config = $processor->processConfiguration(new Configuration(), [
+            ['options' => ['data_collection' => null]],
+            ['options' => ['data_collection' => ['user_info' => true]]],
+        ]);
+
+        $this->assertSame(['user_info' => true, 'http_bodies' => HttpMessageType::TYPES], $config['options']['data_collection']);
+    }
+
+    public function testDataCollectionOptionDoesNotAcceptFalse(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid configuration for path "sentry.options.data_collection": the value false is not supported, use null to keep the legacy options.');
+
+        $this->processConfiguration(['options' => ['data_collection' => false]]);
+    }
+
+    public function testDataCollectionOptionWithEmptyArrayUsesDefaults(): void
+    {
+        /** @var array{options: array{data_collection: array<string, mixed>}} $config */
+        $config = $this->processConfiguration(['options' => ['data_collection' => []]]);
+
+        $this->assertSame(['http_bodies' => HttpMessageType::TYPES], $config['options']['data_collection']);
+    }
+
+    public function testDataCollectionHttpHeadersWithoutValueAreExpanded(): void
+    {
+        /** @var array{options: array{data_collection: array<string, mixed>}} $config */
+        $config = $this->processConfiguration(['options' => ['data_collection' => ['http_headers' => null]]]);
+
+        $this->assertSame([
+            'request' => ['terms' => []],
+            'response' => ['terms' => []],
+        ], $config['options']['data_collection']['http_headers']);
+    }
+
+    /**
+     * @testWith [true, "denyList"]
+     *           [false, "off"]
+     */
+    public function testDataCollectionStackFrameVariablesAcceptBooleans(bool $value, string $expectedMode): void
+    {
+        /** @var array{options: array{data_collection: array<string, mixed>}} $config */
+        $config = $this->processConfiguration(['options' => ['data_collection' => ['stack_frame_variables' => $value]]]);
+
+        $this->assertSame(['mode' => $expectedMode, 'terms' => []], $config['options']['data_collection']['stack_frame_variables']);
+    }
+
+    public function testDataCollectionListsAreReplacedWhenMerged(): void
+    {
+        $processor = new Processor();
+        /** @var array{options: array{data_collection: array<string, mixed>}} $config */
+        $config = $processor->processConfiguration(new Configuration(), [
+            ['options' => ['data_collection' => [
+                'cookies' => ['mode' => 'allowList', 'terms' => ['theme']],
+                'http_bodies' => ['incomingRequest'],
+            ]]],
+            ['options' => ['data_collection' => [
+                'cookies' => ['terms' => ['locale']],
+                'http_bodies' => [],
+            ]]],
+        ]);
+
+        $this->assertSame([
+            'cookies' => ['mode' => 'allowList', 'terms' => ['locale']],
+            'http_bodies' => [],
+        ], $config['options']['data_collection']);
+    }
+
+    /**
+     * @param array<string, mixed> $dataCollection
+     *
+     * @dataProvider dataCollectionOptionWithInvalidValuesDataProvider
+     */
+    public function testDataCollectionOptionWithInvalidValues(array $dataCollection, string $exceptionMessage): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage($exceptionMessage);
+
+        $this->processConfiguration(['options' => ['data_collection' => $dataCollection]]);
+    }
+
+    public function dataCollectionOptionWithInvalidValuesDataProvider(): \Generator
+    {
+        yield [
+            ['cookies' => ['mode' => 'invalid']],
+            'The value "invalid" is not allowed for path "sentry.options.data_collection.cookies.mode".',
+        ];
+
+        yield [
+            ['url_query_params' => ['terms' => [1]]],
+            'Invalid configuration for path "sentry.options.data_collection.url_query_params.terms.0": Expected a string, but got 1.',
+        ];
+
+        yield [
+            ['http_headers' => ['mode' => 'off', 'request' => ['mode' => 'denyList']]],
+            'Unrecognized option "mode" under "sentry.options.data_collection.http_headers".',
+        ];
+
+        yield [
+            ['http_bodies' => ['invalid']],
+            'The value "invalid" is not allowed for path "sentry.options.data_collection.http_bodies.0".',
+        ];
+
+        yield [
+            ['frame_context_lines' => -1],
+            'The value -1 is too small for path "sentry.options.data_collection.frame_context_lines". Should be greater than or equal to 0',
+        ];
     }
 
     /**

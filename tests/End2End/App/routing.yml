@@ -22,6 +22,18 @@ subrequest:
   path:  /subrequest
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::subrequest' }
 
+response_data:
+  path:  /response-data
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::responseData' }
+
+response_data_file:
+  path:  /response-data/file
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::responseDataFile' }
+
+response_data_subrequest:
+  path:  /response-data/subrequest
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::responseDataSubrequest' }
+
 notice:
   path:  /notice
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::notice' }

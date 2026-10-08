@@ -6,10 +6,13 @@ namespace Sentry\SentryBundle\Tests\EventListener;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Sentry\ClientInterface;
+use Sentry\Options;
 use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
 use Sentry\State\HubInterface;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanStatus;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
@@ -138,6 +141,61 @@ final class TracingSubRequestListenerTest extends TestCase
         ];
     }
 
+    /**
+     * @dataProvider handleKernelRequestEventCollectsRequestUrlDataProvider
+     */
+    public function testHandleKernelRequestEventCollectsRequestUrl(Options $options, string $expectedUrl): void
+    {
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->once())
+            ->method('getOptions')
+            ->willReturn($options);
+
+        $this->hub->expects($this->once())
+            ->method('getClient')
+            ->willReturn($client);
+
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn(new Span());
+
+        $this->hub->expects($this->once())
+            ->method('setSpan')
+            ->with($this->callback(function (Span $span) use ($expectedUrl): bool {
+                $this->assertSame($expectedUrl, $span->getData()['http.url'] ?? null);
+
+                return true;
+            }))
+            ->willReturnSelf();
+
+        $this->listener->handleKernelRequestEvent(new RequestEvent(
+            $this->createMock(HttpKernelInterface::class),
+            Request::create('http://www.example.com/path?token=secret&q=a%20b%26c&page=5'),
+            HttpKernelInterface::SUB_REQUEST
+        ));
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function handleKernelRequestEventCollectsRequestUrlDataProvider(): \Generator
+    {
+        yield 'client.options.data_collection IS NULL' => [
+            new Options(),
+            'http://www.example.com/path?page=5&q=a%20b%26c&token=secret',
+        ];
+
+        yield 'client.options.data_collection.url_query_params defaults to denyList' => [
+            new Options(['data_collection' => []]),
+            'http://www.example.com/path?token=[Filtered]&q=a%20b%26c&page=5',
+        ];
+
+        yield 'client.options.data_collection.url_query_params.mode = off' => [
+            new Options(['data_collection' => ['url_query_params' => ['mode' => 'off']]]),
+            'http://www.example.com/path',
+        ];
+    }
+
     public function testHandleKernelRequestEventDoesNothingIfRequestTypeIsMasterRequest(): void
     {
         $this->hub->expects($this->never())
@@ -205,6 +263,69 @@ final class TracingSubRequestListenerTest extends TestCase
             $this->createMock(HttpKernelInterface::class),
             new Request(),
             HttpKernelInterface::SUB_REQUEST
+        ));
+    }
+
+    public function testCollectKernelResponseData(): void
+    {
+        $client = $this->createMock(ClientInterface::class);
+        $client->method('getOptions')
+            ->willReturn(new Options(['data_collection' => []]));
+
+        $span = new Span();
+        $span->setSampled(true);
+
+        $this->hub->method('getClient')
+            ->willReturn($client);
+
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn($span);
+
+        $response = new Response('{"username":"jane","password":"secret"}', 200, ['Content-Type' => 'application/json']);
+        $response->headers->setCookie(Cookie::create('theme', 'dark'));
+
+        $this->listener->collectKernelResponseData(new ResponseEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            HttpKernelInterface::SUB_REQUEST,
+            $response
+        ));
+
+        $data = $span->getData();
+
+        $this->assertSame('application/json', $data['http.response.header.content-type'] ?? null);
+        $this->assertSame('dark', $data['http.response.header.set_cookie.theme'] ?? null);
+        $this->assertSame('{"username":"jane","password":"[Filtered]"}', $data['http.response.body.data'] ?? null);
+    }
+
+    public function testCollectKernelResponseDataDoesNothingIfRequestTypeIsMasterRequest(): void
+    {
+        $this->hub->expects($this->never())
+            ->method('getSpan');
+
+        $this->listener->collectKernelResponseData(new ResponseEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST,
+            new Response()
+        ));
+    }
+
+    public function testCollectKernelResponseDataDoesNothingIfNoSpanIsSetOnHub(): void
+    {
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn(null);
+
+        $this->hub->expects($this->never())
+            ->method('getClient');
+
+        $this->listener->collectKernelResponseData(new ResponseEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            HttpKernelInterface::SUB_REQUEST,
+            new Response()
         ));
     }
 

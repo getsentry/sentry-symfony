@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\DataCollection\DataCollectionPolicy;
+use Sentry\DataCollection\KeyValueCollectionBehavior;
+use Sentry\DataCollection\KeyValueDataFilter;
 use Sentry\Event;
 use Sentry\EventHint;
 use Sentry\ExceptionMechanism;
@@ -11,9 +14,11 @@ use Sentry\Logs\Logs;
 use Sentry\Metrics\TraceMetrics;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\Console\Event\ConsoleTerminateEvent;
+use Symfony\Component\Console\Exception\ExceptionInterface;
 use Symfony\Component\Console\Input\ArgvInput;
 
 /**
@@ -62,8 +67,65 @@ class ConsoleListener
         }
 
         if ($input instanceof ArgvInput) {
-            $scope->setExtra('Full command', (string) $input);
+            $scope->setExtra('Full command', $this->getFullCommand($input, $command));
         }
+    }
+
+    /**
+     * Gets the command as it was run. The data collection options filter the values
+     * of arguments and options with a sensitive name, e.g. "app:import --password=secret"
+     * becomes "app:import --password=[Filtered]".
+     */
+    private function getFullCommand(ArgvInput $input, ?Command $command): string
+    {
+        $fullCommand = (string) $input;
+
+        if (DataCollectionPolicy::fromHub($this->hub)->isLegacyMode()) {
+            return $fullCommand;
+        }
+
+        // The tokens after an invalid one, e.g. an unknown option, are not parsed,
+        // so it is unknown whether their values are sensitive so we assume they are.
+        if (null !== $command && !self::isValidInput($input, $command)) {
+            return $input->escapeToken((string) $command->getName()) . ' ' . KeyValueDataFilter::FILTERED_VALUE;
+        }
+
+        $parameters = array_merge($input->getArguments(), $input->getOptions());
+
+        $filteredParameters = (new KeyValueDataFilter(KeyValueCollectionBehavior::denyList()))->filterKeyValueData($parameters);
+        if (null === $filteredParameters) {
+            return $fullCommand;
+        }
+
+        foreach ($filteredParameters as $name => $value) {
+            if (KeyValueDataFilter::FILTERED_VALUE !== $value) {
+                continue;
+            }
+
+            foreach ((array) $parameters[$name] as $sensitiveValue) {
+                if (!\is_string($sensitiveValue) || '' === $sensitiveValue) {
+                    continue;
+                }
+
+                // The value is either its own token, follows a "=" or shortcuts, e.g. "--password secret", "--password=secret" or "-fpsecret"
+                $pattern = '/(^|\s|=|\s-[a-zA-Z]+)' . preg_quote($input->escapeToken($sensitiveValue), '/') . '(?=\s|$)/';
+                $fullCommand = preg_replace($pattern, '$1' . KeyValueDataFilter::FILTERED_VALUE, $fullCommand) ?? $fullCommand;
+            }
+        }
+
+        return $fullCommand;
+    }
+
+    private static function isValidInput(ArgvInput $input, Command $command): bool
+    {
+        try {
+            // A copy is bound to not change the input of the command
+            (clone $input)->bind($command->getDefinition());
+        } catch (ExceptionInterface $exception) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

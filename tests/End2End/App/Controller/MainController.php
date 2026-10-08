@@ -7,6 +7,8 @@ namespace Sentry\SentryBundle\Tests\End2End\App\Controller;
 use Sentry\SentrySdk;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -76,6 +78,31 @@ class MainController
         $path['_controller'] = __CLASS__ . '::index';
 
         $subRequest = $request->duplicate([], null, $path);
+
+        return $this->kernel->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
+    }
+
+    public function responseData(): Response
+    {
+        $response = new JsonResponse(['username' => 'jane', 'password' => 'secret'], 200, ['X-Auth-Token' => 'foo']);
+        $response->headers->setCookie(Cookie::create('session_id', 'abc'));
+        $response->headers->setCookie(Cookie::create('theme', 'dark'));
+
+        return $response;
+    }
+
+    public function responseDataFile(): Response
+    {
+        // Symfony < 6.0 requires symfony/mime to guess the content type otherwise
+        return new BinaryFileResponse(__FILE__, 200, ['Content-Type' => 'application/octet-stream']);
+    }
+
+    public function responseDataSubrequest(): Response
+    {
+        $request = $this->requestStack->getCurrentRequest();
+        \assert($request instanceof Request);
+
+        $subRequest = $request->duplicate([], null, ['_controller' => __CLASS__ . '::responseData']);
 
         return $this->kernel->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
     }
