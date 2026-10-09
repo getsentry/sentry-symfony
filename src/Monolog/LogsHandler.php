@@ -26,7 +26,7 @@ class LogsHandler extends BaseLogsHandler
      *
      * @phpstan-param value-of<MonologLevel::VALUES>|value-of<MonologLevel::NAMES>|MonologLevel|PsrLogLevel::* $level
      */
-    public function __construct($level = MonologLogger::DEBUG, bool $bubble = true)
+    public function __construct($level = MonologLogger::DEBUG, bool $bubble = true, bool $includeChannel = false)
     {
         try {
             $level = MonologLogger::toMonologLevel($level);
@@ -37,7 +37,7 @@ class LogsHandler extends BaseLogsHandler
             $level = $level->value;
         }
         $logLevel = self::getSentryLogLevelFromMonologLevel($level);
-        parent::__construct($logLevel, $bubble);
+        parent::__construct($logLevel, $bubble, $includeChannel);
     }
 
     /**
