@@ -189,11 +189,19 @@ final class ErrorReportingHandlersTest extends TestCase
         $logger = new Logger('php', [new PhpErrorHandler($this->hub, $this->tracker, false), $nextHandler]);
 
         $logger->debug('User Warning: silenced', ['exception' => new SilencedErrorContext(\E_USER_WARNING, __FILE__, __LINE__)]);
+
         $this->assertSame([], $nextHandler->getRecords());
+    }
+
+    public function testOtherRecordsReachOtherHandlersWhenSilencedErrorsMustNotBubble(): void
+    {
+        $nextHandler = new TestHandler();
+        $logger = new Logger('php', [new PhpErrorHandler($this->hub, $this->tracker, false), $nextHandler]);
 
         // Symfony always logs deprecations, silenced or not
         $logger->info('User Deprecated: foo', ['exception' => new \ErrorException('User Deprecated: foo', 0, \E_USER_DEPRECATED)]);
         $logger->info('No exception attached');
+
         $this->assertCount(2, $nextHandler->getRecords());
     }
 

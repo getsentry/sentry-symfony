@@ -42,24 +42,26 @@ final class UncaughtExceptionHandler extends AbstractHandler
         // Messages that will be retried are logged at WARNING level since Symfony 5.1
         $this->minLevel = $captureSoftFails ? Logger::WARNING : Logger::ERROR;
 
-        parent::__construct($this->minLevel, true);
+        parent::__construct($captureSoftFails ? 'warning' : 'error', true);
 
         $this->hub = $hub;
         $this->tracker = $tracker;
         $this->captureSoftFails = $captureSoftFails;
-        $this->exceptionHandler = new ExceptionToSentryIssueHandler($hub, Logger::ERROR);
+        $this->exceptionHandler = new ExceptionToSentryIssueHandler($hub, 'error');
     }
 
     /**
      * Called by Monolog for every record, also without calling isHandling() first (e.g. when the logger has no
      * processors), so everything up to the exception check must stay cheap.
      *
-     * @param array<string, mixed>|LogRecord $record
+     * @param array{channel: string, level: int, context: array<string, mixed>}|LogRecord $record
      */
     public function handle($record): bool
     {
         if ($record instanceof LogRecord) {
+            /** @psalm-suppress UndefinedPropertyFetch */
             $level = $record->level->value;
+            /** @psalm-suppress UndefinedPropertyFetch */
             $context = $record->context;
         } else {
             $level = $record['level'];

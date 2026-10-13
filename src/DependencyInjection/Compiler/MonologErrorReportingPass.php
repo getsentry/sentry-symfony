@@ -57,10 +57,24 @@ final class MonologErrorReportingPass implements CompilerPassInterface
             self::PHP_ERROR_CHANNELS
         );
 
-        $this->pushHandler($container, SentryExtension::MONOLOG_UNCAUGHT_EXCEPTION_HANDLER_SERVICE_ID, $uncaughtExceptionChannels);
+        $uncaughtExceptionHandlerPushed = $this->pushHandler($container, SentryExtension::MONOLOG_UNCAUGHT_EXCEPTION_HANDLER_SERVICE_ID, $uncaughtExceptionChannels);
+        $phpErrorHandlerPushed = $this->pushHandler($container, SentryExtension::MONOLOG_PHP_ERROR_HANDLER_SERVICE_ID, self::PHP_ERROR_CHANNELS);
 
-        if ($this->pushHandler($container, SentryExtension::MONOLOG_PHP_ERROR_HANDLER_SERVICE_ID, self::PHP_ERROR_CHANNELS)) {
+        if ($phpErrorHandlerPushed) {
             $this->enableScreamMode($container);
+        }
+
+        // Without MonologBundle, or without any of the channels, nothing uses the handlers
+        if (!$uncaughtExceptionHandlerPushed) {
+            $container->removeDefinition(SentryExtension::MONOLOG_UNCAUGHT_EXCEPTION_HANDLER_SERVICE_ID);
+        }
+
+        if (!$phpErrorHandlerPushed) {
+            $container->removeDefinition(SentryExtension::MONOLOG_PHP_ERROR_HANDLER_SERVICE_ID);
+        }
+
+        if (!$uncaughtExceptionHandlerPushed && !$phpErrorHandlerPushed) {
+            $container->removeDefinition(SentryExtension::MONOLOG_CAPTURED_EXCEPTION_TRACKER_SERVICE_ID);
         }
     }
 

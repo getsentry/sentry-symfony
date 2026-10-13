@@ -6,6 +6,7 @@ namespace Sentry\SentryBundle\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
+use Monolog\Handler\AbstractHandler;
 use Psr\Log\NullLogger;
 use Sentry\Client;
 use Sentry\ClientBuilder;
@@ -46,6 +47,8 @@ final class SentryExtension extends ConfigurableExtension
     public const MONOLOG_PHP_ERROR_HANDLER_SERVICE_ID = 'sentry.monolog.php_error_handler';
 
     public const MONOLOG_UNCAUGHT_EXCEPTION_HANDLER_SERVICE_ID = 'sentry.monolog.uncaught_exception_handler';
+
+    public const MONOLOG_CAPTURED_EXCEPTION_TRACKER_SERVICE_ID = 'sentry.monolog.captured_exception_tracker';
 
     /**
      * {@inheritdoc}
@@ -226,10 +229,19 @@ final class SentryExtension extends ConfigurableExtension
             return;
         }
 
-        $container->register('sentry.monolog.captured_exception_tracker', CapturedExceptionTracker::class)
+        // Monolog is an optional dependency: without it, errors keep being reported by the error listener and the
+        // error handler of the SDK, as configured by the "register_error_listener" and "register_error_handler" options
+        if (!class_exists(AbstractHandler::class)) {
+            return;
+        }
+
+        /** @var array{capture_soft_fails: bool} $messengerConfig */
+        $messengerConfig = $config['messenger'];
+
+        $container->register(self::MONOLOG_CAPTURED_EXCEPTION_TRACKER_SERVICE_ID, CapturedExceptionTracker::class)
             ->setPublic(false);
 
-        $tracker = new Reference('sentry.monolog.captured_exception_tracker');
+        $tracker = new Reference(self::MONOLOG_CAPTURED_EXCEPTION_TRACKER_SERVICE_ID);
 
         $container
             ->register(self::MONOLOG_PHP_ERROR_HANDLER_SERVICE_ID, PhpErrorHandler::class)
@@ -240,7 +252,7 @@ final class SentryExtension extends ConfigurableExtension
         $container
             ->register(self::MONOLOG_UNCAUGHT_EXCEPTION_HANDLER_SERVICE_ID, UncaughtExceptionHandler::class)
             ->setPublic(false)
-            ->setArguments([new Reference(HubInterface::class), $tracker, $config['messenger']['capture_soft_fails']]);
+            ->setArguments([new Reference(HubInterface::class), $tracker, $messengerConfig['capture_soft_fails']]);
     }
 
     /**

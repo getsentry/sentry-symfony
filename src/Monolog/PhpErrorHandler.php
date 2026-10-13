@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Monolog;
 
 use Monolog\Handler\AbstractHandler;
-use Monolog\Logger;
 use Monolog\LogRecord;
 use Sentry\Exception\SilencedErrorException;
 use Sentry\State\HubInterface;
@@ -47,7 +46,7 @@ final class PhpErrorHandler extends AbstractHandler
      */
     public function __construct(HubInterface $hub, CapturedExceptionTracker $tracker, bool $bubbleSilencedErrors = true)
     {
-        parent::__construct(Logger::DEBUG, true);
+        parent::__construct('debug', true);
 
         $this->hub = $hub;
         $this->tracker = $tracker;
@@ -60,7 +59,7 @@ final class PhpErrorHandler extends AbstractHandler
     }
 
     /**
-     * @param array<string, mixed>|LogRecord $record
+     * @param array{message: string, context: array<string, mixed>}|LogRecord $record
      */
     public function handle($record): bool
     {

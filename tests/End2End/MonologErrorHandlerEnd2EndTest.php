@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\End2End;
 
+use Monolog\Logger;
 use Sentry\Event;
 use Sentry\SentryBundle\Monolog\PhpErrorHandler;
 use Sentry\SentryBundle\Monolog\UncaughtExceptionHandler;
@@ -15,8 +16,10 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * @runTestsInSeparateProcesses
@@ -40,23 +43,27 @@ final class MonologErrorHandlerEnd2EndTest extends WebTestCase
         self::$kernelClass = KernelWithMonologErrors::class;
         StubTransport::$events = [];
 
-        // Like symfony/runtime does in real applications: otherwise FrameworkBundle doesn't replace PHPUnit's handler
-        if ('testDuplicatesWhenListenersStayEnabled' === (method_exists($this, 'name') ? $this->name() : $this->getName(false))) {
-            return;
-        }
-
-        \Symfony\Component\ErrorHandler\ErrorHandler::register(new \Symfony\Component\ErrorHandler\ErrorHandler(new \Symfony\Component\ErrorHandler\BufferingLogger(), false));
+        // Like symfony/runtime does in real applications: otherwise FrameworkBundle doesn't replace PHPUnit's handler.
+        // Without a bootstrapping logger, nothing is printed when no logger gets configured (e.g. when the SDK's error
+        // handler is registered on top of it)
+        \Symfony\Component\ErrorHandler\ErrorHandler::register(new \Symfony\Component\ErrorHandler\ErrorHandler(null, false));
         file_put_contents(End2EndTest::SENT_EVENTS_LOG, '');
     }
 
     public function testHandlersArePushedFirstToTheErrorChannelsOnly(): void
     {
-        $container = self::bootKernel()->getContainer()->get('test.service_container');
+        $container = $this->getTestContainer();
 
-        $this->assertInstanceOf(PhpErrorHandler::class, $container->get('monolog.logger.php')->getHandlers()[0]);
+        $this->assertInstanceOf(PhpErrorHandler::class, $this->getLogger($container, 'monolog.logger.php')->getHandlers()[0]);
 
-        foreach (['monolog.logger.request', 'monolog.logger.console', 'monolog.logger.messenger'] as $id) {
-            $this->assertInstanceOf(UncaughtExceptionHandler::class, $container->get($id)->getHandlers()[0], $id);
+        $channels = ['monolog.logger.request', 'monolog.logger.console'];
+
+        if (interface_exists(MessageBusInterface::class)) {
+            $channels[] = 'monolog.logger.messenger';
+        }
+
+        foreach ($channels as $id) {
+            $this->assertInstanceOf(UncaughtExceptionHandler::class, $this->getLogger($container, $id)->getHandlers()[0], $id);
         }
 
         foreach (['monolog.logger', 'monolog.logger.event', 'monolog.logger.cache'] as $id) {
@@ -64,7 +71,7 @@ final class MonologErrorHandlerEnd2EndTest extends WebTestCase
                 continue;
             }
 
-            foreach ($container->get($id)->getHandlers() as $handler) {
+            foreach ($this->getLogger($container, $id)->getHandlers() as $handler) {
                 $this->assertNotInstanceOf(PhpErrorHandler::class, $handler, $id);
                 $this->assertNotInstanceOf(UncaughtExceptionHandler::class, $handler, $id);
             }
@@ -73,9 +80,9 @@ final class MonologErrorHandlerEnd2EndTest extends WebTestCase
 
     public function testExceptionHandledAndLoggedByTheApplicationIsNotCaptured(): void
     {
-        $container = self::bootKernel()->getContainer()->get('test.service_container');
+        $container = $this->getTestContainer();
 
-        $container->get('monolog.logger')->error('Payment failed', ['exception' => new \RuntimeException()]);
+        $this->getLogger($container, 'monolog.logger')->error('Payment failed', ['exception' => new \RuntimeException()]);
 
         $this->assertCapturedExceptions([]);
     }
@@ -107,22 +114,6 @@ final class MonologErrorHandlerEnd2EndTest extends WebTestCase
 
         $this->assertSame(400, $client->getResponse()->getStatusCode());
         $this->assertCapturedExceptions([]);
-    }
-
-    public function testFatal(): void
-    {
-        $this->markTestSkipped('The insulated client process does not run setUp(), so Symfony\'s ErrorHandler is not registered there; verified outside PHPUnit instead (1 FatalError event).');
-
-        $client = static::createClient();
-        $client->insulate(true);
-
-        try {
-            $client->request('GET', '/fatal');
-        } catch (\RuntimeException $e) {
-            // insulated client rethrows the fatal
-        }
-
-        $this->assertEventCount(1);
     }
 
     public function testSilencedNotice(): void
@@ -162,6 +153,8 @@ final class MonologErrorHandlerEnd2EndTest extends WebTestCase
 
     public function testMessengerHardFailure(): void
     {
+        $this->skipIfMessengerIsMissing();
+
         $client = static::createClient(['debug' => false]);
         $client->request('GET', '/dispatch-unrecoverable-message');
         $this->consumeOneMessage($client->getKernel());
@@ -172,6 +165,8 @@ final class MonologErrorHandlerEnd2EndTest extends WebTestCase
 
     public function testMessengerSoftFailureIsNotCaptured(): void
     {
+        $this->skipIfMessengerIsMissing();
+
         $client = static::createClient(['debug' => false]);
         $client->request('GET', '/dispatch-message');
         $this->consumeOneMessage($client->getKernel());
@@ -204,6 +199,13 @@ final class MonologErrorHandlerEnd2EndTest extends WebTestCase
         $this->assertCapturedExceptions([\RuntimeException::class, \RuntimeException::class]);
     }
 
+    private function skipIfMessengerIsMissing(): void
+    {
+        if (!interface_exists(MessageBusInterface::class)) {
+            $this->markTestSkipped('Messenger missing');
+        }
+    }
+
     private function consumeOneMessage(KernelInterface $kernel): void
     {
         $command = (new Application($kernel))->find('messenger:consume');
@@ -224,16 +226,26 @@ final class MonologErrorHandlerEnd2EndTest extends WebTestCase
         $this->assertSame($expected, $actual, $this->describeEvents());
     }
 
-    private function assertEventCount(int $expected): void
+    private function getLogger(ContainerInterface $container, string $id): Logger
     {
-        $events = array_filter(explode(StubTransport::SEPARATOR, trim((string) file_get_contents(End2EndTest::SENT_EVENTS_LOG))));
-        $this->assertCount($expected, $events, implode("\n", $events));
+        $logger = $container->get($id);
+        $this->assertInstanceOf(Logger::class, $logger);
+
+        return $logger;
+    }
+
+    private function getTestContainer(): ContainerInterface
+    {
+        $container = self::bootKernel()->getContainer()->get('test.service_container');
+        $this->assertInstanceOf(ContainerInterface::class, $container);
+
+        return $container;
     }
 
     private function describeEvents(): string
     {
         return implode("\n", array_map(static function (Event $event): string {
-            return json_encode(['msg' => $event->getMessage(), 'exc' => array_map(static function ($e) {
+            return (string) json_encode(['msg' => $event->getMessage(), 'exc' => array_map(static function ($e) {
                 return $e->getType() . ': ' . $e->getValue();
             }, $event->getExceptions()), 'extra' => $event->getExtra()]);
         }, StubTransport::$events));

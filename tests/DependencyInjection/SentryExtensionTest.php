@@ -6,6 +6,7 @@ namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
+use Monolog\Handler\AbstractHandler;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
@@ -101,10 +102,14 @@ abstract class SentryExtensionTest extends TestCase
 
     public function testMonologHandlersAreRegisteredWhenEnabled(): void
     {
-        $container = $this->createContainerFromFixture('monolog_handler_enabled');
-        $tracker = new Reference('sentry.monolog.captured_exception_tracker');
+        if (!class_exists(AbstractHandler::class)) {
+            $this->markTestSkipped('Monolog is not installed.');
+        }
 
-        $this->assertSame(CapturedExceptionTracker::class, $container->getDefinition('sentry.monolog.captured_exception_tracker')->getClass());
+        $container = $this->createContainerFromFixture('monolog_handler_enabled');
+        $tracker = new Reference(SentryExtension::MONOLOG_CAPTURED_EXCEPTION_TRACKER_SERVICE_ID);
+
+        $this->assertSame(CapturedExceptionTracker::class, $container->getDefinition(SentryExtension::MONOLOG_CAPTURED_EXCEPTION_TRACKER_SERVICE_ID)->getClass());
 
         $definition = $container->getDefinition(SentryExtension::MONOLOG_PHP_ERROR_HANDLER_SERVICE_ID);
         $this->assertSame(PhpErrorHandler::class, $definition->getClass());
