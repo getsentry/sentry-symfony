@@ -143,7 +143,7 @@ final class MonologErrorHandlerEnd2EndTest extends WebTestCase
         $client->request('GET', '/notice');
 
         $this->assertCapturedExceptions([\Sentry\Exception\SilencedErrorException::class]);
-        $this->assertStringNotContainsString('This is an intentional notice', (string)file_get_contents($logFile));
+        $this->assertStringNotContainsString('This is an intentional notice', (string) file_get_contents($logFile));
     }
 
     public function testCommand(): void
@@ -226,7 +226,7 @@ final class MonologErrorHandlerEnd2EndTest extends WebTestCase
 
     private function assertEventCount(int $expected): void
     {
-        $events = array_filter(explode(StubTransport::SEPARATOR, trim((string)file_get_contents(End2EndTest::SENT_EVENTS_LOG))));
+        $events = array_filter(explode(StubTransport::SEPARATOR, trim((string) file_get_contents(End2EndTest::SENT_EVENTS_LOG))));
         $this->assertCount($expected, $events, implode("\n", $events));
     }
 
