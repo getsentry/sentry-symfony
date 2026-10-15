@@ -24,6 +24,7 @@ final class ConfigurationTest extends TestCase
         $expectedBundleDefaultConfig = [
             'register_error_listener' => true,
             'register_error_handler' => true,
+            'register_monolog_handler' => false,
             'logger' => null,
             'options' => [
                 'integrations' => [],

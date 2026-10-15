@@ -6,6 +6,7 @@ namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
+use Monolog\Handler\AbstractHandler;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
@@ -27,6 +28,9 @@ use Sentry\SentryBundle\EventListener\TracingConsoleListener;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
 use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
 use Sentry\SentryBundle\Integration\IntegrationConfigurator;
+use Sentry\SentryBundle\Monolog\CapturedExceptionTracker;
+use Sentry\SentryBundle\Monolog\PhpErrorHandler;
+use Sentry\SentryBundle\Monolog\UncaughtExceptionHandler;
 use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Serializer\ConsoleInputSerializer;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
@@ -86,6 +90,35 @@ abstract class SentryExtensionTest extends TestCase
         $definition = $container->getDefinition(IntegrationConfigurator::class);
 
         $this->assertSame($expected, $definition->getArgument(1));
+    }
+
+    public function testMonologHandlersAreNotRegisteredByDefault(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+
+        $this->assertFalse($container->hasDefinition(SentryExtension::MONOLOG_PHP_ERROR_HANDLER_SERVICE_ID));
+        $this->assertFalse($container->hasDefinition(SentryExtension::MONOLOG_UNCAUGHT_EXCEPTION_HANDLER_SERVICE_ID));
+    }
+
+    public function testMonologHandlersAreRegisteredWhenEnabled(): void
+    {
+        if (!class_exists(AbstractHandler::class)) {
+            $this->markTestSkipped('Monolog is not installed.');
+        }
+
+        $container = $this->createContainerFromFixture('monolog_handler_enabled');
+        $tracker = new Reference(SentryExtension::MONOLOG_CAPTURED_EXCEPTION_TRACKER_SERVICE_ID);
+
+        $this->assertSame(CapturedExceptionTracker::class, $container->getDefinition(SentryExtension::MONOLOG_CAPTURED_EXCEPTION_TRACKER_SERVICE_ID)->getClass());
+
+        $definition = $container->getDefinition(SentryExtension::MONOLOG_PHP_ERROR_HANDLER_SERVICE_ID);
+        $this->assertSame(PhpErrorHandler::class, $definition->getClass());
+        // Silenced errors bubble unless MonologErrorReportingPass enables the scream mode itself
+        $this->assertEquals([new Reference(HubInterface::class), $tracker, true], $definition->getArguments());
+
+        $definition = $container->getDefinition(SentryExtension::MONOLOG_UNCAUGHT_EXCEPTION_HANDLER_SERVICE_ID);
+        $this->assertSame(UncaughtExceptionHandler::class, $definition->getClass());
+        $this->assertEquals([new Reference(HubInterface::class), $tracker, false], $definition->getArguments());
     }
 
     public function testConsoleCommandListener(): void
