@@ -7,6 +7,7 @@ namespace Sentry\SentryBundle\DependencyInjection;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Sentry\DataCollection\HttpMessageType;
 use Sentry\DataCollection\KeyValueCollectionBehavior;
+use Sentry\SentryBundle\DependencyInjection\Config\NullableFloatNodeDefinition;
 use Sentry\SentryBundle\ErrorTypesParser;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
@@ -83,17 +84,19 @@ final class Configuration implements ConfigurationInterface
                             ->info('The sampling factor to apply to events. A value of 0 will deny sending any event, and a value of 1 will send all events.')
                         ->end()
                         ->booleanNode('enable_tracing')->end()
-                        ->floatNode('traces_sample_rate')
-                            ->min(0.0)
-                            ->max(1.0)
-                            ->info('The sampling factor to apply to transactions. A value of 0 will deny sending any transaction, and a value of 1 will send all transactions.')
-                        ->end()
+                        ->append(
+                            (new NullableFloatNodeDefinition('traces_sample_rate'))
+                                ->min(0.0)
+                                ->max(1.0)
+                                ->info('The sampling factor to apply to transactions. A value of 0 will deny sending any transaction, and a value of 1 will send all transactions. A value of null disables tracing unless "traces_sampler" is set.')
+                        )
                         ->scalarNode('traces_sampler')->end()
-                        ->floatNode('profiles_sample_rate')
-                            ->min(0.0)
-                            ->max(1.0)
-                            ->info('The sampling factor to apply to profiles. A value of 0 will deny sending any profiles, and a value of 1 will send all profiles. Profiles are sampled in relation to traces_sample_rate')
-                        ->end()
+                        ->append(
+                            (new NullableFloatNodeDefinition('profiles_sample_rate'))
+                                ->min(0.0)
+                                ->max(1.0)
+                                ->info('The sampling factor to apply to profiles. A value of 0 will deny sending any profiles, and a value of 1 will send all profiles. Profiles are sampled in relation to traces_sample_rate')
+                        )
                         ->booleanNode('enable_logs')->end()
                         ->variableNode('log_flush_threshold')->defaultNull()->end()
                         ->booleanNode('enable_metrics')->defaultTrue()->end()
