@@ -267,6 +267,18 @@ final class SchedulerListenerTest extends TestCase
         yield 'half hour offset' => ['+05:30', null];
     }
 
+    public function testCronWithWeekdayNamesAndStepHasNoSchedule(): void
+    {
+        // Older cron-expression versions can't compute the run dates, so build the context by hand
+        $trigger = CronExpressionTrigger::fromSpec('0 0 * * MON-FRI/2');
+        $context = new MessageContext('default', 'a1b2c3d4', $trigger, new \DateTimeImmutable('2026-01-02 00:00:00', new \DateTimeZone('UTC')));
+
+        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $context, new SendDailyReportMessage()));
+
+        $this->assertCount(1, $this->checkIns);
+        $this->assertNull($this->checkIns[0]['monitor_config']);
+    }
+
     public function testHashedCronExpression(): void
     {
         $trigger = CronExpressionTrigger::fromSpec('#midnight', 'context');
@@ -324,7 +336,6 @@ final class SchedulerListenerTest extends TestCase
         yield 'cron last friday by name' => [static function () { return CronExpressionTrigger::fromSpec('0 0 * * FRIL'); }, null];
         yield 'cron day step and weekday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 */2 * 1'); }, null];
         yield 'cron day and weekday step' => [static function () { return CronExpressionTrigger::fromSpec('0 0 1 * */2'); }, null];
-        yield 'cron weekday names with step' => [static function () { return CronExpressionTrigger::fromSpec('0 0 * * MON-FRI/2'); }, null];
         yield 'cron with excluded time' => [static function () use ($excluded) { return $excluded(CronExpressionTrigger::fromSpec('0 * * * *')); }, null];
         yield 'cron with jitter and excluded time' => [static function () use ($excluded) { return new JitterTrigger($excluded(CronExpressionTrigger::fromSpec('0 * * * *'))); }, null];
         yield 'every minute' => [static function () { return new PeriodicalTrigger(60); }, $interval(1, 'minute')];
