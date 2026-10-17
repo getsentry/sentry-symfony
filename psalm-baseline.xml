@@ -18,6 +18,15 @@
       <code><![CDATA[isMasterRequest]]></code>
     </UndefinedMethod>
   </file>
+  <file src="src/EventListener/SchedulerListener.php">
+    <UndefinedPropertyFetch>
+      <code><![CDATA[$context->id]]></code>
+      <code><![CDATA[$context->id]]></code>
+      <code><![CDATA[$context->name]]></code>
+      <code><![CDATA[$context->name]]></code>
+      <code><![CDATA[$context->triggeredAt]]></code>
+    </UndefinedPropertyFetch>
+  </file>
   <file src="src/Monolog/LogsHandler.php">
     <InvalidParamDefault>
       <code><![CDATA[value-of<MonologLevel::VALUES>|value-of<MonologLevel::NAMES>|MonologLevel|PsrLogLevel::*]]></code>
