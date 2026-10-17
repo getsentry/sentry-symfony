@@ -19,11 +19,15 @@
     </UndefinedMethod>
   </file>
   <file src="src/EventListener/SchedulerListener.php">
+    <UndefinedClass>
+      <code><![CDATA[CronExpressionTrigger]]></code>
+    </UndefinedClass>
     <UndefinedPropertyFetch>
       <code><![CDATA[$context->id]]></code>
       <code><![CDATA[$context->id]]></code>
       <code><![CDATA[$context->name]]></code>
       <code><![CDATA[$context->name]]></code>
+      <code><![CDATA[$context->trigger]]></code>
       <code><![CDATA[$context->triggeredAt]]></code>
     </UndefinedPropertyFetch>
   </file>
