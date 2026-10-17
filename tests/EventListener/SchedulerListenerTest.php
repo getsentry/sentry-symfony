@@ -67,7 +67,7 @@ final class SchedulerListenerTest extends TestCase
                 return $checkInId ?? 'check-in-id';
             });
 
-        $this->listener = new SchedulerListener($this->hub);
+        $this->listener = new SchedulerListener($this->hub, ['app:excluded', '/^default-cleanup-/']);
     }
 
     public function testSuccessfulRun(): void
@@ -214,6 +214,35 @@ final class SchedulerListenerTest extends TestCase
         yield 'service call with __invoke' => ['default', new ServiceCallMessage('App\Report\Sender'), 'default-app-report-sender-a1b2c3d4'];
         yield 'named schedule' => ['reports', new SendDailyReportMessage(), 'reports-send-daily-report-message-a1b2c3d4'];
         yield 'long slug' => ['default', new RunCommandMessage('app:a-very-long-command-name --with-many --options'), 'default-app-a-very-long-command-name-with-a1b2c3d4'];
+    }
+
+    /**
+     * @dataProvider excludedMessageDataProvider
+     */
+    public function testExcludedMessageIsNotReported(object $message, bool $isExcluded): void
+    {
+        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $this->createContext(CronExpressionTrigger::fromSpec('0 0 * * *')), $message));
+
+        $this->assertCount($isExcluded ? 0 : 1, $this->checkIns);
+    }
+
+    /**
+     * @return iterable<string, array{object, bool}>
+     */
+    public function excludedMessageDataProvider(): iterable
+    {
+        yield 'command name' => [new RunCommandMessage('app:excluded --force'), true];
+        yield 'slug pattern' => [new RunCommandMessage('cleanup'), true];
+        yield 'other command' => [new RunCommandMessage('app:included'), false];
+        yield 'other message class' => [new SendDailyReportMessage(), false];
+    }
+
+    public function testExcludedMessageClassIsNotReported(): void
+    {
+        $listener = new SchedulerListener($this->hub, [SendDailyReportMessage::class]);
+        $listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $this->createContext(CronExpressionTrigger::fromSpec('0 0 * * *')), new SendDailyReportMessage()));
+
+        $this->assertSame([], $this->checkIns);
     }
 
     private function createContext(TriggerInterface $trigger, string $scheduleName = 'default'): MessageContext

@@ -33,6 +33,11 @@ final class SchedulerListener implements ResetInterface
     private $hub;
 
     /**
+     * @var string[]
+     */
+    private $excludedMessages;
+
+    /**
      * @var array<string, array{slug: string, check_in_id: string, started_at: float}>
      */
     private $checkIns = [];
@@ -42,9 +47,13 @@ final class SchedulerListener implements ResetInterface
      */
     private $redeliveredMessage;
 
-    public function __construct(HubInterface $hub)
+    /**
+     * @param string[] $excludedMessages Message classes, command names or monitor slugs, or regular expressions wrapped in slashes
+     */
+    public function __construct(HubInterface $hub, array $excludedMessages = [])
     {
         $this->hub = $hub;
+        $this->excludedMessages = $excludedMessages;
     }
 
     /**
@@ -71,7 +80,7 @@ final class SchedulerListener implements ResetInterface
             $context = $event->getMessageContext();
             $slug = $this->createSlug($context, $message);
 
-            if (null === $slug) {
+            if (null === $slug || $this->isExcluded($slug, $message)) {
                 return;
             }
 
@@ -159,6 +168,30 @@ final class SchedulerListener implements ResetInterface
         $slug = trim((string) preg_replace('/[^a-z0-9_]+/', '-', strtolower($context->name . '-' . $name)), '-');
 
         return rtrim(substr($slug, 0, self::MAX_SLUG_LENGTH - \strlen($suffix)), '-') . $suffix;
+    }
+
+    private function isExcluded(string $slug, object $message): bool
+    {
+        $names = [$slug, \get_class($message)];
+
+        if ($message instanceof RunCommandMessage) {
+            $names[] = (string) $message;
+            $names[] = explode(' ', trim((string) $message))[0];
+        } elseif ($message instanceof ServiceCallMessage) {
+            $names[] = (string) $message;
+        }
+
+        foreach ($this->excludedMessages as $excluded) {
+            $isPattern = \strlen($excluded) > 2 && '/' === $excluded[0] && '/' === substr($excluded, -1);
+
+            foreach ($names as $name) {
+                if ($isPattern ? 1 === @preg_match($excluded, $name) : $excluded === $name) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private function logException(\Throwable $exception): void
