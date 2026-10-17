@@ -267,13 +267,24 @@ final class SchedulerListenerTest extends TestCase
         yield 'half hour offset' => ['+05:30', null];
     }
 
+    public function testHashedCronExpression(): void
+    {
+        $trigger = CronExpressionTrigger::fromSpec('#midnight', 'context');
+
+        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $this->createContext($trigger), new SendDailyReportMessage()));
+
+        $this->assertNotNull($this->checkIns[0]['monitor_config']);
+        $this->assertSame((string) $trigger, $this->checkIns[0]['monitor_config']->getSchedule()->getValue());
+    }
+
     /**
      * @dataProvider scheduleDataProvider
      *
      * @param array<string, mixed>|null $expectedSchedule
      */
-    public function testSchedule(TriggerInterface $trigger, ?array $expectedSchedule): void
+    public function testSchedule(callable $createTrigger, ?array $expectedSchedule): void
     {
+        $trigger = $createTrigger();
         $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $this->createContext($trigger), new SendDailyReportMessage()));
 
         $this->assertCount(1, $this->checkIns);
@@ -284,7 +295,7 @@ final class SchedulerListenerTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{TriggerInterface, array<string, mixed>|null}>
+     * @return iterable<string, array{callable(): TriggerInterface, array<string, mixed>|null}>
      */
     public function scheduleDataProvider(): iterable
     {
@@ -298,38 +309,39 @@ final class SchedulerListenerTest extends TestCase
             return new ExcludeTimeTrigger($trigger, new \DateTimeImmutable('2026-06-01'), new \DateTimeImmutable('2026-06-02'));
         };
 
-        yield 'cron' => [CronExpressionTrigger::fromSpec('15 * * * 1'), $crontab('15 * * * 1')];
-        yield 'cron alias' => [CronExpressionTrigger::fromSpec('@daily'), $crontab('0 0 * * *')];
-        yield 'hashed cron' => [CronExpressionTrigger::fromSpec('#midnight', 'context'), $crontab((string) CronExpressionTrigger::fromSpec('#midnight', 'context'))];
-        yield 'cron with names' => [CronExpressionTrigger::fromSpec('0 9 * JAN-JUN mon-fri'), $crontab('0 9 * JAN-JUN mon-fri')];
-        yield 'cron with steps and lists' => [CronExpressionTrigger::fromSpec('*/15 8-18/2 1,15 * *'), $crontab('*/15 8-18/2 1,15 * *')];
-        yield 'cron with both days' => [CronExpressionTrigger::fromSpec('0 0 1-7 * 1'), $crontab('0 0 1-7 * 1')];
-        yield 'cron last day of month' => [CronExpressionTrigger::fromSpec('0 0 L * *'), $crontab('0 0 L * *')];
-        yield 'cron last friday' => [CronExpressionTrigger::fromSpec('0 0 * * 5L'), $crontab('0 0 * * 5L')];
-        yield 'cron second friday' => [CronExpressionTrigger::fromSpec('0 0 * * FRI#2', 'context'), $crontab('0 0 * * FRI#2')];
-        yield 'cron question mark' => [CronExpressionTrigger::fromSpec('0 0 ? * MON'), $crontab('0 0 * * MON')];
-        yield 'cron with jitter' => [new JitterTrigger(CronExpressionTrigger::fromSpec('0 * * * *')), $crontab('0 * * * *')];
-        yield 'cron last weekday of month' => [CronExpressionTrigger::fromSpec('0 0 LW * *'), null];
-        yield 'cron nearest weekday' => [CronExpressionTrigger::fromSpec('0 0 15W * *'), null];
-        yield 'cron last friday by name' => [CronExpressionTrigger::fromSpec('0 0 * * FRIL'), null];
-        yield 'cron day step and weekday' => [CronExpressionTrigger::fromSpec('0 0 */2 * 1'), null];
-        yield 'cron day and weekday step' => [CronExpressionTrigger::fromSpec('0 0 1 * */2'), null];
-        yield 'cron weekday names with step' => [CronExpressionTrigger::fromSpec('0 0 * * MON-FRI/2'), null];
-        yield 'cron with excluded time' => [$excluded(CronExpressionTrigger::fromSpec('0 * * * *')), null];
-        yield 'cron with jitter and excluded time' => [new JitterTrigger($excluded(CronExpressionTrigger::fromSpec('0 * * * *'))), null];
-        yield 'every minute' => [new PeriodicalTrigger(60), $interval(1, 'minute')];
-        yield 'every 5 minutes' => [new PeriodicalTrigger('PT5M'), $interval(5, 'minute')];
-        yield 'every 90 minutes' => [new PeriodicalTrigger('90 minutes'), $interval(90, 'minute')];
-        yield 'every 2 hours' => [new PeriodicalTrigger('2 hours'), $interval(2, 'hour')];
-        yield 'every day' => [new PeriodicalTrigger('P1D'), $interval(1, 'day')];
-        yield 'every week' => [new PeriodicalTrigger('P1W'), $interval(1, 'week')];
-        yield 'every 30 seconds' => [new PeriodicalTrigger(30), null];
-        yield 'every 90 seconds' => [new PeriodicalTrigger(90), null];
-        yield 'every day as calendar interval' => [new PeriodicalTrigger('1 day'), null];
-        yield 'every month' => [new PeriodicalTrigger('1 month'), null];
-        yield 'callback' => [new CallbackTrigger(static function (\DateTimeImmutable $run): \DateTimeImmutable {
-            return $run->modify('+1 hour');
-        }, 'hourly'), null];
+        yield 'cron' => [static function () { return CronExpressionTrigger::fromSpec('15 * * * 1'); }, $crontab('15 * * * 1')];
+        yield 'cron alias' => [static function () { return CronExpressionTrigger::fromSpec('@daily'); }, $crontab('0 0 * * *')];
+        yield 'cron with names' => [static function () { return CronExpressionTrigger::fromSpec('0 9 * JAN-JUN mon-fri'); }, $crontab('0 9 * JAN-JUN mon-fri')];
+        yield 'cron with steps and lists' => [static function () { return CronExpressionTrigger::fromSpec('*/15 8-18/2 1,15 * *'); }, $crontab('*/15 8-18/2 1,15 * *')];
+        yield 'cron with both days' => [static function () { return CronExpressionTrigger::fromSpec('0 0 1-7 * 1'); }, $crontab('0 0 1-7 * 1')];
+        yield 'cron last day of month' => [static function () { return CronExpressionTrigger::fromSpec('0 0 L * *'); }, $crontab('0 0 L * *')];
+        yield 'cron last friday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 * * 5L'); }, $crontab('0 0 * * 5L')];
+        yield 'cron second friday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 * * FRI#2', 'context'); }, $crontab('0 0 * * FRI#2')];
+        yield 'cron question mark' => [static function () { return CronExpressionTrigger::fromSpec('0 0 ? * MON'); }, $crontab('0 0 * * MON')];
+        yield 'cron with jitter' => [static function () { return new JitterTrigger(CronExpressionTrigger::fromSpec('0 * * * *')); }, $crontab('0 * * * *')];
+        yield 'cron last weekday of month' => [static function () { return CronExpressionTrigger::fromSpec('0 0 LW * *'); }, null];
+        yield 'cron nearest weekday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 15W * *'); }, null];
+        yield 'cron last friday by name' => [static function () { return CronExpressionTrigger::fromSpec('0 0 * * FRIL'); }, null];
+        yield 'cron day step and weekday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 */2 * 1'); }, null];
+        yield 'cron day and weekday step' => [static function () { return CronExpressionTrigger::fromSpec('0 0 1 * */2'); }, null];
+        yield 'cron weekday names with step' => [static function () { return CronExpressionTrigger::fromSpec('0 0 * * MON-FRI/2'); }, null];
+        yield 'cron with excluded time' => [static function () use ($excluded) { return $excluded(CronExpressionTrigger::fromSpec('0 * * * *')); }, null];
+        yield 'cron with jitter and excluded time' => [static function () use ($excluded) { return new JitterTrigger($excluded(CronExpressionTrigger::fromSpec('0 * * * *'))); }, null];
+        yield 'every minute' => [static function () { return new PeriodicalTrigger(60); }, $interval(1, 'minute')];
+        yield 'every 5 minutes' => [static function () { return new PeriodicalTrigger('PT5M'); }, $interval(5, 'minute')];
+        yield 'every 90 minutes' => [static function () { return new PeriodicalTrigger('90 minutes'); }, $interval(90, 'minute')];
+        yield 'every 2 hours' => [static function () { return new PeriodicalTrigger('2 hours'); }, $interval(2, 'hour')];
+        yield 'every day' => [static function () { return new PeriodicalTrigger('P1D'); }, $interval(1, 'day')];
+        yield 'every week' => [static function () { return new PeriodicalTrigger('P1W'); }, $interval(1, 'week')];
+        yield 'every 30 seconds' => [static function () { return new PeriodicalTrigger(30); }, null];
+        yield 'every 90 seconds' => [static function () { return new PeriodicalTrigger(90); }, null];
+        yield 'every day as calendar interval' => [static function () { return new PeriodicalTrigger('1 day'); }, null];
+        yield 'every month' => [static function () { return new PeriodicalTrigger('1 month'); }, null];
+        yield 'callback' => [static function () {
+            return new CallbackTrigger(static function (\DateTimeImmutable $run): \DateTimeImmutable {
+                return $run->modify('+1 hour');
+            }, 'hourly');
+        }, null];
     }
 
     private function createContext(TriggerInterface $trigger, string $scheduleName = 'default'): MessageContext
