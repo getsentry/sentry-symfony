@@ -220,22 +220,24 @@ final class SchedulerListenerTest extends TestCase
     /**
      * @dataProvider excludedMessageDataProvider
      */
-    public function testExcludedMessageIsNotReported(object $message, bool $isExcluded): void
+    public function testExcludedMessageIsNotReported(?string $command, bool $isExcluded): void
     {
+        $message = null !== $command ? new RunCommandMessage($command) : new SendDailyReportMessage();
+
         $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $this->createContext(CronExpressionTrigger::fromSpec('0 0 * * *')), $message));
 
         $this->assertCount($isExcluded ? 0 : 1, $this->checkIns);
     }
 
     /**
-     * @return iterable<string, array{object, bool}>
+     * @return iterable<string, array{string|null, bool}>
      */
     public function excludedMessageDataProvider(): iterable
     {
-        yield 'command name' => [new RunCommandMessage('app:excluded --force'), true];
-        yield 'slug pattern' => [new RunCommandMessage('cleanup'), true];
-        yield 'other command' => [new RunCommandMessage('app:included'), false];
-        yield 'other message class' => [new SendDailyReportMessage(), false];
+        yield 'command name' => ['app:excluded --force', true];
+        yield 'slug pattern' => ['cleanup', true];
+        yield 'other command' => ['app:included', false];
+        yield 'other message class' => [null, false];
     }
 
     public function testExcludedMessageClassIsNotReported(): void
