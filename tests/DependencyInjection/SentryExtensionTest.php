@@ -221,6 +221,7 @@ abstract class SentryExtensionTest extends TestCase
         $definition = $container->getDefinition(SchedulerListener::class);
 
         $this->assertSame(SchedulerListener::class, $definition->getClass());
+        $this->assertSame(['app:cleanup', '/^reports-/'], $definition->getArgument(1));
         $this->assertSame([
             'kernel.event_listener' => [
                 [

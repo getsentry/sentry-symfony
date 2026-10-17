@@ -52,6 +52,7 @@ final class ConfigurationTest extends TestCase
             ],
             'scheduler' => [
                 'enabled' => false,
+                'excluded_messages' => [],
             ],
             'tracing' => [
                 'enabled' => true,

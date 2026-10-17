@@ -67,7 +67,7 @@ final class SchedulerListenerTest extends TestCase
                 return $checkInId ?? 'check-in-id';
             });
 
-        $this->listener = new SchedulerListener($this->hub);
+        $this->listener = new SchedulerListener($this->hub, ['app:excluded', '/^default-cleanup-/']);
     }
 
     public function testSuccessfulRun(): void
@@ -215,6 +215,37 @@ final class SchedulerListenerTest extends TestCase
         yield 'service call with __invoke' => ['default', static function () { return new ServiceCallMessage('App\Report\Sender'); }, 'default-app-report-sender-a1b2c3d4'];
         yield 'named schedule' => ['reports', static function () { return new SendDailyReportMessage(); }, 'reports-send-daily-report-message-a1b2c3d4'];
         yield 'long slug' => ['default', static function () { return new RunCommandMessage('app:a-very-long-command-name --with-many --options'); }, 'default-app-a-very-long-command-name-with-a1b2c3d4'];
+    }
+
+    /**
+     * @dataProvider excludedMessageDataProvider
+     */
+    public function testExcludedMessageIsNotReported(?string $command, bool $isExcluded): void
+    {
+        $message = null !== $command ? new RunCommandMessage($command) : new SendDailyReportMessage();
+
+        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $this->createContext(CronExpressionTrigger::fromSpec('0 0 * * *')), $message));
+
+        $this->assertCount($isExcluded ? 0 : 1, $this->checkIns);
+    }
+
+    /**
+     * @return iterable<string, array{string|null, bool}>
+     */
+    public function excludedMessageDataProvider(): iterable
+    {
+        yield 'command name' => ['app:excluded --force', true];
+        yield 'slug pattern' => ['cleanup', true];
+        yield 'other command' => ['app:included', false];
+        yield 'other message class' => [null, false];
+    }
+
+    public function testExcludedMessageClassIsNotReported(): void
+    {
+        $listener = new SchedulerListener($this->hub, [SendDailyReportMessage::class]);
+        $listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $this->createContext(CronExpressionTrigger::fromSpec('0 0 * * *')), new SendDailyReportMessage()));
+
+        $this->assertSame([], $this->checkIns);
     }
 
     private function createContext(TriggerInterface $trigger, string $scheduleName = 'default'): MessageContext

@@ -174,6 +174,9 @@
     </xsd:complexType>
 
     <xsd:complexType name="scheduler">
+        <xsd:sequence>
+            <xsd:element name="excluded-message" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
         <xsd:attribute name="enabled" type="xsd:boolean" />
     </xsd:complexType>
 

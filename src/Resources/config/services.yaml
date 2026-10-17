@@ -85,7 +85,9 @@ services:
       - { name: kernel.event_listener, event: 'Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent', method: handleWorkerMessageReceivedEvent, priority: 50 }
 
   Sentry\SentryBundle\EventListener\SchedulerListener:
-    arguments: ['@Sentry\State\HubInterface']
+    arguments:
+      - '@Sentry\State\HubInterface'
+      - []
     tags:
       # Run before the Scheduler dispatches PreRunEvent, which it does with the default priority
       - { name: kernel.event_listener, event: 'Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent', method: handleWorkerMessageReceivedEvent, priority: 10 }
