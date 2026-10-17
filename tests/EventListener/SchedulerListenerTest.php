@@ -192,8 +192,9 @@ final class SchedulerListenerTest extends TestCase
     /**
      * @dataProvider slugDataProvider
      */
-    public function testSlug(string $scheduleName, object $message, string $expectedSlug): void
+    public function testSlug(string $scheduleName, callable $createMessage, string $expectedSlug): void
     {
+        $message = $createMessage();
         $context = $this->createContext(CronExpressionTrigger::fromSpec('0 0 * * *'), $scheduleName);
 
         $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $context, $message));
@@ -204,16 +205,16 @@ final class SchedulerListenerTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{string, object, string}>
+     * @return iterable<string, array{string, callable(): object, string}>
      */
     public function slugDataProvider(): iterable
     {
-        yield 'message class' => ['default', new SendDailyReportMessage(), 'default-send-daily-report-message-a1b2c3d4'];
-        yield 'command' => ['default', new RunCommandMessage('app:send-report --force'), 'default-app-send-report-force-a1b2c3d4'];
-        yield 'service call' => ['default', new ServiceCallMessage('app.report_sender', 'send'), 'default-app-report_sender-send-a1b2c3d4'];
-        yield 'service call with __invoke' => ['default', new ServiceCallMessage('App\Report\Sender'), 'default-app-report-sender-a1b2c3d4'];
-        yield 'named schedule' => ['reports', new SendDailyReportMessage(), 'reports-send-daily-report-message-a1b2c3d4'];
-        yield 'long slug' => ['default', new RunCommandMessage('app:a-very-long-command-name --with-many --options'), 'default-app-a-very-long-command-name-with-a1b2c3d4'];
+        yield 'message class' => ['default', static function () { return new SendDailyReportMessage(); }, 'default-send-daily-report-message-a1b2c3d4'];
+        yield 'command' => ['default', static function () { return new RunCommandMessage('app:send-report --force'); }, 'default-app-send-report-force-a1b2c3d4'];
+        yield 'service call' => ['default', static function () { return new ServiceCallMessage('app.report_sender', 'send'); }, 'default-app-report_sender-send-a1b2c3d4'];
+        yield 'service call with __invoke' => ['default', static function () { return new ServiceCallMessage('App\Report\Sender'); }, 'default-app-report-sender-a1b2c3d4'];
+        yield 'named schedule' => ['reports', static function () { return new SendDailyReportMessage(); }, 'reports-send-daily-report-message-a1b2c3d4'];
+        yield 'long slug' => ['default', static function () { return new RunCommandMessage('app:a-very-long-command-name --with-many --options'); }, 'default-app-a-very-long-command-name-with-a1b2c3d4'];
     }
 
     /**
