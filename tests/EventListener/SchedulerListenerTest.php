@@ -25,6 +25,7 @@ use Symfony\Component\Scheduler\Event\PreRunEvent;
 use Symfony\Component\Scheduler\Generator\MessageContext;
 use Symfony\Component\Scheduler\Messenger\ScheduledStamp;
 use Symfony\Component\Scheduler\Messenger\ServiceCallMessage;
+use Symfony\Component\Scheduler\RecurringMessage;
 use Symfony\Component\Scheduler\Schedule;
 use Symfony\Component\Scheduler\Trigger\CronExpressionTrigger;
 use Symfony\Component\Scheduler\Trigger\TriggerInterface;
@@ -67,7 +68,7 @@ final class SchedulerListenerTest extends TestCase
                 return $checkInId ?? 'check-in-id';
             });
 
-        $this->listener = new SchedulerListener($this->hub, ['app:excluded', '/^default-cleanup-/']);
+        $this->listener = new SchedulerListener($this->hub, ['app:excluded', '/^default-cleanup/']);
     }
 
     public function testSuccessfulRun(): void
@@ -82,7 +83,7 @@ final class SchedulerListenerTest extends TestCase
 
         [$start, $finish] = $this->checkIns;
 
-        $this->assertSame('default-send-daily-report-message-a1b2c3d4', $start['slug']);
+        $this->assertSame('default-send-daily-report-message', $start['slug']);
         $this->assertSame(CheckInStatus::inProgress(), $start['status']);
         $this->assertNull($start['duration']);
         $this->assertNull($start['check_in_id']);
@@ -209,12 +210,12 @@ final class SchedulerListenerTest extends TestCase
      */
     public function slugDataProvider(): iterable
     {
-        yield 'message class' => ['default', static function () { return new SendDailyReportMessage(); }, 'default-send-daily-report-message-a1b2c3d4'];
-        yield 'command' => ['default', static function () { return new RunCommandMessage('app:send-report --force'); }, 'default-app-send-report-force-a1b2c3d4'];
-        yield 'service call' => ['default', static function () { return new ServiceCallMessage('app.report_sender', 'send'); }, 'default-app-report_sender-send-a1b2c3d4'];
-        yield 'service call with __invoke' => ['default', static function () { return new ServiceCallMessage('App\Report\Sender'); }, 'default-app-report-sender-a1b2c3d4'];
-        yield 'named schedule' => ['reports', static function () { return new SendDailyReportMessage(); }, 'reports-send-daily-report-message-a1b2c3d4'];
-        yield 'long slug' => ['default', static function () { return new RunCommandMessage('app:a-very-long-command-name --with-many --options'); }, 'default-app-a-very-long-command-name-with-a1b2c3d4'];
+        yield 'message class' => ['default', static function () { return new SendDailyReportMessage(); }, 'default-send-daily-report-message'];
+        yield 'command' => ['default', static function () { return new RunCommandMessage('app:send-report --force'); }, 'default-app-send-report-force'];
+        yield 'service call' => ['default', static function () { return new ServiceCallMessage('app.report_sender', 'send'); }, 'default-app-report_sender-send'];
+        yield 'service call with __invoke' => ['default', static function () { return new ServiceCallMessage('App\Report\Sender'); }, 'default-app-report-sender'];
+        yield 'named schedule' => ['reports', static function () { return new SendDailyReportMessage(); }, 'reports-send-daily-report-message'];
+        yield 'long slug' => ['default', static function () { return new RunCommandMessage('app:a-very-long-command-name --with-many --options --and-more'); }, 'default-app-a-very-long-command-name-with-many-opt'];
     }
 
     /**
@@ -240,19 +241,63 @@ final class SchedulerListenerTest extends TestCase
         yield 'other message class' => [null, false];
     }
 
-    public function testExcludedMessageClassIsNotReported(): void
+    /**
+     * @dataProvider excludedMessageClassDataProvider
+     */
+    public function testExcludedMessageClassIsNotReported(string $excluded): void
     {
-        $listener = new SchedulerListener($this->hub, [SendDailyReportMessage::class]);
+        $listener = new SchedulerListener($this->hub, [$excluded]);
         $listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $this->createContext(CronExpressionTrigger::fromSpec('0 0 * * *')), new SendDailyReportMessage()));
 
         $this->assertSame([], $this->checkIns);
     }
 
-    private function createContext(TriggerInterface $trigger, string $scheduleName = 'default'): MessageContext
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public function excludedMessageClassDataProvider(): iterable
+    {
+        yield 'message class' => [SendDailyReportMessage::class];
+        yield 'slug' => ['default-send-daily-report-message'];
+    }
+
+    public function testSlugOfMessagesWithTheSameNameInOneScheduleHasTheirId(): void
+    {
+        $hourly = RecurringMessage::cron('0 * * * *', new SendDailyReportMessage());
+        $daily = RecurringMessage::cron('0 0 * * *', new SendDailyReportMessage());
+        $command = RecurringMessage::cron('0 0 * * *', new RunCommandMessage('app:send-report'));
+        $schedule = (new Schedule())->add($hourly, $daily, $command);
+
+        foreach ([$hourly, $daily, $command] as $recurringMessage) {
+            $context = $this->createContext($recurringMessage->getTrigger(), 'default', $recurringMessage->getId());
+
+            foreach ($recurringMessage->getMessages($context) as $message) {
+                $this->listener->handlePreRunEvent(new PreRunEvent($schedule, $context, $message));
+            }
+        }
+
+        $this->assertSame([
+            'default-send-daily-report-message-' . $hourly->getId(),
+            'default-send-daily-report-message-' . $daily->getId(),
+            'default-app-send-report',
+        ], array_column($this->checkIns, 'slug'));
+    }
+
+    public function testSlugOfRedispatchedMessageIgnoresItsOwnRecurringMessage(): void
+    {
+        $recurringMessage = RecurringMessage::cron('0 * * * *', new RedispatchMessage(new SendDailyReportMessage(), 'async'));
+        $context = $this->createContext($recurringMessage->getTrigger(), 'default', $recurringMessage->getId());
+
+        $this->listener->handlePreRunEvent(new PreRunEvent((new Schedule())->add($recurringMessage), $context, new SendDailyReportMessage()));
+
+        $this->assertSame('default-send-daily-report-message', $this->checkIns[0]['slug']);
+    }
+
+    private function createContext(TriggerInterface $trigger, string $scheduleName = 'default', string $id = 'a1b2c3d4'): MessageContext
     {
         $triggeredAt = $trigger->getNextRunDate(new \DateTimeImmutable('2026-01-01 00:00:00', new \DateTimeZone('UTC')));
         $this->assertNotNull($triggeredAt);
 
-        return new MessageContext($scheduleName, 'a1b2c3d4', $trigger, $triggeredAt, $trigger->getNextRunDate($triggeredAt));
+        return new MessageContext($scheduleName, $id, $trigger, $triggeredAt, $trigger->getNextRunDate($triggeredAt));
     }
 }
