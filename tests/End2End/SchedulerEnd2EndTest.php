@@ -52,6 +52,7 @@ final class SchedulerEnd2EndTest extends KernelTestCase
         $this->assertSame($checkIns[2]['slug'], $checkIns[3]['slug']);
         $this->assertSame($checkIns[0]['id'], $checkIns[1]['id']);
         $this->assertSame($checkIns[2]['id'], $checkIns[3]['id']);
+        $this->assertSame(['type' => 'crontab', 'value' => '* * * * *', 'unit' => ''], $checkIns[0]['schedule']);
     }
 
     public function testRedispatchedMessageIsMonitoredWhenConsumed(): void
