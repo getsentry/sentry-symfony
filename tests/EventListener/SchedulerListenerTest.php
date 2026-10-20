@@ -68,7 +68,7 @@ final class SchedulerListenerTest extends TestCase
                 return $checkInId ?? 'check-in-id';
             });
 
-        $this->listener = new SchedulerListener($this->hub);
+        $this->listener = new SchedulerListener($this->hub, ['app:excluded', '/^default-cleanup/']);
     }
 
     public function testSuccessfulRun(): void
@@ -216,6 +216,49 @@ final class SchedulerListenerTest extends TestCase
         yield 'service call with __invoke' => ['default', static function () { return new ServiceCallMessage('App\Report\Sender'); }, 'default-app-report-sender'];
         yield 'named schedule' => ['reports', static function () { return new SendDailyReportMessage(); }, 'reports-send-daily-report-message'];
         yield 'long slug' => ['default', static function () { return new RunCommandMessage('app:a-very-long-command-name --with-many --options --and-more'); }, 'default-app-a-very-long-command-name-with-many-opt'];
+    }
+
+    /**
+     * @dataProvider excludedMessageDataProvider
+     */
+    public function testExcludedMessageIsNotReported(?string $command, bool $isExcluded): void
+    {
+        $message = null !== $command ? new RunCommandMessage($command) : new SendDailyReportMessage();
+
+        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $this->createContext(CronExpressionTrigger::fromSpec('0 0 * * *')), $message));
+
+        $this->assertCount($isExcluded ? 0 : 1, $this->checkIns);
+    }
+
+    /**
+     * @return iterable<string, array{string|null, bool}>
+     */
+    public function excludedMessageDataProvider(): iterable
+    {
+        yield 'command name' => ['app:excluded --force', true];
+        yield 'slug pattern' => ['cleanup', true];
+        yield 'other command' => ['app:included', false];
+        yield 'other message class' => [null, false];
+    }
+
+    /**
+     * @dataProvider excludedMessageClassDataProvider
+     */
+    public function testExcludedMessageClassIsNotReported(string $excluded): void
+    {
+        $listener = new SchedulerListener($this->hub, [$excluded]);
+        $listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $this->createContext(CronExpressionTrigger::fromSpec('0 0 * * *')), new SendDailyReportMessage()));
+
+        $this->assertSame([], $this->checkIns);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public function excludedMessageClassDataProvider(): iterable
+    {
+        yield 'message class' => [SendDailyReportMessage::class];
+        yield 'slug' => ['default-send-daily-report-message'];
     }
 
     public function testSlugOfMessagesWithTheSameNameInOneScheduleHasTheirId(): void
