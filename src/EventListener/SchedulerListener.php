@@ -172,7 +172,13 @@ final class SchedulerListener implements ResetInterface
                     return null;
                 }
 
-                $jitterSeconds += (new \ReflectionProperty(JitterTrigger::class, 'maxSeconds'))->getValue($decorator);
+                $maxSeconds = self::getPrivateProperty($decorator, JitterTrigger::class, 'maxSeconds');
+
+                if (!\is_int($maxSeconds)) {
+                    return null;
+                }
+
+                $jitterSeconds += $maxSeconds;
             }
 
             $trigger = $trigger->inner();
@@ -193,7 +199,7 @@ final class SchedulerListener implements ResetInterface
 
         if ($trigger instanceof PeriodicalTrigger) {
             // Zero for calendar intervals, such as a month
-            $seconds = (new \ReflectionProperty(PeriodicalTrigger::class, 'intervalInSeconds'))->getValue($trigger);
+            $seconds = self::getPrivateProperty($trigger, PeriodicalTrigger::class, 'intervalInSeconds');
 
             if (!is_numeric($seconds) || $seconds < 60 || 0.0 !== fmod((float) $seconds, 60)) {
                 return null;
@@ -211,6 +217,20 @@ final class SchedulerListener implements ResetInterface
         }
 
         return null;
+    }
+
+    /**
+     * The triggers have no getters for these, so a renamed property sends no schedule.
+     *
+     * @return mixed
+     */
+    private static function getPrivateProperty(object $object, string $class, string $property)
+    {
+        try {
+            return (new \ReflectionProperty($class, $property))->getValue($object);
+        } catch (\ReflectionException $exception) {
+            return null;
+        }
     }
 
     private static function toCrontab(string $expression): ?string
