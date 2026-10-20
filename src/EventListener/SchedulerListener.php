@@ -10,6 +10,7 @@ use Sentry\MonitorSchedule;
 use Sentry\MonitorScheduleUnit;
 use Sentry\State\HubInterface;
 use Symfony\Component\Console\Messenger\RunCommandMessage;
+use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Message\RedispatchMessage;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
@@ -19,10 +20,12 @@ use Symfony\Component\Scheduler\Event\PreRunEvent;
 use Symfony\Component\Scheduler\Generator\MessageContext;
 use Symfony\Component\Scheduler\Messenger\ScheduledStamp;
 use Symfony\Component\Scheduler\Messenger\ServiceCallMessage;
+use Symfony\Component\Scheduler\ScheduleProviderInterface;
 use Symfony\Component\Scheduler\Trigger\AbstractDecoratedTrigger;
 use Symfony\Component\Scheduler\Trigger\CronExpressionTrigger;
 use Symfony\Component\Scheduler\Trigger\JitterTrigger;
 use Symfony\Component\Scheduler\Trigger\PeriodicalTrigger;
+use Symfony\Component\Scheduler\Trigger\StaticMessageProvider;
 use Symfony\Contracts\Service\ResetInterface;
 
 /**
@@ -85,7 +88,7 @@ final class SchedulerListener implements ResetInterface
 
         try {
             $context = $event->getMessageContext();
-            $slug = $this->createSlug($context, $message);
+            $slug = $this->createSlug($event->getSchedule(), $context, $message);
 
             if (null === $slug) {
                 return;
@@ -260,11 +263,37 @@ final class SchedulerListener implements ResetInterface
     }
 
     /**
-     * The schedule name and a readable name of the message, followed by the
-     * ID of the recurring message, which tells messages of the same class apart.
+     * The schedule name and a readable name of the message. The ID of the recurring
+     * message is added when other messages of the schedule have the same name.
      */
-    private function createSlug(MessageContext $context, object $message): ?string
+    private function createSlug(ScheduleProviderInterface $schedule, MessageContext $context, object $message): ?string
     {
+        $name = self::getMessageName($message);
+
+        if (null === $name) {
+            return null;
+        }
+
+        $slug = trim((string) preg_replace('/[^a-z0-9_]+/', '-', strtolower($context->name . '-' . $name)), '-');
+        $suffix = self::isNameShared($schedule, $context, $name) ? '-' . $context->id : '';
+
+        return rtrim(substr($slug, 0, self::MAX_SLUG_LENGTH - \strlen($suffix)), '-') . $suffix;
+    }
+
+    private static function getMessageName(object $message): ?string
+    {
+        if ($message instanceof RedispatchMessage) {
+            $message = $message->envelope;
+        }
+
+        if ($message instanceof Envelope) {
+            $message = $message->getMessage();
+        }
+
+        if ($message instanceof RunCommandMessage || $message instanceof ServiceCallMessage) {
+            return (string) $message;
+        }
+
         $class = new \ReflectionClass($message);
 
         // Anonymous class names contain the file path
@@ -272,17 +301,28 @@ final class SchedulerListener implements ResetInterface
             return null;
         }
 
-        if ($message instanceof RunCommandMessage || $message instanceof ServiceCallMessage) {
-            $name = (string) $message;
-        } else {
-            // SendDailyReportMessage becomes Send-Daily-Report-Message, and HTMLReport becomes HTML-Report
-            $name = (string) preg_replace('/(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/', '-', $class->getShortName());
+        // SendDailyReportMessage becomes Send-Daily-Report-Message, and HTMLReport becomes HTML-Report
+        return (string) preg_replace('/(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/', '-', $class->getShortName());
+    }
+
+    private static function isNameShared(ScheduleProviderInterface $schedule, MessageContext $context, string $name): bool
+    {
+        foreach ($schedule->getSchedule()->getRecurringMessages() as $recurringMessage) {
+            $provider = $recurringMessage->getProvider();
+
+            // Messages of other providers are only known when they run
+            if ($recurringMessage->getId() === $context->id || !$provider instanceof StaticMessageProvider) {
+                continue;
+            }
+
+            foreach ($provider->getMessages($context) as $otherMessage) {
+                if (self::getMessageName($otherMessage) === $name) {
+                    return true;
+                }
+            }
         }
 
-        $suffix = '-' . $context->id;
-        $slug = trim((string) preg_replace('/[^a-z0-9_]+/', '-', strtolower($context->name . '-' . $name)), '-');
-
-        return rtrim(substr($slug, 0, self::MAX_SLUG_LENGTH - \strlen($suffix)), '-') . $suffix;
+        return false;
     }
 
     private function logException(\Throwable $exception): void
