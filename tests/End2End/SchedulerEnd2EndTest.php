@@ -46,8 +46,8 @@ final class SchedulerEnd2EndTest extends KernelTestCase
             CheckInStatus::error(),
         ], array_column($checkIns, 'status'));
 
-        $this->assertMatchesRegularExpression('/^default-scheduled-message-[0-9a-f]{8}$/', $checkIns[0]['slug']);
-        $this->assertMatchesRegularExpression('/^default-failing-scheduled-message-[0-9a-f]{8}$/', $checkIns[2]['slug']);
+        $this->assertSame('default-scheduled-message', $checkIns[0]['slug']);
+        $this->assertSame('default-failing-scheduled-message', $checkIns[2]['slug']);
         $this->assertSame($checkIns[0]['slug'], $checkIns[1]['slug']);
         $this->assertSame($checkIns[2]['slug'], $checkIns[3]['slug']);
         $this->assertSame($checkIns[0]['id'], $checkIns[1]['id']);
@@ -65,7 +65,7 @@ final class SchedulerEnd2EndTest extends KernelTestCase
         $checkIns = $this->getCheckIns();
 
         $this->assertSame([CheckInStatus::inProgress(), CheckInStatus::ok()], array_column($checkIns, 'status'));
-        $this->assertMatchesRegularExpression('/^redispatch-scheduled-message-[0-9a-f]{8}$/', $checkIns[0]['slug']);
+        $this->assertSame('redispatch-scheduled-message', $checkIns[0]['slug']);
     }
 
     private function consume(string $receiver, int $limit): void
