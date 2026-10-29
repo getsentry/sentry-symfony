@@ -466,11 +466,60 @@ final class TraceableResponseTest extends TestCase
         $this->assertSame('foobar', stream_get_contents($response->toStream()));
     }
 
+    public function testDestructorDestructsTheWrappedResponse(): void
+    {
+        $wrappedResponse = $this->createDestructCountingResponse();
+        $response = new TraceableResponse($this->client, $wrappedResponse, null);
+
+        unset($response);
+
+        $this->assertSame(1, $wrappedResponse->destructCount);
+    }
+
+    public function testDestructorDoesNotDestructTheWrappedResponseAfterToStream(): void
+    {
+        $wrappedResponse = $this->createDestructCountingResponse();
+        $span = new Span();
+        $response = new TraceableResponse($this->client, $wrappedResponse, $span);
+
+        if (!method_exists($response, 'toStream')) {
+            $this->markTestSkipped('The TraceableResponse::toStream() method is not supported');
+        }
+
+        $stream = $response->toStream(false);
+
+        unset($response);
+
+        // The stream still reads the wrapped response, which some transports abort when it is destructed
+        $this->assertSame(0, $wrappedResponse->destructCount);
+        $this->assertNotNull($span->getEndTimestamp());
+
+        fclose($stream);
+    }
+
     public function testStreamThrowsExceptionIfResponsesArgumentIsInvalid(): void
     {
         $this->expectException(\TypeError::class);
         $this->expectExceptionMessage('"Sentry\\SentryBundle\\Tracing\\HttpClient\\TraceableHttpClient::stream()" expects parameter 1 to be an iterable of TraceableResponse objects, "stdClass" given.');
 
         iterator_to_array(TraceableResponse::stream($this->client, [new \stdClass()], null));
+    }
+
+    /**
+     * @return MockResponse&object{destructCount: int}
+     */
+    private function createDestructCountingResponse(): MockResponse
+    {
+        return new class extends MockResponse {
+            /**
+             * @var int
+             */
+            public $destructCount = 0;
+
+            public function __destruct()
+            {
+                ++$this->destructCount;
+            }
+        };
     }
 }

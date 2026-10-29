@@ -35,6 +35,13 @@ abstract class AbstractTraceableResponse implements ResponseInterface
     protected $span;
 
     /**
+     * Whether the wrapped response was handed out as a stream, which then owns it.
+     *
+     * @var bool
+     */
+    protected $streamed = false;
+
+    /**
      * @var DataCollectionPolicy|null
      */
     private $policy;
@@ -60,7 +67,9 @@ abstract class AbstractTraceableResponse implements ResponseInterface
     public function __destruct()
     {
         try {
-            if (method_exists($this->response, '__destruct')) {
+            // A stream returned by toStream() keeps reading the wrapped response after this
+            // instance is destructed, so destructing it here could abort the transfer
+            if (!$this->streamed && method_exists($this->response, '__destruct')) {
                 $this->response->__destruct();
             }
         } finally {
