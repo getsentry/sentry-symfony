@@ -499,13 +499,14 @@ final class TraceableResponseTest extends TestCase
 
     public function testToStreamKeepsErrorResponsesReadableAfterTheWrapperIsDestructed(): void
     {
+        // Checked before creating the response, as destructing an unchecked 404 response throws
+        if (!method_exists(TraceableResponse::class, 'toStream')) {
+            $this->markTestSkipped('The TraceableResponse::toStream() method is not supported');
+        }
+
         $httpClient = new MockHttpClient(new MockResponse('not found', ['http_code' => 404]));
         $span = new Span();
         $response = new TraceableResponse($this->client, $httpClient->request('GET', 'https://www.example.org/'), $span);
-
-        if (!method_exists($response, 'toStream')) {
-            $this->markTestSkipped('The TraceableResponse::toStream() method is not supported');
-        }
 
         $stream = $response->toStream(false);
 
