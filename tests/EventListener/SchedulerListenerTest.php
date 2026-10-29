@@ -249,7 +249,9 @@ final class SchedulerListenerTest extends TestCase
     {
         $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $this->createContext(CronExpressionTrigger::fromSpec('0 3 * * *', null, $timezone)), new SendDailyReportMessage()));
 
-        $monitorConfig = $this->checkIns[0]['monitor_config'];
+        $this->assertCount(null === $expectedTimezone ? 0 : 1, $this->checkIns);
+
+        $monitorConfig = $this->checkIns[0]['monitor_config'] ?? null;
 
         $this->assertSame($expectedTimezone, null !== $monitorConfig ? $monitorConfig->getTimezone() : null);
     }
@@ -268,7 +270,7 @@ final class SchedulerListenerTest extends TestCase
         yield 'half hour offset' => ['+05:30', null];
     }
 
-    public function testCronWithWeekdayNamesAndStepHasNoSchedule(): void
+    public function testCronWithWeekdayNamesAndStepIsNotMonitored(): void
     {
         // Older cron-expression versions can't compute the run dates, so build the context by hand
         $trigger = CronExpressionTrigger::fromSpec('0 0 * * MON-FRI/2');
@@ -276,8 +278,7 @@ final class SchedulerListenerTest extends TestCase
 
         $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $context, new SendDailyReportMessage()));
 
-        $this->assertCount(1, $this->checkIns);
-        $this->assertNull($this->checkIns[0]['monitor_config']);
+        $this->assertSame([], $this->checkIns);
     }
 
     public function testHashedCronExpression(): void
@@ -300,9 +301,9 @@ final class SchedulerListenerTest extends TestCase
         $trigger = $createTrigger();
         $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $this->createContext($trigger), new SendDailyReportMessage()));
 
-        $this->assertCount(1, $this->checkIns);
+        $this->assertCount(null === $expectedSchedule ? 0 : 1, $this->checkIns);
 
-        $monitorConfig = $this->checkIns[0]['monitor_config'];
+        $monitorConfig = $this->checkIns[0]['monitor_config'] ?? null;
 
         $this->assertSame($expectedSchedule, null !== $monitorConfig ? $monitorConfig->getSchedule()->toArray() : null);
     }

@@ -52,7 +52,7 @@ final class SchedulerListener implements ResetInterface
     private $hub;
 
     /**
-     * @var array<string, array{slug: string, check_in_id: string, monitor_config: MonitorConfig|null, started_at: float}>
+     * @var array<string, array{slug: string, check_in_id: string, monitor_config: MonitorConfig, started_at: float}>
      */
     private $checkIns = [];
 
@@ -95,6 +95,11 @@ final class SchedulerListener implements ResetInterface
             }
 
             $monitorConfig = $this->createMonitorConfig($context);
+
+            if (null === $monitorConfig) {
+                return;
+            }
+
             $startedAt = microtime(true);
             $checkInId = $this->hub->captureCheckIn($slug, CheckInStatus::inProgress(), null, $monitorConfig);
 
@@ -157,8 +162,8 @@ final class SchedulerListener implements ResetInterface
     }
 
     /**
-     * Returns null, so that the check-ins carry no schedule, for triggers that
-     * Sentry can't express or would read differently.
+     * Returns null for triggers that Sentry can't express or would read
+     * differently, so that their messages aren't monitored.
      */
     private function createMonitorConfig(MessageContext $context): ?MonitorConfig
     {
@@ -220,7 +225,7 @@ final class SchedulerListener implements ResetInterface
     }
 
     /**
-     * The triggers have no getters for these, so a renamed property sends no schedule.
+     * The triggers have no getters for these, so a renamed property stops monitoring.
      *
      * @return mixed
      */
