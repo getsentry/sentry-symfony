@@ -62,6 +62,14 @@ tracing_ignored_transaction:
   path: /tracing/ignored-transaction
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::ignoredTransaction' }
 
+tracing_not_found:
+  path: /tracing/not-found
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::notFound' }
+
+tracing_status_code_in_ignored_range:
+  path: /tracing/status-code-in-ignored-range
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::statusCodeInIgnoredRange' }
+
 tracing_cache_populate_string:
   path: /tracing/cache/populate-string
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingCacheController::populateCacheWithString' }

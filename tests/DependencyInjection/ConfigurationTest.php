@@ -35,6 +35,7 @@ final class ConfigurationTest extends TestCase
                 'release' => '%env(default::SENTRY_RELEASE)%',
                 'ignore_exceptions' => [],
                 'ignore_transactions' => [],
+                'trace_ignore_status_codes' => [],
                 'tags' => [],
                 'in_app_exclude' => [
                     '%kernel.cache_dir%',
@@ -294,6 +295,54 @@ final class ConfigurationTest extends TestCase
         $config = $this->processConfiguration(['options' => ['log_flush_threshold' => null]]);
 
         $this->assertNull($config['options']['log_flush_threshold']);
+    }
+
+    /**
+     * @param mixed   $value
+     * @param mixed[] $expected
+     *
+     * @dataProvider traceIgnoreStatusCodesOptionDataProvider
+     */
+    public function testTraceIgnoreStatusCodesOption($value, array $expected): void
+    {
+        /** @var array{options: array{trace_ignore_status_codes: mixed[]}} $config */
+        $config = $this->processConfiguration(['options' => ['trace_ignore_status_codes' => $value]]);
+
+        $this->assertSame($expected, $config['options']['trace_ignore_status_codes']);
+    }
+
+    public function traceIgnoreStatusCodesOptionDataProvider(): \Generator
+    {
+        yield 'single status code' => [[404], [404]];
+        yield 'multiple status codes' => [[404, 403], [404, 403]];
+        yield 'status code range' => [[[500, 599]], [[500, 599]]];
+        yield 'status codes and range' => [[404, [500, 599]], [404, [500, 599]]];
+        yield 'single value is cast to a list' => [404, [404]];
+        yield 'string values as passed from XML config' => [['404', '403'], [404, 403]];
+    }
+
+    /**
+     * @param mixed $value
+     *
+     * @dataProvider traceIgnoreStatusCodesOptionWithInvalidValuesDataProvider
+     */
+    public function testTraceIgnoreStatusCodesOptionWithInvalidValues($value): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('Invalid configuration for path "sentry.options.trace_ignore_status_codes": each entry must be a status code (e.g. 404) or an inclusive range (e.g. [500, 599]).');
+
+        $this->processConfiguration(['options' => ['trace_ignore_status_codes' => $value]]);
+    }
+
+    public function traceIgnoreStatusCodesOptionWithInvalidValuesDataProvider(): \Generator
+    {
+        yield 'string' => [['not-a-status-code']];
+        yield 'range as string' => [['500-599']];
+        yield 'float' => [[404.5]];
+        yield 'range with a single value' => [[[500]]];
+        yield 'range with too many values' => [[[500, 502, 599]]];
+        yield 'descending range' => [[[599, 500]]];
+        yield 'range of strings' => [[['500', '599']]];
     }
 
     /**

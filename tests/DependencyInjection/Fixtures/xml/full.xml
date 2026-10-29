@@ -60,6 +60,8 @@
             <sentry:class-serializer class="App\FooClass">App\Sentry\Serializer\FooClassSerializer</sentry:class-serializer>
             <sentry:ignore-exception>Symfony\Component\HttpKernel\Exception\BadRequestHttpException</sentry:ignore-exception>
             <sentry:ignore-transaction>GET tracing_ignored_transaction</sentry:ignore-transaction>
+            <sentry:trace-ignore-status-code>404</sentry:trace-ignore-status-code>
+            <sentry:trace-ignore-status-code>403</sentry:trace-ignore-status-code>
             <sentry:data-collection user-info="false"
                                     database-query-data="false"
                                     queues="false"

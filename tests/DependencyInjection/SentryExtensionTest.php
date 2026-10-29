@@ -397,6 +397,10 @@ abstract class SentryExtensionTest extends TestCase
             'ignore_transactions' => [
                 'GET tracing_ignored_transaction',
             ],
+            'trace_ignore_status_codes' => [
+                404,
+                403,
+            ],
             'before_send' => new Reference('App\\Sentry\\BeforeSendCallback'),
             'before_send_transaction' => new Reference('App\\Sentry\\BeforeSendTransactionCallback'),
             'before_send_check_in' => new Reference('App\\Sentry\\BeforeSendCheckInCallback'),
