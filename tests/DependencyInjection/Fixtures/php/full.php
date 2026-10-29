@@ -34,6 +34,7 @@ $container->loadFromExtension('sentry', [
         'server_name' => 'localhost',
         'ignore_exceptions' => ['Symfony\Component\HttpKernel\Exception\BadRequestHttpException'],
         'ignore_transactions' => ['GET tracing_ignored_transaction'],
+        'trace_ignore_status_codes' => [404, 403],
         'before_send' => 'App\\Sentry\\BeforeSendCallback',
         'before_send_transaction' => 'App\\Sentry\\BeforeSendTransactionCallback',
         'before_send_check_in' => 'App\\Sentry\\BeforeSendCheckInCallback',

@@ -65,6 +65,16 @@ class TracingController
         return new Response('Success');
     }
 
+    public function notFound(): Response
+    {
+        return new Response('Not Found', 404);
+    }
+
+    public function statusCodeInIgnoredRange(): Response
+    {
+        return new Response('Status Code In Ignored Range', 599);
+    }
+
     private function createSpan(): SpanContext
     {
         $spanContext = new SpanContext();

@@ -67,6 +67,7 @@ final class Configuration implements ConfigurationInterface
                     ->fixXmlConfig('class_serializer')
                     ->fixXmlConfig('ignore_exception')
                     ->fixXmlConfig('ignore_transaction')
+                    ->fixXmlConfig('trace_ignore_status_code')
                     ->fixXmlConfig('prefix', 'prefixes')
                     ->children()
                         ->variableNode('integrations')
@@ -120,6 +121,43 @@ final class Configuration implements ConfigurationInterface
                         ->arrayNode('ignore_transactions')
                             ->scalarPrototype()->end()
                             ->beforeNormalization()->castToArray()->end()
+                        ->end()
+                        ->arrayNode('trace_ignore_status_codes')
+                            ->info('The HTTP status codes of incoming requests whose transactions are not sent. Each entry is either a single status code (e.g. 404) or an inclusive range (e.g. [500, 599]).')
+                            ->defaultValue([])
+                            ->beforeNormalization()
+                                ->always(static function ($value): array {
+                                    if (!\is_array($value)) {
+                                        $value = [$value];
+                                    }
+
+                                    // XML config values are strings, e.g. "404"
+                                    return array_map(static function ($statusCode) {
+                                        if (\is_string($statusCode) && ctype_digit($statusCode)) {
+                                            return (int) $statusCode;
+                                        }
+
+                                        return $statusCode;
+                                    }, $value);
+                                })
+                            ->end()
+                            ->variablePrototype()->end()
+                            ->validate()
+                                ->ifTrue(static function (array $value): bool {
+                                    foreach ($value as $statusCode) {
+                                        if (\is_int($statusCode)) {
+                                            continue;
+                                        }
+
+                                        if (!\is_array($statusCode) || [0, 1] !== array_keys($statusCode) || !\is_int($statusCode[0]) || !\is_int($statusCode[1]) || $statusCode[0] > $statusCode[1]) {
+                                            return true;
+                                        }
+                                    }
+
+                                    return false;
+                                })
+                                ->thenInvalid('Invalid configuration for path "sentry.options.trace_ignore_status_codes": each entry must be a status code (e.g. 404) or an inclusive range (e.g. [500, 599]).')
+                            ->end()
                         ->end()
                         ->scalarNode('before_send')->end()
                         ->scalarNode('before_send_transaction')->end()
