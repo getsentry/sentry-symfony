@@ -490,11 +490,29 @@ final class TraceableResponseTest extends TestCase
 
         unset($response);
 
-        // The stream still reads the wrapped response, which some transports abort when it is destructed
+        // The stream still reads the wrapped response, whose destructor checks the status code and may throw
         $this->assertSame(0, $wrappedResponse->destructCount);
         $this->assertNotNull($span->getEndTimestamp());
 
         fclose($stream);
+    }
+
+    public function testToStreamKeepsErrorResponsesReadableAfterTheWrapperIsDestructed(): void
+    {
+        $httpClient = new MockHttpClient(new MockResponse('not found', ['http_code' => 404]));
+        $span = new Span();
+        $response = new TraceableResponse($this->client, $httpClient->request('GET', 'https://www.example.org/'), $span);
+
+        if (!method_exists($response, 'toStream')) {
+            $this->markTestSkipped('The TraceableResponse::toStream() method is not supported');
+        }
+
+        $stream = $response->toStream(false);
+
+        unset($response);
+
+        $this->assertSame('not found', stream_get_contents($stream));
+        $this->assertNotNull($span->getEndTimestamp());
     }
 
     public function testStreamThrowsExceptionIfResponsesArgumentIsInvalid(): void

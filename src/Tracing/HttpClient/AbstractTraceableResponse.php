@@ -68,7 +68,8 @@ abstract class AbstractTraceableResponse implements ResponseInterface
     {
         try {
             // A stream returned by toStream() keeps reading the wrapped response after this
-            // instance is destructed, so destructing it here could abort the transfer
+            // instance is destructed. Destructing the wrapped response here would make it
+            // check the status code and throw, even after toStream(false)
             if (!$this->streamed && method_exists($this->response, '__destruct')) {
                 $this->response->__destruct();
             }
