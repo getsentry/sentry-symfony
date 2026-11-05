@@ -123,8 +123,8 @@ final class Configuration implements ConfigurationInterface
                             ->beforeNormalization()->castToArray()->end()
                         ->end()
                         ->arrayNode('trace_ignore_status_codes')
-                            ->info('The HTTP status codes of incoming requests whose transactions are not sent. Each entry is either a single status code (e.g. 404) or an inclusive range (e.g. [500, 599]).')
-                            ->defaultValue([])
+                            ->info('The HTTP status codes of incoming requests whose transactions are not sent. Each entry is either a single status code (e.g. 404) or an inclusive range (e.g. [500, 599]). Set it to an empty list to send the transactions of all status codes.')
+                            ->defaultValue([404])
                             ->beforeNormalization()
                                 ->always(static function ($value): array {
                                     if (!\is_array($value)) {

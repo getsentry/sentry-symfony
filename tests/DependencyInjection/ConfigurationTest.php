@@ -35,7 +35,7 @@ final class ConfigurationTest extends TestCase
                 'release' => '%env(default::SENTRY_RELEASE)%',
                 'ignore_exceptions' => [],
                 'ignore_transactions' => [],
-                'trace_ignore_status_codes' => [],
+                'trace_ignore_status_codes' => [404],
                 'tags' => [],
                 'in_app_exclude' => [
                     '%kernel.cache_dir%',
@@ -319,6 +319,7 @@ final class ConfigurationTest extends TestCase
         yield 'status codes and range' => [[404, [500, 599]], [404, [500, 599]]];
         yield 'single value is cast to a list' => [404, [404]];
         yield 'string values as passed from XML config' => [['404', '403'], [404, 403]];
+        yield 'empty list overrides the default' => [[], []];
     }
 
     /**
