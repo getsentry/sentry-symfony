@@ -32,20 +32,11 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      */
     private $requestFetcher;
 
-    /**
-     * @var int[]
-     */
-    private $ignoredHttpStatusCodes;
-
-    /**
-     * @param int[] $ignoredHttpStatusCodes
-     */
-    public function __construct(HubInterface $hub, ?RequestFetcherInterface $requestFetcher = null, array $ignoredHttpStatusCodes = [])
+    public function __construct(HubInterface $hub, ?RequestFetcherInterface $requestFetcher = null)
     {
         parent::__construct($hub);
 
         $this->requestFetcher = $requestFetcher;
-        $this->ignoredHttpStatusCodes = $ignoredHttpStatusCodes;
     }
 
     /**
@@ -91,23 +82,6 @@ final class TracingRequestListener extends AbstractTracingRequestListener
         $context->setData($this->getData($request));
 
         $this->hub->setSpan($this->hub->startTransaction($context));
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function handleKernelResponseEvent(ResponseEvent $event): void
-    {
-        parent::handleKernelResponseEvent($event);
-
-        if (!$this->isMainRequest($event) || !\in_array($event->getResponse()->getStatusCode(), $this->ignoredHttpStatusCodes, true)) {
-            return;
-        }
-
-        $transaction = $this->hub->getTransaction();
-        if (null !== $transaction) {
-            $transaction->setSampled(false);
-        }
     }
 
     /**
