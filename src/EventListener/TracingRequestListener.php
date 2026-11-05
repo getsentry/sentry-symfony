@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\DataCollection\DataCollectionPolicy;
+use Sentry\DataCollection\HttpSpanDataCollector;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\SentryBundle\Integration\RequestFetcher;
 use Sentry\State\HubInterface;
+use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionSource;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -108,6 +111,24 @@ final class TracingRequestListener extends AbstractTracingRequestListener
     }
 
     /**
+     * @param ResponseEvent $event
+     */
+    public function collectKernelResponseData(ResponseEvent $event): void
+    {
+        if (!$this->isMainRequest($event)) {
+            return;
+        }
+
+        $transaction = $this->hub->getTransaction();
+
+        if (null === $transaction) {
+            return;
+        }
+
+        $this->collectResponseData($transaction, $event->getResponse());
+    }
+
+    /**
      * This method is called for each request handled by the framework and
      * ends the tracing on terminate after the client received the response.
      *
@@ -119,6 +140,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
 
         try {
             if (null !== $transaction) {
+                $this->collectRequestData($transaction);
                 $transaction->finish();
                 metrics()->flush();
             }
@@ -130,6 +152,30 @@ final class TracingRequestListener extends AbstractTracingRequestListener
     }
 
     /**
+     * Adds the headers, cookies and body of the request to the transaction.
+     */
+    private function collectRequestData(Transaction $transaction): void
+    {
+        if (!$transaction->getSampled() || null === $this->requestFetcher) {
+            return;
+        }
+
+        $policy = DataCollectionPolicy::fromHub($this->hub);
+
+        // The legacy options only collected the request data on the event
+        if ($policy->isLegacyMode()) {
+            return;
+        }
+
+        $request = $this->requestFetcher->fetchRequest();
+        if (null === $request) {
+            return;
+        }
+
+        $transaction->setData(HttpSpanDataCollector::collectServerRequest($policy, $request));
+    }
+
+    /**
      * Gets the data to attach to the transaction.
      *
      * @param Request $request The HTTP request
@@ -138,13 +184,13 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      */
     private function getData(Request $request): array
     {
-        $client = $this->hub->getClient();
+        $policy = DataCollectionPolicy::fromHub($this->hub);
         $httpFlavor = $this->getHttpFlavor($request);
 
         $data = [
             'net.host.port' => (string) $request->getPort(),
             'http.request.method' => $request->getMethod(),
-            'http.url' => $request->getUri(),
+            'http.url' => $this->getRequestUrl($request, $policy),
             'route' => $this->getRouteName($request),
         ];
 
@@ -158,7 +204,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
             $data['net.host.name'] = $request->getHost();
         }
 
-        if (null !== $request->getClientIp() && null !== $client && $client->getOptions()->shouldSendDefaultPii()) {
+        if (null !== $request->getClientIp() && $policy->shouldCollectUserInfo()) {
             $data['net.peer.ip'] = $request->getClientIp();
         }
 

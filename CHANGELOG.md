@@ -1,5 +1,63 @@
 # CHANGELOG
 
+## 5.15.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.15.0.
+
+### Features
+
+- Add the experimental `register_monolog_handler` option, which captures errors through the Monolog channels Symfony reports them to instead of the SDK's global error handlers. [(#1092)](https://github.com/getsentry/sentry-symfony/pull/1092)
+
+  ```yaml
+  sentry:
+      register_error_listener: false
+      register_error_handler: false
+      register_monolog_handler: true
+  ```
+
+- Add the `$includeChannel` argument to the Monolog `LogsHandler`, which attaches the Monolog channel as a `channel` attribute to logs. [(#1091)](https://github.com/getsentry/sentry-symfony/pull/1091)
+
+  ```yaml
+  services:
+      Sentry\SentryBundle\Monolog\LogsHandler:
+          arguments:
+              $level: !php/const Monolog\Logger::WARNING
+              $includeChannel: true
+  ```
+
+### Bug fixes
+
+- Fix empty response bodies from the PSR-18 clients when HTTP client tracing is enabled on Symfony HttpClient 6.4.49, 7.4.22 and 8.1.10. [(#1099)](https://github.com/getsentry/sentry-symfony/pull/1099)
+
+## 5.14.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.14.0.
+
+### Features
+
+- Add the `data_collection` option to control which potentially sensitive data the SDK attaches to events and spans. [(#1087)](https://github.com/getsentry/sentry-symfony/pull/1087)
+
+  ```yaml
+  sentry:
+      options:
+          data_collection:
+              user_info: true
+              http_headers:
+                  mode: allowList
+                  terms:
+                      - x-request-id
+              http_bodies: []
+              database_query_data: false
+  ```
+
+### Bug fixes
+
+- Set the user context before the router runs, so that events for unmatched routes include the client IP address. [(#1068)](https://github.com/getsentry/sentry-symfony/pull/1068)
+
+### Misc
+
+- Bump `sentry-php` version to `4.34.0`. [(#1087)](https://github.com/getsentry/sentry-symfony/pull/1087)
+
 ## 5.13.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.13.0.

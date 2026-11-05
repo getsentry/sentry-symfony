@@ -6,6 +6,7 @@ namespace Sentry\SentryBundle\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Jean85\PrettyVersions;
+use Monolog\Handler\AbstractHandler;
 use Psr\Log\NullLogger;
 use Sentry\Client;
 use Sentry\ClientBuilder;
@@ -21,11 +22,15 @@ use Sentry\SentryBundle\EventListener\TracingConsoleListener;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
 use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
 use Sentry\SentryBundle\Integration\IntegrationConfigurator;
+use Sentry\SentryBundle\Monolog\CapturedExceptionTracker;
+use Sentry\SentryBundle\Monolog\PhpErrorHandler;
+use Sentry\SentryBundle\Monolog\UncaughtExceptionHandler;
 use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
+use Sentry\State\HubInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Config\FileLocator;
@@ -39,6 +44,12 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 
 final class SentryExtension extends ConfigurableExtension
 {
+    public const MONOLOG_PHP_ERROR_HANDLER_SERVICE_ID = 'sentry.monolog.php_error_handler';
+
+    public const MONOLOG_UNCAUGHT_EXCEPTION_HANDLER_SERVICE_ID = 'sentry.monolog.uncaught_exception_handler';
+
+    public const MONOLOG_CAPTURED_EXCEPTION_TRACKER_SERVICE_ID = 'sentry.monolog.captured_exception_tracker';
+
     /**
      * {@inheritdoc}
      */
@@ -76,6 +87,7 @@ final class SentryExtension extends ConfigurableExtension
 
         $this->registerConfiguration($container, $mergedConfig);
         $this->registerErrorListenerConfiguration($container, $mergedConfig);
+        $this->registerMonologHandlerConfiguration($container, $mergedConfig);
         $this->registerMessengerListenerConfiguration($container, $mergedConfig['messenger']);
         $this->registerTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerDbalTracingConfiguration($container, $mergedConfig['tracing']);
@@ -204,6 +216,43 @@ final class SentryExtension extends ConfigurableExtension
         }
 
         $container->getDefinition(ConsoleListener::class)->setArgument(1, $config['register_error_listener']);
+    }
+
+    /**
+     * The handlers are pushed to the loggers of the channels Symfony reports errors to by MonologErrorReportingPass.
+     *
+     * @param array<string, mixed> $config
+     */
+    private function registerMonologHandlerConfiguration(ContainerBuilder $container, array $config): void
+    {
+        if (!$config['register_monolog_handler']) {
+            return;
+        }
+
+        // Monolog is an optional dependency: without it, errors keep being reported by the error listener and the
+        // error handler of the SDK, as configured by the "register_error_listener" and "register_error_handler" options
+        if (!class_exists(AbstractHandler::class)) {
+            return;
+        }
+
+        /** @var array{capture_soft_fails: bool} $messengerConfig */
+        $messengerConfig = $config['messenger'];
+
+        $container->register(self::MONOLOG_CAPTURED_EXCEPTION_TRACKER_SERVICE_ID, CapturedExceptionTracker::class)
+            ->setPublic(false);
+
+        $tracker = new Reference(self::MONOLOG_CAPTURED_EXCEPTION_TRACKER_SERVICE_ID);
+
+        $container
+            ->register(self::MONOLOG_PHP_ERROR_HANDLER_SERVICE_ID, PhpErrorHandler::class)
+            ->setPublic(false)
+            // Whether silenced errors bubble is decided by MonologErrorReportingPass, depending on the scream mode
+            ->setArguments([new Reference(HubInterface::class), $tracker, true]);
+
+        $container
+            ->register(self::MONOLOG_UNCAUGHT_EXCEPTION_HANDLER_SERVICE_ID, UncaughtExceptionHandler::class)
+            ->setPublic(false)
+            ->setArguments([new Reference(HubInterface::class), $tracker, $messengerConfig['capture_soft_fails']]);
     }
 
     /**

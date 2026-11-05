@@ -34,6 +34,7 @@ $container->loadFromExtension('sentry', [
         'server_name' => 'localhost',
         'ignore_exceptions' => ['Symfony\Component\HttpKernel\Exception\BadRequestHttpException'],
         'ignore_transactions' => ['GET tracing_ignored_transaction'],
+        'trace_ignore_status_codes' => [404, 403],
         'before_send' => 'App\\Sentry\\BeforeSendCallback',
         'before_send_transaction' => 'App\\Sentry\\BeforeSendTransactionCallback',
         'before_send_check_in' => 'App\\Sentry\\BeforeSendCheckInCallback',
@@ -50,6 +51,37 @@ $container->loadFromExtension('sentry', [
         'in_app_exclude' => ['%kernel.cache_dir%'],
         'in_app_include' => ['%kernel.project_dir%'],
         'send_default_pii' => true,
+        'data_collection' => [
+            'user_info' => false,
+            'cookies' => [
+                'mode' => 'allowList',
+                'terms' => ['theme'],
+            ],
+            'http_headers' => [
+                'request' => [
+                    'mode' => 'denyList',
+                    'terms' => ['x-forwarded-for'],
+                ],
+                'response' => [
+                    'mode' => 'off',
+                ],
+            ],
+            'http_bodies' => ['incomingRequest', 'outgoingRequest'],
+            'url_query_params' => [
+                'terms' => ['email'],
+            ],
+            'gen_ai' => [
+                'inputs' => false,
+                'outputs' => true,
+            ],
+            'database_query_data' => false,
+            'queues' => false,
+            'stack_frame_variables' => [
+                'mode' => 'allowList',
+                'terms' => ['id'],
+            ],
+            'frame_context_lines' => 3,
+        ],
         'max_value_length' => 255,
         'transport' => 'App\\Sentry\\Transport',
         'http_client' => 'App\\Sentry\\HttpClient',

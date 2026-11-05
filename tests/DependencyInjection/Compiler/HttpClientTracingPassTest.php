@@ -9,6 +9,7 @@ use Sentry\SentryBundle\DependencyInjection\Compiler\HttpClientTracingPass;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableHttpClient;
 use Sentry\State\HubInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 final class HttpClientTracingPassTest extends TestCase
@@ -51,6 +52,52 @@ final class HttpClientTracingPassTest extends TestCase
 
         yield 'The framework version is <6.3 and the HTTP client is not mocked' => [
             'http_client',
+        ];
+    }
+
+    /**
+     * @param array<array-key, mixed> $expectedDefaultHeaders
+     *
+     * @dataProvider processPassesTheDefaultHeadersDataProvider
+     */
+    public function testProcessPassesTheDefaultHeaders(string $httpClientServiceId, bool $isHttpClientMocked, array $expectedDefaultHeaders): void
+    {
+        $container = $this->createContainerBuilder(true, true, null);
+        $container->register($httpClientServiceId, HttpClientInterface::class)
+            ->setFactory([HttpClient::class, 'create'])
+            ->setArguments([['headers' => ['User-Agent' => 'my-app']], 6])
+            ->setPublic(true);
+
+        if ($isHttpClientMocked) {
+            $container->register('http_client.mock_client', HttpClientInterface::class);
+        }
+
+        $container->compile();
+
+        $this->assertSame($expectedDefaultHeaders, $container->getDefinition($httpClientServiceId)->getArgument(2));
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function processPassesTheDefaultHeadersDataProvider(): \Generator
+    {
+        yield 'The framework version is >=6.3' => [
+            'http_client.transport',
+            false,
+            ['User-Agent' => 'my-app'],
+        ];
+
+        yield 'The framework version is <6.3' => [
+            'http_client',
+            false,
+            ['User-Agent' => 'my-app'],
+        ];
+
+        yield 'The mocked HTTP client does not send the default headers' => [
+            'http_client.transport',
+            true,
+            [],
         ];
     }
 

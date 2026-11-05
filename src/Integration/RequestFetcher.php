@@ -64,7 +64,15 @@ final class RequestFetcher implements RequestFetcherInterface, ResetInterface
         }
 
         try {
-            return $this->httpMessageFactory->createRequest($request);
+            $serverRequest = $this->httpMessageFactory->createRequest($request);
+
+            // Return the request with a null body in case it is empty so that we can
+            // still inspect the raw body
+            if ([] === $serverRequest->getParsedBody() && !self::isFormRequest($request)) {
+                return $serverRequest->withParsedBody(null);
+            }
+
+            return $serverRequest;
         } catch (\Throwable $exception) {
             return null;
         }
@@ -78,5 +86,12 @@ final class RequestFetcher implements RequestFetcherInterface, ResetInterface
     public function reset(): void
     {
         $this->setRequest(null);
+    }
+
+    private static function isFormRequest(Request $request): bool
+    {
+        $mediaType = strtolower(trim(explode(';', (string) $request->headers->get('Content-Type', ''), 2)[0]));
+
+        return 'application/x-www-form-urlencoded' === $mediaType || 'multipart/form-data' === $mediaType;
     }
 }

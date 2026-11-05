@@ -335,6 +335,67 @@ final class LoginListenerTest extends TestCase
         ));
     }
 
+    /**
+     * @dataProvider userInfoOptionDataProvider
+     */
+    public function testHandleKernelRequestEventRespectsUserInfoOption(Options $options, ?UserDataBag $expectedUser): void
+    {
+        $scope = new Scope();
+
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->once())
+            ->method('getOptions')
+            ->willReturn($options);
+
+        $this->hub->expects($this->once())
+            ->method('getClient')
+            ->willReturn($client);
+
+        $this->hub->expects($this->any())
+            ->method('configureScope')
+            ->willReturnCallback(static function (callable $callback) use ($scope): void {
+                $callback($scope);
+            });
+
+        $this->tokenStorage->expects($this->once())
+            ->method('getToken')
+            ->willReturn(version_compare(Kernel::VERSION, '5.4', '<')
+                ? new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())
+                : new AuthenticatedTokenStub(new UserWithIdentifierStub()));
+
+        $this->listener->handleKernelRequestEvent(new RequestEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
+        ));
+
+        $event = $scope->applyToEvent(Event::createEvent());
+
+        $this->assertNotNull($event);
+        $this->assertEquals($expectedUser, $event->getUser());
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public function userInfoOptionDataProvider(): \Generator
+    {
+        yield 'options.send_default_pii = FALSE' => [
+            new Options(['send_default_pii' => false]),
+            null,
+        ];
+
+        yield 'data_collection.user_info defaults to TRUE && options.send_default_pii = FALSE' => [
+            new Options(['send_default_pii' => false, 'data_collection' => []]),
+            new UserDataBag('foo_user'),
+        ];
+
+        yield 'data_collection.user_info = FALSE && options.send_default_pii = TRUE' => [
+            new Options(['send_default_pii' => true, 'data_collection' => ['user_info' => false]]),
+            null,
+        ];
+    }
+
     public function testHandleLoginSuccessEventDoesNothingIfTokenIsNotAuthenticated(): void
     {
         if (!class_exists(LoginSuccessEvent::class)) {

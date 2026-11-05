@@ -327,7 +327,7 @@ parameters:
 
 		-
 			message: "#^Access to undefined constant Symfony\\\\Component\\\\HttpKernel\\\\HttpKernelInterface\\:\\:MASTER_REQUEST\\.$#"
-			count: 2
+			count: 3
 			path: tests/EventListener/LoginListenerTest.php
 
 		-
@@ -352,7 +352,7 @@ parameters:
 
 		-
 			message: "#^Access to undefined constant Symfony\\\\Component\\\\HttpKernel\\\\HttpKernelInterface\\:\\:MASTER_REQUEST\\.$#"
-			count: 7
+			count: 9
 			path: tests/EventListener/RequestListenerTest.php
 
 		-
@@ -367,12 +367,12 @@ parameters:
 
 		-
 			message: "#^Access to undefined constant Symfony\\\\Component\\\\HttpKernel\\\\HttpKernelInterface\\:\\:MASTER_REQUEST\\.$#"
-			count: 3
+			count: 6
 			path: tests/EventListener/TracingRequestListenerTest.php
 
 		-
 			message: "#^Access to undefined constant Symfony\\\\Component\\\\HttpKernel\\\\HttpKernelInterface\\:\\:MASTER_REQUEST\\.$#"
-			count: 2
+			count: 3
 			path: tests/EventListener/TracingSubRequestListenerTest.php
 
 		-

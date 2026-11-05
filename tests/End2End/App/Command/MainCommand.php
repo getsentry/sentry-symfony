@@ -16,6 +16,7 @@ class MainCommand extends Command
         $this
             ->addOption('option1', null, InputOption::VALUE_NONE)
             ->addOption('option2', 'o2', InputOption::VALUE_OPTIONAL)
+            ->addOption('api-key', null, InputOption::VALUE_REQUIRED)
             ->addArgument('id')
         ;
     }

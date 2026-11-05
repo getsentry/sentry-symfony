@@ -9,6 +9,7 @@ use Sentry\State\HubInterface;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\HttpClient\HttpClient;
 
 final class HttpClientTracingPass implements CompilerPassInterface
 {
@@ -41,7 +42,33 @@ final class HttpClientTracingPass implements CompilerPassInterface
         $container->register(TraceableHttpClient::class, TraceableHttpClient::class)
             ->setArgument(0, new Reference(TraceableHttpClient::class . '.inner'))
             ->setArgument(1, new Reference(HubInterface::class))
+            ->setArgument(2, $this->getDefaultHeaders($container, $decoratedService[0]))
             ->setDecoratedService($decoratedService[0], null, $decoratedService[1]);
+    }
+
+    /**
+     * Gets the headers of the `default_options` of the framework, which the decorated
+     * client only adds to the requests after they passed through the traceable client.
+     *
+     * @return array<array-key, mixed>
+     */
+    private function getDefaultHeaders(ContainerBuilder $container, string $decoratedServiceId): array
+    {
+        if ($container->hasDefinition('http_client.mock_client')) {
+            return [];
+        }
+
+        $definition = $container->getDefinition($decoratedServiceId);
+        if ([HttpClient::class, 'create'] !== $definition->getFactory()) {
+            return [];
+        }
+
+        $defaultOptions = $definition->getArguments()[0] ?? [];
+        if (!\is_array($defaultOptions) || !\is_array($defaultOptions['headers'] ?? null)) {
+            return [];
+        }
+
+        return $defaultOptions['headers'];
     }
 
     /**
