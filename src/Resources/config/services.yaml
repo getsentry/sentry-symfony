@@ -150,4 +150,7 @@ services:
   # Serializers
   Sentry\SentryBundle\Serializer\ConsoleInputSerializer: ~
 
-
+  # Env var processors
+  Sentry\SentryBundle\DependencyInjection\EnvVarProcessor\SampleRateEnvVarProcessor:
+    tags:
+      - { name: container.env_var_processor }

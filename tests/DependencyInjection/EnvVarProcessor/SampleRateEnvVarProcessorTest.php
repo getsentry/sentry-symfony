@@ -13,10 +13,7 @@ final class SampleRateEnvVarProcessorTest extends TestCase
 {
     public function testGetProvidedTypes(): void
     {
-        $this->assertSame([
-            'sample_rate' => 'float',
-            'sentry_sample_rate' => 'float',
-        ], SampleRateEnvVarProcessor::getProvidedTypes());
+        $this->assertSame(['sentry_sample_rate' => 'float'], SampleRateEnvVarProcessor::getProvidedTypes());
     }
 
     /**
@@ -28,7 +25,7 @@ final class SampleRateEnvVarProcessorTest extends TestCase
     {
         $processor = new SampleRateEnvVarProcessor();
 
-        $this->assertSame($expectedSampleRate, $processor->getEnv('sample_rate', 'SENTRY_TRACES_SAMPLE_RATE', static function () use ($value) {
+        $this->assertSame($expectedSampleRate, $processor->getEnv('sentry_sample_rate', 'SENTRY_TRACES_SAMPLE_RATE', static function () use ($value) {
             return $value;
         }));
     }
@@ -50,7 +47,7 @@ final class SampleRateEnvVarProcessorTest extends TestCase
     {
         $processor = new SampleRateEnvVarProcessor();
 
-        $this->assertNull($processor->getEnv('sample_rate', 'SENTRY_TRACES_SAMPLE_RATE', static function (): void {
+        $this->assertNull($processor->getEnv('sentry_sample_rate', 'SENTRY_TRACES_SAMPLE_RATE', static function (): void {
             throw new EnvNotFoundException('Environment variable not found: "SENTRY_TRACES_SAMPLE_RATE".');
         }));
     }
@@ -65,7 +62,7 @@ final class SampleRateEnvVarProcessorTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage($expectedExceptionMessage);
 
-        $processor->getEnv('sample_rate', 'SENTRY_TRACES_SAMPLE_RATE', static function () use ($value): string {
+        $processor->getEnv('sentry_sample_rate', 'SENTRY_TRACES_SAMPLE_RATE', static function () use ($value): string {
             return $value;
         });
     }

@@ -16,6 +16,7 @@ use Sentry\DataCollection\KeyValueCollectionBehavior;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\Logger\DebugStdOutLogger;
 use Sentry\Options;
+use Sentry\SentryBundle\DependencyInjection\EnvVarProcessor\SampleRateEnvVarProcessor;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
@@ -759,6 +760,15 @@ abstract class SentryExtensionTest extends TestCase
             'release_option_fallback_to_composer_version',
             PrettyVersions::getRootPackageVersion()->getPrettyVersion(),
         ];
+    }
+
+    public function testSampleRateEnvVarProcessor(): void
+    {
+        $container = $this->createContainerFromFixture('sample_rate_env_var_processor');
+
+        $this->assertTrue($container->getDefinition(SampleRateEnvVarProcessor::class)->hasTag('container.env_var_processor'));
+        $this->assertSame(0.5, $container->resolveEnvPlaceholders($container->getParameter('sentry_traces_sample_rate'), true));
+        $this->assertNull($container->resolveEnvPlaceholders($container->getParameter('sentry_profiles_sample_rate'), true));
     }
 
     private function createContainerFromFixture(string $fixtureFile): ContainerBuilder

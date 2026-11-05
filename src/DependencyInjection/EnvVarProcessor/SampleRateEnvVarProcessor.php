@@ -9,7 +9,7 @@ use Symfony\Component\DependencyInjection\Exception\EnvNotFoundException;
 use Symfony\Component\DependencyInjection\Exception\RuntimeException;
 
 /**
- * Resolves an env var to a sample rate, so that `%env(sample_rate:FOO)%`
+ * Resolves an env var to a sample rate, so that `%env(sentry_sample_rate:FOO)%`
  * resolves to null when the env var is empty or not set. The `float:` env var
  * processor can't express this, but a null `traces_sample_rate` is the only
  * value that disables tracing.
@@ -52,9 +52,6 @@ final class SampleRateEnvVarProcessor implements EnvVarProcessorInterface
      */
     public static function getProvidedTypes(): array
     {
-        return [
-            'sample_rate' => 'float',
-            'sentry_sample_rate' => 'float',
-        ];
+        return ['sentry_sample_rate' => 'float'];
     }
 }
