@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\DependencyInjection;
 
+use Composer\InstalledVersions;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
-use Jean85\PrettyVersions;
 use Monolog\Handler\AbstractHandler;
 use Psr\Log\NullLogger;
 use Sentry\Client;
@@ -77,7 +77,7 @@ final class SentryExtension extends ConfigurableExtension
         $loader->load('services.yaml');
 
         if (!$container->hasParameter('env(SENTRY_RELEASE)')) {
-            $container->setParameter('env(SENTRY_RELEASE)', PrettyVersions::getRootPackageVersion()->getPrettyVersion());
+            $container->setParameter('env(SENTRY_RELEASE)', self::getRootPackageVersion());
         }
 
         // Remove Twig extension service if Twig is not installed to avoid autoloading failures on Symfony 8
@@ -98,6 +98,36 @@ final class SentryExtension extends ConfigurableExtension
         if (!interface_exists(TokenStorageInterface::class)) {
             $container->removeDefinition(LoginListener::class);
         }
+    }
+
+    /**
+     * Returns the version of the root package, with the short commit hash
+     * appended if the version is not a tagged one (e.g. `dev-main@1a2b3c4`),
+     * so that releases deployed from a branch can be told apart.
+     */
+    private static function getRootPackageVersion(): string
+    {
+        $rootPackage = InstalledVersions::getRootPackage();
+
+        return self::formatReleaseVersion($rootPackage['pretty_version'], $rootPackage['reference']);
+    }
+
+    /**
+     * Appends the short commit hash to the given version unless it is a tagged
+     * one. The pattern is anchored at both ends so that branch aliases and
+     * version-like branch names (e.g. `1.0.x-dev`) are not considered tagged.
+     */
+    private static function formatReleaseVersion(string $version, ?string $reference): string
+    {
+        if (1 === preg_match('/^v?(\d+\.)+\d+(-(alpha|beta|RC)[.-]?\d*)?$/i', $version)) {
+            return $version;
+        }
+
+        if (null === $reference || '' === $reference) {
+            return $version;
+        }
+
+        return $version . '@' . substr($reference, 0, 7);
     }
 
     /**
