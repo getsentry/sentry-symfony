@@ -108,17 +108,26 @@ final class SentryExtension extends ConfigurableExtension
     private static function getRootPackageVersion(): string
     {
         $rootPackage = InstalledVersions::getRootPackage();
-        $version = $rootPackage['pretty_version'];
 
-        if (1 === preg_match('/^v?(\d+\.)+\d+(-(beta|RC|alpha).?\d+)?/i', $version)) {
+        return self::formatReleaseVersion($rootPackage['pretty_version'], $rootPackage['reference']);
+    }
+
+    /**
+     * Appends the short commit hash to the given version unless it is a tagged
+     * one. The pattern is anchored at both ends so that branch aliases and
+     * version-like branch names (e.g. `1.0.x-dev`) are not considered tagged.
+     */
+    private static function formatReleaseVersion(string $version, ?string $reference): string
+    {
+        if (1 === preg_match('/^v?(\d+\.)+\d+(-(alpha|beta|RC)[.-]?\d*)?$/i', $version)) {
             return $version;
         }
 
-        if (null === $rootPackage['reference']) {
+        if (null === $reference || '' === $reference) {
             return $version;
         }
 
-        return $version . '@' . substr($rootPackage['reference'], 0, 7);
+        return $version . '@' . substr($reference, 0, 7);
     }
 
     /**

@@ -759,13 +759,51 @@ abstract class SentryExtensionTest extends TestCase
             '1.0.x-dev',
         ];
 
-        // The test suite always runs from an untagged checkout, so the short commit hash is expected to be appended
         $rootPackage = InstalledVersions::getRootPackage();
 
         yield 'If both the release option and the SENTRY_RELEASE environment variable are unset, then the root package version is used as fallback' => [
             'release_option_fallback_to_composer_version',
-            $rootPackage['pretty_version'] . '@' . substr((string) $rootPackage['reference'], 0, 7),
+            self::callFormatReleaseVersion($rootPackage['pretty_version'], $rootPackage['reference']),
         ];
+    }
+
+    /**
+     * @dataProvider formatReleaseVersionDataProvider
+     */
+    public function testFormatReleaseVersion(string $version, ?string $reference, string $expectedRelease): void
+    {
+        $this->assertSame($expectedRelease, self::callFormatReleaseVersion($version, $reference));
+    }
+
+    public function formatReleaseVersionDataProvider(): \Generator
+    {
+        $reference = '7cd88c8a1b2c3d4e5f60718293a4b5c6d7e8f901';
+
+        yield 'Tagged version' => ['1.2.3', $reference, '1.2.3'];
+        yield 'Tagged version with "v" prefix' => ['v1.2.3', $reference, 'v1.2.3'];
+        yield 'Tagged version with four segments' => ['1.2.3.4', $reference, '1.2.3.4'];
+        yield 'Tagged pre-release version' => ['1.2.3-beta1', $reference, '1.2.3-beta1'];
+        yield 'Tagged pre-release version with separator' => ['1.2.3-RC.2', $reference, '1.2.3-RC.2'];
+        yield 'Tagged pre-release version without number' => ['1.2.3-alpha', $reference, '1.2.3-alpha'];
+        yield 'Dev branch' => ['dev-main', $reference, 'dev-main@7cd88c8'];
+        yield 'Branch alias' => ['1.0.x-dev', $reference, '1.0.x-dev@7cd88c8'];
+        yield 'Version-like branch' => ['1.0.0-dev', $reference, '1.0.0-dev@7cd88c8'];
+        yield 'Tag-like prefix followed by other characters' => ['1.2.3-beta1-foo', $reference, '1.2.3-beta1-foo@7cd88c8'];
+        yield 'Untagged version without reference' => ['dev-main', null, 'dev-main'];
+        yield 'Untagged version with empty reference' => ['1.0.x-dev', '', '1.0.x-dev'];
+    }
+
+    private static function callFormatReleaseVersion(string $version, ?string $reference): string
+    {
+        $method = new \ReflectionMethod(SentryExtension::class, 'formatReleaseVersion');
+        if (\PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
+
+        $release = $method->invoke(null, $version, $reference);
+        \assert(\is_string($release));
+
+        return $release;
     }
 
     private function createContainerFromFixture(string $fixtureFile): ContainerBuilder
