@@ -4,7 +4,13 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\DataCollection\DataCollectionPolicy;
+use Sentry\DataCollection\HttpMessageType;
+use Sentry\DataCollection\HttpSpanDataCollector;
+use Sentry\DataCollection\HttpUrlCollector;
+use Sentry\DataCollection\KeyValueDataFilter;
 use Sentry\State\HubInterface;
+use Sentry\Tracing\Span;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
@@ -47,6 +53,68 @@ abstract class AbstractTracingRequestListener
         }
 
         $span->setHttpStatus($response->getStatusCode());
+        $span->setData(['http.response.status_code' => $response->getStatusCode()]);
+    }
+
+    /**
+     * This method will return the query string as it was received, compared
+     * to {@see Request::getUri()} that normalizes it.
+     *
+     * @internal
+     */
+    protected function getRequestUrl(Request $request, DataCollectionPolicy $policy): string
+    {
+        if ($policy->isLegacyMode()) {
+            return $request->getUri();
+        }
+
+        $url = $request->getSchemeAndHttpHost() . $request->getBaseUrl() . $request->getPathInfo();
+        $queryString = $request->server->get('QUERY_STRING');
+        $queryString = HttpUrlCollector::collectQueryString($policy, \is_string($queryString) ? $queryString : '');
+
+        if (null !== $queryString) {
+            $url .= '?' . $queryString;
+        }
+
+        return $url;
+    }
+
+    /**
+     * Adds the headers, cookies and body of the response to the span.
+     *
+     * @internal
+     */
+    protected function collectResponseData(Span $span, Response $response): void
+    {
+        if (!$span->getSampled()) {
+            return;
+        }
+
+        $policy = DataCollectionPolicy::fromHub($this->hub);
+        $type = HttpMessageType::outgoingResponse();
+
+        // Headers can be set to null, which removes their value
+        $responseHeaders = [];
+        foreach ($response->headers->all() as $name => $values) {
+            $responseHeaders[$name] = array_values(array_filter($values, '\is_string'));
+        }
+
+        $cookies = [];
+        foreach ($response->headers->getCookies() as $cookie) {
+            $cookies[] = [$cookie->getName(), $cookie->getValue()];
+        }
+
+        $spanData = HttpSpanDataCollector::collectHeaders($policy, $type, $responseHeaders)
+            + HttpSpanDataCollector::collectCookiePairs($policy, $type, $cookies);
+
+        $content = $response->getContent();
+        if (false !== $content) {
+            $spanData += HttpSpanDataCollector::collectBody($policy, $type, $content, (string) $response->headers->get('Content-Type', ''));
+        } elseif (null !== $policy->getHttpBodyLimit($type)) {
+            $spanData['http.response.body.data'] = KeyValueDataFilter::FILTERED_VALUE;
+        }
+
+        $span->setData($spanData);
     }
 
     /**

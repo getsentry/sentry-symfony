@@ -1,0 +1,4 @@
+sentry:
+    register_monolog_handler: true
+    messenger:
+        capture_soft_fails: false

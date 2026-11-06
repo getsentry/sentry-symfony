@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:sentry="https://sentry.io/schema/dic/sentry-symfony"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services https://symfony.com/schema/dic/services/services-1.0.xsd
+                               https://sentry.io/schema/dic/sentry-symfony https://sentry.io/schema/dic/sentry-symfony/sentry-1.0.xsd">
+
+    <sentry:config>
+        <sentry:options>
+            <sentry:data-collection stack-frame-variables="false">
+                <sentry:http-headers mode="allowList">
+                    <sentry:term>x-request-id</sentry:term>
+                </sentry:http-headers>
+                <sentry:http-bodies />
+            </sentry:data-collection>
+        </sentry:options>
+    </sentry:config>
+</container>

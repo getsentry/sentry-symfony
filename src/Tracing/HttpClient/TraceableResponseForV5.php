@@ -26,6 +26,9 @@ final class TraceableResponseForV5 extends AbstractTraceableResponse implements 
      */
     public function toStream(bool $throw = true)
     {
-        return $this->response->toStream($throw);
+        $stream = $this->response->toStream($throw);
+        $this->streamed = true;
+
+        return $stream;
     }
 }

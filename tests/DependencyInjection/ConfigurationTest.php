@@ -6,6 +6,7 @@ namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use PHPUnit\Framework\TestCase;
+use Sentry\DataCollection\HttpMessageType;
 use Sentry\Options;
 use Sentry\SentryBundle\DependencyInjection\Configuration;
 use Symfony\Bundle\TwigBundle\TwigBundle;
@@ -23,6 +24,7 @@ final class ConfigurationTest extends TestCase
         $expectedBundleDefaultConfig = [
             'register_error_listener' => true,
             'register_error_handler' => true,
+            'register_monolog_handler' => false,
             'logger' => null,
             'options' => [
                 'integrations' => [],
@@ -33,6 +35,7 @@ final class ConfigurationTest extends TestCase
                 'release' => '%env(default::SENTRY_RELEASE)%',
                 'ignore_exceptions' => [],
                 'ignore_transactions' => [],
+                'trace_ignore_status_codes' => [404],
                 'tags' => [],
                 'in_app_exclude' => [
                     '%kernel.cache_dir%',
@@ -295,6 +298,55 @@ final class ConfigurationTest extends TestCase
     }
 
     /**
+     * @param mixed   $value
+     * @param mixed[] $expected
+     *
+     * @dataProvider traceIgnoreStatusCodesOptionDataProvider
+     */
+    public function testTraceIgnoreStatusCodesOption($value, array $expected): void
+    {
+        /** @var array{options: array{trace_ignore_status_codes: mixed[]}} $config */
+        $config = $this->processConfiguration(['options' => ['trace_ignore_status_codes' => $value]]);
+
+        $this->assertSame($expected, $config['options']['trace_ignore_status_codes']);
+    }
+
+    public function traceIgnoreStatusCodesOptionDataProvider(): \Generator
+    {
+        yield 'single status code' => [[404], [404]];
+        yield 'multiple status codes' => [[404, 403], [404, 403]];
+        yield 'status code range' => [[[500, 599]], [[500, 599]]];
+        yield 'status codes and range' => [[404, [500, 599]], [404, [500, 599]]];
+        yield 'single value is cast to a list' => [404, [404]];
+        yield 'string values as passed from XML config' => [['404', '403'], [404, 403]];
+        yield 'empty list overrides the default' => [[], []];
+    }
+
+    /**
+     * @param mixed $value
+     *
+     * @dataProvider traceIgnoreStatusCodesOptionWithInvalidValuesDataProvider
+     */
+    public function testTraceIgnoreStatusCodesOptionWithInvalidValues($value): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('Invalid configuration for path "sentry.options.trace_ignore_status_codes": each entry must be a status code (e.g. 404) or an inclusive range (e.g. [500, 599]).');
+
+        $this->processConfiguration(['options' => ['trace_ignore_status_codes' => $value]]);
+    }
+
+    public function traceIgnoreStatusCodesOptionWithInvalidValuesDataProvider(): \Generator
+    {
+        yield 'string' => [['not-a-status-code']];
+        yield 'range as string' => [['500-599']];
+        yield 'float' => [[404.5]];
+        yield 'range with a single value' => [[[500]]];
+        yield 'range with too many values' => [[[500, 502, 599]]];
+        yield 'descending range' => [[[599, 500]]];
+        yield 'range of strings' => [[['500', '599']]];
+    }
+
+    /**
      * @dataProvider strictTraceContinuationOptionDataProvider
      */
     public function testStrictTraceContinuationOption(bool $value): void
@@ -326,6 +378,139 @@ final class ConfigurationTest extends TestCase
     {
         yield [true];
         yield [false];
+    }
+
+    public function testDataCollectionOptionIsNotSetWhenNull(): void
+    {
+        /** @var array{options: array<string, mixed>} $config */
+        $config = $this->processConfiguration(['options' => ['data_collection' => null]]);
+
+        $this->assertArrayNotHasKey('data_collection', $config['options']);
+    }
+
+    public function testDataCollectionOptionIsUnsetWhenNullOverridesAnEarlierConfig(): void
+    {
+        $processor = new Processor();
+        /** @var array{options: array<string, mixed>} $config */
+        $config = $processor->processConfiguration(new Configuration(), [
+            ['options' => ['data_collection' => ['user_info' => true]]],
+            ['options' => ['data_collection' => null]],
+        ]);
+
+        $this->assertArrayNotHasKey('data_collection', $config['options']);
+    }
+
+    public function testDataCollectionOptionOverridesAnEarlierNullConfig(): void
+    {
+        $processor = new Processor();
+        /** @var array{options: array{data_collection: array<string, mixed>}} $config */
+        $config = $processor->processConfiguration(new Configuration(), [
+            ['options' => ['data_collection' => null]],
+            ['options' => ['data_collection' => ['user_info' => true]]],
+        ]);
+
+        $this->assertSame(['user_info' => true, 'http_bodies' => HttpMessageType::TYPES], $config['options']['data_collection']);
+    }
+
+    public function testDataCollectionOptionDoesNotAcceptFalse(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid configuration for path "sentry.options.data_collection": the value false is not supported, use null to keep the legacy options.');
+
+        $this->processConfiguration(['options' => ['data_collection' => false]]);
+    }
+
+    public function testDataCollectionOptionWithEmptyArrayUsesDefaults(): void
+    {
+        /** @var array{options: array{data_collection: array<string, mixed>}} $config */
+        $config = $this->processConfiguration(['options' => ['data_collection' => []]]);
+
+        $this->assertSame(['http_bodies' => HttpMessageType::TYPES], $config['options']['data_collection']);
+    }
+
+    public function testDataCollectionHttpHeadersWithoutValueAreExpanded(): void
+    {
+        /** @var array{options: array{data_collection: array<string, mixed>}} $config */
+        $config = $this->processConfiguration(['options' => ['data_collection' => ['http_headers' => null]]]);
+
+        $this->assertSame([
+            'request' => ['terms' => []],
+            'response' => ['terms' => []],
+        ], $config['options']['data_collection']['http_headers']);
+    }
+
+    /**
+     * @testWith [true, "denyList"]
+     *           [false, "off"]
+     */
+    public function testDataCollectionStackFrameVariablesAcceptBooleans(bool $value, string $expectedMode): void
+    {
+        /** @var array{options: array{data_collection: array<string, mixed>}} $config */
+        $config = $this->processConfiguration(['options' => ['data_collection' => ['stack_frame_variables' => $value]]]);
+
+        $this->assertSame(['mode' => $expectedMode, 'terms' => []], $config['options']['data_collection']['stack_frame_variables']);
+    }
+
+    public function testDataCollectionListsAreReplacedWhenMerged(): void
+    {
+        $processor = new Processor();
+        /** @var array{options: array{data_collection: array<string, mixed>}} $config */
+        $config = $processor->processConfiguration(new Configuration(), [
+            ['options' => ['data_collection' => [
+                'cookies' => ['mode' => 'allowList', 'terms' => ['theme']],
+                'http_bodies' => ['incomingRequest'],
+            ]]],
+            ['options' => ['data_collection' => [
+                'cookies' => ['terms' => ['locale']],
+                'http_bodies' => [],
+            ]]],
+        ]);
+
+        $this->assertSame([
+            'cookies' => ['mode' => 'allowList', 'terms' => ['locale']],
+            'http_bodies' => [],
+        ], $config['options']['data_collection']);
+    }
+
+    /**
+     * @param array<string, mixed> $dataCollection
+     *
+     * @dataProvider dataCollectionOptionWithInvalidValuesDataProvider
+     */
+    public function testDataCollectionOptionWithInvalidValues(array $dataCollection, string $exceptionMessage): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage($exceptionMessage);
+
+        $this->processConfiguration(['options' => ['data_collection' => $dataCollection]]);
+    }
+
+    public function dataCollectionOptionWithInvalidValuesDataProvider(): \Generator
+    {
+        yield [
+            ['cookies' => ['mode' => 'invalid']],
+            'The value "invalid" is not allowed for path "sentry.options.data_collection.cookies.mode".',
+        ];
+
+        yield [
+            ['url_query_params' => ['terms' => [1]]],
+            'Invalid configuration for path "sentry.options.data_collection.url_query_params.terms.0": Expected a string, but got 1.',
+        ];
+
+        yield [
+            ['http_headers' => ['mode' => 'off', 'request' => ['mode' => 'denyList']]],
+            'Unrecognized option "mode" under "sentry.options.data_collection.http_headers".',
+        ];
+
+        yield [
+            ['http_bodies' => ['invalid']],
+            'The value "invalid" is not allowed for path "sentry.options.data_collection.http_bodies.0".',
+        ];
+
+        yield [
+            ['frame_context_lines' => -1],
+            'The value -1 is too small for path "sentry.options.data_collection.frame_context_lines". Should be greater than or equal to 0',
+        ];
     }
 
     /**

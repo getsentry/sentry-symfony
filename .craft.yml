@@ -1,5 +1,9 @@
-minVersion: 0.23.1
-changelogPolicy: simple
+minVersion: 3.9.0
+changelog:
+  policy: simple
+preReleaseCommand: bash scripts/bump-version.sh
+versioning:
+  policy: manual
 artifactProvider:
   name: none
 targets:

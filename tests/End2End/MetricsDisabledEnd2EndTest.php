@@ -22,13 +22,14 @@ class MetricsDisabledEnd2EndTest extends WebTestCase
         return KernelWithMetricsDisabled::class;
     }
 
-    public function testMetricsAreFlushedAfterRequest(): void
+    public function testMetricsAreFlushedWhenEnableMetricsIsFalse(): void
     {
         $client = static::createClient();
 
         $client->request('GET', '/metrics');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
 
-        $this->assertEmpty(StubTransport::$events);
+        $this->assertCount(1, StubTransport::$events);
+        $this->assertCount(3, StubTransport::$events[0]->getMetrics());
     }
 }

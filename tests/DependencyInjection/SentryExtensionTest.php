@@ -6,9 +6,13 @@ namespace Sentry\SentryBundle\Tests\DependencyInjection;
 
 use Composer\InstalledVersions;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use Monolog\Handler\AbstractHandler;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
+use Sentry\DataCollection\DataCollectionOptions;
+use Sentry\DataCollection\HttpMessageType;
+use Sentry\DataCollection\KeyValueCollectionBehavior;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\Logger\DebugStdOutLogger;
 use Sentry\Options;
@@ -24,6 +28,9 @@ use Sentry\SentryBundle\EventListener\TracingConsoleListener;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
 use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
 use Sentry\SentryBundle\Integration\IntegrationConfigurator;
+use Sentry\SentryBundle\Monolog\CapturedExceptionTracker;
+use Sentry\SentryBundle\Monolog\PhpErrorHandler;
+use Sentry\SentryBundle\Monolog\UncaughtExceptionHandler;
 use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Serializer\ConsoleInputSerializer;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
@@ -83,6 +90,35 @@ abstract class SentryExtensionTest extends TestCase
         $definition = $container->getDefinition(IntegrationConfigurator::class);
 
         $this->assertSame($expected, $definition->getArgument(1));
+    }
+
+    public function testMonologHandlersAreNotRegisteredByDefault(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+
+        $this->assertFalse($container->hasDefinition(SentryExtension::MONOLOG_PHP_ERROR_HANDLER_SERVICE_ID));
+        $this->assertFalse($container->hasDefinition(SentryExtension::MONOLOG_UNCAUGHT_EXCEPTION_HANDLER_SERVICE_ID));
+    }
+
+    public function testMonologHandlersAreRegisteredWhenEnabled(): void
+    {
+        if (!class_exists(AbstractHandler::class)) {
+            $this->markTestSkipped('Monolog is not installed.');
+        }
+
+        $container = $this->createContainerFromFixture('monolog_handler_enabled');
+        $tracker = new Reference(SentryExtension::MONOLOG_CAPTURED_EXCEPTION_TRACKER_SERVICE_ID);
+
+        $this->assertSame(CapturedExceptionTracker::class, $container->getDefinition(SentryExtension::MONOLOG_CAPTURED_EXCEPTION_TRACKER_SERVICE_ID)->getClass());
+
+        $definition = $container->getDefinition(SentryExtension::MONOLOG_PHP_ERROR_HANDLER_SERVICE_ID);
+        $this->assertSame(PhpErrorHandler::class, $definition->getClass());
+        // Silenced errors bubble unless MonologErrorReportingPass enables the scream mode itself
+        $this->assertEquals([new Reference(HubInterface::class), $tracker, true], $definition->getArguments());
+
+        $definition = $container->getDefinition(SentryExtension::MONOLOG_UNCAUGHT_EXCEPTION_HANDLER_SERVICE_ID);
+        $this->assertSame(UncaughtExceptionHandler::class, $definition->getClass());
+        $this->assertEquals([new Reference(HubInterface::class), $tracker, false], $definition->getArguments());
     }
 
     public function testConsoleCommandListener(): void
@@ -175,7 +211,7 @@ abstract class SentryExtensionTest extends TestCase
                 [
                     'event' => KernelEvents::REQUEST,
                     'method' => 'handleKernelRequestEvent',
-                    'priority' => 5,
+                    'priority' => 64,
                 ],
                 [
                     'event' => KernelEvents::CONTROLLER,
@@ -184,6 +220,34 @@ abstract class SentryExtensionTest extends TestCase
                 ],
             ],
         ], $definition->getTags());
+    }
+
+    /**
+     * The user context must be filled before any listener that can throw, otherwise
+     * RequestIntegration falls back to $_SERVER['REMOTE_ADDR'] - which behind a reverse
+     * proxy is the proxy itself, not the client. The router (priority 32) throws
+     * NotFoundHttpException on every unknown URL, so a 404 would be attributed to the
+     * proxy while a controller-thrown 404 on the same site would not.
+     */
+    public function testRequestListenerFillsUserContextBeforeTheRouterCanThrow(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+        $tags = $container->getDefinition(RequestListener::class)->getTag('kernel.event_listener');
+
+        $requestPriority = null;
+
+        foreach ($tags as $attributes) {
+            if (KernelEvents::REQUEST === ($attributes['event'] ?? null)) {
+                $requestPriority = $attributes['priority'];
+            }
+        }
+
+        $this->assertNotNull($requestPriority);
+        // RouterListener runs at priority 32
+        $this->assertGreaterThan(32, $requestPriority);
+        // ValidateRequestListener runs at priority 256 and rejects conflicting forwarded
+        // headers; getClientIp() must not be reached before it has had its say.
+        $this->assertLessThan(256, $requestPriority);
     }
 
     public function testRuntimeContextListener(): void
@@ -261,6 +325,35 @@ abstract class SentryExtensionTest extends TestCase
         ], $definition->getTags());
     }
 
+    /**
+     * The session listener can still add the session cookie to the response,
+     * so the response data must be collected after it but before the streamed
+     * response listener of Symfony < 7.0 sends the response.
+     */
+    public function testTracingListenersCollectResponseDataAfterTheSessionListener(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+
+        foreach ([TracingRequestListener::class, TracingSubRequestListener::class] as $listener) {
+            $collectPriority = null;
+
+            foreach ($container->getDefinition($listener)->getTag('kernel.event_listener') as $attributes) {
+                if ('collectKernelResponseData' !== ($attributes['method'] ?? null)) {
+                    continue;
+                }
+
+                $this->assertSame(KernelEvents::RESPONSE, $attributes['event'] ?? null);
+                $collectPriority = $attributes['priority'];
+            }
+
+            $this->assertNotNull($collectPriority);
+            // SessionListener runs at priority -1000
+            $this->assertLessThan(-1000, $collectPriority);
+            // StreamedResponseListener runs at priority -1024
+            $this->assertGreaterThan(-1024, $collectPriority);
+        }
+    }
+
     public function testRequestFetcherIsResettable(): void
     {
         $container = $this->createContainerFromFixture('full');
@@ -304,6 +397,10 @@ abstract class SentryExtensionTest extends TestCase
             'ignore_transactions' => [
                 'GET tracing_ignored_transaction',
             ],
+            'trace_ignore_status_codes' => [
+                404,
+                403,
+            ],
             'before_send' => new Reference('App\\Sentry\\BeforeSendCallback'),
             'before_send_transaction' => new Reference('App\\Sentry\\BeforeSendTransactionCallback'),
             'before_send_check_in' => new Reference('App\\Sentry\\BeforeSendCheckInCallback'),
@@ -320,6 +417,38 @@ abstract class SentryExtensionTest extends TestCase
             'in_app_exclude' => [$container->getParameter('kernel.cache_dir')],
             'in_app_include' => [$container->getParameter('kernel.project_dir')],
             'send_default_pii' => true,
+            'data_collection' => [
+                'user_info' => false,
+                'cookies' => [
+                    'mode' => 'allowList',
+                    'terms' => ['theme'],
+                ],
+                'http_headers' => [
+                    'request' => [
+                        'mode' => 'denyList',
+                        'terms' => ['x-forwarded-for'],
+                    ],
+                    'response' => [
+                        'mode' => 'off',
+                        'terms' => [],
+                    ],
+                ],
+                'http_bodies' => ['incomingRequest', 'outgoingRequest'],
+                'url_query_params' => [
+                    'terms' => ['email'],
+                ],
+                'gen_ai' => [
+                    'inputs' => false,
+                    'outputs' => true,
+                ],
+                'database_query_data' => false,
+                'queues' => false,
+                'stack_frame_variables' => [
+                    'mode' => 'allowList',
+                    'terms' => ['id'],
+                ],
+                'frame_context_lines' => 3,
+            ],
             'max_value_length' => 255,
             'transport' => new Reference('App\\Sentry\\Transport'),
             'http_client' => new Reference('App\\Sentry\\HttpClient'),
@@ -366,6 +495,73 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertInstanceOf(Definition::class, $methodCalls[2][1][0]);
         $this->assertSame(RepresentationSerializer::class, $methodCalls[2][1][0]->getClass());
         $this->assertEquals($methodCalls[2][1][0]->getArgument(0), new Reference('sentry.client.options'));
+    }
+
+    public function testDataCollectionOptionIsAcceptedByTheSdk(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+        $dataCollection = $this->createDataCollectionOptions($container);
+
+        $this->assertFalse($dataCollection->shouldCollectUserInfo());
+        $this->assertEquals(KeyValueCollectionBehavior::allowList(['theme']), $dataCollection->getCookies());
+        $this->assertEquals([
+            'request' => KeyValueCollectionBehavior::denyList(['x-forwarded-for']),
+            'response' => KeyValueCollectionBehavior::off(),
+        ], $dataCollection->getHttpHeaders());
+        $this->assertSame([HttpMessageType::incomingRequest(), HttpMessageType::outgoingRequest()], $dataCollection->getHttpBodies());
+        $this->assertEquals(KeyValueCollectionBehavior::denyList(['email']), $dataCollection->getUrlQueryParams());
+        $this->assertSame(['inputs' => false, 'outputs' => true], $dataCollection->getGenAi());
+        $this->assertFalse($dataCollection->shouldCollectDatabaseQueryData());
+        $this->assertFalse($dataCollection->shouldCollectQueues());
+        $this->assertEquals(KeyValueCollectionBehavior::allowList(['id']), $dataCollection->getStackFrameVariables());
+        $this->assertSame(3, $dataCollection->getFrameContextLines());
+    }
+
+    public function testDataCollectionShorthandsAreExpanded(): void
+    {
+        $container = $this->createContainerFromFixture('data_collection_shorthand');
+        /** @var array{data_collection: array<string, mixed>} $options */
+        $options = $container->getDefinition('sentry.client.options')->getArgument(0);
+
+        $this->assertEquals([
+            'http_headers' => [
+                'request' => [
+                    'mode' => 'allowList',
+                    'terms' => ['x-request-id'],
+                ],
+                'response' => [
+                    'mode' => 'allowList',
+                    'terms' => ['x-request-id'],
+                ],
+            ],
+            'http_bodies' => [],
+            'stack_frame_variables' => [
+                'mode' => 'off',
+                'terms' => [],
+            ],
+        ], $options['data_collection']);
+
+        $dataCollection = $this->createDataCollectionOptions($container);
+
+        $this->assertEquals([
+            'request' => KeyValueCollectionBehavior::allowList(['x-request-id']),
+            'response' => KeyValueCollectionBehavior::allowList(['x-request-id']),
+        ], $dataCollection->getHttpHeaders());
+        $this->assertSame([], $dataCollection->getHttpBodies());
+        $this->assertEquals(KeyValueCollectionBehavior::off(), $dataCollection->getStackFrameVariables());
+    }
+
+    /**
+     * @testWith ["data_collection_null"]
+     *           ["dsn_null"]
+     */
+    public function testDataCollectionOptionIsNotSetUnlessConfigured(string $fixtureFile): void
+    {
+        $container = $this->createContainerFromFixture($fixtureFile);
+        /** @var array<string, mixed> $options */
+        $options = $container->getDefinition('sentry.client.options')->getArgument(0);
+
+        $this->assertArrayNotHasKey('data_collection', $options);
     }
 
     public function testErrorTypesOptionIsParsedFromStringToIntegerValue(): void
@@ -563,9 +759,12 @@ abstract class SentryExtensionTest extends TestCase
             '1.0.x-dev',
         ];
 
+        // The test suite always runs from an untagged checkout, so the short commit hash is expected to be appended
+        $rootPackage = InstalledVersions::getRootPackage();
+
         yield 'If both the release option and the SENTRY_RELEASE environment variable are unset, then the root package version is used as fallback' => [
             'release_option_fallback_to_composer_version',
-            InstalledVersions::getRootPackage()['pretty_version'],
+            $rootPackage['pretty_version'] . '@' . substr((string) $rootPackage['reference'], 0, 7),
         ];
     }
 
@@ -594,6 +793,21 @@ abstract class SentryExtensionTest extends TestCase
         $container->compile();
 
         return $container;
+    }
+
+    /**
+     * The SDK silently falls back to its defaults for values it does not accept, so the
+     * configuration passed by the bundle is resolved by the SDK to ensure it is applied.
+     */
+    private function createDataCollectionOptions(ContainerBuilder $container): DataCollectionOptions
+    {
+        /** @var array{data_collection: array<string, mixed>} $options */
+        $options = $container->getDefinition('sentry.client.options')->getArgument(0);
+        $dataCollection = (new Options(['data_collection' => $options['data_collection']]))->getDataCollection();
+
+        $this->assertNotNull($dataCollection);
+
+        return $dataCollection;
     }
 
     /**

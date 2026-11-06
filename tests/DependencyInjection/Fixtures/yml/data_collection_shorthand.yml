@@ -1,0 +1,9 @@
+sentry:
+    options:
+        data_collection:
+            http_headers:
+                mode: allowList
+                terms:
+                    - x-request-id
+            http_bodies: []
+            stack_frame_variables: false
