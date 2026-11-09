@@ -36,6 +36,7 @@ jobs:
           - '8.3'
           - '8.4'
           - '8.5'
+          - '8.6'
         symfony-version:
           - 4.4.*
           - 5.*
@@ -64,6 +65,8 @@ jobs:
           - php: '8.4'
             symfony-version: 4.4.*
           - php: '8.5'
+            symfony-version: 4.4.*
+          - php: '8.6'
             symfony-version: 4.4.*
           - php: '7.2'
             symfony-version: 8.*
