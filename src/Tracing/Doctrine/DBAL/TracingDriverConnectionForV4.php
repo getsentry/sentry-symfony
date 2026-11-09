@@ -7,7 +7,7 @@ namespace Sentry\SentryBundle\Tracing\Doctrine\DBAL;
 use Doctrine\DBAL\Driver\Connection as DriverConnectionInterface;
 use Doctrine\DBAL\Driver\Result;
 use Doctrine\DBAL\Driver\Statement;
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\SentryManager;
 use Sentry\Tracing\SpanContext;
 
 /**
@@ -50,9 +50,9 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
     public const SPAN_OP_TRANSACTION_ROLLBACK = 'db.sql.transaction.rollback';
 
     /**
-     * @var HubInterface The current hub
+     * @var SentryManager
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var DriverConnectionInterface The decorated connection
@@ -72,7 +72,7 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
     /**
      * Constructor.
      *
-     * @param HubInterface              $hub                 The current hub
+     * @param SentryManager             $sentry
      * @param DriverConnectionInterface $decoratedConnection The connection to decorate
      * @param string                    $databasePlatform    The name of the database platform
      * @param array<string, mixed>      $params              The connection params
@@ -81,13 +81,13 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
      * @phpstan-param ConnectionParams $params
      */
     public function __construct(
-        HubInterface $hub,
+        SentryManager $sentry,
         DriverConnectionInterface $decoratedConnection,
         string $databasePlatform,
         array $params,
         bool $ignorePrepareSpans = false
     ) {
-        $this->hub = $hub;
+        $this->sentry = $sentry;
         $this->decoratedConnection = $decoratedConnection;
         $this->spanData = $this->getSpanData($databasePlatform, $params);
         $this->ignorePrepareSpans = $ignorePrepareSpans;
@@ -106,7 +106,7 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
             });
         }
 
-        return new TracingStatement($this->hub, $statement, $sql, $this->spanData);
+        return new TracingStatement($this->sentry, $statement, $sql, $this->spanData);
     }
 
     /**
@@ -230,7 +230,7 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
      */
     private function traceFunction(string $spanOperation, string $spanDescription, \Closure $callback)
     {
-        $span = $this->hub->getSpan();
+        $span = $this->sentry->getSpan();
 
         if (null !== $span) {
             $span = $span->startChild(

@@ -12,8 +12,8 @@ use Sentry\EventHint;
 use Sentry\ExceptionMechanism;
 use Sentry\Logs\Logs;
 use Sentry\Metrics\TraceMetrics;
-use Sentry\State\HubInterface;
-use Sentry\State\Scope;
+use Sentry\SentryBundle\SentryManager;
+use Sentry\State\IsolationScope;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleErrorEvent;
@@ -30,9 +30,9 @@ use Symfony\Component\Console\Input\ArgvInput;
 class ConsoleListener
 {
     /**
-     * @var HubInterface The current hub
+     * @var SentryManager
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var bool Whether to capture console errors
@@ -42,23 +42,23 @@ class ConsoleListener
     /**
      * Constructor.
      *
-     * @param HubInterface $hub           The current hub
-     * @param bool         $captureErrors Whether to capture console errors
+     * @param SentryManager $sentry
+     * @param bool          $captureErrors Whether to capture console errors
      */
-    public function __construct(HubInterface $hub, bool $captureErrors = true)
+    public function __construct(SentryManager $sentry, bool $captureErrors = true)
     {
-        $this->hub = $hub;
+        $this->sentry = $sentry;
         $this->captureErrors = $captureErrors;
     }
 
     /**
-     * Handles the execution of a console command by pushing a new {@see Scope}.
+     * Handles the execution of a console command by pushing a new {@see IsolationScope}.
      *
      * @param ConsoleCommandEvent $event The event
      */
     public function handleConsoleCommandEvent(ConsoleCommandEvent $event): void
     {
-        $scope = $this->hub->pushScope();
+        $scope = $this->sentry->pushScope();
         $command = $event->getCommand();
         $input = $event->getInput();
 
@@ -80,7 +80,7 @@ class ConsoleListener
     {
         $fullCommand = (string) $input;
 
-        if (DataCollectionPolicy::fromHub($this->hub)->isLegacyMode()) {
+        if (DataCollectionPolicy::fromOptions($this->sentry->getClient()->getOptions())->isLegacyMode()) {
             return $fullCommand;
         }
 
@@ -129,7 +129,7 @@ class ConsoleListener
     }
 
     /**
-     * Handles the termination of a console command by popping the {@see Scope}.
+     * Handles the termination of a console command by popping the {@see IsolationScope}.
      *
      * @param ConsoleTerminateEvent $event The event
      */
@@ -137,7 +137,7 @@ class ConsoleListener
     {
         Logs::getInstance()->flush();
         TraceMetrics::getInstance()->flush();
-        $this->hub->popScope();
+        $this->sentry->popScope();
     }
 
     /**
@@ -147,7 +147,7 @@ class ConsoleListener
      */
     public function handleConsoleErrorEvent(ConsoleErrorEvent $event): void
     {
-        $this->hub->configureScope(function (Scope $scope) use ($event): void {
+        $this->sentry->configureScope(function (IsolationScope $scope) use ($event): void {
             $scope->setTag('console.command.exit_code', (string) $event->getExitCode());
 
             if ($this->captureErrors) {
@@ -156,7 +156,7 @@ class ConsoleListener
                     'mechanism' => new ExceptionMechanism(ExceptionMechanism::TYPE_GENERIC, false),
                 ]);
 
-                $this->hub->captureEvent(Event::createEvent(), $hint);
+                $this->sentry->captureEvent(Event::createEvent(), $hint);
             }
         });
     }

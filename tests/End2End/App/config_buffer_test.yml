@@ -1,13 +1,16 @@
 services:
   Sentry\Monolog\BreadcrumbHandler:
     arguments:
-      - '@Sentry\State\HubInterface'
       - !php/const Monolog\Logger::WARNING
 
   app.sentry.handler:
-    class: Sentry\Monolog\Handler
+    class: Sentry\Monolog\LogToSentryIssueHandler
     arguments:
-      - '@Sentry\State\HubInterface'
+      - !php/const Monolog\Logger::WARNING
+
+  app.sentry.exception_handler:
+    class: Sentry\Monolog\ExceptionToSentryIssueHandler
+    arguments:
       - !php/const Monolog\Logger::WARNING
 
   Sentry\SentryBundle\Tests\End2End\App\Controller\BufferFlushController:
@@ -41,6 +44,10 @@ monolog:
       type: service
       id: app.sentry.handler
       level: warning
+    sentry_exceptions:
+      type: service
+      id: app.sentry.exception_handler
+      level: warning
     main:
       type: stream
       path: "%kernel.logs_dir%/%kernel.environment%.log"
@@ -52,5 +59,10 @@ monolog:
     sentry_buffer:
       type: buffer
       handler: sentry
+      level: notice
+      buffer_size: 50
+    sentry_exceptions_buffer:
+      type: buffer
+      handler: sentry_exceptions
       level: notice
       buffer_size: 50

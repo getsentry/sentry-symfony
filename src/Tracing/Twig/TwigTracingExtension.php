@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tracing\Twig;
 
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\SentryManager;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 use Twig\Extension\AbstractExtension;
@@ -14,9 +14,9 @@ use Twig\Profiler\Profile;
 final class TwigTracingExtension extends AbstractExtension
 {
     /**
-     * @var HubInterface The current hub
+     * @var SentryManager
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var \SplObjectStorage<object, Span> The currently active spans
@@ -24,11 +24,11 @@ final class TwigTracingExtension extends AbstractExtension
     private $spans;
 
     /**
-     * @param HubInterface $hub The current hub
+     * @param SentryManager $sentry
      */
-    public function __construct(HubInterface $hub)
+    public function __construct(SentryManager $sentry)
     {
-        $this->hub = $hub;
+        $this->sentry = $sentry;
         $this->spans = new \SplObjectStorage();
     }
 
@@ -40,7 +40,7 @@ final class TwigTracingExtension extends AbstractExtension
      */
     public function enter(Profile $profile): void
     {
-        $transaction = $this->hub->getTransaction();
+        $transaction = $this->sentry->getTransaction();
 
         if (null === $transaction) {
             return;

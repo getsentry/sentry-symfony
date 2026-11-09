@@ -10,18 +10,18 @@ use Doctrine\DBAL\ParameterType;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sentry\ClientInterface;
 use Sentry\Options;
+use Sentry\SentryBundle\SentryManager;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatementForV2;
-use Sentry\State\HubInterface;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
 
 final class TracingStatementForV2Test extends DoctrineTestCase
 {
     /**
-     * @var MockObject&HubInterface
+     * @var MockObject&SentryManager
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var Statement&MockObject
@@ -42,9 +42,9 @@ final class TracingStatementForV2Test extends DoctrineTestCase
 
     protected function setUp(): void
     {
-        $this->hub = $this->createMock(HubInterface::class);
+        $this->sentry = $this->createMock(SentryManager::class);
         $this->decoratedStatement = $this->createMock(Statement::class);
-        $this->statement = new TracingStatementForV2($this->hub, $this->decoratedStatement, 'SELECT 1', ['db.system' => 'sqlite']);
+        $this->statement = new TracingStatementForV2($this->sentry, $this->decoratedStatement, 'SELECT 1', ['db.system' => 'sqlite']);
     }
 
     public function testGetIterator(): void
@@ -130,7 +130,7 @@ final class TracingStatementForV2Test extends DoctrineTestCase
         $variable = 'bar';
         $decoratedStatement = $this->createPartialMock(TracingStatementForV2Stub::class, array_diff(get_class_methods(TracingStatementForV2Stub::class), ['bindParam']));
 
-        $this->statement = new TracingStatementForV2($this->hub, $decoratedStatement, 'SELECT 1', ['db.system' => 'sqlite']);
+        $this->statement = new TracingStatementForV2($this->sentry, $decoratedStatement, 'SELECT 1', ['db.system' => 'sqlite']);
 
         $this->assertTrue($this->statement->bindParam('foo', $variable, ParameterType::INTEGER, ...$callArgs));
         $this->assertSame($expectedCallArgs, $decoratedStatement->bindParamCallArgs);
@@ -177,10 +177,10 @@ final class TracingStatementForV2Test extends DoctrineTestCase
 
     public function testExecute(): void
     {
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -201,9 +201,9 @@ final class TracingStatementForV2Test extends DoctrineTestCase
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
-    public function testExecuteDoesNothingIfNoSpanIsSetOnHub(): void
+    public function testExecuteDoesNothingIfNoSpanIsSetOnScope(): void
     {
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn(null);
 
@@ -288,14 +288,14 @@ final class TracingStatementForV2Test extends DoctrineTestCase
         $transactionContext = new TransactionContext();
         $transactionContext->setSampled(true);
 
-        $transaction = new Transaction($transactionContext, $this->hub);
+        $transaction = new Transaction($transactionContext);
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
-        $this->hub->expects($this->any())
+        $this->sentry->expects($this->any())
             ->method('getClient')
             ->willReturn($client);
 

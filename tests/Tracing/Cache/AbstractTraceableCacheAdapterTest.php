@@ -6,7 +6,7 @@ namespace Sentry\SentryBundle\Tests\Tracing\Cache;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\SentryManager;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
@@ -23,9 +23,9 @@ use Symfony\Contracts\Cache\CacheInterface as BaseCacheInterface;
 abstract class AbstractTraceableCacheAdapterTest extends TestCase
 {
     /**
-     * @var MockObject&HubInterface
+     * @var MockObject&SentryManager
      */
-    protected $hub;
+    protected $sentry;
 
     public static function setUpBeforeClass(): void
     {
@@ -36,16 +36,16 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->hub = $this->createMock(HubInterface::class);
+        $this->sentry = $this->createMock(SentryManager::class);
     }
 
     public function testGetItem(): void
     {
         $cacheItem = new CacheItem();
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -71,10 +71,10 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
     public function testGetItems(): void
     {
         $cacheItems = ['foo' => new CacheItem()];
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -98,10 +98,10 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
     public function testClear(): void
     {
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -129,10 +129,10 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
         $callback = static function () {
         };
         $metadata = [];
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -168,10 +168,10 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
     public function testDelete(): void
     {
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -206,10 +206,10 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
     public function testHasItem(): void
     {
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -234,10 +234,10 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
     public function testDeleteItem(): void
     {
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -262,10 +262,10 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
     public function testDeleteItems(): void
     {
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -290,10 +290,10 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
     public function testSave(): void
     {
         $cacheItem = new CacheItem();
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -318,10 +318,10 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
     public function testSaveDeferred(): void
     {
         $cacheItem = new CacheItem();
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -345,10 +345,10 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
     public function testCommit(): void
     {
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -371,7 +371,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
     public function testPrune(): void
     {
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
         $decoratedAdapter = $this->createMock(PruneableCacheAdapterInterface::class);
@@ -379,7 +379,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
             ->method('prune')
             ->willReturn(true);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -397,10 +397,10 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
     public function testPruneReturnsFalseIfDecoratedAdapterIsNotPruneable(): void
     {
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 

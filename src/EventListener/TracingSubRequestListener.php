@@ -30,19 +30,19 @@ final class TracingSubRequestListener extends AbstractTracingRequestListener
         }
 
         $request = $event->getRequest();
-        $span = $this->hub->getSpan();
+        $span = $this->sentry->getSpan();
 
         if (null === $span) {
             return;
         }
 
-        $this->hub->setSpan(
+        $this->sentry->setSpan(
             $span->startChild(
                 SpanContext::make()
                     ->setOp('http.server')
                     ->setData([
                         'http.request.method' => $request->getMethod(),
-                        'http.url' => $this->getRequestUrl($request, DataCollectionPolicy::fromHub($this->hub)),
+                        'http.url' => $this->getRequestUrl($request, DataCollectionPolicy::fromOptions($this->sentry->getClient()->getOptions())),
                         'route' => $this->getRouteName($request),
                     ])
                     ->setOrigin('auto.http.server')
@@ -60,7 +60,7 @@ final class TracingSubRequestListener extends AbstractTracingRequestListener
             return;
         }
 
-        $span = $this->hub->getSpan();
+        $span = $this->sentry->getSpan();
 
         if (null === $span) {
             return;
@@ -81,7 +81,7 @@ final class TracingSubRequestListener extends AbstractTracingRequestListener
             return;
         }
 
-        $span = $this->hub->getSpan();
+        $span = $this->sentry->getSpan();
 
         if (null === $span) {
             return;

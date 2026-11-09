@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\SentryManager;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 
 /**
- * This listener ensures that a new {@see \Sentry\State\Scope} is created for
+ * This listener ensures that a new {@see \Sentry\State\IsolationScope} is created for
  * each subrequest.
  */
 final class SubRequestListener
@@ -17,23 +17,23 @@ final class SubRequestListener
     use KernelEventForwardCompatibilityTrait;
 
     /**
-     * @var HubInterface The current hub
+     * @var SentryManager
      */
-    private $hub;
+    private $sentry;
 
     /**
      * Constructor.
      *
-     * @param HubInterface $hub The current hub
+     * @param SentryManager $sentry
      */
-    public function __construct(HubInterface $hub)
+    public function __construct(SentryManager $sentry)
     {
-        $this->hub = $hub;
+        $this->sentry = $sentry;
     }
 
     /**
      * This method is called for each subrequest handled by the framework and
-     * pushes a new {@see \Sentry\State\Scope} onto the stack.
+     * pushes a new {@see \Sentry\State\IsolationScope} onto the stack.
      *
      * @param RequestEvent $event The event
      */
@@ -43,12 +43,12 @@ final class SubRequestListener
             return;
         }
 
-        $this->hub->pushScope();
+        $this->sentry->pushScope();
     }
 
     /**
      * This method is called for each subrequest handled by the framework and
-     * pops a {@see \Sentry\State\Scope} from the stack.
+     * pops a {@see \Sentry\State\IsolationScope} from the stack.
      *
      * @param FinishRequestEvent $event The event
      */
@@ -58,6 +58,6 @@ final class SubRequestListener
             return;
         }
 
-        $this->hub->popScope();
+        $this->sentry->popScope();
     }
 }

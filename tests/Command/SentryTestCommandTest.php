@@ -8,20 +8,18 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
 use Sentry\EventId;
+use Sentry\NoOpClient;
 use Sentry\Options;
 use Sentry\SentryBundle\Command\SentryTestCommand;
-use Sentry\State\HubInterface;
-use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;
+use Sentry\SentryBundle\SentryManager;
 use Symfony\Component\Console\Tester\CommandTester;
 
 final class SentryTestCommandTest extends TestCase
 {
-    use ExpectDeprecationTrait;
-
     /**
-     * @var HubInterface&MockObject
+     * @var SentryManager&MockObject
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var ClientInterface&MockObject
@@ -37,9 +35,9 @@ final class SentryTestCommandTest extends TestCase
     {
         parent::setUp();
 
-        $this->hub = $this->createMock(HubInterface::class);
+        $this->sentry = $this->createMock(SentryManager::class);
         $this->client = $this->createMock(ClientInterface::class);
-        $this->command = new CommandTester(new SentryTestCommand($this->hub));
+        $this->command = new CommandTester(new SentryTestCommand($this->sentry));
     }
 
     public function testExecute(): void
@@ -50,11 +48,11 @@ final class SentryTestCommandTest extends TestCase
             ->method('getOptions')
             ->willReturn(new Options(['dsn' => 'https://public:secret@example.com/sentry/1']));
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($this->client);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('captureMessage')
             ->with('This is a test message from the Sentry bundle')
             ->willReturn($lastEventId);
@@ -74,7 +72,7 @@ final class SentryTestCommandTest extends TestCase
             ->method('getOptions')
             ->willReturn(new Options());
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($this->client);
 
@@ -92,11 +90,11 @@ final class SentryTestCommandTest extends TestCase
             ->method('getOptions')
             ->willReturn(new Options(['dsn' => 'https://public:secret@example.com/sentry/1']));
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($this->client);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('captureMessage')
             ->with('This is a test message from the Sentry bundle')
             ->willReturn(null);
@@ -113,9 +111,9 @@ final class SentryTestCommandTest extends TestCase
 
     public function testExecuteFailsDueToMissingClient(): void
     {
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
-            ->willReturn(null);
+            ->willReturn(new NoOpClient());
 
         $exitCode = $this->command->execute([]);
         $output = $this->command->getDisplay();
@@ -123,15 +121,5 @@ final class SentryTestCommandTest extends TestCase
         $this->assertSame(1, $exitCode);
         $this->assertStringContainsString('No client found', $output);
         $this->assertStringContainsString('Your DSN is probably missing, check your configuration', $output);
-    }
-
-    /**
-     * @group legacy
-     */
-    public function testConstructorTriggersDeprecationErrorIfHubIsNotPassedToConstructor(): void
-    {
-        $this->expectDeprecation('Not passing an instance of the "Sentry\State\HubInterface" interface as argument of the constructor is deprecated since version 4.12 and will not work since version 5.0.');
-
-        new SentryTestCommand();
     }
 }

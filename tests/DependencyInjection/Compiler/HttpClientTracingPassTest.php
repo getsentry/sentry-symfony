@@ -6,8 +6,8 @@ namespace Sentry\SentryBundle\Tests\DependencyInjection\Compiler;
 
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\Compiler\HttpClientTracingPass;
+use Sentry\SentryBundle\SentryManager;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableHttpClient;
-use Sentry\State\HubInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -148,7 +148,7 @@ final class HttpClientTracingPassTest extends TestCase
         $container->setParameter('sentry.tracing.enabled', $isTracingEnabled);
         $container->setParameter('sentry.tracing.http_client.enabled', $isHttpClientTracingEnabled);
 
-        $container->register(HubInterface::class, HubInterface::class)
+        $container->register(SentryManager::class, SentryManager::class)
             ->setPublic(true);
 
         if (null !== $httpClientServiceId) {

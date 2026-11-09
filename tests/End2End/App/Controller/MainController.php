@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\End2End\App\Controller;
 
+use Sentry\SentryBundle\SentryManager;
 use Sentry\SentrySdk;
-use Sentry\State\HubInterface;
-use Sentry\State\Scope;
+use Sentry\State\IsolationScope;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,7 +19,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 class MainController
 {
     /**
-     * @var HubInterface
+     * @var SentryManager
      */
     private $sentry;
 
@@ -33,7 +33,7 @@ class MainController
      */
     private $kernel;
 
-    public function __construct(HubInterface $sentry, RequestStack $requestStack, HttpKernelInterface $kernel)
+    public function __construct(SentryManager $sentry, RequestStack $requestStack, HttpKernelInterface $kernel)
     {
         $this->sentry = $sentry;
         $this->requestStack = $requestStack;
@@ -113,7 +113,7 @@ class MainController
         $requestTag = (string) $request->query->get('request', 'none');
         $leakTag = $request->query->get('leak');
 
-        $this->sentry->configureScope(static function (Scope $scope) use ($requestTag, $leakTag): void {
+        $this->sentry->configureScope(static function (IsolationScope $scope) use ($requestTag, $leakTag): void {
             $scope->setTag('runtime.request', $requestTag);
 
             if (\is_string($leakTag) && '' !== $leakTag) {

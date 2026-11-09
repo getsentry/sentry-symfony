@@ -12,7 +12,7 @@ use Doctrine\DBAL\Platforms\OraclePlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Doctrine\DBAL\Platforms\SQLServerPlatform;
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\SentryManager;
 
 /**
  * @internal
@@ -20,9 +20,9 @@ use Sentry\State\HubInterface;
 final class TracingDriverConnectionFactoryForV4 implements TracingDriverConnectionFactoryInterface
 {
     /**
-     * @var HubInterface The current hub
+     * @var SentryManager
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var bool Whether prepare spans should be ignored
@@ -32,12 +32,12 @@ final class TracingDriverConnectionFactoryForV4 implements TracingDriverConnecti
     /**
      * Constructor.
      *
-     * @param HubInterface $hub                The current hub
-     * @param bool         $ignorePrepareSpans Whether prepare spans should be ignored
+     * @param SentryManager $sentry
+     * @param bool          $ignorePrepareSpans Whether prepare spans should be ignored
      */
-    public function __construct(HubInterface $hub, bool $ignorePrepareSpans = false)
+    public function __construct(SentryManager $sentry, bool $ignorePrepareSpans = false)
     {
-        $this->hub = $hub;
+        $this->sentry = $sentry;
         $this->ignorePrepareSpans = $ignorePrepareSpans;
     }
 
@@ -47,7 +47,7 @@ final class TracingDriverConnectionFactoryForV4 implements TracingDriverConnecti
     public function create(Connection $connection, AbstractPlatform $databasePlatform, array $params): TracingDriverConnectionInterface
     {
         $tracingDriverConnection = new TracingDriverConnection(
-            $this->hub,
+            $this->sentry,
             $connection,
             $this->getDatabasePlatform($databasePlatform),
             $params,

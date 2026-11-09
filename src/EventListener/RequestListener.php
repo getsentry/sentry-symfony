@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\DataCollection\DataCollectionPolicy;
-use Sentry\State\HubInterface;
-use Sentry\State\Scope;
+use Sentry\SentryBundle\SentryManager;
+use Sentry\State\IsolationScope;
 use Sentry\UserDataBag;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 
 /**
- * This listener ensures that a new {@see Scope} is created for
+ * This listener ensures that a new {@see IsolationScope} is created for
  * each request and that it is filled with useful information, e.g. the IP
  * address of the client.
  */
@@ -21,18 +21,18 @@ final class RequestListener
     use KernelEventForwardCompatibilityTrait;
 
     /**
-     * @var HubInterface The current hub
+     * @var SentryManager
      */
-    private $hub;
+    private $sentry;
 
     /**
      * Constructor.
      *
-     * @param HubInterface $hub The current hub
+     * @param SentryManager $sentry
      */
-    public function __construct(HubInterface $hub/* , ?TokenStorageInterface $tokenStorage */)
+    public function __construct(SentryManager $sentry/* , ?TokenStorageInterface $tokenStorage */)
     {
-        $this->hub = $hub;
+        $this->sentry = $sentry;
     }
 
     /**
@@ -47,11 +47,11 @@ final class RequestListener
             return;
         }
 
-        if (!DataCollectionPolicy::fromHub($this->hub)->shouldCollectUserInfo()) {
+        if (!DataCollectionPolicy::fromOptions($this->sentry->getClient()->getOptions())->shouldCollectUserInfo()) {
             return;
         }
 
-        $this->hub->configureScope(static function (Scope $scope) use ($event): void {
+        $this->sentry->configureScope(static function (IsolationScope $scope) use ($event): void {
             $user = $scope->getUser() ?? new UserDataBag();
 
             if (null === $user->getIpAddress()) {
@@ -84,7 +84,7 @@ final class RequestListener
             return;
         }
 
-        $this->hub->configureScope(static function (Scope $scope) use ($route): void {
+        $this->sentry->configureScope(static function (IsolationScope $scope) use ($route): void {
             $scope->setTag('route', $route);
         });
     }

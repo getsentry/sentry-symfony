@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tracing\Cache;
 
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\SentryManager;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\PruneableInterface;
 use Symfony\Component\Cache\ResettableInterface;
@@ -25,12 +25,12 @@ final class TraceableCacheAdapterForV3WithNamespace implements AdapterInterface,
     use TraceableCacheAdapterTrait;
 
     /**
-     * @param HubInterface     $hub              The current hub
+     * @param SentryManager    $sentry
      * @param AdapterInterface $decoratedAdapter The decorated cache adapter
      */
-    public function __construct(HubInterface $hub, AdapterInterface $decoratedAdapter)
+    public function __construct(SentryManager $sentry, AdapterInterface $decoratedAdapter)
     {
-        $this->hub = $hub;
+        $this->sentry = $sentry;
         $this->decoratedAdapter = $decoratedAdapter;
     }
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Twig;
 
-use Sentry\State\HubInterface;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
@@ -13,13 +12,6 @@ use function Sentry\getTraceparent;
 
 final class SentryExtension extends AbstractExtension
 {
-    /**
-     * @param HubInterface $hub The current hub
-     */
-    public function __construct(?HubInterface $hub = null)
-    {
-    }
-
     /**
      * {@inheritdoc}
      */

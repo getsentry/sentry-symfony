@@ -12,7 +12,7 @@ use Sentry\DataCollection\HttpMessageType;
 use Sentry\DataCollection\HttpSpanDataCollector;
 use Sentry\DataCollection\HttpUrlCollector;
 use Sentry\Options;
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\SentryManager;
 use Sentry\Tracing\SpanContext;
 use Symfony\Component\HttpClient\Response\ResponseStream;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -37,9 +37,9 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
     protected $client;
 
     /**
-     * @var HubInterface
+     * @var SentryManager
      */
-    protected $hub;
+    protected $sentry;
 
     /**
      * @var array<string, string[]>
@@ -49,10 +49,10 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
     /**
      * @param array<array-key, mixed> $defaultHeaders
      */
-    public function __construct(HttpClientInterface $client, HubInterface $hub, array $defaultHeaders = [])
+    public function __construct(HttpClientInterface $client, SentryManager $sentry, array $defaultHeaders = [])
     {
         $this->client = $client;
-        $this->hub = $hub;
+        $this->sentry = $sentry;
         $this->defaultHeaders = self::normalizeHeaders($defaultHeaders);
     }
 
@@ -64,9 +64,8 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
         $uri = new Uri($url);
         $headers = $options['headers'] ?? [];
 
-        $span = $this->hub->getSpan();
-        $client = $this->hub->getClient();
-        $sdkOptions = null !== $client ? $client->getOptions() : null;
+        $span = $this->sentry->getSpan();
+        $sdkOptions = $this->sentry->getClient()->getOptions();
 
         if (null === $span) {
             if (self::shouldAttachTracingHeaders($sdkOptions, $uri)) {
@@ -229,18 +228,10 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
         return $normalizedHeaders;
     }
 
-    private static function shouldAttachTracingHeaders(?Options $sdkOptions, Uri $uri): bool
+    private static function shouldAttachTracingHeaders(Options $sdkOptions, Uri $uri): bool
     {
-        if (null !== $sdkOptions) {
-            // Check if the request destination is allow listed in the trace_propagation_targets option.
-            if (
-                null === $sdkOptions->getTracePropagationTargets()
-                || \in_array($uri->getHost(), $sdkOptions->getTracePropagationTargets())
-            ) {
-                return true;
-            }
-        }
-
-        return false;
+        // Check if the request destination is allow listed in the trace_propagation_targets option.
+        return null === $sdkOptions->getTracePropagationTargets()
+            || \in_array($uri->getHost(), $sdkOptions->getTracePropagationTargets());
     }
 }

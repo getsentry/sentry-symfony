@@ -9,7 +9,6 @@ use PHPUnit\Framework\TestCase;
 use Sentry\DataCollection\DataCollectionPolicy;
 use Sentry\Options;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableResponse;
-use Sentry\State\HubInterface;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 use Sentry\Tracing\Transaction;
@@ -28,11 +27,6 @@ final class TraceableResponseTest extends TestCase
      */
     private $client;
 
-    /**
-     * @var MockObject&HubInterface
-     */
-    private $hub;
-
     public static function setUpBeforeClass(): void
     {
         if (!class_exists(HttpClient::class)) {
@@ -43,7 +37,6 @@ final class TraceableResponseTest extends TestCase
     protected function setUp(): void
     {
         $this->client = $this->createMock(HttpClientInterface::class);
-        $this->hub = $this->createMock(HubInterface::class);
     }
 
     public function testInstanceCannotBeSerialized(): void
@@ -64,7 +57,7 @@ final class TraceableResponseTest extends TestCase
 
     public function testDestructor(): void
     {
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $context = new SpanContext();
         $span = $transaction->startChild($context);
         $response = new TraceableResponse($this->client, new MockResponse(), $span);

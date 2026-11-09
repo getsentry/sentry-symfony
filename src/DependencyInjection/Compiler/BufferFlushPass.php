@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\DependencyInjection\Compiler;
 
 use Monolog\Handler\BufferHandler;
-use Sentry\Monolog\Handler as SentryHandler;
+use Sentry\Monolog\ExceptionToSentryIssueHandler;
+use Sentry\Monolog\LogToSentryIssueHandler;
 use Sentry\SentryBundle\EventListener\BufferFlusher;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -14,6 +15,14 @@ use Symfony\Component\DependencyInjection\Reference;
 
 class BufferFlushPass implements CompilerPassInterface
 {
+    /**
+     * The handlers that capture the records as Sentry issues, using the data of the current scope.
+     */
+    private const SENTRY_HANDLER_CLASSES = [
+        LogToSentryIssueHandler::class,
+        ExceptionToSentryIssueHandler::class,
+    ];
+
     public function process(ContainerBuilder $container): void
     {
         $sentryBufferHandlers = $this->findSentryBufferHandlers($container);
@@ -30,7 +39,7 @@ class BufferFlushPass implements CompilerPassInterface
     }
 
     /**
-     * Finds all {@link BufferHandler} that wrap {@link SentryHandler} and register a service
+     * Finds all {@link BufferHandler} that wrap a Sentry issue handler and register a service
      * that will flush them on KernelEvents::TERMINATE to make sure that all events retain
      * breadcrumbs and context information.
      *
@@ -45,7 +54,7 @@ class BufferFlushPass implements CompilerPassInterface
                 $arguments = $definition->getArguments();
                 if (!empty($arguments)) {
                     // The first argument of BufferHandler is the HandlerInterface, which
-                    // can be a SentryHandler. Missing argument will be ignored.
+                    // can be a Sentry issue handler. Missing argument will be ignored.
                     $firstArgument = $arguments[0] ?? $arguments['$handler'] ?? null;
 
                     if ($firstArgument instanceof Reference) {
@@ -53,7 +62,7 @@ class BufferFlushPass implements CompilerPassInterface
                         try {
                             $referencedDefinition = $container->findDefinition($referencedServiceId);
 
-                            if (SentryHandler::class === $referencedDefinition->getClass()) {
+                            if (\in_array($referencedDefinition->getClass(), self::SENTRY_HANDLER_CLASSES, true)) {
                                 $sentryBufferHandlers[] = new Reference($serviceId);
                             }
                         } catch (\Exception $e) {

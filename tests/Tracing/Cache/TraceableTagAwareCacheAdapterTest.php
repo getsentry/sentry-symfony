@@ -21,10 +21,10 @@ final class TraceableTagAwareCacheAdapterTest extends AbstractTraceableCacheAdap
 {
     public function testInvalidateTags(): void
     {
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -53,7 +53,7 @@ final class TraceableTagAwareCacheAdapterTest extends AbstractTraceableCacheAdap
         }
 
         $decoratedAdapter = $this->createMock(TagAwareAdapterInterface::class);
-        $adapter = new TraceableTagAwareCacheAdapterForV3WithNamespace($this->hub, $decoratedAdapter);
+        $adapter = new TraceableTagAwareCacheAdapterForV3WithNamespace($this->sentry, $decoratedAdapter);
 
         $this->expectException(\BadMethodCallException::class);
         $this->expectExceptionMessage('withSubNamespace() method is not supported');
@@ -73,7 +73,7 @@ final class TraceableTagAwareCacheAdapterTest extends AbstractTraceableCacheAdap
         }
         $namespacedAdapter = $decoratedAdapter->withSubNamespace('foo');
 
-        $adapter = new TraceableTagAwareCacheAdapterForV3WithNamespace($this->hub, $decoratedAdapter);
+        $adapter = new TraceableTagAwareCacheAdapterForV3WithNamespace($this->sentry, $decoratedAdapter);
 
         $result = $adapter->withSubNamespace('foo');
 
@@ -94,10 +94,10 @@ final class TraceableTagAwareCacheAdapterTest extends AbstractTraceableCacheAdap
             $this->markTestSkipped('Namespaced caches are not supported by this Symfony version.');
         }
 
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->any())
+        $this->sentry->expects($this->any())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -105,7 +105,7 @@ final class TraceableTagAwareCacheAdapterTest extends AbstractTraceableCacheAdap
         if (!method_exists($decoratedAdapter, 'withSubNamespace')) {
             $this->markTestSkipped('TagAwareAdapter::withSubNamespace() is not available in this Symfony version.');
         }
-        $adapter = new TraceableTagAwareCacheAdapterForV3WithNamespace($this->hub, $decoratedAdapter);
+        $adapter = new TraceableTagAwareCacheAdapterForV3WithNamespace($this->sentry, $decoratedAdapter);
 
         $namespaced = $adapter->withSubNamespace('foo')->withSubNamespace('bar');
 
@@ -125,10 +125,10 @@ final class TraceableTagAwareCacheAdapterTest extends AbstractTraceableCacheAdap
             $this->markTestSkipped('Namespaced caches are not supported by this Symfony version.');
         }
 
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->any())
+        $this->sentry->expects($this->any())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -136,7 +136,7 @@ final class TraceableTagAwareCacheAdapterTest extends AbstractTraceableCacheAdap
         if (!method_exists($decoratedAdapter, 'withSubNamespace')) {
             $this->markTestSkipped('TagAwareAdapter::withSubNamespace() is not available in this Symfony version.');
         }
-        $adapter = new TraceableTagAwareCacheAdapterForV3WithNamespace($this->hub, $decoratedAdapter);
+        $adapter = new TraceableTagAwareCacheAdapterForV3WithNamespace($this->sentry, $decoratedAdapter);
 
         $namespaced = $adapter->withSubNamespace('foo');
 
@@ -155,7 +155,7 @@ final class TraceableTagAwareCacheAdapterTest extends AbstractTraceableCacheAdap
      */
     protected function createCacheAdapter(AdapterInterface $decoratedAdapter): TraceableTagAwareCacheAdapter
     {
-        return new TraceableTagAwareCacheAdapter($this->hub, $decoratedAdapter);
+        return new TraceableTagAwareCacheAdapter($this->sentry, $decoratedAdapter);
     }
 
     /**

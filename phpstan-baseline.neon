@@ -21,11 +21,6 @@ parameters:
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
-			message: "#^Cannot access offset 'before_send_metrics' on mixed\\.$#"
-			count: 1
-			path: src/DependencyInjection/SentryExtension.php
-
-		-
 			message: "#^Cannot access offset 'before_send…' on mixed\\.$#"
 			count: 1
 			path: src/DependencyInjection/SentryExtension.php
@@ -102,7 +97,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$id of class Symfony\\\\Component\\\\DependencyInjection\\\\Reference constructor expects string, mixed given\\.$#"
-			count: 12
+			count: 11
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
@@ -256,12 +251,7 @@ parameters:
 			path: src/Tracing/HttpClient/TraceableResponseForV6.php
 
 		-
-			message: "#^Constructor of class Sentry\\\\SentryBundle\\\\Twig\\\\SentryExtension has an unused parameter \\$hub\\.$#"
-			count: 1
-			path: src/Twig/SentryExtension.php
-
-		-
-			message: "#^Constructor of class Sentry\\\\SentryBundle\\\\EventListener\\\\RuntimeContextListener has an unused parameter \\$hub\\.$#"
+			message: "#^Constructor of class Sentry\\\\SentryBundle\\\\EventListener\\\\RuntimeContextListener has an unused parameter \\$sentry\\.$#"
 			count: 1
 			path: src/EventListener/RuntimeContextListener.php
 
@@ -424,11 +414,6 @@ parameters:
 			message: "#^Trying to mock an undefined method errorInfo\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Connection\\.$#"
 			count: 1
 			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4Test.php
-
-		-
-			message: "#^Parameter \\#1 \\$hubOrConnectionFactory of class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverMiddleware constructor expects Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionFactoryInterface\\|Sentry\\\\State\\\\HubInterface, null given\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverMiddlewareTest.php
 
 		-
 			message: "#^Parameter \\#1 \\$responses of method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableHttpClient\\:\\:stream\\(\\) expects iterable\\<\\(int\\|string\\), Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface\\>\\|Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface, stdClass given\\.$#"

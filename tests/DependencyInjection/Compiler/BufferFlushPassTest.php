@@ -7,7 +7,8 @@ namespace Sentry\SentryBundle\Tests\DependencyInjection\Compiler;
 use Monolog\Handler\BufferHandler;
 use Monolog\Handler\NullHandler;
 use PHPUnit\Framework\TestCase;
-use Sentry\Monolog\Handler as SentryHandler;
+use Sentry\Monolog\ExceptionToSentryIssueHandler;
+use Sentry\Monolog\LogToSentryIssueHandler;
 use Sentry\SentryBundle\DependencyInjection\Compiler\BufferFlushPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -49,7 +50,7 @@ class BufferFlushPassTest extends TestCase
     public function testProcessWithMultipleHandlers(): void
     {
         $container = new ContainerBuilder();
-        $container->setDefinition('sentry.handler', new Definition(SentryHandler::class));
+        $container->setDefinition('sentry.handler', new Definition(LogToSentryIssueHandler::class));
         $container->setDefinition('null.handler', new Definition(NullHandler::class));
         $container->setDefinition('sentry.test.handler', new Definition(BufferHandler::class, [new Reference('sentry.handler')]));
         $container->setDefinition('other.test.handler', new Definition(BufferHandler::class, [new Reference('null.handler')]));
@@ -84,8 +85,8 @@ class BufferFlushPassTest extends TestCase
     public function testProcessWithMultipleSentryHandlers(): void
     {
         $container = new ContainerBuilder();
-        $container->setDefinition('sentry.handler', new Definition(SentryHandler::class));
-        $container->setDefinition('sentry.other.handler', new Definition(SentryHandler::class));
+        $container->setDefinition('sentry.handler', new Definition(LogToSentryIssueHandler::class));
+        $container->setDefinition('sentry.other.handler', new Definition(ExceptionToSentryIssueHandler::class));
         $container->setDefinition('null.handler', new Definition(NullHandler::class));
         $container->setDefinition('sentry.test.handler', new Definition(BufferHandler::class, [new Reference('sentry.handler')]));
         $container->setDefinition('sentry.other.test.handler', new Definition(BufferHandler::class, [new Reference('sentry.other.handler')]));
@@ -106,7 +107,7 @@ class BufferFlushPassTest extends TestCase
     public function testProcessWithFakeSentryHandlers(): void
     {
         $container = new ContainerBuilder();
-        $container->setDefinition('sentry.handler', new Definition(SentryHandler::class));
+        $container->setDefinition('sentry.handler', new Definition(LogToSentryIssueHandler::class));
         $container->setDefinition('sentry.fake.handler', new Definition(NullHandler::class));
         $container->setDefinition('sentry.test.handler', new Definition(BufferHandler::class, [new Reference('sentry.handler')]));
         $container->setDefinition('sentry.fake.test.handler', new Definition(BufferHandler::class, [new Reference('null.handler')]));
@@ -125,7 +126,7 @@ class BufferFlushPassTest extends TestCase
     public function testProcessWithNamedArguments(): void
     {
         $container = new ContainerBuilder();
-        $container->setDefinition('sentry.handler', new Definition(SentryHandler::class));
+        $container->setDefinition('sentry.handler', new Definition(LogToSentryIssueHandler::class));
         $container->setDefinition('sentry.test.handler', new Definition(BufferHandler::class, ['$handler' => new Reference('sentry.handler')]));
 
         (new BufferFlushPass())->process($container);

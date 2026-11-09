@@ -9,10 +9,12 @@ use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
 use Sentry\Event;
 use Sentry\EventHint;
+use Sentry\NoOpClient;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
-use Sentry\State\HubInterface;
-use Sentry\State\Scope;
+use Sentry\SentryBundle\SentryManager;
+use Sentry\State\GlobalScope;
+use Sentry\State\IsolationScope;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleErrorEvent;
@@ -28,13 +30,13 @@ use Symfony\Component\Console\Output\NullOutput;
 abstract class AbstractConsoleListenerTest extends TestCase
 {
     /**
-     * @var MockObject&HubInterface
+     * @var MockObject&SentryManager
      */
-    private $hub;
+    private $sentry;
 
     protected function setUp(): void
     {
-        $this->hub = $this->createMock(HubInterface::class);
+        $this->sentry = $this->createMock(SentryManager::class);
     }
 
     /**
@@ -46,16 +48,19 @@ abstract class AbstractConsoleListenerTest extends TestCase
     public function testHandleConsoleCommandEvent(ConsoleCommandEvent $consoleEvent, array $expectedTags, array $expectedExtra): void
     {
         $listenerClass = static::getListenerClass();
-        $scope = new Scope();
-        $listener = new $listenerClass($this->hub);
+        $scope = new IsolationScope();
+        $listener = new $listenerClass($this->sentry);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('pushScope')
             ->willReturn($scope);
 
+        $this->sentry->method('getClient')
+            ->willReturn(new NoOpClient());
+
         $listener->handleConsoleCommandEvent($consoleEvent);
 
-        $event = $scope->applyToEvent(Event::createEvent());
+        $event = (new GlobalScope())->merge($scope)->applyToEvent(Event::createEvent());
 
         $this->assertNotNull($event);
         $this->assertSame($expectedTags, $event->getTags());
@@ -100,17 +105,17 @@ abstract class AbstractConsoleListenerTest extends TestCase
     public function testHandleConsoleCommandEventFiltersSensitiveValues(Options $options, array $argv, string $expectedFullCommand): void
     {
         $listenerClass = static::getListenerClass();
-        $scope = new Scope();
-        $listener = new $listenerClass($this->hub);
+        $scope = new IsolationScope();
+        $listener = new $listenerClass($this->sentry);
 
         $client = $this->createMock(ClientInterface::class);
         $client->method('getOptions')
             ->willReturn($options);
 
-        $this->hub->method('getClient')
+        $this->sentry->method('getClient')
             ->willReturn($client);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('pushScope')
             ->willReturn($scope);
 
@@ -133,7 +138,7 @@ abstract class AbstractConsoleListenerTest extends TestCase
 
         $listener->handleConsoleCommandEvent(new ConsoleCommandEvent($command, $input, new NullOutput()));
 
-        $event = $scope->applyToEvent(Event::createEvent());
+        $event = (new GlobalScope())->merge($scope)->applyToEvent(Event::createEvent());
 
         $this->assertNotNull($event);
         $this->assertSame(['Full command' => $expectedFullCommand], $event->getExtra());
@@ -208,9 +213,9 @@ abstract class AbstractConsoleListenerTest extends TestCase
     public function testHandleConsoleTerminateEvent(): void
     {
         $listenerClass = static::getListenerClass();
-        $listener = new $listenerClass($this->hub);
+        $listener = new $listenerClass($this->sentry);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('popScope');
 
         $listener->handleConsoleTerminateEvent(new ConsoleTerminateEvent(new Command(), new ArrayInput([]), new NullOutput(), 0));
@@ -221,18 +226,18 @@ abstract class AbstractConsoleListenerTest extends TestCase
      */
     public function testHandleConsoleErrorEvent(bool $captureErrors): void
     {
-        $scope = new Scope();
+        $scope = new IsolationScope();
         $consoleEvent = new ConsoleErrorEvent(new ArrayInput([]), new NullOutput(), new \Exception());
         $listenerClass = static::getListenerClass();
-        $listener = new $listenerClass($this->hub, $captureErrors);
+        $listener = new $listenerClass($this->sentry, $captureErrors);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('configureScope')
             ->willReturnCallback(static function (callable $callback) use ($scope): void {
                 $callback($scope);
             });
 
-        $this->hub->expects($captureErrors ? $this->once() : $this->never())
+        $this->sentry->expects($captureErrors ? $this->once() : $this->never())
             ->method('captureEvent')
             ->with(
                 $this->anything(),
@@ -250,7 +255,7 @@ abstract class AbstractConsoleListenerTest extends TestCase
 
         $listener->handleConsoleErrorEvent($consoleEvent);
 
-        $event = $scope->applyToEvent(Event::createEvent());
+        $event = (new GlobalScope())->merge($scope)->applyToEvent(Event::createEvent());
 
         $this->assertNotNull($event);
         $this->assertSame(['console.command.exit_code' => '1'], $event->getTags());

@@ -7,7 +7,8 @@ namespace Sentry\SentryBundle\Monolog;
 use Monolog\Handler\AbstractHandler;
 use Monolog\LogRecord;
 use Sentry\Exception\SilencedErrorException;
-use Sentry\State\HubInterface;
+use Sentry\NoOpClient;
+use Sentry\SentryBundle\SentryManager;
 use Symfony\Component\ErrorHandler\Error\FatalError;
 use Symfony\Component\ErrorHandler\Exception\SilencedErrorContext;
 
@@ -19,9 +20,9 @@ final class PhpErrorHandler extends AbstractHandler
     private const PHP8_UNSILENCEABLE_FATAL_ERRORS = \E_ERROR | \E_PARSE | \E_CORE_ERROR | \E_COMPILE_ERROR | \E_USER_ERROR | \E_RECOVERABLE_ERROR;
 
     /**
-     * @var HubInterface
+     * @var SentryManager
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var CapturedExceptionTracker
@@ -44,11 +45,11 @@ final class PhpErrorHandler extends AbstractHandler
      *                                   application doesn't, we stop them here so the other handlers never see them,
      *                                   like without scream mode
      */
-    public function __construct(HubInterface $hub, CapturedExceptionTracker $tracker, bool $bubbleSilencedErrors = true)
+    public function __construct(SentryManager $sentry, CapturedExceptionTracker $tracker, bool $bubbleSilencedErrors = true)
     {
         parent::__construct('debug', true);
 
-        $this->hub = $hub;
+        $this->sentry = $sentry;
         $this->tracker = $tracker;
         $this->bubbleSilencedErrors = $bubbleSilencedErrors;
         $this->traceReflection = new \ReflectionProperty(\Exception::class, 'trace');
@@ -86,7 +87,7 @@ final class PhpErrorHandler extends AbstractHandler
 
         if (null !== $exception) {
             $this->tracker->setLastCaptured($error);
-            $this->hub->captureException($exception);
+            $this->sentry->captureException($exception);
         }
 
         return $stopPropagation;
@@ -97,9 +98,9 @@ final class PhpErrorHandler extends AbstractHandler
      */
     private function createException($error, string $message): ?\Throwable
     {
-        $client = $this->hub->getClient();
+        $client = $this->sentry->getClient();
 
-        if (null === $client) {
+        if ($client instanceof NoOpClient) {
             return null;
         }
 

@@ -6,16 +6,16 @@ namespace Sentry\SentryBundle\Tests\Monolog;
 
 use Monolog\Handler\TestHandler;
 use Monolog\Logger;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
 use Sentry\Exception\SilencedErrorException;
+use Sentry\NoOpClient;
 use Sentry\Options;
 use Sentry\SentryBundle\Monolog\CapturedExceptionTracker;
 use Sentry\SentryBundle\Monolog\PhpErrorHandler;
 use Sentry\SentryBundle\Monolog\UncaughtExceptionHandler;
-use Sentry\State\HubInterface;
-use Sentry\State\Scope;
+use Sentry\SentryBundle\SentryManager;
+use Sentry\SentrySdk;
 use Symfony\Component\ErrorHandler\Exception\SilencedErrorContext;
 
 /**
@@ -24,9 +24,9 @@ use Symfony\Component\ErrorHandler\Exception\SilencedErrorContext;
 final class ErrorReportingHandlersTest extends TestCase
 {
     /**
-     * @var HubInterface&MockObject
+     * @var SentryManager
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var CapturedExceptionTracker
@@ -51,24 +51,27 @@ final class ErrorReportingHandlersTest extends TestCase
         $client->method('getOptions')->willReturnCallback(function (): Options {
             return $this->options;
         });
-
-        $this->hub = $this->createMock(HubInterface::class);
-        $this->hub->method('getClient')->willReturn($client);
-        $this->hub->method('withScope')->willReturnCallback(static function (callable $callback) {
-            return $callback(new Scope());
-        });
-        $this->hub->method('captureException')->willReturnCallback(function (\Throwable $exception) {
+        $client->method('captureException')->willReturnCallback(function (\Throwable $exception) {
             $this->captured[] = $exception;
 
             return null;
         });
 
+        // The handler that UncaughtExceptionHandler delegates to captures through the SDK state
+        SentrySdk::init($client);
+
+        $this->sentry = new SentryManager();
         $this->tracker = new CapturedExceptionTracker();
+    }
+
+    protected function tearDown(): void
+    {
+        SentrySdk::init(new NoOpClient());
     }
 
     public function testUncaughtExceptionsOfTheKernelAndOfCommandsAreCaptured(): void
     {
-        $handler = new UncaughtExceptionHandler($this->hub, $this->tracker);
+        $handler = new UncaughtExceptionHandler($this->sentry, $this->tracker);
 
         (new Logger('request', [$handler]))->critical('Uncaught PHP Exception', ['exception' => $requestException = new \RuntimeException()]);
         (new Logger('console', [$handler]))->critical('Error thrown while running command', ['exception' => $consoleException = new \RuntimeException()]);
@@ -78,7 +81,7 @@ final class ErrorReportingHandlersTest extends TestCase
 
     public function testRecordsWithoutExceptionOrBelowErrorAreNotCaptured(): void
     {
-        $logger = new Logger('request', [new UncaughtExceptionHandler($this->hub, $this->tracker)]);
+        $logger = new Logger('request', [new UncaughtExceptionHandler($this->sentry, $this->tracker)]);
         $logger->critical('No exception attached');
         $logger->critical('Not an exception', ['exception' => 'a string']);
         $logger->warning('Below ERROR', ['exception' => new \RuntimeException()]);
@@ -90,19 +93,19 @@ final class ErrorReportingHandlersTest extends TestCase
     {
         $context = ['exception' => $exception = new \RuntimeException(), 'retryCount' => 1, 'delay' => 1000];
 
-        $logger = new Logger('messenger', [new UncaughtExceptionHandler($this->hub, $this->tracker, false)]);
+        $logger = new Logger('messenger', [new UncaughtExceptionHandler($this->sentry, $this->tracker, false)]);
         $logger->warning('Sending for retry', $context);
         $logger->error('Sending for retry', $context);
         $this->assertSame([], $this->captured);
 
-        (new Logger('messenger', [new UncaughtExceptionHandler($this->hub, $this->tracker, true)]))->warning('Sending for retry', $context);
+        (new Logger('messenger', [new UncaughtExceptionHandler($this->sentry, $this->tracker, true)]))->warning('Sending for retry', $context);
         $this->assertSame([$exception], $this->captured);
     }
 
     public function testRecordsBelowTheLevelOfTheUncaughtExceptionHandlerAreNotCreated(): void
     {
         $processorCalls = 0;
-        $logger = new Logger('request', [new UncaughtExceptionHandler($this->hub, $this->tracker, false)]);
+        $logger = new Logger('request', [new UncaughtExceptionHandler($this->sentry, $this->tracker, false)]);
         $logger->pushProcessor(static function ($record) use (&$processorCalls) {
             ++$processorCalls;
 
@@ -118,7 +121,7 @@ final class ErrorReportingHandlersTest extends TestCase
 
     public function testDeprecationsAreCapturedRegardlessOfTheirLogLevel(): void
     {
-        $logger = new Logger('php', [new PhpErrorHandler($this->hub, $this->tracker)]);
+        $logger = new Logger('php', [new PhpErrorHandler($this->sentry, $this->tracker)]);
         $logger->info('User Deprecated: foo', ['exception' => $exception = new \ErrorException('User Deprecated: foo', 0, \E_USER_DEPRECATED)]);
         $logger->info('No exception attached');
 
@@ -134,7 +137,7 @@ final class ErrorReportingHandlersTest extends TestCase
     {
         // Default `error_types`, which follows error_reporting(): it must not filter silenced errors out
         $this->options = new Options(['capture_silenced_errors' => $captureSilencedErrors]);
-        $logger = new Logger('php', [new PhpErrorHandler($this->hub, $this->tracker)]);
+        $logger = new Logger('php', [new PhpErrorHandler($this->sentry, $this->tracker)]);
 
         // Like the @ operator does while the error is handled
         $errorReporting = error_reporting(0);
@@ -169,7 +172,7 @@ final class ErrorReportingHandlersTest extends TestCase
         }
 
         $this->options = new Options(['capture_silenced_errors' => false]);
-        $logger = new Logger('php', [new PhpErrorHandler($this->hub, $this->tracker)]);
+        $logger = new Logger('php', [new PhpErrorHandler($this->sentry, $this->tracker)]);
 
         // What error_reporting() returns while the @ operator is active since PHP 8
         $errorReporting = error_reporting(\E_ERROR | \E_CORE_ERROR | \E_COMPILE_ERROR | \E_USER_ERROR | \E_RECOVERABLE_ERROR | \E_PARSE);
@@ -186,7 +189,7 @@ final class ErrorReportingHandlersTest extends TestCase
     public function testSilencedErrorsDoNotReachOtherHandlersWhenTheyMustNotBubble(): void
     {
         $nextHandler = new TestHandler();
-        $logger = new Logger('php', [new PhpErrorHandler($this->hub, $this->tracker, false), $nextHandler]);
+        $logger = new Logger('php', [new PhpErrorHandler($this->sentry, $this->tracker, false), $nextHandler]);
 
         $logger->debug('User Warning: silenced', ['exception' => new SilencedErrorContext(\E_USER_WARNING, __FILE__, __LINE__)]);
 
@@ -196,7 +199,7 @@ final class ErrorReportingHandlersTest extends TestCase
     public function testOtherRecordsReachOtherHandlersWhenSilencedErrorsMustNotBubble(): void
     {
         $nextHandler = new TestHandler();
-        $logger = new Logger('php', [new PhpErrorHandler($this->hub, $this->tracker, false), $nextHandler]);
+        $logger = new Logger('php', [new PhpErrorHandler($this->sentry, $this->tracker, false), $nextHandler]);
 
         // Symfony always logs deprecations, silenced or not
         $logger->info('User Deprecated: foo', ['exception' => new \ErrorException('User Deprecated: foo', 0, \E_USER_DEPRECATED)]);
@@ -208,7 +211,7 @@ final class ErrorReportingHandlersTest extends TestCase
     public function testSilencedErrorsReachOtherHandlersWhenTheyMustBubble(): void
     {
         $nextHandler = new TestHandler();
-        $logger = new Logger('php', [new PhpErrorHandler($this->hub, $this->tracker, true), $nextHandler]);
+        $logger = new Logger('php', [new PhpErrorHandler($this->sentry, $this->tracker, true), $nextHandler]);
 
         $logger->debug('User Warning: silenced', ['exception' => new SilencedErrorContext(\E_USER_WARNING, __FILE__, __LINE__)]);
 
@@ -219,8 +222,8 @@ final class ErrorReportingHandlersTest extends TestCase
     {
         $exception = new \RuntimeException();
 
-        (new Logger('php', [new PhpErrorHandler($this->hub, $this->tracker)]))->critical('Fatal Error', ['exception' => $exception]);
-        (new Logger('request', [new UncaughtExceptionHandler($this->hub, $this->tracker)]))->critical('Uncaught PHP Exception', ['exception' => $exception]);
+        (new Logger('php', [new PhpErrorHandler($this->sentry, $this->tracker)]))->critical('Fatal Error', ['exception' => $exception]);
+        (new Logger('request', [new UncaughtExceptionHandler($this->sentry, $this->tracker)]))->critical('Uncaught PHP Exception', ['exception' => $exception]);
 
         $this->assertSame([$exception], $this->captured);
     }

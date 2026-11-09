@@ -10,8 +10,9 @@ use Sentry\ClientInterface;
 use Sentry\Event;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\RequestListener;
-use Sentry\State\HubInterface;
-use Sentry\State\Scope;
+use Sentry\SentryBundle\SentryManager;
+use Sentry\State\GlobalScope;
+use Sentry\State\IsolationScope;
 use Sentry\UserDataBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
@@ -21,9 +22,9 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 final class RequestListenerTest extends TestCase
 {
     /**
-     * @var MockObject&HubInterface
+     * @var MockObject&SentryManager
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var RequestListener
@@ -32,8 +33,8 @@ final class RequestListenerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->hub = $this->createMock(HubInterface::class);
-        $this->listener = new RequestListener($this->hub);
+        $this->sentry = $this->createMock(SentryManager::class);
+        $this->listener = new RequestListener($this->sentry);
     }
 
     /**
@@ -41,14 +42,14 @@ final class RequestListenerTest extends TestCase
      */
     public function testHandleKernelRequestEvent(RequestEvent $requestEvent, ClientInterface $client, UserDataBag $currentUser, UserDataBag $expectedUser): void
     {
-        $scope = new Scope();
+        $scope = new IsolationScope();
         $scope->setUser($currentUser);
 
-        $this->hub->expects($this->any())
+        $this->sentry->expects($this->any())
             ->method('getClient')
             ->willReturn($client);
 
-        $this->hub->expects($this->any())
+        $this->sentry->expects($this->any())
             ->method('configureScope')
             ->willReturnCallback(static function (callable $callback) use ($scope): void {
                 $callback($scope);
@@ -56,7 +57,7 @@ final class RequestListenerTest extends TestCase
 
         $this->listener->handleKernelRequestEvent($requestEvent);
 
-        $event = $scope->applyToEvent(Event::createEvent());
+        $event = (new GlobalScope())->merge($scope)->applyToEvent(Event::createEvent());
 
         $this->assertNotNull($event);
         $this->assertEquals($expectedUser, $event->getUser());
@@ -163,9 +164,9 @@ final class RequestListenerTest extends TestCase
      */
     public function testHandleKernelControllerEvent(ControllerEvent $controllerEvent, array $expectedTags): void
     {
-        $scope = new Scope();
+        $scope = new IsolationScope();
 
-        $this->hub->expects($this->any())
+        $this->sentry->expects($this->any())
             ->method('configureScope')
             ->willReturnCallback(static function (callable $callback) use ($scope): void {
                 $callback($scope);
@@ -173,7 +174,7 @@ final class RequestListenerTest extends TestCase
 
         $this->listener->handleKernelControllerEvent($controllerEvent);
 
-        $event = $scope->applyToEvent(Event::createEvent());
+        $event = (new GlobalScope())->merge($scope)->applyToEvent(Event::createEvent());
 
         $this->assertNotNull($event);
         $this->assertSame($expectedTags, $event->getTags());

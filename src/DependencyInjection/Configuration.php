@@ -83,7 +83,6 @@ final class Configuration implements ConfigurationInterface
                             ->max(1.0)
                             ->info('The sampling factor to apply to events. A value of 0 will deny sending any event, and a value of 1 will send all events.')
                         ->end()
-                        ->booleanNode('enable_tracing')->end()
                         ->floatNode('traces_sample_rate')
                             ->min(0.0)
                             ->max(1.0)
@@ -99,15 +98,21 @@ final class Configuration implements ConfigurationInterface
                         ->variableNode('log_flush_threshold')->defaultNull()->end()
                         ->booleanNode('enable_metrics')->defaultTrue()->end()
                         ->booleanNode('attach_stacktrace')->end()
-                        ->booleanNode('attach_metric_code_locations')->end()
                         ->integerNode('context_lines')->min(0)->end()
                         ->scalarNode('environment')
                             ->cannotBeEmpty()
                             ->defaultValue('%kernel.environment%')
                         ->end()
                         ->scalarNode('logger')->end()
-                        ->booleanNode('spotlight')->end()
-                        ->scalarNode('spotlight_url')->end()
+                        ->scalarNode('spotlight')
+                            ->info('Whether to send the events to Spotlight, or the URL of the Spotlight sidecar to send them to.')
+                            ->validate()
+                                ->ifTrue(static function ($value): bool {
+                                    return !\is_bool($value) && !\is_string($value);
+                                })
+                                ->thenInvalid('Invalid configuration for path "sentry.options.spotlight": the value must be a boolean or the URL of the Spotlight sidecar.')
+                            ->end()
+                        ->end()
                         ->scalarNode('release')
                             ->cannotBeEmpty()
                             ->defaultValue('%env(default::SENTRY_RELEASE)%')
@@ -162,7 +167,6 @@ final class Configuration implements ConfigurationInterface
                         ->scalarNode('before_send')->end()
                         ->scalarNode('before_send_transaction')->end()
                         ->scalarNode('before_send_check_in')->end()
-                        ->scalarNode('before_send_metrics')->end()
                         ->scalarNode('before_send_log')->end()
                         ->scalarNode('before_send_metric')->end()
                         ->variableNode('trace_propagation_targets')->end()
@@ -190,7 +194,6 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                         ->booleanNode('send_default_pii')->end()
                         ->append($this->createDataCollectionNode())
-                        ->integerNode('max_value_length')->min(0)->end()
                         ->scalarNode('transport')->end()
                         ->scalarNode('http_client')->end()
                         ->scalarNode('http_proxy')->end()
@@ -208,7 +211,6 @@ final class Configuration implements ConfigurationInterface
                         ->booleanNode('capture_silenced_errors')->end()
                         ->enumNode('max_request_body_size')
                             ->values([
-                                'none',
                                 'never',
                                 'small',
                                 'medium',

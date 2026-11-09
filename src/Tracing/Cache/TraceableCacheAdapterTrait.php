@@ -6,7 +6,7 @@ namespace Sentry\SentryBundle\Tracing\Cache;
 
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\InvalidArgumentException;
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\SentryManager;
 use Sentry\Tracing\SpanContext;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
@@ -23,9 +23,9 @@ use Symfony\Contracts\Cache\CacheInterface;
 trait TraceableCacheAdapterTrait
 {
     /**
-     * @var HubInterface The current hub
+     * @var SentryManager
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var AdapterInterface|TagAwareAdapterInterface The decorated adapter
@@ -185,7 +185,7 @@ trait TraceableCacheAdapterTrait
      */
     private function traceFunction(string $spanOperation, \Closure $callback, ?string $spanDescription = null)
     {
-        $span = $this->hub->getSpan();
+        $span = $this->sentry->getSpan();
 
         // Exit early if we have no span.
         if (null === $span) {
@@ -254,7 +254,7 @@ trait TraceableCacheAdapterTrait
         if (!$this->decoratedAdapter instanceof CacheInterface) {
             throw new \BadMethodCallException(\sprintf('The %s::get() method is not supported because the decorated adapter does not implement the "%s" interface.', self::class, CacheInterface::class));
         }
-        $parentSpan = $this->hub->getSpan();
+        $parentSpan = $this->sentry->getSpan();
 
         // If we don't have a parent span we can just forward it.
         if (null === $parentSpan) {
@@ -270,7 +270,7 @@ trait TraceableCacheAdapterTrait
         $getSpan = $parentSpan->startChild($spanContext);
 
         try {
-            $this->hub->setSpan($getSpan);
+            $this->sentry->setSpan($getSpan);
 
             $wasMiss = false;
             $saveStartTimestamp = null;
@@ -328,7 +328,7 @@ trait TraceableCacheAdapterTrait
             return $value;
         } finally {
             // We always want to restore the previous parent span.
-            $this->hub->setSpan($parentSpan);
+            $this->sentry->setSpan($parentSpan);
         }
     }
 

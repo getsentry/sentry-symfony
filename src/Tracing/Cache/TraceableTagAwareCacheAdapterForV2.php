@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tracing\Cache;
 
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\SentryManager;
 use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
 use Symfony\Component\Cache\PruneableInterface;
 use Symfony\Component\Cache\ResettableInterface;
@@ -24,12 +24,12 @@ final class TraceableTagAwareCacheAdapterForV2 implements TagAwareAdapterInterfa
     use TraceableCacheAdapterTrait;
 
     /**
-     * @param HubInterface             $hub              The current hub
+     * @param SentryManager            $sentry
      * @param TagAwareAdapterInterface $decoratedAdapter The decorated cache adapter
      */
-    public function __construct(HubInterface $hub, TagAwareAdapterInterface $decoratedAdapter)
+    public function __construct(SentryManager $sentry, TagAwareAdapterInterface $decoratedAdapter)
     {
-        $this->hub = $hub;
+        $this->sentry = $sentry;
         $this->decoratedAdapter = $decoratedAdapter;
     }
 
