@@ -113,6 +113,9 @@ abstract class AbstractTraceableResponse implements ResponseInterface
         }
     }
 
+    /**
+     * @return array<mixed>
+     */
     public function toArray(bool $throw = true): array
     {
         $content = null;
