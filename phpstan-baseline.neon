@@ -201,11 +201,6 @@ parameters:
 			path: src/EventListener/SubRequestListener.php
 
 		-
-			message: "#^Parameter \\#1 \\$driver of method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverMiddleware\\:\\:wrap\\(\\) expects Doctrine\\\\DBAL\\\\Driver, mixed given\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/ConnectionConfigurator.php
-
-		-
 			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionForV4\\:\\:errorInfo\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
