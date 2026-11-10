@@ -14,7 +14,7 @@ use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
 use Doctrine\DBAL\Platforms\SQLServerPlatform;
 use PHPUnit\Framework\MockObject\MockObject;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactory;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionForV2V3;
@@ -22,7 +22,7 @@ use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionForV2V3;
 final class TracingDriverConnectionFactoryV2Test extends DoctrineTestCase
 {
     /**
-     * @var MockObject&SentryManager
+     * @var MockObject&Sentry
      */
     private $sentry;
 
@@ -45,7 +45,7 @@ final class TracingDriverConnectionFactoryV2Test extends DoctrineTestCase
 
     protected function setUp(): void
     {
-        $this->sentry = $this->createMock(SentryManager::class);
+        $this->sentry = $this->createMock(Sentry::class);
         $this->databasePlatform = $this->createMock(AbstractPlatform::class);
         $this->tracingDriverConnectionFactory = new TracingDriverConnectionFactory($this->sentry);
     }

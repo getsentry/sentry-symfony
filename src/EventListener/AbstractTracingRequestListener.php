@@ -9,7 +9,7 @@ use Sentry\DataCollection\HttpMessageType;
 use Sentry\DataCollection\HttpSpanDataCollector;
 use Sentry\DataCollection\HttpUrlCollector;
 use Sentry\DataCollection\KeyValueDataFilter;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\Span;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,16 +21,16 @@ abstract class AbstractTracingRequestListener
     use KernelEventForwardCompatibilityTrait;
 
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     protected $sentry;
 
     /**
      * Constructor.
      *
-     * @param SentryManager $sentry
+     * @param Sentry $sentry
      */
-    public function __construct(SentryManager $sentry)
+    public function __construct(Sentry $sentry)
     {
         $this->sentry = $sentry;
     }

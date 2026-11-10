@@ -11,7 +11,7 @@ use Sentry\Event;
 use Sentry\NoOpClient;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\LoginListener;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\Tests\EventListener\Fixtures\UserWithIdentifierStub;
 use Sentry\SentryBundle\Tests\EventListener\Fixtures\UserWithoutIdentifierStub;
 use Sentry\State\GlobalScope;
@@ -35,7 +35,7 @@ use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
 final class LoginListenerTest extends TestCase
 {
     /**
-     * @var MockObject&SentryManager
+     * @var MockObject&Sentry
      */
     private $sentry;
 
@@ -51,7 +51,7 @@ final class LoginListenerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->sentry = $this->createMock(SentryManager::class);
+        $this->sentry = $this->createMock(Sentry::class);
         $this->tokenStorage = $this->createMock(TokenStorageInterface::class);
         $this->listener = new LoginListener($this->sentry, $this->tokenStorage);
     }

@@ -14,7 +14,7 @@ use Sentry\Options;
 use Sentry\SentryBundle\Monolog\CapturedExceptionTracker;
 use Sentry\SentryBundle\Monolog\PhpErrorHandler;
 use Sentry\SentryBundle\Monolog\UncaughtExceptionHandler;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentrySdk;
 use Symfony\Component\ErrorHandler\Exception\SilencedErrorContext;
 
@@ -24,7 +24,7 @@ use Symfony\Component\ErrorHandler\Exception\SilencedErrorContext;
 final class ErrorReportingHandlersTest extends TestCase
 {
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     private $sentry;
 
@@ -60,7 +60,7 @@ final class ErrorReportingHandlersTest extends TestCase
         // The handler that UncaughtExceptionHandler delegates to captures through the SDK state
         SentrySdk::init($client);
 
-        $this->sentry = new SentryManager();
+        $this->sentry = new Sentry();
         $this->tracker = new CapturedExceptionTracker();
     }
 

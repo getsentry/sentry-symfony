@@ -14,7 +14,7 @@ use Doctrine\DBAL\Platforms\OraclePlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
 use Doctrine\DBAL\Platforms\SQLServerPlatform;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 
 /**
  * @internal
@@ -22,7 +22,7 @@ use Sentry\SentryBundle\SentryManager;
 final class TracingDriverConnectionFactoryForV2V3 implements TracingDriverConnectionFactoryInterface
 {
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     private $sentry;
 
@@ -34,10 +34,10 @@ final class TracingDriverConnectionFactoryForV2V3 implements TracingDriverConnec
     /**
      * Constructor.
      *
-     * @param SentryManager $sentry
-     * @param bool          $ignorePrepareSpans Whether prepare spans should be ignored
+     * @param Sentry $sentry
+     * @param bool   $ignorePrepareSpans Whether prepare spans should be ignored
      */
-    public function __construct(SentryManager $sentry, bool $ignorePrepareSpans = false)
+    public function __construct(Sentry $sentry, bool $ignorePrepareSpans = false)
     {
         $this->sentry = $sentry;
         $this->ignorePrepareSpans = $ignorePrepareSpans;

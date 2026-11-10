@@ -7,7 +7,7 @@ namespace Sentry\SentryBundle\Tracing\Doctrine\DBAL;
 use Doctrine\DBAL\Driver\Statement;
 use Sentry\DataCollection\DatabaseDataCollector;
 use Sentry\DataCollection\DataCollectionPolicy;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 
@@ -19,7 +19,7 @@ abstract class AbstractTracingStatement
     public const SPAN_OP_STMT_EXECUTE = 'db.sql.execute';
 
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     protected $sentry;
 
@@ -46,12 +46,12 @@ abstract class AbstractTracingStatement
     /**
      * Constructor.
      *
-     * @param SentryManager         $sentry
+     * @param Sentry                $sentry
      * @param Statement             $decoratedStatement The decorated statement
      * @param string                $sqlQuery           The SQL query executed by the decorated statement
      * @param array<string, string> $spanData           The span data
      */
-    public function __construct(SentryManager $sentry, Statement $decoratedStatement, string $sqlQuery, array $spanData)
+    public function __construct(Sentry $sentry, Statement $decoratedStatement, string $sqlQuery, array $spanData)
     {
         $this->sentry = $sentry;
         $this->decoratedStatement = $decoratedStatement;

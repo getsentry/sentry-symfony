@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\End2End;
 
 use PHPUnit\Framework\TestCase;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\Tests\End2End\App\KernelWithExtraConfig;
 
 use function Sentry\getOtlpTracesEndpointUrl;
@@ -22,7 +22,7 @@ final class OtlpTracesEndpointEnd2EndTest extends TestCase
         ]);
         $kernel->boot();
 
-        /** @var SentryManager $sentry */
+        /** @var Sentry $sentry */
         $sentry = $kernel->getContainer()->get('test.sentry');
         $this->assertNotNull($sentry->getClient()->getIntegration(\Sentry\Integration\OTLPIntegration::class));
 

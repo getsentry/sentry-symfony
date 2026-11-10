@@ -7,7 +7,7 @@ namespace Sentry\SentryBundle\EventListener;
 use Sentry\Event;
 use Sentry\EventHint;
 use Sentry\ExceptionMechanism;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 
 /**
@@ -16,16 +16,16 @@ use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 final class ErrorListener
 {
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     private $sentry;
 
     /**
      * Constructor.
      *
-     * @param SentryManager $sentry
+     * @param Sentry $sentry
      */
-    public function __construct(SentryManager $sentry)
+    public function __construct(Sentry $sentry)
     {
         $this->sentry = $sentry;
     }

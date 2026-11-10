@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\DataCollection\DataCollectionPolicy;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\State\IsolationScope;
 use Sentry\UserDataBag;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
@@ -21,16 +21,16 @@ final class RequestListener
     use KernelEventForwardCompatibilityTrait;
 
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     private $sentry;
 
     /**
      * Constructor.
      *
-     * @param SentryManager $sentry
+     * @param Sentry $sentry
      */
-    public function __construct(SentryManager $sentry/* , ?TokenStorageInterface $tokenStorage */)
+    public function __construct(Sentry $sentry/* , ?TokenStorageInterface $tokenStorage */)
     {
         $this->sentry = $sentry;
     }

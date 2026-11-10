@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 use Sentry\Tracing\SpanStatus;
@@ -22,7 +22,7 @@ use Symfony\Component\Console\Event\ConsoleTerminateEvent;
 final class TracingConsoleListener
 {
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     private $sentry;
 
@@ -34,10 +34,10 @@ final class TracingConsoleListener
     /**
      * Constructor.
      *
-     * @param SentryManager $sentry
-     * @param string[]      $excludedCommands The list of commands for which distributed tracing must be skipped
+     * @param Sentry   $sentry
+     * @param string[] $excludedCommands The list of commands for which distributed tracing must be skipped
      */
-    public function __construct(SentryManager $sentry, array $excludedCommands = [])
+    public function __construct(Sentry $sentry, array $excludedCommands = [])
     {
         $this->sentry = $sentry;
         $this->excludedCommands = $excludedCommands;

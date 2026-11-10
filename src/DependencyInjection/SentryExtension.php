@@ -25,8 +25,8 @@ use Sentry\SentryBundle\Integration\IntegrationConfigurator;
 use Sentry\SentryBundle\Monolog\CapturedExceptionTracker;
 use Sentry\SentryBundle\Monolog\PhpErrorHandler;
 use Sentry\SentryBundle\Monolog\UncaughtExceptionHandler;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\SentryBundle;
-use Sentry\SentryBundle\SentryManager;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
@@ -273,12 +273,12 @@ final class SentryExtension extends ConfigurableExtension
             ->register(self::MONOLOG_PHP_ERROR_HANDLER_SERVICE_ID, PhpErrorHandler::class)
             ->setPublic(false)
             // Whether silenced errors bubble is decided by MonologErrorReportingPass, depending on the scream mode
-            ->setArguments([new Reference(SentryManager::class), $tracker, true]);
+            ->setArguments([new Reference(Sentry::class), $tracker, true]);
 
         $container
             ->register(self::MONOLOG_UNCAUGHT_EXCEPTION_HANDLER_SERVICE_ID, UncaughtExceptionHandler::class)
             ->setPublic(false)
-            ->setArguments([new Reference(SentryManager::class), $tracker, $messengerConfig['capture_soft_fails']]);
+            ->setArguments([new Reference(Sentry::class), $tracker, $messengerConfig['capture_soft_fails']]);
     }
 
     /**

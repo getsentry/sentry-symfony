@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\DependencyInjection\Compiler;
 
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableHttpClient;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -41,7 +41,7 @@ final class HttpClientTracingPass implements CompilerPassInterface
 
         $container->register(TraceableHttpClient::class, TraceableHttpClient::class)
             ->setArgument(0, new Reference(TraceableHttpClient::class . '.inner'))
-            ->setArgument(1, new Reference(SentryManager::class))
+            ->setArgument(1, new Reference(Sentry::class))
             ->setArgument(2, $this->getDefaultHeaders($container, $decoratedService[0]))
             ->setDecoratedService($decoratedService[0], null, $decoratedService[1]);
     }

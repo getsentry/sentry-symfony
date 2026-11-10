@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\End2End\App\Controller;
 
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentrySdk;
 use Sentry\State\IsolationScope;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -19,7 +19,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 class MainController
 {
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     private $sentry;
 
@@ -33,7 +33,7 @@ class MainController
      */
     private $kernel;
 
-    public function __construct(SentryManager $sentry, RequestStack $requestStack, HttpKernelInterface $kernel)
+    public function __construct(Sentry $sentry, RequestStack $requestStack, HttpKernelInterface $kernel)
     {
         $this->sentry = $sentry;
         $this->requestStack = $requestStack;

@@ -10,7 +10,7 @@ use Sentry\ClientInterface;
 use Sentry\NoOpClient;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanStatus;
 use Symfony\Component\HttpFoundation\Cookie;
@@ -24,7 +24,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 final class TracingSubRequestListenerTest extends TestCase
 {
     /**
-     * @var MockObject&SentryManager
+     * @var MockObject&Sentry
      */
     private $sentry;
 
@@ -35,7 +35,7 @@ final class TracingSubRequestListenerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->sentry = $this->createMock(SentryManager::class);
+        $this->sentry = $this->createMock(Sentry::class);
         $this->listener = new TracingSubRequestListener($this->sentry);
     }
 

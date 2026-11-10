@@ -8,12 +8,12 @@ use Monolog\Handler\AbstractHandler;
 use Monolog\Logger;
 use Monolog\LogRecord;
 use Sentry\Monolog\ExceptionToSentryIssueHandler;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 
 final class UncaughtExceptionHandler extends AbstractHandler
 {
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     private $sentry;
 
@@ -37,7 +37,7 @@ final class UncaughtExceptionHandler extends AbstractHandler
      */
     private $exceptionHandler;
 
-    public function __construct(SentryManager $sentry, CapturedExceptionTracker $tracker, bool $captureSoftFails = true)
+    public function __construct(Sentry $sentry, CapturedExceptionTracker $tracker, bool $captureSoftFails = true)
     {
         // Messages that will be retried are logged at WARNING level since Symfony 5.1
         $this->minLevel = $captureSoftFails ? Logger::WARNING : Logger::ERROR;

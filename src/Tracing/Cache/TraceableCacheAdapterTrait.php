@@ -6,7 +6,7 @@ namespace Sentry\SentryBundle\Tracing\Cache;
 
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\InvalidArgumentException;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\SpanContext;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
@@ -23,7 +23,7 @@ use Symfony\Contracts\Cache\CacheInterface;
 trait TraceableCacheAdapterTrait
 {
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     private $sentry;
 

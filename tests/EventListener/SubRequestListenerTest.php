@@ -8,7 +8,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\EventListener\KernelEventForwardCompatibilityTrait;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\State\IsolationScope;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
@@ -20,7 +20,7 @@ class SubRequestListenerTest extends TestCase
     use KernelEventForwardCompatibilityTrait;
 
     /**
-     * @var MockObject&SentryManager
+     * @var MockObject&Sentry
      */
     private $sentry;
 
@@ -31,7 +31,7 @@ class SubRequestListenerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->sentry = $this->createMock(SentryManager::class);
+        $this->sentry = $this->createMock(Sentry::class);
         $this->listener = new SubRequestListener($this->sentry);
     }
 

@@ -11,13 +11,13 @@ use Sentry\EventId;
 use Sentry\NoOpClient;
 use Sentry\Options;
 use Sentry\SentryBundle\Command\SentryTestCommand;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Symfony\Component\Console\Tester\CommandTester;
 
 final class SentryTestCommandTest extends TestCase
 {
     /**
-     * @var SentryManager&MockObject
+     * @var Sentry&MockObject
      */
     private $sentry;
 
@@ -35,7 +35,7 @@ final class SentryTestCommandTest extends TestCase
     {
         parent::setUp();
 
-        $this->sentry = $this->createMock(SentryManager::class);
+        $this->sentry = $this->createMock(Sentry::class);
         $this->client = $this->createMock(ClientInterface::class);
         $this->command = new CommandTester(new SentryTestCommand($this->sentry));
     }

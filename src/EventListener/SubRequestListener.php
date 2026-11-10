@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 
@@ -17,16 +17,16 @@ final class SubRequestListener
     use KernelEventForwardCompatibilityTrait;
 
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     private $sentry;
 
     /**
      * Constructor.
      *
-     * @param SentryManager $sentry
+     * @param Sentry $sentry
      */
-    public function __construct(SentryManager $sentry)
+    public function __construct(Sentry $sentry)
     {
         $this->sentry = $sentry;
     }

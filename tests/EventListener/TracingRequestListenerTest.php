@@ -10,7 +10,7 @@ use Sentry\ClientInterface;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
 use Sentry\SentryBundle\Integration\RequestFetcher;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\DynamicSamplingContext;
 use Sentry\Tracing\SpanId;
 use Sentry\Tracing\SpanStatus;
@@ -35,7 +35,7 @@ use Symfony\Component\Routing\Route;
 final class TracingRequestListenerTest extends TestCase
 {
     /**
-     * @var MockObject&SentryManager
+     * @var MockObject&Sentry
      */
     private $sentry;
 
@@ -46,7 +46,7 @@ final class TracingRequestListenerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->sentry = $this->createMock(SentryManager::class);
+        $this->sentry = $this->createMock(Sentry::class);
         $this->listener = new TracingRequestListener($this->sentry);
     }
 

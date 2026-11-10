@@ -6,7 +6,7 @@ namespace Sentry\SentryBundle\Tests\DependencyInjection\Compiler;
 
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\DependencyInjection\Compiler\CacheTracingPass;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\Tracing\Cache\TraceableCacheAdapter;
 use Sentry\SentryBundle\Tracing\Cache\TraceableTagAwareCacheAdapter;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
@@ -142,15 +142,15 @@ final class CacheTracingPassTest extends TestCase
         $container->addCompilerPass(new CacheTracingPass());
         $container->setParameter('sentry.tracing.cache.enabled', $isTracingActive);
 
-        $container->register(SentryManager::class, SentryManager::class);
+        $container->register(Sentry::class, Sentry::class);
         $container->register('sentry.tracing.traceable_cache_adapter', TraceableCacheAdapter::class)
             ->setAbstract(true)
-            ->setArgument(0, new Reference(SentryManager::class))
+            ->setArgument(0, new Reference(Sentry::class))
             ->setArgument(1, null);
 
         $container->register('sentry.tracing.traceable_tag_aware_cache_adapter', TraceableTagAwareCacheAdapter::class)
             ->setAbstract(true)
-            ->setArgument(0, new Reference(SentryManager::class))
+            ->setArgument(0, new Reference(Sentry::class))
             ->setArgument(1, null);
 
         return $container;

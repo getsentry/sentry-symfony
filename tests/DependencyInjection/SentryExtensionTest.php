@@ -31,8 +31,8 @@ use Sentry\SentryBundle\Integration\IntegrationConfigurator;
 use Sentry\SentryBundle\Monolog\CapturedExceptionTracker;
 use Sentry\SentryBundle\Monolog\PhpErrorHandler;
 use Sentry\SentryBundle\Monolog\UncaughtExceptionHandler;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\SentryBundle;
-use Sentry\SentryBundle\SentryManager;
 use Sentry\SentryBundle\Serializer\ConsoleInputSerializer;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
@@ -114,11 +114,11 @@ abstract class SentryExtensionTest extends TestCase
         $definition = $container->getDefinition(SentryExtension::MONOLOG_PHP_ERROR_HANDLER_SERVICE_ID);
         $this->assertSame(PhpErrorHandler::class, $definition->getClass());
         // Silenced errors bubble unless MonologErrorReportingPass enables the scream mode itself
-        $this->assertEquals([new Reference(SentryManager::class), $tracker, true], $definition->getArguments());
+        $this->assertEquals([new Reference(Sentry::class), $tracker, true], $definition->getArguments());
 
         $definition = $container->getDefinition(SentryExtension::MONOLOG_UNCAUGHT_EXCEPTION_HANDLER_SERVICE_ID);
         $this->assertSame(UncaughtExceptionHandler::class, $definition->getClass());
-        $this->assertEquals([new Reference(SentryManager::class), $tracker, false], $definition->getArguments());
+        $this->assertEquals([new Reference(Sentry::class), $tracker, false], $definition->getArguments());
     }
 
     public function testConsoleCommandListener(): void
@@ -258,7 +258,7 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertSame(RuntimeContextListener::class, $definition->getClass());
         // Keep this dependency explicit: removing it can break runtime-context bootstrap
         // in some long-running/no-optional package environments.
-        $this->assertEquals(new Reference(SentryManager::class), $definition->getArgument(0));
+        $this->assertEquals(new Reference(Sentry::class), $definition->getArgument(0));
         $this->assertSame([
             'kernel.event_listener' => [
                 [

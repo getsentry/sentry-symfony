@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\End2End\App\Controller;
 
 use Doctrine\DBAL\Connection;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\SpanContext;
 use Symfony\Component\HttpFoundation\Response;
 
 class TracingController
 {
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     private $sentry;
 
@@ -21,7 +21,7 @@ class TracingController
      */
     private $connection;
 
-    public function __construct(SentryManager $sentry, ?Connection $connection = null)
+    public function __construct(Sentry $sentry, ?Connection $connection = null)
     {
         $this->sentry = $sentry;
         $this->connection = $connection;

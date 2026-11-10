@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentrySdk;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
@@ -21,10 +21,10 @@ final class RuntimeContextListener implements ResetInterface
     use KernelEventForwardCompatibilityTrait;
 
     /**
-     * Keep SentryManager as an explicit dependency so the container initializes
+     * Keep Sentry as an explicit dependency so the container initializes
      * it and binds the client before this listener handles requests.
      */
-    public function __construct(SentryManager $sentry)
+    public function __construct(Sentry $sentry)
     {
     }
 

@@ -12,7 +12,7 @@ use Sentry\EventHint;
 use Sentry\NoOpClient;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\State\GlobalScope;
 use Sentry\State\IsolationScope;
 use Symfony\Component\Console\Command\Command;
@@ -30,13 +30,13 @@ use Symfony\Component\Console\Output\NullOutput;
 abstract class AbstractConsoleListenerTest extends TestCase
 {
     /**
-     * @var MockObject&SentryManager
+     * @var MockObject&Sentry
      */
     private $sentry;
 
     protected function setUp(): void
     {
-        $this->sentry = $this->createMock(SentryManager::class);
+        $this->sentry = $this->createMock(Sentry::class);
     }
 
     /**

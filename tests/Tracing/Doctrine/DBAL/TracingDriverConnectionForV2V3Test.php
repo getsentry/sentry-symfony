@@ -9,7 +9,7 @@ use Doctrine\DBAL\Driver\Result as DriverResultInterface;
 use Doctrine\DBAL\Driver\Statement as DriverStatementInterface;
 use Doctrine\DBAL\ParameterType;
 use PHPUnit\Framework\MockObject\MockObject;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tests\Tracing\Doctrine\DBAL\Fixture\NativeDriverConnectionInterfaceStub;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionForV2V3 as TracingDriverConnection;
@@ -24,7 +24,7 @@ use Sentry\Tracing\TransactionContext;
 final class TracingDriverConnectionForV2V3Test extends DoctrineTestCase
 {
     /**
-     * @var MockObject&SentryManager
+     * @var MockObject&Sentry
      */
     private $sentry;
 
@@ -50,7 +50,7 @@ final class TracingDriverConnectionForV2V3Test extends DoctrineTestCase
 
     protected function setUp(): void
     {
-        $this->sentry = $this->createMock(SentryManager::class);
+        $this->sentry = $this->createMock(Sentry::class);
         $this->decoratedConnection = $this->createMock(DriverConnectionInterface::class);
         $this->connection = new TracingDriverConnection($this->sentry, $this->decoratedConnection, 'foo_platform', []);
     }

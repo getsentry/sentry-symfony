@@ -12,7 +12,7 @@ use Sentry\EventHint;
 use Sentry\ExceptionMechanism;
 use Sentry\Logs\Logs;
 use Sentry\Metrics\TraceMetrics;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\State\IsolationScope;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
@@ -30,7 +30,7 @@ use Symfony\Component\Console\Input\ArgvInput;
 class ConsoleListener
 {
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     private $sentry;
 
@@ -42,10 +42,10 @@ class ConsoleListener
     /**
      * Constructor.
      *
-     * @param SentryManager $sentry
-     * @param bool          $captureErrors Whether to capture console errors
+     * @param Sentry $sentry
+     * @param bool   $captureErrors Whether to capture console errors
      */
-    public function __construct(SentryManager $sentry, bool $captureErrors = true)
+    public function __construct(Sentry $sentry, bool $captureErrors = true)
     {
         $this->sentry = $sentry;
         $this->captureErrors = $captureErrors;

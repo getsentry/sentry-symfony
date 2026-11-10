@@ -8,7 +8,7 @@ use Monolog\Handler\AbstractHandler;
 use Monolog\LogRecord;
 use Sentry\Exception\SilencedErrorException;
 use Sentry\NoOpClient;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Symfony\Component\ErrorHandler\Error\FatalError;
 use Symfony\Component\ErrorHandler\Exception\SilencedErrorContext;
 
@@ -20,7 +20,7 @@ final class PhpErrorHandler extends AbstractHandler
     private const PHP8_UNSILENCEABLE_FATAL_ERRORS = \E_ERROR | \E_PARSE | \E_CORE_ERROR | \E_COMPILE_ERROR | \E_USER_ERROR | \E_RECOVERABLE_ERROR;
 
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     private $sentry;
 
@@ -45,7 +45,7 @@ final class PhpErrorHandler extends AbstractHandler
      *                                   application doesn't, we stop them here so the other handlers never see them,
      *                                   like without scream mode
      */
-    public function __construct(SentryManager $sentry, CapturedExceptionTracker $tracker, bool $bubbleSilencedErrors = true)
+    public function __construct(Sentry $sentry, CapturedExceptionTracker $tracker, bool $bubbleSilencedErrors = true)
     {
         parent::__construct('debug', true);
 

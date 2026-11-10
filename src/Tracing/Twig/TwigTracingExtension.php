@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tracing\Twig;
 
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 use Twig\Extension\AbstractExtension;
@@ -14,7 +14,7 @@ use Twig\Profiler\Profile;
 final class TwigTracingExtension extends AbstractExtension
 {
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     private $sentry;
 
@@ -24,9 +24,9 @@ final class TwigTracingExtension extends AbstractExtension
     private $spans;
 
     /**
-     * @param SentryManager $sentry
+     * @param Sentry $sentry
      */
-    public function __construct(SentryManager $sentry)
+    public function __construct(Sentry $sentry)
     {
         $this->sentry = $sentry;
         $this->spans = new \SplObjectStorage();

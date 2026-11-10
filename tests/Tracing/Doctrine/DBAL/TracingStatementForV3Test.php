@@ -10,7 +10,7 @@ use Doctrine\DBAL\ParameterType;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sentry\ClientInterface;
 use Sentry\Options;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatementForV3;
 use Sentry\Tracing\Transaction;
@@ -19,7 +19,7 @@ use Sentry\Tracing\TransactionContext;
 final class TracingStatementForV3Test extends DoctrineTestCase
 {
     /**
-     * @var MockObject&SentryManager
+     * @var MockObject&Sentry
      */
     private $sentry;
 
@@ -42,7 +42,7 @@ final class TracingStatementForV3Test extends DoctrineTestCase
 
     protected function setUp(): void
     {
-        $this->sentry = $this->createMock(SentryManager::class);
+        $this->sentry = $this->createMock(Sentry::class);
         $this->decoratedStatement = $this->createMock(Statement::class);
         $this->statement = new TracingStatementForV3($this->sentry, $this->decoratedStatement, 'SELECT 1', ['db.system' => 'sqlite']);
     }

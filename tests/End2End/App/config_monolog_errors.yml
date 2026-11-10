@@ -27,7 +27,7 @@ framework:
 
 services:
   test.sentry:
-    alias: Sentry\SentryBundle\SentryManager
+    alias: Sentry\SentryBundle\Sentry
     public: true
 
   Sentry\SentryBundle\Tests\End2End\StubTransport: ~

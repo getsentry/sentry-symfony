@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\End2End;
 
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\Tests\End2End\App\Kernel;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
@@ -184,7 +184,7 @@ class End2EndTest extends WebTestCase
     {
         $client = static::createClient();
 
-        /** @var SentryManager $sentry */
+        /** @var Sentry $sentry */
         $sentry = $client->getContainer()->get('test.sentry');
         $sentryClient = $sentry->getClient();
 

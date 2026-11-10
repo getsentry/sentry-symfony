@@ -6,7 +6,7 @@ namespace Sentry\SentryBundle\Tests\Tracing\Cache;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
@@ -23,7 +23,7 @@ use Symfony\Contracts\Cache\CacheInterface as BaseCacheInterface;
 abstract class AbstractTraceableCacheAdapterTest extends TestCase
 {
     /**
-     * @var MockObject&SentryManager
+     * @var MockObject&Sentry
      */
     protected $sentry;
 
@@ -36,7 +36,7 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->sentry = $this->createMock(SentryManager::class);
+        $this->sentry = $this->createMock(Sentry::class);
     }
 
     public function testGetItem(): void

@@ -6,7 +6,7 @@ namespace Sentry\SentryBundle\Tests\Tracing\Twig;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
@@ -16,7 +16,7 @@ use Twig\Profiler\Profile;
 final class TwigTracingExtensionTest extends TestCase
 {
     /**
-     * @var MockObject&SentryManager
+     * @var MockObject&Sentry
      */
     private $sentry;
 
@@ -34,7 +34,7 @@ final class TwigTracingExtensionTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->sentry = $this->createMock(SentryManager::class);
+        $this->sentry = $this->createMock(Sentry::class);
         $this->listener = new TwigTracingExtension($this->sentry);
     }
 

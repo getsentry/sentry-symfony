@@ -30,7 +30,7 @@ use function Sentry\withIsolationScope;
  *
  * @internal
  */
-class SentryManager
+class Sentry
 {
     public function getClient(): ClientInterface
     {

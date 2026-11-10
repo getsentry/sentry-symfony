@@ -10,7 +10,7 @@ use Sentry\ClientInterface;
 use Sentry\Event;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\RequestListener;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\State\GlobalScope;
 use Sentry\State\IsolationScope;
 use Sentry\UserDataBag;
@@ -22,7 +22,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 final class RequestListenerTest extends TestCase
 {
     /**
-     * @var MockObject&SentryManager
+     * @var MockObject&Sentry
      */
     private $sentry;
 
@@ -33,7 +33,7 @@ final class RequestListenerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->sentry = $this->createMock(SentryManager::class);
+        $this->sentry = $this->createMock(Sentry::class);
         $this->listener = new RequestListener($this->sentry);
     }
 

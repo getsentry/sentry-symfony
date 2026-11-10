@@ -12,7 +12,7 @@ use Sentry\DataCollection\HttpMessageType;
 use Sentry\DataCollection\HttpSpanDataCollector;
 use Sentry\DataCollection\HttpUrlCollector;
 use Sentry\Options;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\SpanContext;
 use Symfony\Component\HttpClient\Response\ResponseStream;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -37,7 +37,7 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
     protected $client;
 
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     protected $sentry;
 
@@ -49,7 +49,7 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
     /**
      * @param array<array-key, mixed> $defaultHeaders
      */
-    public function __construct(HttpClientInterface $client, SentryManager $sentry, array $defaultHeaders = [])
+    public function __construct(HttpClientInterface $client, Sentry $sentry, array $defaultHeaders = [])
     {
         $this->client = $client;
         $this->sentry = $sentry;

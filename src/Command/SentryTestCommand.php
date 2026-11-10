@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Command;
 
 use Sentry\NoOpClient;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -16,11 +16,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 class SentryTestCommand extends Command
 {
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     private $sentry;
 
-    public function __construct(SentryManager $sentry)
+    public function __construct(Sentry $sentry)
     {
         parent::__construct();
 

@@ -6,7 +6,7 @@ namespace Sentry\SentryBundle\Tests\EventListener;
 
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\EventListener\RuntimeContextListener;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentrySdk;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,7 +25,7 @@ final class RuntimeContextListenerTest extends TestCase
     {
         SentrySdk::init();
 
-        $this->listener = new RuntimeContextListener($this->createMock(SentryManager::class));
+        $this->listener = new RuntimeContextListener($this->createMock(Sentry::class));
     }
 
     protected function tearDown(): void

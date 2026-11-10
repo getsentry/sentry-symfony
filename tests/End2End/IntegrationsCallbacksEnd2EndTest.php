@@ -6,7 +6,7 @@ namespace Sentry\SentryBundle\Tests\End2End;
 
 use PHPUnit\Framework\TestCase;
 use Sentry\Client;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\Tests\End2End\App\KernelWithExtraConfig;
 use Sentry\SentryBundle\Tests\End2End\Fixtures\TestIntegrationForFactory;
 use Sentry\SentryBundle\Tests\End2End\Fixtures\TestIntegrationForInvokable;
@@ -25,7 +25,7 @@ final class IntegrationsCallbacksEnd2EndTest extends TestCase
         $kernel->boot();
 
         /**
-         * @var SentryManager $sentry
+         * @var Sentry $sentry
          */
         $sentry = $kernel->getContainer()->get('test.sentry');
         /**
@@ -48,7 +48,7 @@ final class IntegrationsCallbacksEnd2EndTest extends TestCase
         $kernel->boot();
 
         /**
-         * @var SentryManager $sentry
+         * @var Sentry $sentry
          */
         $sentry = $kernel->getContainer()->get('test.sentry');
         /**

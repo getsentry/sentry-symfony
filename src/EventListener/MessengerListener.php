@@ -7,7 +7,7 @@ namespace Sentry\SentryBundle\EventListener;
 use Sentry\Event;
 use Sentry\EventHint;
 use Sentry\ExceptionMechanism;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentrySdk;
 use Sentry\State\IsolationScope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
@@ -21,7 +21,7 @@ use Symfony\Component\Messenger\Stamp\BusNameStamp;
 final class MessengerListener
 {
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     private $sentry;
 
@@ -45,14 +45,14 @@ final class MessengerListener
     private $isolateContextByMessage;
 
     /**
-     * @param SentryManager $sentry
-     * @param bool          $captureSoftFails            Whether to capture errors thrown
-     *                                                   while processing a message that
-     *                                                   will be retried
-     * @param bool          $isolateBreadcrumbsByMessage Whether messages should have isolated breadcrumbs
-     * @param bool          $isolateContextByMessage     Whether messages should have isolated runtime contexts
+     * @param Sentry $sentry
+     * @param bool   $captureSoftFails            Whether to capture errors thrown
+     *                                            while processing a message that
+     *                                            will be retried
+     * @param bool   $isolateBreadcrumbsByMessage Whether messages should have isolated breadcrumbs
+     * @param bool   $isolateContextByMessage     Whether messages should have isolated runtime contexts
      */
-    public function __construct(SentryManager $sentry, bool $captureSoftFails = true, bool $isolateBreadcrumbsByMessage = false, bool $isolateContextByMessage = false)
+    public function __construct(Sentry $sentry, bool $captureSoftFails = true, bool $isolateBreadcrumbsByMessage = false, bool $isolateContextByMessage = false)
     {
         $this->sentry = $sentry;
         $this->captureSoftFails = $captureSoftFails;

@@ -7,7 +7,7 @@ namespace Sentry\SentryBundle\Tracing\Doctrine\DBAL;
 use Doctrine\DBAL\Driver\Connection as DriverConnectionInterface;
 use Doctrine\DBAL\Driver\Result;
 use Doctrine\DBAL\Driver\Statement;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\SpanContext;
 
 /**
@@ -50,7 +50,7 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
     public const SPAN_OP_TRANSACTION_ROLLBACK = 'db.sql.transaction.rollback';
 
     /**
-     * @var SentryManager
+     * @var Sentry
      */
     private $sentry;
 
@@ -72,7 +72,7 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
     /**
      * Constructor.
      *
-     * @param SentryManager             $sentry
+     * @param Sentry                    $sentry
      * @param DriverConnectionInterface $decoratedConnection The connection to decorate
      * @param string                    $databasePlatform    The name of the database platform
      * @param array<string, mixed>      $params              The connection params
@@ -81,7 +81,7 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
      * @phpstan-param ConnectionParams $params
      */
     public function __construct(
-        SentryManager $sentry,
+        Sentry $sentry,
         DriverConnectionInterface $decoratedConnection,
         string $databasePlatform,
         array $params,

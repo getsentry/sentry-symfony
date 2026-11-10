@@ -11,7 +11,7 @@ use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
 use Sentry\NoOpClient;
 use Sentry\Options;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\Tracing\HttpClient\AbstractTraceableResponse;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableHttpClient;
 use Sentry\SentrySdk;
@@ -31,7 +31,7 @@ use Symfony\Contracts\Service\ResetInterface;
 final class TraceableHttpClientTest extends TestCase
 {
     /**
-     * @var MockObject&SentryManager
+     * @var MockObject&Sentry
      */
     private $sentry;
 
@@ -57,7 +57,7 @@ final class TraceableHttpClientTest extends TestCase
         // The spans resolve the client from the SDK state, so a client bound by another test must not be used
         SentrySdk::init(new NoOpClient());
 
-        $this->sentry = $this->createMock(SentryManager::class);
+        $this->sentry = $this->createMock(Sentry::class);
         $this->decoratedHttpClient = $this->createMock(TestableHttpClientInterface::class);
         $this->httpClient = new TraceableHttpClient($this->decoratedHttpClient, $this->sentry);
     }
@@ -507,7 +507,7 @@ final class TraceableHttpClientTest extends TestCase
 
         $mockResponse = new MockResponse();
         $decoratedHttpClient = new MockHttpClient($mockResponse);
-        $httpClient = new TraceableHttpClient($decoratedHttpClient, new SentryManager());
+        $httpClient = new TraceableHttpClient($decoratedHttpClient, new Sentry());
         $response = $httpClient->request('POST', 'https://www.example.com/test-page');
 
         $this->assertInstanceOf(AbstractTraceableResponse::class, $response);
@@ -528,7 +528,7 @@ final class TraceableHttpClientTest extends TestCase
 
         $mockResponse = new MockResponse();
         $decoratedHttpClient = new MockHttpClient($mockResponse);
-        $httpClient = new TraceableHttpClient($decoratedHttpClient, new SentryManager());
+        $httpClient = new TraceableHttpClient($decoratedHttpClient, new Sentry());
         $httpClient->request('GET', 'https://www.example.com/test-page');
 
         // Like the Guzzle middleware of the SDK, the default `trace_propagation_targets` option propagates the trace to every host

@@ -8,7 +8,7 @@ use Sentry\DataCollection\DataCollectionPolicy;
 use Sentry\DataCollection\HttpSpanDataCollector;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\SentryBundle\Integration\RequestFetcher;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionSource;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,7 +31,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      */
     private $requestFetcher;
 
-    public function __construct(SentryManager $sentry, ?RequestFetcherInterface $requestFetcher = null)
+    public function __construct(Sentry $sentry, ?RequestFetcherInterface $requestFetcher = null)
     {
         parent::__construct($sentry);
 

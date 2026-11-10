@@ -12,7 +12,7 @@ use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\Monolog\CapturedExceptionTracker;
 use Sentry\SentryBundle\Monolog\PhpErrorHandler;
 use Sentry\SentryBundle\Monolog\UncaughtExceptionHandler;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
@@ -148,8 +148,8 @@ final class MonologErrorReportingPassTest extends TestCase
         // As registered by SentryExtension
         $tracker = new Reference(SentryExtension::MONOLOG_CAPTURED_EXCEPTION_TRACKER_SERVICE_ID);
         $container->setDefinition(SentryExtension::MONOLOG_CAPTURED_EXCEPTION_TRACKER_SERVICE_ID, new Definition(CapturedExceptionTracker::class));
-        $container->setDefinition(SentryExtension::MONOLOG_PHP_ERROR_HANDLER_SERVICE_ID, new Definition(PhpErrorHandler::class, [new Reference(SentryManager::class), $tracker, true]));
-        $container->setDefinition(SentryExtension::MONOLOG_UNCAUGHT_EXCEPTION_HANDLER_SERVICE_ID, new Definition(UncaughtExceptionHandler::class, [new Reference(SentryManager::class), $tracker, true]));
+        $container->setDefinition(SentryExtension::MONOLOG_PHP_ERROR_HANDLER_SERVICE_ID, new Definition(PhpErrorHandler::class, [new Reference(Sentry::class), $tracker, true]));
+        $container->setDefinition(SentryExtension::MONOLOG_UNCAUGHT_EXCEPTION_HANDLER_SERVICE_ID, new Definition(UncaughtExceptionHandler::class, [new Reference(Sentry::class), $tracker, true]));
 
         // As registered by MonologBundle
         foreach ($channels as $channel) {

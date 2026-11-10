@@ -10,7 +10,7 @@ use Sentry\ClientInterface;
 use Sentry\Event;
 use Sentry\EventHint;
 use Sentry\SentryBundle\EventListener\MessengerListener;
-use Sentry\SentryBundle\SentryManager;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentrySdk;
 use Sentry\State\GlobalScope;
 use Sentry\State\IsolationScope;
@@ -31,14 +31,14 @@ final class MessengerListenerTest extends TestCase
     private $client;
 
     /**
-     * @var MockObject&SentryManager
+     * @var MockObject&Sentry
      */
     private $sentry;
 
     protected function setUp(): void
     {
         $this->client = $this->createMock(ClientInterface::class);
-        $this->sentry = $this->createMock(SentryManager::class);
+        $this->sentry = $this->createMock(Sentry::class);
     }
 
     protected function tearDown(): void
@@ -386,7 +386,7 @@ final class MessengerListenerTest extends TestCase
 
         SentrySdk::init();
         $globalContext = SentrySdk::getCurrentRuntimeContext();
-        $listener = new MessengerListener(new SentryManager(), true, false, true);
+        $listener = new MessengerListener(new Sentry(), true, false, true);
         $envelope = Envelope::wrap((object) []);
 
         $listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent($envelope, 'receiver'));
@@ -406,7 +406,7 @@ final class MessengerListenerTest extends TestCase
 
         SentrySdk::init();
         $globalContext = SentrySdk::getCurrentRuntimeContext();
-        $listener = new MessengerListener(new SentryManager(), false, false, true);
+        $listener = new MessengerListener(new Sentry(), false, false, true);
         $envelope = Envelope::wrap((object) []);
 
         $listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent($envelope, 'receiver'));
