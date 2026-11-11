@@ -155,17 +155,21 @@ final class SchedulerListener implements ResetInterface
             return null;
         }
 
+        $isInSchedule = false;
         $isStatic = false;
         $usages = 0;
 
         foreach ($schedule->getRecurringMessages() as $recurringMessage) {
             $provider = $recurringMessage->getProvider();
 
+            if ($recurringMessage->getId() === $context->id) {
+                $isInSchedule = true;
+                $isStatic = $provider instanceof StaticMessageProvider;
+            }
+
             if (!$provider instanceof StaticMessageProvider) {
                 continue;
             }
-
-            $isStatic = $isStatic || $recurringMessage->getId() === $context->id;
 
             foreach ($provider->getMessages($context) as $otherMessage) {
                 if (self::createSlug($context->name, $otherMessage) === $slug) {
@@ -174,12 +178,12 @@ final class SchedulerListener implements ResetInterface
             }
         }
 
-        // Other providers decide their messages when they run, so their slugs can't be checked against the schedule
-        if (!$isStatic) {
+        if (!$isInSchedule) {
             return null;
         }
 
-        if ($usages > 1) {
+        // Other providers decide their messages when they run, so they're only checked against the static ones
+        if ($usages > ($isStatic ? 1 : 0)) {
             $this->getLogger()->warning(\sprintf('Not monitoring the scheduled messages with the slug "%s" because more than one recurring message uses it. Use a separate message class or schedule for each one.', $slug));
 
             return null;

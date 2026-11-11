@@ -310,13 +310,30 @@ final class SchedulerListenerTest extends TestCase
         ];
     }
 
-    public function testMessageOfAnotherProviderIsNotReported(): void
+    public function testMessageOfAnotherProviderIsReported(): void
     {
         $this->runPreRunEvents(RecurringMessage::cron('0 * * * *', new CallbackMessageProvider(static function (): iterable {
             return [new SendDailyReportMessage()];
         }, 'reports')));
 
-        $this->assertSame([], $this->checkIns);
+        $this->assertSame(['default-send-daily-report-message'], array_column($this->checkIns, 'slug'));
+    }
+
+    public function testMessageOfAnotherProviderThatSharesASlugIsNotReported(): void
+    {
+        $this->logger->expects($this->once())
+            ->method('warning')
+            ->with('Not monitoring the scheduled messages with the slug "default-send-daily-report-message" because more than one recurring message uses it. Use a separate message class or schedule for each one.');
+
+        $static = RecurringMessage::cron('0 0 * * *', new SendDailyReportMessage());
+        $callback = RecurringMessage::cron('0 * * * *', new CallbackMessageProvider(static function (): iterable {
+            return [new SendDailyReportMessage(), new RunCommandMessage('app:other')];
+        }, 'reports'));
+        $schedule = (new Schedule())->add($static, $callback);
+
+        $this->runPreRunEvents($callback, $schedule);
+
+        $this->assertSame(['default-app-other'], array_column($this->checkIns, 'slug'));
     }
 
     public function testMessageMissingFromTheScheduleIsNotReported(): void
