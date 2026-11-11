@@ -248,11 +248,13 @@ final class SchedulerListenerTest extends TestCase
 
     /**
      * @dataProvider handledRedispatchMessageDataProvider
+     *
+     * @param string|string[] $transportNames
      */
-    public function testRedispatchMessageHandledByTheSchedulerWorkerIsReported(RedispatchMessage $message): void
+    public function testRedispatchMessageHandledByTheSchedulerWorkerIsReported($transportNames): void
     {
         $this->setListener(new SchedulerListener($this->hub, $this->createSendersLocator()));
-        $this->schedule->add(RecurringMessage::cron('0 * * * *', $message));
+        $this->schedule->add(RecurringMessage::cron('0 * * * *', new RedispatchMessage(new SendDailyReportMessage(), $transportNames)));
 
         $this->consume($this->getScheduledEnvelope());
 
@@ -261,12 +263,12 @@ final class SchedulerListenerTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{RedispatchMessage}>
+     * @return iterable<string, array{string|string[]}>
      */
     public function handledRedispatchMessageDataProvider(): iterable
     {
-        yield 'sync transport' => [new RedispatchMessage(new SendDailyReportMessage(), 'sync')];
-        yield 'no transport and no route' => [new RedispatchMessage(new SendDailyReportMessage(), [])];
+        yield 'sync transport' => ['sync'];
+        yield 'no transport and no route' => [[]];
     }
 
     public function testRedispatchMessageToAnUnknownTransportIsNotReported(): void
