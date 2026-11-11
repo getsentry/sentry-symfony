@@ -458,6 +458,7 @@ final class SchedulerListenerTest extends TestCase
         yield 'every 90 seconds' => [static function () { return new PeriodicalTrigger(90); }, null];
         yield 'every day as calendar interval' => [static function () { return new PeriodicalTrigger('1 day'); }, null];
         yield 'every month' => [static function () { return new PeriodicalTrigger('1 month'); }, null];
+        yield 'periodical subclass' => [static function () { return new class(3600) extends PeriodicalTrigger {}; }, null];
         yield 'callback' => [static function () {
             return new CallbackTrigger(static function (\DateTimeImmutable $run): \DateTimeImmutable {
                 return $run->modify('+1 hour');

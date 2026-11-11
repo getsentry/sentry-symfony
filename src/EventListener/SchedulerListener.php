@@ -187,17 +187,11 @@ final class SchedulerListener implements ResetInterface
         if ($trigger instanceof AbstractDecoratedTrigger) {
             foreach ($trigger->decorators() as $decorator) {
                 // Other decorators, such as ExcludeTimeTrigger, skip runs that Sentry would expect
-                if (!$decorator instanceof JitterTrigger) {
+                if (!$decorator instanceof JitterTrigger || !preg_match('/ with 0-(\d+) second jitter$/', (string) $decorator, $matches)) {
                     return null;
                 }
 
-                $maxSeconds = self::getPrivateProperty($decorator, JitterTrigger::class, 'maxSeconds');
-
-                if (!\is_int($maxSeconds)) {
-                    return null;
-                }
-
-                $jitterSeconds += $maxSeconds;
+                $jitterSeconds += (int) $matches[1];
             }
 
             $trigger = $trigger->inner();
@@ -217,11 +211,11 @@ final class SchedulerListener implements ResetInterface
             return new MonitorConfig(MonitorSchedule::crontab($crontab), $checkinMargin, null, $timezone);
         }
 
-        if ($trigger instanceof PeriodicalTrigger) {
-            // Zero for calendar intervals, such as a month
-            $seconds = self::getPrivateProperty($trigger, PeriodicalTrigger::class, 'intervalInSeconds');
+        // Subclasses can compute other run dates
+        if (null !== $trigger && PeriodicalTrigger::class === \get_class($trigger)) {
+            $seconds = self::getIntervalInSeconds($trigger);
 
-            if (!is_numeric($seconds) || $seconds < 60 || 0.0 !== fmod((float) $seconds, 60)) {
+            if (null === $seconds || $seconds < 60 || 0.0 !== fmod($seconds, 60)) {
                 return null;
             }
 
@@ -240,17 +234,18 @@ final class SchedulerListener implements ResetInterface
     }
 
     /**
-     * The triggers have no getters for these, so a renamed property stops monitoring.
-     *
-     * @return mixed
+     * Returns null for calendar intervals, such as "1 month", which have no fixed length.
      */
-    private static function getPrivateProperty(object $object, string $class, string $property)
+    private static function getIntervalInSeconds(PeriodicalTrigger $trigger): ?float
     {
+        // PeriodicalTrigger has no getter for the interval. If the property changes, the message isn't monitored.
         try {
-            return (new \ReflectionProperty($class, $property))->getValue($object);
+            $seconds = (new \ReflectionProperty(PeriodicalTrigger::class, 'intervalInSeconds'))->getValue($trigger);
         } catch (\ReflectionException $exception) {
             return null;
         }
+
+        return \is_float($seconds) && $seconds > 0 ? $seconds : null;
     }
 
     private static function toCrontab(string $expression): ?string
