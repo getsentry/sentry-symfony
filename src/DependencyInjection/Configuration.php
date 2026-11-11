@@ -371,7 +371,15 @@ final class Configuration implements ConfigurationInterface
                     ->children()
                         ->arrayNode('excluded_messages')
                             ->info('Message classes, command names or monitor slugs that are not monitored. Values wrapped in slashes are regular expressions.')
-                            ->scalarPrototype()->end()
+                            ->scalarPrototype()
+                                ->cannotBeEmpty()
+                                ->validate()
+                                    ->ifTrue(static function ($value): bool {
+                                        return !\is_string($value);
+                                    })
+                                    ->thenInvalid('Expected a string, but got %s.')
+                                ->end()
+                            ->end()
                         ->end()
                     ->end()
                 ->end()

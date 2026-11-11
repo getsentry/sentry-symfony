@@ -456,7 +456,24 @@ final class SchedulerListenerTest extends TestCase
     public function excludedMessageClassDataProvider(): iterable
     {
         yield 'message class' => [SendDailyReportMessage::class];
+        yield 'message class with a leading backslash' => ['\\' . SendDailyReportMessage::class];
         yield 'slug' => ['default-send-daily-report-message'];
+        yield 'regular expression' => ['/report-message$/'];
+        yield 'regular expression with flags' => ['/^DEFAULT-SEND-/i'];
+    }
+
+    public function testInvalidRegularExpressionIsLoggedAndIgnored(): void
+    {
+        $this->logger->expects($this->atLeastOnce())
+            ->method('warning')
+            ->with('Ignoring the invalid regular expression "/[/" in the excluded messages of the scheduler.');
+
+        $this->setListener(new SchedulerListener($this->hub, null, ['/[/']));
+        $this->schedule->add(RecurringMessage::cron('0 0 * * *', new SendDailyReportMessage()));
+
+        $this->consume($this->getScheduledEnvelope());
+
+        $this->assertSame([CheckInStatus::inProgress(), CheckInStatus::ok()], array_column($this->checkIns, 'status'));
     }
 
     public function testExcludedMessageDoesNotShareItsSlug(): void

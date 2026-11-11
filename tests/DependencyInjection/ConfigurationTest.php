@@ -352,6 +352,26 @@ final class ConfigurationTest extends TestCase
     }
 
     /**
+     * @param mixed $value
+     *
+     * @dataProvider schedulerExcludedMessagesWithInvalidValuesDataProvider
+     */
+    public function testSchedulerExcludedMessagesWithInvalidValues($value): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+
+        $this->processConfiguration(['scheduler' => ['excluded_messages' => [$value]]]);
+    }
+
+    public function schedulerExcludedMessagesWithInvalidValuesDataProvider(): \Generator
+    {
+        yield 'empty string' => [''];
+        yield 'null' => [null];
+        yield 'integer' => [1];
+        yield 'boolean' => [true];
+    }
+
+    /**
      * @dataProvider strictTraceContinuationOptionDataProvider
      */
     public function testStrictTraceContinuationOption(bool $value): void

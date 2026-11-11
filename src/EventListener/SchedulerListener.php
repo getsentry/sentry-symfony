@@ -313,10 +313,25 @@ final class SchedulerListener implements ResetInterface
         }
 
         foreach ($this->excludedMessages as $excluded) {
-            $isPattern = \strlen($excluded) > 2 && '/' === $excluded[0] && '/' === substr($excluded, -1);
+            if (!preg_match('/^\/.+\/[a-zA-Z]*$/', $excluded)) {
+                if (\in_array(ltrim($excluded, '\\'), $names, true)) {
+                    return true;
+                }
+
+                continue;
+            }
 
             foreach ($names as $name) {
-                if ($isPattern ? 1 === @preg_match($excluded, $name) : $excluded === $name) {
+                // Without the @, PHP raises a warning for an invalid pattern
+                $result = @preg_match($excluded, $name);
+
+                if (false === $result) {
+                    $this->getLogger()->warning(\sprintf('Ignoring the invalid regular expression "%s" in the excluded messages of the scheduler.', $excluded));
+
+                    continue 2;
+                }
+
+                if (1 === $result) {
                     return true;
                 }
             }
