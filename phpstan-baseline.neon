@@ -286,11 +286,6 @@ parameters:
 			path: tests/DependencyInjection/SentryExtensionTest.php
 
 		-
-			message: "#^Cannot access offset 'error_types' on mixed\\.$#"
-			count: 1
-			path: tests/DependencyInjection/SentryExtensionTest.php
-
-		-
 			message: "#^Cannot access offset 'class_serializers' on mixed\\.$#"
 			count: 1
 			path: tests/DependencyInjection/SentryExtensionTest.php
