@@ -94,13 +94,14 @@ final class SchedulerListener implements ResetInterface
 
         try {
             $context = $event->getMessageContext();
-            $slug = $this->getMonitorSlug($event->getSchedule()->getSchedule(), $context, $message);
+            $schedule = $event->getSchedule()->getSchedule();
+            $slug = $this->getMonitorSlug($schedule, $context, $message);
 
             if (null === $slug) {
                 return;
             }
 
-            $monitorConfig = $this->createMonitorConfig($context);
+            $monitorConfig = self::createMonitorConfig($schedule, $context);
 
             if (null === $monitorConfig) {
                 return;
@@ -171,10 +172,17 @@ final class SchedulerListener implements ResetInterface
      * Returns null for triggers that Sentry can't express or would read
      * differently, so that their messages aren't monitored.
      */
-    private function createMonitorConfig(MessageContext $context): ?MonitorConfig
+    private static function createMonitorConfig(Schedule $schedule, MessageContext $context): ?MonitorConfig
     {
-        $trigger = $context->trigger;
+        $trigger = null;
         $jitterSeconds = 0;
+
+        // The trigger of the context can't compute run dates once the message has crossed a transport
+        foreach ($schedule->getRecurringMessages() as $recurringMessage) {
+            if ($recurringMessage->getId() === $context->id) {
+                $trigger = $recurringMessage->getTrigger();
+            }
+        }
 
         if ($trigger instanceof AbstractDecoratedTrigger) {
             foreach ($trigger->decorators() as $decorator) {
@@ -199,7 +207,8 @@ final class SchedulerListener implements ResetInterface
 
         if ($trigger instanceof CronExpressionTrigger) {
             $crontab = self::toCrontab((string) $trigger);
-            $timezone = self::toTimezone($context->nextTriggerAt ?? $context->triggeredAt);
+            $nextRun = null !== $crontab ? $trigger->getNextRunDate($context->triggeredAt) : null;
+            $timezone = null !== $nextRun ? self::toTimezone($nextRun) : null;
 
             if (null === $crontab || null === $timezone) {
                 return null;

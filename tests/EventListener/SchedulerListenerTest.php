@@ -321,6 +321,27 @@ final class SchedulerListenerTest extends TestCase
         ];
     }
 
+    public function testScheduleOfMessageThatCrossedATransport(): void
+    {
+        $message = new SendDailyReportMessage();
+        $recurringMessage = RecurringMessage::cron('0 3 * * *', $message, 'Europe/Vienna');
+        $context = $this->createContext($recurringMessage);
+
+        // Symfony keeps only the trigger's description when it serializes the context
+        $trigger = new CallbackTrigger(static function (): ?\DateTimeImmutable {
+            throw new \LogicException('Not possible to get next run date from a deserialized trigger.');
+        }, (string) $recurringMessage->getTrigger());
+        $context = new MessageContext($context->name, $context->id, $trigger, $context->triggeredAt, $context->nextTriggerAt);
+
+        $this->listener->handlePreRunEvent(new PreRunEvent((new Schedule())->add($recurringMessage), $context, $message));
+
+        $monitorConfig = $this->checkIns[0]['monitor_config'];
+
+        $this->assertNotNull($monitorConfig);
+        $this->assertSame('0 3 * * *', $monitorConfig->getSchedule()->getValue());
+        $this->assertSame('Europe/Vienna', $monitorConfig->getTimezone());
+    }
+
     public function testJitterWidensCheckInMargin(): void
     {
         $this->runPreRunEvents(RecurringMessage::cron('0 * * * *', new SendDailyReportMessage())->withJitter(90)->withJitter(30));
