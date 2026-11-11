@@ -15,11 +15,14 @@ use Sentry\SentryBundle\EventListener\SchedulerListener;
 use Sentry\SentryBundle\Tests\EventListener\Fixtures\SendDailyReportMessage;
 use Sentry\State\HubInterface;
 use Symfony\Component\Console\Messenger\RunCommandMessage;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Message\RedispatchMessage;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Symfony\Component\Messenger\Stamp\StampInterface;
+use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
+use Symfony\Component\Messenger\Transport\Sender\SendersLocator;
 use Symfony\Component\Scheduler\Event\FailureEvent;
 use Symfony\Component\Scheduler\Event\PostRunEvent;
 use Symfony\Component\Scheduler\Event\PreRunEvent;
@@ -198,22 +201,24 @@ final class SchedulerListenerTest extends TestCase
 
     public function testMessageSentToAnotherTransportIsNotReported(): void
     {
-        $redispatchStampClass = 'Symfony\Component\Messenger\Stamp\RedispatchStamp';
+        $this->assertSame([], $this->runMessageWithRedispatchStamp(RecurringMessage::cron('0 * * * *', new RedispatchMessage(new SendDailyReportMessage(), 'async'))));
+    }
 
-        if (!class_exists($redispatchStampClass)) {
-            $this->markTestSkipped('This test requires the "symfony/messenger" Composer package (8.2 or newer) to be installed.');
-        }
+    public function testRoutedMessageIsNotReported(): void
+    {
+        $sendersLocator = new SendersLocator([SendDailyReportMessage::class => ['async']], new ServiceLocator([
+            'async' => static function (): InMemoryTransport { return new InMemoryTransport(); },
+        ]));
+        $this->listener = new SchedulerListener($this->hub, $sendersLocator);
 
-        $message = new SendDailyReportMessage();
-        $recurringMessage = RecurringMessage::cron('0 * * * *', new RedispatchMessage($message, 'async'));
-        $context = $this->createContext($recurringMessage);
-        $redispatchStamp = new $redispatchStampClass();
-        $this->assertInstanceOf(StampInterface::class, $redispatchStamp);
+        $this->assertSame([], $this->runMessageWithRedispatchStamp(RecurringMessage::cron('0 * * * *', new SendDailyReportMessage())));
+    }
 
-        $this->listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent(new Envelope($message, [new ScheduledStamp($context), $redispatchStamp]), 'scheduler_default'));
-        $this->listener->handlePreRunEvent(new PreRunEvent((new Schedule())->add($recurringMessage), $context, $message));
+    public function testMessageWithoutRouteIsReported(): void
+    {
+        $this->listener = new SchedulerListener($this->hub, new SendersLocator([], new ServiceLocator([])));
 
-        $this->assertSame([], $this->checkIns);
+        $this->assertSame(['default-send-daily-report-message'], $this->runMessageWithRedispatchStamp(RecurringMessage::cron('0 * * * *', new SendDailyReportMessage())));
     }
 
     public function testAnonymousMessageIsNotReported(): void
@@ -568,13 +573,30 @@ final class SchedulerListenerTest extends TestCase
         $this->assertSame(3, $monitorConfig->getCheckinMargin());
     }
 
-    public function testMessageOfAnotherProviderIsNotReported(): void
+    public function testMessageOfAnotherProviderIsReported(): void
     {
         $this->runPreRunEvents(RecurringMessage::cron('0 * * * *', new CallbackMessageProvider(static function (): iterable {
             return [new SendDailyReportMessage()];
         }, 'reports')));
 
-        $this->assertSame([], $this->checkIns);
+        $this->assertSame(['default-send-daily-report-message'], array_column($this->checkIns, 'slug'));
+    }
+
+    public function testMessageOfAnotherProviderThatSharesASlugIsNotReported(): void
+    {
+        $this->logger->expects($this->once())
+            ->method('warning')
+            ->with('Not monitoring the scheduled messages with the slug "default-send-daily-report-message" because more than one recurring message uses it. Use a separate message class or schedule for each one.');
+
+        $static = RecurringMessage::cron('0 0 * * *', new SendDailyReportMessage());
+        $callback = RecurringMessage::cron('0 * * * *', new CallbackMessageProvider(static function (): iterable {
+            return [new SendDailyReportMessage(), new RunCommandMessage('app:other')];
+        }, 'reports'));
+        $schedule = (new Schedule())->add($static, $callback);
+
+        $this->runPreRunEvents($callback, $schedule);
+
+        $this->assertSame(['default-app-other'], array_column($this->checkIns, 'slug'));
     }
 
     public function testMessageMissingFromTheScheduleIsNotReported(): void
@@ -582,6 +604,34 @@ final class SchedulerListenerTest extends TestCase
         $this->runPreRunEvents(RecurringMessage::cron('0 * * * *', new SendDailyReportMessage()), new Schedule());
 
         $this->assertSame([], $this->checkIns);
+    }
+
+    /**
+     * Runs the message as a Symfony 8.2+ scheduler worker receives it when it may send it elsewhere.
+     *
+     * @return list<string> The slugs of the check-ins
+     */
+    private function runMessageWithRedispatchStamp(RecurringMessage $recurringMessage): array
+    {
+        $redispatchStampClass = 'Symfony\Component\Messenger\Stamp\RedispatchStamp';
+
+        if (!class_exists($redispatchStampClass)) {
+            $this->markTestSkipped('This test requires the "symfony/messenger" Composer package (8.2 or newer) to be installed.');
+        }
+
+        $context = $this->createContext($recurringMessage);
+        $redispatchStamp = new $redispatchStampClass();
+        $this->assertInstanceOf(StampInterface::class, $redispatchStamp);
+
+        foreach ($recurringMessage->getMessages($context) as $message) {
+            $message = $message instanceof RedispatchMessage ? $message->envelope : $message;
+            $message = $message instanceof Envelope ? $message->getMessage() : $message;
+
+            $this->listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent(new Envelope($message, [new ScheduledStamp($context), $redispatchStamp]), 'scheduler_default'));
+            $this->listener->handlePreRunEvent(new PreRunEvent((new Schedule())->add($recurringMessage), $context, $message));
+        }
+
+        return array_column($this->checkIns, 'slug');
     }
 
     private function runPreRunEvents(RecurringMessage $recurringMessage, ?Schedule $schedule = null, string $scheduleName = 'default'): void

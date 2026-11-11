@@ -47,6 +47,7 @@ use Symfony\Component\DependencyInjection\Compiler\ResolveParameterPlaceHoldersP
 use Symfony\Component\DependencyInjection\Compiler\ResolveTaggedIteratorArgumentPass;
 use Symfony\Component\DependencyInjection\Compiler\ValidateEnvPlaceholdersPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\EnvPlaceholderParameterBag;
 use Symfony\Component\DependencyInjection\Reference;
@@ -222,6 +223,10 @@ abstract class SentryExtensionTest extends TestCase
         $definition = $container->getDefinition(SchedulerListener::class);
 
         $this->assertSame(SchedulerListener::class, $definition->getClass());
+        $this->assertEquals([
+            new Reference(HubInterface::class),
+            new Reference('messenger.senders_locator', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
+        ], $definition->getArguments());
         $this->assertSame([
             'kernel.event_listener' => [
                 [

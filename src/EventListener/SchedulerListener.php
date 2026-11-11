@@ -16,6 +16,7 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Message\RedispatchMessage;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
+use Symfony\Component\Messenger\Transport\Sender\SendersLocatorInterface;
 use Symfony\Component\Scheduler\Event\FailureEvent;
 use Symfony\Component\Scheduler\Event\PostRunEvent;
 use Symfony\Component\Scheduler\Event\PreRunEvent;
@@ -47,13 +48,18 @@ final class SchedulerListener implements ResetInterface
         'MON' => 1, 'TUE' => 2, 'WED' => 3, 'THU' => 4, 'FRI' => 5, 'SAT' => 6,
     ];
 
-    // Symfony 8.2+ adds this stamp to the messages that a worker sends to other transports instead of handling them
+    // Symfony 8.2+ adds this stamp to the messages that a worker sends to their senders, if they have any, instead of handling them
     private const REDISPATCH_STAMP = 'Symfony\Component\Messenger\Stamp\RedispatchStamp';
 
     /**
      * @var HubInterface
      */
     private $hub;
+
+    /**
+     * @var SendersLocatorInterface|null
+     */
+    private $sendersLocator;
 
     /**
      * @var array<string, array{slug: string, check_in_id: string, monitor_config: MonitorConfig, started_at: float}>
@@ -65,9 +71,10 @@ final class SchedulerListener implements ResetInterface
      */
     private $skippedMessage;
 
-    public function __construct(HubInterface $hub)
+    public function __construct(HubInterface $hub, ?SendersLocatorInterface $sendersLocator = null)
     {
         $this->hub = $hub;
+        $this->sendersLocator = $sendersLocator;
     }
 
     /**
@@ -77,7 +84,7 @@ final class SchedulerListener implements ResetInterface
     {
         $envelope = $event->getEnvelope();
         $stamps = $envelope->all();
-        $isSkipped = isset($stamps[ScheduledStamp::class]) && (isset($stamps[RedeliveryStamp::class]) || isset($stamps[self::REDISPATCH_STAMP]));
+        $isSkipped = isset($stamps[ScheduledStamp::class]) && (isset($stamps[RedeliveryStamp::class]) || (isset($stamps[self::REDISPATCH_STAMP]) && $this->hasSenders($envelope)));
 
         $this->skippedMessage = $isSkipped ? $envelope->getMessage() : null;
     }
@@ -429,17 +436,21 @@ final class SchedulerListener implements ResetInterface
             return null;
         }
 
+        $isInSchedule = false;
         $isStatic = false;
         $usages = 0;
 
         foreach ($schedule->getRecurringMessages() as $recurringMessage) {
             $provider = $recurringMessage->getProvider();
 
+            if ($recurringMessage->getId() === $context->id) {
+                $isInSchedule = true;
+                $isStatic = $provider instanceof StaticMessageProvider;
+            }
+
             if (!$provider instanceof StaticMessageProvider) {
                 continue;
             }
-
-            $isStatic = $isStatic || $recurringMessage->getId() === $context->id;
 
             foreach ($provider->getMessages($context) as $otherMessage) {
                 if (self::createSlug($context->name, $otherMessage) === $slug) {
@@ -448,12 +459,12 @@ final class SchedulerListener implements ResetInterface
             }
         }
 
-        // Other providers decide their messages when they run, so their slugs can't be checked against the schedule
-        if (!$isStatic) {
+        if (!$isInSchedule) {
             return null;
         }
 
-        if ($usages > 1) {
+        // Other providers decide their messages when they run, so they're only checked against the static ones
+        if ($usages > ($isStatic ? 1 : 0)) {
             $this->getLogger()->warning(\sprintf('Not monitoring the scheduled messages with the slug "%s" because more than one recurring message uses it. Use a separate message class or schedule for each one.', $slug));
 
             return null;
@@ -498,6 +509,19 @@ final class SchedulerListener implements ResetInterface
 
         // SendDailyReportMessage becomes Send-Daily-Report-Message, and HTMLReport becomes HTML-Report
         return (string) preg_replace('/(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/', '-', $class->getShortName());
+    }
+
+    private function hasSenders(Envelope $envelope): bool
+    {
+        if (null === $this->sendersLocator) {
+            return true;
+        }
+
+        foreach ($this->sendersLocator->getSenders($envelope) as $sender) {
+            return true;
+        }
+
+        return false;
     }
 
     private function getLogger(): LoggerInterface
