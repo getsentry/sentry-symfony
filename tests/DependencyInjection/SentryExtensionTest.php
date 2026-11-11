@@ -568,10 +568,11 @@ abstract class SentryExtensionTest extends TestCase
     public function testErrorTypesOptionIsParsedFromStringToIntegerValue(): void
     {
         $container = $this->createContainerFromFixture('error_types');
-        $optionsDefinition = $container->getDefinition('sentry.client.options');
+        $options = $container->getDefinition('sentry.client.options')->getArgument(0);
 
+        $this->assertIsArray($options);
         // 2048 is \E_STRICT which has been deprecated in PHP 8.4 so we should not reference it directly to prevent deprecation notices
-        $this->assertSame(\E_ALL & ~(\E_NOTICE | 2048 | \E_DEPRECATED), $optionsDefinition->getArgument(0)['error_types']);
+        $this->assertSame(\E_ALL & ~(\E_NOTICE | 2048 | \E_DEPRECATED), $options['error_types']);
     }
 
     public function testConsoleInputSerializerIsRegisteredAndResolvesAsClassSerializer(): void
