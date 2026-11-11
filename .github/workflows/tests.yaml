@@ -187,7 +187,8 @@ jobs:
         run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
 
       - name: Check the Symfony version
-        run: composer show symfony/scheduler | grep -E '^versions : \* v8\.2\.'
+        run: |
+          composer show symfony/scheduler | grep -E '^versions : \* v8\.2\.'
 
       - name: Run tests
         run: vendor/bin/phpunit --filter Scheduler
