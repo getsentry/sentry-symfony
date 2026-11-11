@@ -32,9 +32,9 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      */
     private $requestFetcher;
 
-    public function __construct(HubInterface $hub, ?RequestFetcherInterface $requestFetcher = null)
+    public function __construct(HubInterface $hub, ?RequestFetcherInterface $requestFetcher = null, bool $enabled = true)
     {
-        parent::__construct($hub);
+        parent::__construct($hub, $enabled);
 
         $this->requestFetcher = $requestFetcher;
     }
@@ -47,7 +47,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      */
     public function handleKernelRequestEvent(RequestEvent $event): void
     {
-        if (!$this->isMainRequest($event)) {
+        if (!$this->enabled || !$this->isMainRequest($event)) {
             return;
         }
 
@@ -89,7 +89,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      */
     public function collectKernelResponseData(ResponseEvent $event): void
     {
-        if (!$this->isMainRequest($event)) {
+        if (!$this->enabled || !$this->isMainRequest($event)) {
             return;
         }
 
@@ -110,6 +110,10 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      */
     public function handleKernelTerminateEvent(TerminateEvent $event): void
     {
+        if (!$this->enabled) {
+            return;
+        }
+
         $transaction = $this->hub->getTransaction();
 
         try {

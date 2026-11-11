@@ -25,7 +25,6 @@
     <UndefinedPropertyFetch>
       <code><![CDATA[$context->id]]></code>
       <code><![CDATA[$context->id]]></code>
-      <code><![CDATA[$context->id]]></code>
       <code><![CDATA[$context->name]]></code>
       <code><![CDATA[$context->name]]></code>
       <code><![CDATA[$context->trigger]]></code>

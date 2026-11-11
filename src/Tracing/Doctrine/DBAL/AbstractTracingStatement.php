@@ -76,6 +76,11 @@ abstract class AbstractTracingStatement
     {
         $span = $this->hub->getSpan();
 
+        // Children of an unsampled span are never recorded or sent, so don't build them
+        if (null !== $span && false === $span->getSampled()) {
+            $span = null;
+        }
+
         if (null !== $span) {
             $span = $span->startChild($spanContext);
             $this->addQueryData($span, $args[0] ?? null);

@@ -1,0 +1,6 @@
+parameters:
+    env(SENTRY_TRACING): 'false'
+
+sentry:
+    tracing:
+        enabled: '%env(bool:SENTRY_TRACING)%'

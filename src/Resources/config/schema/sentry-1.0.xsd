@@ -34,6 +34,7 @@
             <xsd:element name="class-serializer" type="class-serializer" minOccurs="0" maxOccurs="unbounded" />
             <xsd:element name="ignore-exception" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
             <xsd:element name="ignore-transaction" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="trace-ignore-status-code" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
             <xsd:element name="data-collection" type="data-collection" minOccurs="0" maxOccurs="1" />
         </xsd:sequence>
 
@@ -186,7 +187,7 @@
             <xsd:element name="http-client" type="tracing-http-client" minOccurs="0" maxOccurs="1" />
         </xsd:choice>
 
-        <xsd:attribute name="enabled" type="xsd:boolean" default="true"/>
+        <xsd:attribute name="enabled" type="xsd:string" default="true"/>
     </xsd:complexType>
 
     <xsd:complexType name="tracing-dbal">

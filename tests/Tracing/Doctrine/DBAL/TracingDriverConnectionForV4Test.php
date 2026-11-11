@@ -180,6 +180,31 @@ final class TracingDriverConnectionForV4Test extends DoctrineTestCase
         $this->assertSame($result, $this->connection->query($sql));
     }
 
+    public function testQueryDoesNotCreateSpanIfParentSpanIsNotSampled(): void
+    {
+        $result = $this->createMock(DriverResultInterface::class);
+        $sql = 'SELECT 1 + 1';
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setSampled(false);
+
+        $transaction = new Transaction($transactionContext, $this->hub);
+        $transaction->initSpanRecorder();
+
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn($transaction);
+
+        $this->decoratedConnection->expects($this->once())
+            ->method('query')
+            ->with($sql)
+            ->willReturn($result);
+
+        $this->assertSame($result, $this->connection->query($sql));
+        $this->assertNotNull($transaction->getSpanRecorder());
+        $this->assertCount(1, $transaction->getSpanRecorder()->getSpans());
+    }
+
     public function testQuote(): void
     {
         $this->decoratedConnection->expects($this->once())

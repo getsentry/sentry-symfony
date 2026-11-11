@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Sentry\CheckInStatus;
 use Sentry\MonitorConfig;
 use Sentry\MonitorSchedule;
@@ -20,7 +22,7 @@ use Symfony\Component\Scheduler\Event\PreRunEvent;
 use Symfony\Component\Scheduler\Generator\MessageContext;
 use Symfony\Component\Scheduler\Messenger\ScheduledStamp;
 use Symfony\Component\Scheduler\Messenger\ServiceCallMessage;
-use Symfony\Component\Scheduler\ScheduleProviderInterface;
+use Symfony\Component\Scheduler\Schedule;
 use Symfony\Component\Scheduler\Trigger\AbstractDecoratedTrigger;
 use Symfony\Component\Scheduler\Trigger\CronExpressionTrigger;
 use Symfony\Component\Scheduler\Trigger\JitterTrigger;
@@ -46,6 +48,9 @@ final class SchedulerListener implements ResetInterface
         '/^(?:\d(?:L|#[1-5])|[a-z]{3}#[1-5])$/i',
     ];
 
+    // Symfony 8.2+ adds this stamp to the messages that a worker sends to other transports instead of handling them
+    private const REDISPATCH_STAMP = 'Symfony\Component\Messenger\Stamp\RedispatchStamp';
+
     /**
      * @var HubInterface
      */
@@ -59,7 +64,7 @@ final class SchedulerListener implements ResetInterface
     /**
      * @var object|null
      */
-    private $redeliveredMessage;
+    private $skippedMessage;
 
     public function __construct(HubInterface $hub)
     {
@@ -67,14 +72,15 @@ final class SchedulerListener implements ResetInterface
     }
 
     /**
-     * Remembers scheduled messages that are retried or replayed, so that they don't report another run.
+     * Remembers scheduled messages that are retried or sent to another transport, so that they don't report a run.
      */
     public function handleWorkerMessageReceivedEvent(WorkerMessageReceivedEvent $event): void
     {
         $envelope = $event->getEnvelope();
-        $isRedelivered = null !== $envelope->last(ScheduledStamp::class) && null !== $envelope->last(RedeliveryStamp::class);
+        $stamps = $envelope->all();
+        $isSkipped = isset($stamps[ScheduledStamp::class]) && (isset($stamps[RedeliveryStamp::class]) || isset($stamps[self::REDISPATCH_STAMP]));
 
-        $this->redeliveredMessage = $isRedelivered ? $envelope->getMessage() : null;
+        $this->skippedMessage = $isSkipped ? $envelope->getMessage() : null;
     }
 
     public function handlePreRunEvent(PreRunEvent $event): void
@@ -82,13 +88,13 @@ final class SchedulerListener implements ResetInterface
         $message = $event->getMessage();
 
         // A redispatched message is monitored when a worker consumes it from the other transport
-        if ($event->shouldCancel() || $message === $this->redeliveredMessage || $message instanceof RedispatchMessage) {
+        if ($event->shouldCancel() || $message === $this->skippedMessage || $message instanceof RedispatchMessage) {
             return;
         }
 
         try {
             $context = $event->getMessageContext();
-            $slug = $this->createSlug($event->getSchedule(), $context, $message);
+            $slug = $this->getMonitorSlug($event->getSchedule()->getSchedule(), $context, $message);
 
             if (null === $slug) {
                 return;
@@ -112,7 +118,7 @@ final class SchedulerListener implements ResetInterface
                 ];
             }
         } catch (\Throwable $exception) {
-            $this->logException($exception);
+            $this->getLogger()->warning('Failed to send a cron check-in for a scheduled message.', ['exception' => $exception]);
         }
     }
 
@@ -129,7 +135,7 @@ final class SchedulerListener implements ResetInterface
     public function reset(): void
     {
         $this->checkIns = [];
-        $this->redeliveredMessage = null;
+        $this->skippedMessage = null;
     }
 
     private function finishCheckIn(MessageContext $context, object $message, CheckInStatus $status): void
@@ -152,7 +158,7 @@ final class SchedulerListener implements ResetInterface
                 $checkIn['check_in_id']
             );
         } catch (\Throwable $exception) {
-            $this->logException($exception);
+            $this->getLogger()->warning('Failed to send a cron check-in for a scheduled message.', ['exception' => $exception]);
         }
     }
 
@@ -288,10 +294,50 @@ final class SchedulerListener implements ResetInterface
     }
 
     /**
-     * The schedule name and a readable name of the message. The ID of the recurring
-     * message is added when other messages of the schedule have the same name.
+     * Returns null when the message can't have a monitor of its own.
      */
-    private function createSlug(ScheduleProviderInterface $schedule, MessageContext $context, object $message): ?string
+    private function getMonitorSlug(Schedule $schedule, MessageContext $context, object $message): ?string
+    {
+        $slug = self::createSlug($context->name, $message);
+
+        if (null === $slug) {
+            return null;
+        }
+
+        $isStatic = false;
+        $usages = 0;
+
+        foreach ($schedule->getRecurringMessages() as $recurringMessage) {
+            $provider = $recurringMessage->getProvider();
+
+            if (!$provider instanceof StaticMessageProvider) {
+                continue;
+            }
+
+            $isStatic = $isStatic || $recurringMessage->getId() === $context->id;
+
+            foreach ($provider->getMessages($context) as $otherMessage) {
+                if (self::createSlug($context->name, $otherMessage) === $slug) {
+                    ++$usages;
+                }
+            }
+        }
+
+        // Other providers decide their messages when they run, so their slugs can't be checked against the schedule
+        if (!$isStatic) {
+            return null;
+        }
+
+        if ($usages > 1) {
+            $this->getLogger()->warning(\sprintf('Not monitoring the scheduled messages with the slug "%s" because more than one recurring message uses it. Use a separate message class or schedule for each one.', $slug));
+
+            return null;
+        }
+
+        return $slug;
+    }
+
+    private static function createSlug(string $scheduleName, object $message): ?string
     {
         $name = self::getMessageName($message);
 
@@ -299,10 +345,9 @@ final class SchedulerListener implements ResetInterface
             return null;
         }
 
-        $slug = trim((string) preg_replace('/[^a-z0-9_]+/', '-', strtolower($context->name . '-' . $name)), '-');
-        $suffix = self::isNameShared($schedule, $context, $name) ? '-' . $context->id : '';
+        $slug = trim((string) preg_replace('/[^a-z0-9_]+/', '-', strtolower($scheduleName . '-' . $name)), '-');
 
-        return rtrim(substr($slug, 0, self::MAX_SLUG_LENGTH - \strlen($suffix)), '-') . $suffix;
+        return rtrim(substr($slug, 0, self::MAX_SLUG_LENGTH), '-');
     }
 
     private static function getMessageName(object $message): ?string
@@ -330,32 +375,10 @@ final class SchedulerListener implements ResetInterface
         return (string) preg_replace('/(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/', '-', $class->getShortName());
     }
 
-    private static function isNameShared(ScheduleProviderInterface $schedule, MessageContext $context, string $name): bool
-    {
-        foreach ($schedule->getSchedule()->getRecurringMessages() as $recurringMessage) {
-            $provider = $recurringMessage->getProvider();
-
-            // Messages of other providers are only known when they run
-            if ($recurringMessage->getId() === $context->id || !$provider instanceof StaticMessageProvider) {
-                continue;
-            }
-
-            foreach ($provider->getMessages($context) as $otherMessage) {
-                if (self::getMessageName($otherMessage) === $name) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private function logException(\Throwable $exception): void
+    private function getLogger(): LoggerInterface
     {
         $client = $this->hub->getClient();
 
-        if (null !== $client) {
-            $client->getOptions()->getLoggerOrNullLogger()->warning('Failed to send a cron check-in for a scheduled message.', ['exception' => $exception]);
-        }
+        return null !== $client ? $client->getOptions()->getLoggerOrNullLogger() : new NullLogger();
     }
 }
