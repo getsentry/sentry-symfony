@@ -87,6 +87,7 @@ services:
   Sentry\SentryBundle\EventListener\SchedulerListener:
     arguments:
       - '@Sentry\State\HubInterface'
+      - '@?messenger.senders_locator'
       - []
     tags:
       # Run before the Scheduler dispatches PreRunEvent, which it does with the default priority
