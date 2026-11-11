@@ -226,17 +226,17 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertEquals([
             new Reference(HubInterface::class),
             new Reference('messenger.senders_locator', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
+            ['app:cleanup', '/^reports-/'],
         ], $definition->getArguments());
         $this->assertSame([
             'kernel.event_listener' => [
                 [
-                    'event' => WorkerMessageReceivedEvent::class,
-                    'method' => 'handleWorkerMessageReceivedEvent',
-                    'priority' => 10,
-                ],
-                [
                     'event' => PreRunEvent::class,
                     'method' => 'handlePreRunEvent',
+                ],
+                [
+                    'event' => WorkerMessageReceivedEvent::class,
+                    'method' => 'handleWorkerMessageReceivedEvent',
                     'priority' => -1024,
                 ],
                 [

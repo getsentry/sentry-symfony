@@ -151,6 +151,47 @@ jobs:
           file: build/coverage-report.xml
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  scheduler-beta-tests:
+    name: Scheduler tests (Symfony 8.2 beta)
+    runs-on: ubuntu-latest
+    env:
+      SYMFONY_REQUIRE: 8.2.*
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@728c6c6b8cf02c2e48117716a91ee48313958a19 # v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: flex
+
+      - name: Setup Problem Matchers for PHPUnit
+        run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+      - name: Remove unused dependencies
+        run: composer remove vimeo/psalm phpstan/phpstan friendsofphp/php-cs-fixer --dev --no-interaction --no-update
+
+      # The 8.* entries of the tests job resolve to the latest stable release
+      - name: Allow beta releases
+        run: |
+          composer config minimum-stability beta
+          composer config prefer-stable true
+
+      - name: Resolve dependencies
+        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit
+
+      - name: Install dependencies
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
+
+      - name: Check the Symfony version
+        run: composer show symfony/scheduler | grep -E '^versions : \* v8\.2\.'
+
+      - name: Run tests
+        run: vendor/bin/phpunit --filter Scheduler
+
   missing-optional-packages-tests:
     name: Tests without optional packages
     runs-on: ubuntu-latest

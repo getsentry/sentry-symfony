@@ -30,6 +30,8 @@
       <code><![CDATA[$context->name]]></code>
       <code><![CDATA[$context->triggeredAt]]></code>
       <code><![CDATA[$message->envelope]]></code>
+      <code><![CDATA[$message->envelope]]></code>
+      <code><![CDATA[$message->transportNames]]></code>
     </UndefinedPropertyFetch>
   </file>
   <file src="src/Monolog/LogsHandler.php">

@@ -10,13 +10,23 @@ services:
 
   sentry.test.schedule_provider.default:
     class: Sentry\SentryBundle\Tests\End2End\App\Scheduler\ScheduleProvider
-    arguments: ['default']
+    arguments: ['default', '@event_dispatcher']
     tags: [{ scheduler.schedule_provider: { name: default } }]
 
   sentry.test.schedule_provider.redispatch:
     class: Sentry\SentryBundle\Tests\End2End\App\Scheduler\ScheduleProvider
-    arguments: ['redispatch']
+    arguments: ['redispatch', '@event_dispatcher']
     tags: [{ scheduler.schedule_provider: { name: redispatch } }]
+
+  sentry.test.schedule_provider.unknown_transport:
+    class: Sentry\SentryBundle\Tests\End2End\App\Scheduler\ScheduleProvider
+    arguments: ['unknown_transport', '@event_dispatcher']
+    tags: [{ scheduler.schedule_provider: { name: unknown_transport } }]
+
+  sentry.test.schedule_provider.cancelled:
+    class: Sentry\SentryBundle\Tests\End2End\App\Scheduler\ScheduleProvider
+    arguments: ['cancelled', '@event_dispatcher']
+    tags: [{ scheduler.schedule_provider: { name: cancelled } }]
 
 sentry:
   scheduler:

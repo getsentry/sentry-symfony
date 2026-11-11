@@ -6,9 +6,11 @@ namespace Sentry\SentryBundle\Tests\End2End\App\Scheduler;
 
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Messenger\Message\RedispatchMessage;
+use Symfony\Component\Scheduler\Event\PreRunEvent;
 use Symfony\Component\Scheduler\RecurringMessage;
 use Symfony\Component\Scheduler\Schedule;
 use Symfony\Component\Scheduler\ScheduleProviderInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 class ScheduleProvider implements ScheduleProviderInterface
 {
@@ -17,9 +19,15 @@ class ScheduleProvider implements ScheduleProviderInterface
      */
     private $name;
 
-    public function __construct(string $name)
+    /**
+     * @var EventDispatcherInterface
+     */
+    private $dispatcher;
+
+    public function __construct(string $name, EventDispatcherInterface $dispatcher)
     {
         $this->name = $name;
+        $this->dispatcher = $dispatcher;
     }
 
     public function getSchedule(): Schedule
@@ -31,6 +39,24 @@ class ScheduleProvider implements ScheduleProviderInterface
 
             return [$lastRun, -1, $lastRun];
         });
+
+        if ('unknown_transport' === $this->name) {
+            return (new Schedule())
+                ->stateful($state)
+                ->add(RecurringMessage::cron('* * * * *', new RedispatchMessage(new ScheduledMessage(), 'unknown')));
+        }
+
+        if ('cancelled' === $this->name) {
+            // Symfony 8.2+ keeps the listeners of before() on the schedule
+            $schedule = class_exists('Symfony\Component\Messenger\Stamp\RedispatchStamp') ? new Schedule() : new Schedule($this->dispatcher);
+
+            return $schedule
+                ->stateful($state)
+                ->add(RecurringMessage::cron('* * * * *', new ScheduledMessage()))
+                ->before(static function (PreRunEvent $event): void {
+                    $event->shouldCancel(true);
+                });
+        }
 
         if ('redispatch' === $this->name) {
             return (new Schedule())

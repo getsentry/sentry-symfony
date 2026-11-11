@@ -69,6 +69,20 @@ final class SchedulerEnd2EndTest extends KernelTestCase
         $this->assertSame('redispatch-scheduled-message', $checkIns[0]['slug']);
     }
 
+    public function testMessageForAnUnknownTransportDoesNotStopTheWorker(): void
+    {
+        $this->consume('scheduler_unknown_transport', 1);
+
+        $this->assertSame([], $this->getCheckIns());
+    }
+
+    public function testRunCancelledByTheScheduleIsNotReported(): void
+    {
+        $this->consume('scheduler_cancelled', 1);
+
+        $this->assertSame([], $this->getCheckIns());
+    }
+
     private function consume(string $receiver, int $limit): void
     {
         $application = new Application(static::bootKernel());
