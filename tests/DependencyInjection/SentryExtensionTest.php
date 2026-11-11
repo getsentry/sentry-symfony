@@ -230,13 +230,12 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertSame([
             'kernel.event_listener' => [
                 [
-                    'event' => WorkerMessageReceivedEvent::class,
-                    'method' => 'handleWorkerMessageReceivedEvent',
-                    'priority' => 10,
-                ],
-                [
                     'event' => PreRunEvent::class,
                     'method' => 'handlePreRunEvent',
+                ],
+                [
+                    'event' => WorkerMessageReceivedEvent::class,
+                    'method' => 'handleWorkerMessageReceivedEvent',
                     'priority' => -1024,
                 ],
                 [
