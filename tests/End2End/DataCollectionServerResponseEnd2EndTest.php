@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\End2End;
 
 use Sentry\Event;
+use Sentry\EventType;
 use Sentry\SentryBundle\Tests\End2End\App\KernelWithExtraConfig;
 use Sentry\Tracing\Span;
 use Symfony\Bundle\FrameworkBundle\Client;
@@ -139,7 +140,7 @@ final class DataCollectionServerResponseEnd2EndTest extends WebTestCase
     private function getTransactionEvent(): Event
     {
         $transactionEvents = array_values(array_filter(StubTransport::$events, static function (Event $event): bool {
-            return null !== $event->getTransaction();
+            return EventType::transaction() === $event->getType();
         }));
 
         $this->assertCount(1, $transactionEvents);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\End2End;
 
 use Sentry\Event;
+use Sentry\EventType;
 use Sentry\SentryBundle\Tests\End2End\App\KernelWithTracing;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -67,7 +68,7 @@ class TracingEnd2EndTest extends WebTestCase
     private function assertTracingEventCount(int $expectedCount): void
     {
         $tracingEvents = array_values(array_filter(StubTransport::$events, static function (Event $event): bool {
-            return null !== $event->getTransaction();
+            return EventType::transaction() === $event->getType();
         }));
 
         $this->assertCount($expectedCount, $tracingEvents, 'Wrong number of tracing events captured');

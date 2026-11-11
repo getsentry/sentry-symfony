@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\End2End;
 
 use Sentry\Event;
+use Sentry\EventType;
 use Sentry\SentryBundle\Tests\End2End\App\KernelWithExtraConfig;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -64,7 +65,7 @@ class TraceIgnoreStatusCodesEnd2EndTest extends WebTestCase
         $this->assertInstanceOf(Response::class, $response);
         $this->assertSame(404, $response->getStatusCode());
         $this->assertCount(1, StubTransport::$events, 'Wrong number of events captured');
-        $this->assertNotNull(StubTransport::$events[0]->getTransaction(), 'The captured event is not a transaction');
+        $this->assertSame(EventType::transaction(), StubTransport::$events[0]->getType(), 'The captured event is not a transaction');
     }
 
     public function testTransactionWithIgnoredStatusCodeIsNotSent(): void
@@ -112,7 +113,7 @@ class TraceIgnoreStatusCodesEnd2EndTest extends WebTestCase
         $this->assertCount(1, StubTransport::$events, 'Wrong number of events captured');
 
         $tracingEvents = array_values(array_filter(StubTransport::$events, static function (Event $event): bool {
-            return null !== $event->getTransaction();
+            return EventType::transaction() === $event->getType();
         }));
 
         $this->assertCount(1, $tracingEvents, 'Wrong number of tracing events captured');
