@@ -13,12 +13,13 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Message\RedispatchMessage;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
+use Symfony\Component\Messenger\Stamp\TransportNamesStamp;
 use Symfony\Component\Messenger\Transport\Sender\SendersLocatorInterface;
+use Symfony\Component\Messenger\Transport\Sync\SyncTransport;
 use Symfony\Component\Scheduler\Event\FailureEvent;
 use Symfony\Component\Scheduler\Event\PostRunEvent;
 use Symfony\Component\Scheduler\Event\PreRunEvent;
 use Symfony\Component\Scheduler\Generator\MessageContext;
-use Symfony\Component\Scheduler\Messenger\ScheduledStamp;
 use Symfony\Component\Scheduler\Messenger\ServiceCallMessage;
 use Symfony\Component\Scheduler\Schedule;
 use Symfony\Component\Scheduler\Trigger\StaticMessageProvider;
@@ -32,6 +33,8 @@ use Symfony\Contracts\Service\ResetInterface;
 final class SchedulerListener implements ResetInterface
 {
     private const MAX_SLUG_LENGTH = 50;
+
+    private const MAX_STARTED_CHECK_INS = 100;
 
     // Symfony 8.2+ adds this stamp to the messages that a worker sends to their senders, if they have any, instead of handling them
     private const REDISPATCH_STAMP = 'Symfony\Component\Messenger\Stamp\RedispatchStamp';
@@ -57,9 +60,9 @@ final class SchedulerListener implements ResetInterface
     private $checkIns = [];
 
     /**
-     * @var object|null
+     * @var PreRunEvent|null
      */
-    private $skippedMessage;
+    private $preRunEvent;
 
     /**
      * @param string[] $excludedMessages Message classes, command names or monitor slugs, or regular expressions wrapped in slashes
@@ -72,46 +75,35 @@ final class SchedulerListener implements ResetInterface
     }
 
     /**
-     * Remembers scheduled messages that are retried or sent to another transport, so that they don't report a run.
+     * Keeps the run until the worker decides to handle the message, since later listeners can still cancel it.
+     */
+    public function handlePreRunEvent(PreRunEvent $event): void
+    {
+        $this->preRunEvent = $event;
+    }
+
+    /**
+     * Sends the in-progress check-in of the run that the worker is about to handle.
      */
     public function handleWorkerMessageReceivedEvent(WorkerMessageReceivedEvent $event): void
     {
+        $preRunEvent = $this->preRunEvent;
+        $this->preRunEvent = null;
         $envelope = $event->getEnvelope();
-        $stamps = $envelope->all();
-        $isSkipped = isset($stamps[ScheduledStamp::class]) && (isset($stamps[RedeliveryStamp::class]) || (isset($stamps[self::REDISPATCH_STAMP]) && $this->hasSenders($envelope)));
 
-        $this->skippedMessage = $isSkipped ? $envelope->getMessage() : null;
-    }
-
-    public function handlePreRunEvent(PreRunEvent $event): void
-    {
-        $message = $event->getMessage();
-
-        // A redispatched message is monitored when a worker consumes it from the other transport
-        if ($event->shouldCancel() || $message === $this->skippedMessage || $message instanceof RedispatchMessage) {
+        if (null === $preRunEvent || $preRunEvent->getMessage() !== $envelope->getMessage() || !$event->shouldHandle() || $preRunEvent->shouldCancel()) {
             return;
         }
 
         try {
-            $context = $event->getMessageContext();
-            $slug = $this->getMonitorSlug($event->getSchedule()->getSchedule(), $context, $message);
-
-            if (null === $slug) {
+            // Retries aren't reported, and a message sent to another transport is monitored when a worker consumes it there
+            if (null !== $envelope->last(RedeliveryStamp::class) || $this->isSentToAnotherTransport($envelope)) {
                 return;
             }
 
-            $startedAt = microtime(true);
-            $checkInId = $this->hub->captureCheckIn($slug, CheckInStatus::inProgress());
-
-            if (null !== $checkInId) {
-                $this->checkIns[$this->getKey($context, $message)] = [
-                    'slug' => $slug,
-                    'check_in_id' => $checkInId,
-                    'started_at' => $startedAt,
-                ];
-            }
+            $this->startCheckIn($preRunEvent);
         } catch (\Throwable $exception) {
-            $this->getLogger()->warning('Failed to send a cron check-in for a scheduled message.', ['exception' => $exception]);
+            $this->logException($exception);
         }
     }
 
@@ -125,10 +117,41 @@ final class SchedulerListener implements ResetInterface
         $this->finishCheckIn($event->getMessageContext(), $event->getMessage(), CheckInStatus::error());
     }
 
+    /**
+     * Keeps the started check-ins, since batch handlers and concurrent workers finish runs after the services are reset.
+     */
     public function reset(): void
     {
-        $this->checkIns = [];
-        $this->skippedMessage = null;
+        $this->preRunEvent = null;
+    }
+
+    private function startCheckIn(PreRunEvent $event): void
+    {
+        $message = $event->getMessage();
+        $context = $event->getMessageContext();
+        $slug = $this->getMonitorSlug($event->getSchedule()->getSchedule(), $context, $message);
+
+        if (null === $slug) {
+            return;
+        }
+
+        $startedAt = microtime(true);
+        $checkInId = $this->hub->captureCheckIn($slug, CheckInStatus::inProgress());
+
+        if (null === $checkInId) {
+            return;
+        }
+
+        // Runs that never finish, like the ones of a worker that gets killed, would otherwise stay forever
+        if (\count($this->checkIns) >= self::MAX_STARTED_CHECK_INS) {
+            array_shift($this->checkIns);
+        }
+
+        $this->checkIns[$this->getKey($context, $message)] = [
+            'slug' => $slug,
+            'check_in_id' => $checkInId,
+            'started_at' => $startedAt,
+        ];
     }
 
     private function finishCheckIn(MessageContext $context, object $message, CheckInStatus $status): void
@@ -151,7 +174,7 @@ final class SchedulerListener implements ResetInterface
                 $checkIn['check_in_id']
             );
         } catch (\Throwable $exception) {
-            $this->getLogger()->warning('Failed to send a cron check-in for a scheduled message.', ['exception' => $exception]);
+            $this->logException($exception);
         }
     }
 
@@ -240,13 +263,37 @@ final class SchedulerListener implements ResetInterface
         return (string) preg_replace('/(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/', '-', $class->getShortName());
     }
 
+    private function isSentToAnotherTransport(Envelope $envelope): bool
+    {
+        $message = $envelope->getMessage();
+
+        // Symfony 6.4 to 8.1 handle a RedispatchMessage by dispatching its message to the given transports
+        if ($message instanceof RedispatchMessage) {
+            return $this->hasSenders(Envelope::wrap($message->envelope, [new TransportNamesStamp($message->transportNames)]));
+        }
+
+        return \array_key_exists(self::REDISPATCH_STAMP, $envelope->all()) && $this->hasSenders($envelope);
+    }
+
+    /**
+     * Whether a transport other than the sync one, which handles the message in the same run, takes the message.
+     */
     private function hasSenders(Envelope $envelope): bool
     {
         if (null === $this->sendersLocator) {
             return true;
         }
 
-        foreach ($this->sendersLocator->getSenders($envelope) as $sender) {
+        try {
+            foreach ($this->sendersLocator->getSenders($envelope) as $sender) {
+                if (!$sender instanceof SyncTransport) {
+                    return true;
+                }
+            }
+        } catch (\Throwable $exception) {
+            // Such as a transport name that doesn't exist, which fails the run anyway
+            $this->logException($exception);
+
             return true;
         }
 
@@ -285,6 +332,11 @@ final class SchedulerListener implements ResetInterface
         }
 
         return $message instanceof Envelope ? $message->getMessage() : $message;
+    }
+
+    private function logException(\Throwable $exception): void
+    {
+        $this->getLogger()->warning('Failed to send a cron check-in for a scheduled message.', ['exception' => $exception]);
     }
 
     private function getLogger(): LoggerInterface
