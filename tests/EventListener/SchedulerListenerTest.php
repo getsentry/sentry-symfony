@@ -464,14 +464,108 @@ final class SchedulerListenerTest extends TestCase
         yield 'every week' => [static function () { return new PeriodicalTrigger('P1W'); }, $interval(1, 'week')];
         yield 'every 30 seconds' => [static function () { return new PeriodicalTrigger(30); }, null];
         yield 'every 90 seconds' => [static function () { return new PeriodicalTrigger(90); }, null];
-        yield 'every day as calendar interval' => [static function () { return new PeriodicalTrigger('1 day'); }, null];
-        yield 'every month' => [static function () { return new PeriodicalTrigger('1 month'); }, null];
         yield 'periodical subclass' => [static function () { return new class(3600) extends PeriodicalTrigger {}; }, null];
         yield 'callback' => [static function () {
             return new CallbackTrigger(static function (\DateTimeImmutable $run): \DateTimeImmutable {
                 return $run->modify('+1 hour');
             }, 'hourly');
         }, null];
+    }
+
+    /**
+     * @dataProvider calendarIntervalDataProvider
+     *
+     * @param array<string, mixed>|null $expectedSchedule
+     */
+    public function testCalendarInterval(string $interval, string $from, ?array $expectedSchedule, ?string $expectedTimezone = null): void
+    {
+        $trigger = new PeriodicalTrigger($interval, new \DateTimeImmutable($from));
+        $this->runPreRunEvents(RecurringMessage::trigger($trigger, new SendDailyReportMessage()));
+
+        $this->assertCount(null === $expectedSchedule ? 0 : 1, $this->checkIns);
+
+        $monitorConfig = $this->checkIns[0]['monitor_config'] ?? null;
+
+        $this->assertSame($expectedSchedule, null !== $monitorConfig ? $monitorConfig->getSchedule()->toArray() : null);
+        $this->assertSame($expectedTimezone, null !== $monitorConfig ? $monitorConfig->getTimezone() : null);
+    }
+
+    /**
+     * @return iterable<string, array{string, string, array<string, mixed>|null, 3?: string|null}>
+     */
+    public function calendarIntervalDataProvider(): iterable
+    {
+        $crontab = static function (string $value): array {
+            return ['type' => 'crontab', 'value' => $value, 'unit' => ''];
+        };
+        $interval = static function (int $value, string $unit): array {
+            return ['type' => 'interval', 'value' => $value, 'unit' => $unit];
+        };
+
+        yield 'day' => ['1 day', '2026-01-05 13:47 Europe/Vienna', $crontab('47 13 * * *'), 'Europe/Vienna'];
+        yield 'week' => ['1 week', '2026-01-05 13:47 Europe/Vienna', $crontab('47 13 * * 1'), 'Europe/Vienna'];
+        yield 'month' => ['1 month', '2026-01-15 08:05 UTC', $crontab('5 8 15 * *'), 'UTC'];
+        yield 'quarter' => ['3 months', '2026-05-15 08:05 UTC', $crontab('5 8 15 2,5,8,11 *'), 'UTC'];
+        yield 'year' => ['1 year', '2026-03-10 08:05 UTC', $crontab('5 8 10 3 *'), 'UTC'];
+        yield 'days without DST' => ['2 days', '2026-01-05 13:47 UTC', $interval(2, 'day')];
+        yield 'weeks without DST' => ['2 weeks', '2026-01-05 13:47 +02:00', $interval(2, 'week')];
+        yield 'days with DST' => ['2 days', '2026-01-05 13:47 Europe/Vienna', null];
+        yield 'month from a day some months lack' => ['1 month', '2026-01-31 08:05 UTC', null];
+        yield 'months that do not divide a year' => ['5 months', '2026-01-15 08:05 UTC', null];
+        yield 'day and hours' => ['1 day 2 hours', '2026-01-05 13:47 UTC', null];
+        yield 'relative weekday' => ['next monday', '2026-01-05 13:47 UTC', null];
+    }
+
+    public function testCalendarIntervalObject(): void
+    {
+        $this->runPreRunEvents(RecurringMessage::trigger(new PeriodicalTrigger(new \DateInterval('P1D'), new \DateTimeImmutable('2026-01-05 13:47 UTC')), new SendDailyReportMessage()));
+
+        $monitorConfig = $this->checkIns[0]['monitor_config'];
+
+        $this->assertNotNull($monitorConfig);
+        $this->assertSame('47 13 * * *', $monitorConfig->getSchedule()->getValue());
+    }
+
+    public function testCalendarIntervalKeepsTheTimeOfDayAcrossDst(): void
+    {
+        $trigger = new PeriodicalTrigger('1 day', new \DateTimeImmutable('2026-03-27 13:47 Europe/Vienna'));
+        $run = new \DateTimeImmutable('2026-03-27 13:47 Europe/Vienna');
+
+        // Symfony keeps the time of day, which is what the crontab in the time zone expects
+        for ($i = 0; $i < 4; ++$i) {
+            $run = $trigger->getNextRunDate($run);
+            $this->assertNotNull($run);
+            $this->assertSame('13:47', $run->format('H:i'));
+        }
+
+        $this->assertSame('+02:00', $run->format('P'));
+    }
+
+    public function testCalendarIntervalWithoutStartUsesTheRunTime(): void
+    {
+        $recurringMessage = RecurringMessage::every('1 day', new SendDailyReportMessage());
+        $context = new MessageContext('default', $recurringMessage->getId(), $recurringMessage->getTrigger(), new \DateTimeImmutable('2026-01-02 06:30 Europe/Paris'));
+
+        foreach ($recurringMessage->getMessages($context) as $message) {
+            $this->listener->handlePreRunEvent(new PreRunEvent((new Schedule())->add($recurringMessage), $context, $message));
+        }
+
+        $monitorConfig = $this->checkIns[0]['monitor_config'];
+
+        $this->assertNotNull($monitorConfig);
+        $this->assertSame('30 6 * * *', $monitorConfig->getSchedule()->getValue());
+        $this->assertSame('Europe/Paris', $monitorConfig->getTimezone());
+    }
+
+    public function testCalendarIntervalWithJitter(): void
+    {
+        $this->runPreRunEvents(RecurringMessage::every('1 day', new SendDailyReportMessage(), '2026-01-05 13:47 UTC')->withJitter(120));
+
+        $monitorConfig = $this->checkIns[0]['monitor_config'];
+
+        $this->assertNotNull($monitorConfig);
+        $this->assertSame('47 13 * * *', $monitorConfig->getSchedule()->getValue());
+        $this->assertSame(3, $monitorConfig->getCheckinMargin());
     }
 
     public function testMessageOfAnotherProviderIsNotReported(): void

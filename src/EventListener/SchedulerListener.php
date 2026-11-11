@@ -212,9 +212,18 @@ final class SchedulerListener implements ResetInterface
 
         // Subclasses can compute other run dates
         if (null !== $trigger && PeriodicalTrigger::class === \get_class($trigger)) {
-            $seconds = self::getIntervalInSeconds($trigger);
+            $seconds = self::getProperty($trigger, 'intervalInSeconds');
 
-            if (null === $seconds || $seconds < 60 || 0.0 !== fmod($seconds, 60)) {
+            // Zero for calendar intervals, such as "1 day", which keep the time of day across DST changes
+            if (0.0 === $seconds) {
+                $interval = self::getProperty($trigger, 'interval');
+                // Without a start, the trigger starts on its first run, which a worker that only consumes the message never makes
+                $from = self::getProperty($trigger, 'from') ?? (0 === $jitterSeconds ? $context->triggeredAt : null);
+
+                return $interval instanceof \DateInterval && $from instanceof \DateTimeImmutable ? self::createCalendarMonitorConfig($interval, $from, $checkinMargin) : null;
+            }
+
+            if (!\is_float($seconds) || $seconds < 60 || 0.0 !== fmod($seconds, 60)) {
                 return null;
             }
 
@@ -233,18 +242,100 @@ final class SchedulerListener implements ResetInterface
     }
 
     /**
-     * Returns null for calendar intervals, such as "1 month", which have no fixed length.
+     * Returns null for calendar intervals that neither a crontab nor a fixed interval can express.
      */
-    private static function getIntervalInSeconds(PeriodicalTrigger $trigger): ?float
+    private static function createCalendarMonitorConfig(\DateInterval $interval, \DateTimeImmutable $from, ?int $checkinMargin): ?MonitorConfig
     {
-        // PeriodicalTrigger has no getter for the interval. If the property changes, the message isn't monitored.
-        try {
-            $seconds = (new \ReflectionProperty(PeriodicalTrigger::class, 'intervalInSeconds'))->getValue($trigger);
-        } catch (\ReflectionException $exception) {
+        $calendarInterval = self::getCalendarInterval($interval);
+        $timezone = self::toTimezone($from);
+
+        if (null === $calendarInterval || null === $timezone) {
             return null;
         }
 
-        return \is_float($seconds) && $seconds > 0 ? $seconds : null;
+        [$count, $unit] = $calendarInterval;
+        $time = (int) $from->format('i') . ' ' . $from->format('G');
+        $day = (int) $from->format('j');
+        $crontab = null;
+
+        if ('day' === $unit && 1 === $count) {
+            $crontab = $time . ' * * *';
+        } elseif ('day' === $unit && 7 === $count) {
+            $crontab = $time . ' * * ' . $from->format('w');
+        } elseif ('month' === $unit && 0 === 12 % $count && $day <= 28) {
+            $months = [];
+
+            for ($month = (int) $from->format('n') % $count ?: $count; $month <= 12; $month += $count) {
+                $months[] = $month;
+            }
+
+            $crontab = $time . ' ' . $day . ' ' . (1 === $count ? '*' : implode(',', $months)) . ' *';
+        }
+
+        if (null !== $crontab) {
+            return new MonitorConfig(MonitorSchedule::crontab($crontab), $checkinMargin, null, $timezone);
+        }
+
+        // Without DST, the days are all as long as Sentry expects
+        if ('day' === $unit && ('UTC' === $timezone || str_starts_with($timezone, 'Etc/'))) {
+            $schedule = 0 === $count % 7 ? MonitorSchedule::interval(intdiv($count, 7), MonitorScheduleUnit::week()) : MonitorSchedule::interval($count, MonitorScheduleUnit::day());
+
+            return new MonitorConfig($schedule, $checkinMargin);
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the number of days or months the interval adds, or null when it adds anything else.
+     *
+     * @return array{int, 'day'|'month'}|null
+     */
+    private static function getCalendarInterval(\DateInterval $interval): ?array
+    {
+        $fields = (array) $interval;
+
+        // Since PHP 8.2, intervals made from a string only keep that string
+        if (!empty($fields['from_string'])) {
+            if (!\is_string($fields['date_string'] ?? null) || !preg_match('/^\s*\+?([1-9]\d*)\s*(day|week|month|year)s?\s*$/i', $fields['date_string'], $matches)) {
+                return null;
+            }
+
+            $count = (int) $matches[1];
+            $unit = strtolower($matches[2]);
+
+            return 'week' === $unit ? [7 * $count, 'day'] : ('year' === $unit ? [12 * $count, 'month'] : [$count, 'day' === $unit ? 'day' : 'month']);
+        }
+
+        // Before PHP 8.2, these hold relative parts such as "first day of" or "next monday"
+        foreach (['weekday', 'weekday_behavior', 'first_last_day_of', 'special_type', 'special_amount', 'have_weekday_relative', 'have_special_relative'] as $key) {
+            if (!empty($fields[$key])) {
+                return null;
+            }
+        }
+
+        $months = 12 * $interval->y + $interval->m;
+
+        if (1 === $interval->invert || 0 !== $interval->h || 0 !== $interval->i || 0 !== $interval->s || 0.0 !== $interval->f || ($months > 0) === ($interval->d > 0)) {
+            return null;
+        }
+
+        return $months > 0 ? [$months, 'month'] : [$interval->d, 'day'];
+    }
+
+    /**
+     * PeriodicalTrigger has no getters for its interval and start, so they're read from its
+     * properties. If one changes, the message isn't monitored.
+     *
+     * @return mixed
+     */
+    private static function getProperty(PeriodicalTrigger $trigger, string $property)
+    {
+        try {
+            return (new \ReflectionProperty(PeriodicalTrigger::class, $property))->getValue($trigger);
+        } catch (\ReflectionException|\Error $exception) {
+            return null;
+        }
     }
 
     private static function toCrontab(string $expression): ?string
