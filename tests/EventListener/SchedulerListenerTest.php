@@ -286,15 +286,15 @@ final class SchedulerListenerTest extends TestCase
     /**
      * @dataProvider sharedSlugDataProvider
      */
-    public function testMessagesThatShareASlugAreNotReported(object $first, object $second, string $sharedSlug): void
+    public function testMessagesThatShareASlugAreNotReported(callable $createFirst, callable $createSecond, string $sharedSlug): void
     {
         $this->logger->expects($this->atLeastOnce())
             ->method('warning')
             ->with(\sprintf('Not monitoring the scheduled messages with the slug "%s" because more than one recurring message uses it. Use a separate message class or schedule for each one.', $sharedSlug));
 
         $recurringMessages = [
-            RecurringMessage::cron('0 * * * *', $first),
-            RecurringMessage::cron('0 0 * * *', $second),
+            RecurringMessage::cron('0 * * * *', $createFirst()),
+            RecurringMessage::cron('0 0 * * *', $createSecond()),
             RecurringMessage::cron('0 0 * * *', new RunCommandMessage('app:other')),
         ];
         $schedule = (new Schedule())->add(...$recurringMessages);
@@ -307,16 +307,21 @@ final class SchedulerListenerTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{object, object, string}>
+     * @return iterable<string, array{callable(): object, callable(): object, string}>
      */
     public function sharedSlugDataProvider(): iterable
     {
-        yield 'message class' => [new SendDailyReportMessage(), new SendDailyReportMessage(), 'default-send-daily-report-message'];
-        yield 'command' => [new RunCommandMessage('app:send-report'), new RunCommandMessage('app:send-report'), 'default-app-send-report'];
-        yield 'redispatched message' => [new RedispatchMessage(new SendDailyReportMessage(), 'async'), new SendDailyReportMessage(), 'default-send-daily-report-message'];
+        $report = static function (): object { return new SendDailyReportMessage(); };
+        $command = static function (string $command): callable {
+            return static function () use ($command): object { return new RunCommandMessage($command); };
+        };
+
+        yield 'message class' => [$report, $report, 'default-send-daily-report-message'];
+        yield 'command' => [$command('app:send-report'), $command('app:send-report'), 'default-app-send-report'];
+        yield 'redispatched message' => [static function (): object { return new RedispatchMessage(new SendDailyReportMessage(), 'async'); }, $report, 'default-send-daily-report-message'];
         yield 'slug cut to the same length' => [
-            new RunCommandMessage('app:a-very-long-command-name --with-many --options --first'),
-            new RunCommandMessage('app:a-very-long-command-name --with-many --options --second'),
+            $command('app:a-very-long-command-name --with-many --options --first'),
+            $command('app:a-very-long-command-name --with-many --options --second'),
             'default-app-a-very-long-command-name-with-many-opt',
         ];
     }
