@@ -446,6 +446,9 @@ final class SchedulerListenerTest extends TestCase
         yield 'cron last friday by name' => [static function () { return CronExpressionTrigger::fromSpec('0 0 * * FRIL'); }, null];
         yield 'cron day step and weekday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 */2 * 1'); }, null];
         yield 'cron day and weekday step' => [static function () { return CronExpressionTrigger::fromSpec('0 0 1 * */2'); }, null];
+        yield 'cron with a reversed range' => [static function () { return CronExpressionTrigger::fromSpec('0 1,22-2 * * *'); }, null];
+        yield 'cron with a step longer than the field' => [static function () { return CronExpressionTrigger::fromSpec('*/90 * * * *'); }, null];
+        yield 'cron with a weekday range ending on sunday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 * * SAT-SUN'); }, null];
         yield 'cron with excluded time' => [static function () use ($excluded) { return $excluded(CronExpressionTrigger::fromSpec('0 * * * *')); }, null];
         yield 'cron with jitter and excluded time' => [static function () use ($excluded) { return new JitterTrigger($excluded(CronExpressionTrigger::fromSpec('0 * * * *'))); }, null];
         yield 'every minute' => [static function () { return new PeriodicalTrigger(60); }, $interval(1, 'minute')];

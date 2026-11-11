@@ -39,13 +39,12 @@ final class SchedulerListener implements ResetInterface
 {
     private const MAX_SLUG_LENGTH = 50;
 
-    /**
-     * Crontab items that cronsim, which Sentry uses, reads the same way as dragonmantank/cron-expression.
-     */
-    private const CRON_ITEM_PATTERNS = [
-        '/^(?:(?:\*|\d+(?:-\d+)?)(?:\/\d+)?|[a-z]{3}(?:-[a-z]{3})?)$/i',
-        '/^L$/',
-        '/^(?:\d(?:L|#[1-5])|[a-z]{3}#[1-5])$/i',
+    private const CRON_FIELD_MAXIMUMS = [59, 23, 31, 12, 7];
+
+    // Sunday is left out because cron-expression counts it as 7 in ranges and cronsim as 0
+    private const CRON_NAMES = [
+        'JAN' => 1, 'FEB' => 2, 'MAR' => 3, 'APR' => 4, 'MAY' => 5, 'JUN' => 6, 'JUL' => 7, 'AUG' => 8, 'SEP' => 9, 'OCT' => 10, 'NOV' => 11, 'DEC' => 12,
+        'MON' => 1, 'TUE' => 2, 'WED' => 3, 'THU' => 4, 'FRI' => 5, 'SAT' => 6,
     ];
 
     // Symfony 8.2+ adds this stamp to the messages that a worker sends to other transports instead of handling them
@@ -264,15 +263,46 @@ final class SchedulerListener implements ResetInterface
 
         foreach ($fields as $position => $field) {
             foreach (explode(',', $field) as $item) {
-                $isSpecial = (2 === $position && preg_match(self::CRON_ITEM_PATTERNS[1], $item)) || (4 === $position && preg_match(self::CRON_ITEM_PATTERNS[2], $item));
-
-                if (!$isSpecial && !preg_match(self::CRON_ITEM_PATTERNS[0], $item)) {
+                if (!self::isCronItemSupported($position, $item)) {
                     return null;
                 }
             }
         }
 
         return implode(' ', $fields);
+    }
+
+    /**
+     * Whether cronsim, which Sentry uses, reads the item the same way as dragonmantank/cron-expression.
+     */
+    private static function isCronItemSupported(int $position, string $item): bool
+    {
+        if ((2 === $position && 'L' === $item) || (4 === $position && preg_match('/^(?:\d(?:L|#[1-5])|[a-z]{3}#[1-5])$/i', $item))) {
+            return true;
+        }
+
+        // cron-expression wraps steps that reach the end of the field around to another value
+        if (preg_match('/^(\*|\d+-\d+)\/(\d+)$/', $item, $matches)) {
+            $item = $matches[1];
+
+            if ((int) $matches[2] >= self::CRON_FIELD_MAXIMUMS[$position]) {
+                return false;
+            }
+        }
+
+        if ('*' === $item || preg_match('/^(?:\d+|[a-z]{3})$/i', $item)) {
+            return true;
+        }
+
+        if (!preg_match('/^(\d+|[a-z]{3})-(\d+|[a-z]{3})$/i', $item, $matches)) {
+            return false;
+        }
+
+        $start = self::CRON_NAMES[strtoupper($matches[1])] ?? (is_numeric($matches[1]) ? (int) $matches[1] : null);
+        $end = self::CRON_NAMES[strtoupper($matches[2])] ?? (is_numeric($matches[2]) ? (int) $matches[2] : null);
+
+        // cronsim rejects ranges that end before they start
+        return null !== $start && null !== $end && $start <= $end;
     }
 
     /**
