@@ -19,6 +19,7 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Message\RedispatchMessage;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
+use Symfony\Component\Messenger\Stamp\StampInterface;
 use Symfony\Component\Scheduler\Event\FailureEvent;
 use Symfony\Component\Scheduler\Event\PostRunEvent;
 use Symfony\Component\Scheduler\Event\PreRunEvent;
@@ -27,8 +28,8 @@ use Symfony\Component\Scheduler\Messenger\ScheduledStamp;
 use Symfony\Component\Scheduler\Messenger\ServiceCallMessage;
 use Symfony\Component\Scheduler\RecurringMessage;
 use Symfony\Component\Scheduler\Schedule;
-use Symfony\Component\Scheduler\Trigger\CronExpressionTrigger;
-use Symfony\Component\Scheduler\Trigger\TriggerInterface;
+use Symfony\Component\Scheduler\Trigger\CallbackMessageProvider;
+use Symfony\Component\Scheduler\Trigger\StaticMessageProvider;
 
 final class SchedulerListenerTest extends TestCase
 {
@@ -36,6 +37,11 @@ final class SchedulerListenerTest extends TestCase
      * @var MockObject&HubInterface
      */
     private $hub;
+
+    /**
+     * @var MockObject&LoggerInterface
+     */
+    private $logger;
 
     /**
      * @var list<array{slug: string, status: CheckInStatus, duration: mixed, monitor_config: MonitorConfig|null, check_in_id: string|null}>
@@ -54,7 +60,13 @@ final class SchedulerListenerTest extends TestCase
         }
 
         $this->checkIns = [];
+        $this->logger = $this->createMock(LoggerInterface::class);
+
+        $client = $this->createMock(ClientInterface::class);
+        $client->method('getOptions')->willReturn(new Options(['logger' => $this->logger]));
+
         $this->hub = $this->createMock(HubInterface::class);
+        $this->hub->method('getClient')->willReturn($client);
         $this->hub->method('captureCheckIn')
             ->willReturnCallback(function (string $slug, CheckInStatus $status, $duration = null, ?MonitorConfig $monitorConfig = null, ?string $checkInId = null): string {
                 $this->checkIns[] = [
@@ -73,11 +85,13 @@ final class SchedulerListenerTest extends TestCase
 
     public function testSuccessfulRun(): void
     {
-        $context = $this->createContext(CronExpressionTrigger::fromSpec('0 3 * * *'));
         $message = new SendDailyReportMessage();
+        $recurringMessage = RecurringMessage::cron('0 3 * * *', $message);
+        $schedule = (new Schedule())->add($recurringMessage);
+        $context = $this->createContext($recurringMessage);
 
-        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $context, $message));
-        $this->listener->handlePostRunEvent(new PostRunEvent(new Schedule(), $context, $message));
+        $this->listener->handlePreRunEvent(new PreRunEvent($schedule, $context, $message));
+        $this->listener->handlePostRunEvent(new PostRunEvent($schedule, $context, $message));
 
         $this->assertCount(2, $this->checkIns);
 
@@ -96,11 +110,13 @@ final class SchedulerListenerTest extends TestCase
 
     public function testFailedRun(): void
     {
-        $context = $this->createContext(CronExpressionTrigger::fromSpec('*/5 * * * *'));
         $message = new SendDailyReportMessage();
+        $recurringMessage = RecurringMessage::cron('*/5 * * * *', $message);
+        $schedule = (new Schedule())->add($recurringMessage);
+        $context = $this->createContext($recurringMessage);
 
-        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $context, $message));
-        $this->listener->handleFailureEvent(new FailureEvent(new Schedule(), $context, $message, new \RuntimeException()));
+        $this->listener->handlePreRunEvent(new PreRunEvent($schedule, $context, $message));
+        $this->listener->handleFailureEvent(new FailureEvent($schedule, $context, $message, new \RuntimeException()));
 
         $this->assertCount(2, $this->checkIns);
         $this->assertSame(CheckInStatus::error(), $this->checkIns[1]['status']);
@@ -109,7 +125,9 @@ final class SchedulerListenerTest extends TestCase
 
     public function testCancelledRunIsNotReported(): void
     {
-        $event = new PreRunEvent(new Schedule(), $this->createContext(CronExpressionTrigger::fromSpec('*/5 * * * *')), new SendDailyReportMessage());
+        $message = new SendDailyReportMessage();
+        $recurringMessage = RecurringMessage::cron('*/5 * * * *', $message);
+        $event = new PreRunEvent((new Schedule())->add($recurringMessage), $this->createContext($recurringMessage), $message);
         $event->shouldCancel(true);
 
         $this->listener->handlePreRunEvent($event);
@@ -119,75 +137,108 @@ final class SchedulerListenerTest extends TestCase
 
     public function testFinishWithoutStartIsIgnored(): void
     {
-        $context = $this->createContext(CronExpressionTrigger::fromSpec('*/5 * * * *'));
+        $message = new SendDailyReportMessage();
+        $recurringMessage = RecurringMessage::cron('*/5 * * * *', $message);
 
-        $this->listener->handlePostRunEvent(new PostRunEvent(new Schedule(), $context, new SendDailyReportMessage()));
+        $this->listener->handlePostRunEvent(new PostRunEvent((new Schedule())->add($recurringMessage), $this->createContext($recurringMessage), $message));
 
         $this->assertSame([], $this->checkIns);
     }
 
     public function testResetDropsStartedCheckIns(): void
     {
-        $context = $this->createContext(CronExpressionTrigger::fromSpec('*/5 * * * *'));
         $message = new SendDailyReportMessage();
+        $recurringMessage = RecurringMessage::cron('*/5 * * * *', $message);
+        $schedule = (new Schedule())->add($recurringMessage);
+        $context = $this->createContext($recurringMessage);
 
-        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $context, $message));
+        $this->listener->handlePreRunEvent(new PreRunEvent($schedule, $context, $message));
         $this->listener->reset();
-        $this->listener->handlePostRunEvent(new PostRunEvent(new Schedule(), $context, $message));
+        $this->listener->handlePostRunEvent(new PostRunEvent($schedule, $context, $message));
 
         $this->assertCount(1, $this->checkIns);
     }
 
     public function testRedispatchMessageIsNotReported(): void
     {
-        $context = $this->createContext(CronExpressionTrigger::fromSpec('*/5 * * * *'));
+        $recurringMessage = RecurringMessage::cron('*/5 * * * *', new RedispatchMessage(new SendDailyReportMessage(), 'async'));
 
-        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $context, new RedispatchMessage(new SendDailyReportMessage(), 'async')));
+        $this->runPreRunEvents($recurringMessage);
+
+        $this->assertSame([], $this->checkIns);
+    }
+
+    public function testRedispatchedMessageIsReportedWhenConsumed(): void
+    {
+        $message = new SendDailyReportMessage();
+        $recurringMessage = RecurringMessage::cron('0 * * * *', new RedispatchMessage($message, 'async'));
+        $context = $this->createContext($recurringMessage);
+
+        $this->listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent(new Envelope($message, [new ScheduledStamp($context)]), 'async'));
+        $this->listener->handlePreRunEvent(new PreRunEvent((new Schedule())->add($recurringMessage), $context, $message));
+
+        $this->assertSame(['default-send-daily-report-message'], array_column($this->checkIns, 'slug'));
+    }
+
+    public function testMessageSentToAnotherTransportIsNotReported(): void
+    {
+        $redispatchStampClass = 'Symfony\Component\Messenger\Stamp\RedispatchStamp';
+
+        if (!class_exists($redispatchStampClass)) {
+            $this->markTestSkipped('This test requires the "symfony/messenger" Composer package (8.2 or newer) to be installed.');
+        }
+
+        $message = new SendDailyReportMessage();
+        $recurringMessage = RecurringMessage::cron('0 * * * *', new RedispatchMessage($message, 'async'));
+        $context = $this->createContext($recurringMessage);
+        $redispatchStamp = new $redispatchStampClass();
+        $this->assertInstanceOf(StampInterface::class, $redispatchStamp);
+
+        $this->listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent(new Envelope($message, [new ScheduledStamp($context), $redispatchStamp]), 'scheduler_default'));
+        $this->listener->handlePreRunEvent(new PreRunEvent((new Schedule())->add($recurringMessage), $context, $message));
 
         $this->assertSame([], $this->checkIns);
     }
 
     public function testAnonymousMessageIsNotReported(): void
     {
-        $context = $this->createContext(CronExpressionTrigger::fromSpec('*/5 * * * *'));
-
-        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $context, new class {
-        }));
+        $this->runPreRunEvents(RecurringMessage::cron('*/5 * * * *', new StaticMessageProvider([new class {
+        }], 'anonymous')));
 
         $this->assertSame([], $this->checkIns);
     }
 
     public function testRedeliveredMessageIsNotReported(): void
     {
-        $context = $this->createContext(CronExpressionTrigger::fromSpec('*/5 * * * *'));
         $message = new SendDailyReportMessage();
-        $envelope = new Envelope($message, [new ScheduledStamp($context), new RedeliveryStamp(1)]);
+        $recurringMessage = RecurringMessage::cron('*/5 * * * *', $message);
+        $schedule = (new Schedule())->add($recurringMessage);
+        $context = $this->createContext($recurringMessage);
 
-        $this->listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent($envelope, 'async'));
-        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $context, $message));
+        $this->listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent(new Envelope($message, [new ScheduledStamp($context), new RedeliveryStamp(1)]), 'async'));
+        $this->listener->handlePreRunEvent(new PreRunEvent($schedule, $context, $message));
 
         $this->assertCount(0, $this->checkIns);
 
         $this->listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent(new Envelope($message, [new ScheduledStamp($context)]), 'async'));
-        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $context, $message));
+        $this->listener->handlePreRunEvent(new PreRunEvent($schedule, $context, $message));
 
         $this->assertCount(1, $this->checkIns);
     }
 
     public function testFailingCheckInIsLoggedAndDoesNotThrow(): void
     {
-        $logger = $this->createMock(LoggerInterface::class);
-        $logger->expects($this->once())->method('warning');
+        $this->logger->expects($this->once())->method('warning')->with('Failed to send a cron check-in for a scheduled message.');
 
         $client = $this->createMock(ClientInterface::class);
-        $client->method('getOptions')->willReturn(new Options(['logger' => $logger]));
+        $client->method('getOptions')->willReturn(new Options(['logger' => $this->logger]));
 
         $hub = $this->createMock(HubInterface::class);
         $hub->method('getClient')->willReturn($client);
         $hub->method('captureCheckIn')->willThrowException(new \RuntimeException());
 
-        $listener = new SchedulerListener($hub);
-        $listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $this->createContext(CronExpressionTrigger::fromSpec('*/5 * * * *')), new SendDailyReportMessage()));
+        $this->listener = new SchedulerListener($hub);
+        $this->runPreRunEvents(RecurringMessage::cron('*/5 * * * *', new SendDailyReportMessage()));
     }
 
     /**
@@ -195,10 +246,7 @@ final class SchedulerListenerTest extends TestCase
      */
     public function testSlug(string $scheduleName, callable $createMessage, string $expectedSlug): void
     {
-        $message = $createMessage();
-        $context = $this->createContext(CronExpressionTrigger::fromSpec('0 0 * * *'), $scheduleName);
-
-        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $context, $message));
+        $this->runPreRunEvents(RecurringMessage::cron('0 0 * * *', $createMessage()), null, $scheduleName);
 
         $this->assertCount(1, $this->checkIns);
         $this->assertSame($expectedSlug, $this->checkIns[0]['slug']);
@@ -214,31 +262,68 @@ final class SchedulerListenerTest extends TestCase
         yield 'command' => ['default', static function () { return new RunCommandMessage('app:send-report --force'); }, 'default-app-send-report-force'];
         yield 'service call' => ['default', static function () { return new ServiceCallMessage('app.report_sender', 'send'); }, 'default-app-report_sender-send'];
         yield 'service call with __invoke' => ['default', static function () { return new ServiceCallMessage('App\Report\Sender'); }, 'default-app-report-sender'];
+        yield 'message in an envelope' => ['default', static function () { return new Envelope(new SendDailyReportMessage()); }, 'default-send-daily-report-message'];
         yield 'named schedule' => ['reports', static function () { return new SendDailyReportMessage(); }, 'reports-send-daily-report-message'];
         yield 'long slug' => ['default', static function () { return new RunCommandMessage('app:a-very-long-command-name --with-many --options --and-more'); }, 'default-app-a-very-long-command-name-with-many-opt'];
     }
 
     /**
+     * @dataProvider sharedSlugDataProvider
+     */
+    public function testMessagesThatShareASlugAreNotReported(object $first, object $second, string $sharedSlug): void
+    {
+        $this->logger->expects($this->atLeastOnce())
+            ->method('warning')
+            ->with(\sprintf('Not monitoring the scheduled messages with the slug "%s" because more than one recurring message uses it. Use a separate message class or schedule for each one.', $sharedSlug));
+
+        $recurringMessages = [
+            RecurringMessage::cron('0 * * * *', $first),
+            RecurringMessage::cron('0 0 * * *', $second),
+            RecurringMessage::cron('0 0 * * *', new RunCommandMessage('app:other')),
+        ];
+        $schedule = (new Schedule())->add(...$recurringMessages);
+
+        foreach ($recurringMessages as $recurringMessage) {
+            $this->runPreRunEvents($recurringMessage, $schedule);
+        }
+
+        $this->assertSame(['default-app-other'], array_column($this->checkIns, 'slug'));
+    }
+
+    /**
+     * @return iterable<string, array{object, object, string}>
+     */
+    public function sharedSlugDataProvider(): iterable
+    {
+        yield 'message class' => [new SendDailyReportMessage(), new SendDailyReportMessage(), 'default-send-daily-report-message'];
+        yield 'command' => [new RunCommandMessage('app:send-report'), new RunCommandMessage('app:send-report'), 'default-app-send-report'];
+        yield 'redispatched message' => [new RedispatchMessage(new SendDailyReportMessage(), 'async'), new SendDailyReportMessage(), 'default-send-daily-report-message'];
+        yield 'slug cut to the same length' => [
+            new RunCommandMessage('app:a-very-long-command-name --with-many --options --first'),
+            new RunCommandMessage('app:a-very-long-command-name --with-many --options --second'),
+            'default-app-a-very-long-command-name-with-many-opt',
+        ];
+    }
+
+    /**
      * @dataProvider excludedMessageDataProvider
      */
-    public function testExcludedMessageIsNotReported(?string $command, bool $isExcluded): void
+    public function testExcludedMessageIsNotReported(object $message, bool $isExcluded): void
     {
-        $message = null !== $command ? new RunCommandMessage($command) : new SendDailyReportMessage();
-
-        $this->listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $this->createContext(CronExpressionTrigger::fromSpec('0 0 * * *')), $message));
+        $this->runPreRunEvents(RecurringMessage::cron('0 0 * * *', $message));
 
         $this->assertCount($isExcluded ? 0 : 1, $this->checkIns);
     }
 
     /**
-     * @return iterable<string, array{string|null, bool}>
+     * @return iterable<string, array{object, bool}>
      */
     public function excludedMessageDataProvider(): iterable
     {
-        yield 'command name' => ['app:excluded --force', true];
-        yield 'slug pattern' => ['cleanup', true];
-        yield 'other command' => ['app:included', false];
-        yield 'other message class' => [null, false];
+        yield 'command name' => [new RunCommandMessage('app:excluded --force'), true];
+        yield 'slug pattern' => [new RunCommandMessage('cleanup'), true];
+        yield 'other command' => [new RunCommandMessage('app:included'), false];
+        yield 'other message class' => [new SendDailyReportMessage(), false];
     }
 
     /**
@@ -246,8 +331,8 @@ final class SchedulerListenerTest extends TestCase
      */
     public function testExcludedMessageClassIsNotReported(string $excluded): void
     {
-        $listener = new SchedulerListener($this->hub, [$excluded]);
-        $listener->handlePreRunEvent(new PreRunEvent(new Schedule(), $this->createContext(CronExpressionTrigger::fromSpec('0 0 * * *')), new SendDailyReportMessage()));
+        $this->listener = new SchedulerListener($this->hub, [$excluded]);
+        $this->runPreRunEvents(RecurringMessage::cron('0 0 * * *', new SendDailyReportMessage()));
 
         $this->assertSame([], $this->checkIns);
     }
@@ -261,43 +346,38 @@ final class SchedulerListenerTest extends TestCase
         yield 'slug' => ['default-send-daily-report-message'];
     }
 
-    public function testSlugOfMessagesWithTheSameNameInOneScheduleHasTheirId(): void
+    public function testMessageOfAnotherProviderIsNotReported(): void
     {
-        $hourly = RecurringMessage::cron('0 * * * *', new SendDailyReportMessage());
-        $daily = RecurringMessage::cron('0 0 * * *', new SendDailyReportMessage());
-        $command = RecurringMessage::cron('0 0 * * *', new RunCommandMessage('app:send-report'));
-        $schedule = (new Schedule())->add($hourly, $daily, $command);
+        $this->runPreRunEvents(RecurringMessage::cron('0 * * * *', new CallbackMessageProvider(static function (): iterable {
+            return [new SendDailyReportMessage()];
+        }, 'reports')));
 
-        foreach ([$hourly, $daily, $command] as $recurringMessage) {
-            $context = $this->createContext($recurringMessage->getTrigger(), 'default', $recurringMessage->getId());
+        $this->assertSame([], $this->checkIns);
+    }
 
-            foreach ($recurringMessage->getMessages($context) as $message) {
-                $this->listener->handlePreRunEvent(new PreRunEvent($schedule, $context, $message));
-            }
+    public function testMessageMissingFromTheScheduleIsNotReported(): void
+    {
+        $this->runPreRunEvents(RecurringMessage::cron('0 * * * *', new SendDailyReportMessage()), new Schedule());
+
+        $this->assertSame([], $this->checkIns);
+    }
+
+    private function runPreRunEvents(RecurringMessage $recurringMessage, ?Schedule $schedule = null, string $scheduleName = 'default'): void
+    {
+        $context = $this->createContext($recurringMessage, $scheduleName);
+
+        foreach ($recurringMessage->getMessages($context) as $message) {
+            $message = $message instanceof Envelope ? $message->getMessage() : $message;
+            $this->listener->handlePreRunEvent(new PreRunEvent($schedule ?? (new Schedule())->add($recurringMessage), $context, $message));
         }
-
-        $this->assertSame([
-            'default-send-daily-report-message-' . $hourly->getId(),
-            'default-send-daily-report-message-' . $daily->getId(),
-            'default-app-send-report',
-        ], array_column($this->checkIns, 'slug'));
     }
 
-    public function testSlugOfRedispatchedMessageIgnoresItsOwnRecurringMessage(): void
+    private function createContext(RecurringMessage $recurringMessage, string $scheduleName = 'default'): MessageContext
     {
-        $recurringMessage = RecurringMessage::cron('0 * * * *', new RedispatchMessage(new SendDailyReportMessage(), 'async'));
-        $context = $this->createContext($recurringMessage->getTrigger(), 'default', $recurringMessage->getId());
-
-        $this->listener->handlePreRunEvent(new PreRunEvent((new Schedule())->add($recurringMessage), $context, new SendDailyReportMessage()));
-
-        $this->assertSame('default-send-daily-report-message', $this->checkIns[0]['slug']);
-    }
-
-    private function createContext(TriggerInterface $trigger, string $scheduleName = 'default', string $id = 'a1b2c3d4'): MessageContext
-    {
+        $trigger = $recurringMessage->getTrigger();
         $triggeredAt = $trigger->getNextRunDate(new \DateTimeImmutable('2026-01-01 00:00:00', new \DateTimeZone('UTC')));
         $this->assertNotNull($triggeredAt);
 
-        return new MessageContext($scheduleName, $id, $trigger, $triggeredAt, $trigger->getNextRunDate($triggeredAt));
+        return new MessageContext($scheduleName, $recurringMessage->getId(), $trigger, $triggeredAt, $trigger->getNextRunDate($triggeredAt));
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tracing\Doctrine\DBAL;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver;
 
 /**
  * @internal
@@ -42,7 +43,9 @@ final class ConnectionConfigurator
         if (\PHP_VERSION_ID < 80100) {
             $reflectionProperty->setAccessible(true);
         }
-        $reflectionProperty->setValue($connection, $this->tracingDriverMiddleware->wrap($reflectionProperty->getValue($connection)));
+        /** @var Driver $driver */
+        $driver = $reflectionProperty->getValue($connection);
+        $reflectionProperty->setValue($connection, $this->tracingDriverMiddleware->wrap($driver));
         if (\PHP_VERSION_ID < 80100) {
             $reflectionProperty->setAccessible(false);
         }

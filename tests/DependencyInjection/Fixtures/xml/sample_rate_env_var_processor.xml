@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:sentry="https://sentry.io/schema/dic/sentry-symfony"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services https://symfony.com/schema/dic/services/services-1.0.xsd
+                               https://sentry.io/schema/dic/sentry-symfony https://sentry.io/schema/dic/sentry-symfony/sentry-1.0.xsd">
+
+    <parameters>
+        <parameter key="env(SENTRY_TRACES_SAMPLE_RATE)" type="string">0.5</parameter>
+        <parameter key="env(SENTRY_PROFILES_SAMPLE_RATE)" type="string"></parameter>
+        <parameter key="sentry_traces_sample_rate">%env(sentry_sample_rate:SENTRY_TRACES_SAMPLE_RATE)%</parameter>
+        <parameter key="sentry_profiles_sample_rate">%env(sentry_sample_rate:SENTRY_PROFILES_SAMPLE_RATE)%</parameter>
+    </parameters>
+
+    <sentry:config>
+        <sentry:options />
+    </sentry:config>
+</container>

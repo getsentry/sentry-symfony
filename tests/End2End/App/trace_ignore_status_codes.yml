@@ -1,0 +1,5 @@
+sentry:
+  options:
+    trace_ignore_status_codes:
+      - 404
+      - [500, 599]
