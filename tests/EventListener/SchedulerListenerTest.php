@@ -346,6 +346,25 @@ final class SchedulerListenerTest extends TestCase
         yield 'slug' => ['default-send-daily-report-message'];
     }
 
+    public function testExcludedMessageDoesNotShareItsSlug(): void
+    {
+        $this->logger->expects($this->never())->method('warning');
+
+        $recurringMessages = [
+            RecurringMessage::cron('0 * * * *', new RunCommandMessage('app:send-report --all')),
+            RecurringMessage::cron('0 0 * * *', new RunCommandMessage('app:send-report -all')),
+        ];
+        $schedule = (new Schedule())->add(...$recurringMessages);
+
+        $this->listener = new SchedulerListener($this->hub, ['app:send-report -all']);
+
+        foreach ($recurringMessages as $recurringMessage) {
+            $this->runPreRunEvents($recurringMessage, $schedule);
+        }
+
+        $this->assertSame(['default-app-send-report-all'], array_column($this->checkIns, 'slug'));
+    }
+
     public function testMessageOfAnotherProviderIsNotReported(): void
     {
         $this->runPreRunEvents(RecurringMessage::cron('0 * * * *', new CallbackMessageProvider(static function (): iterable {

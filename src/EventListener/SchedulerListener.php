@@ -177,7 +177,7 @@ final class SchedulerListener implements ResetInterface
             $isStatic = $isStatic || $recurringMessage->getId() === $context->id;
 
             foreach ($provider->getMessages($context) as $otherMessage) {
-                if (self::createSlug($context->name, $otherMessage) === $slug) {
+                if (self::createSlug($context->name, $otherMessage) === $slug && !$this->isExcluded($slug, $otherMessage)) {
                     ++$usages;
                 }
             }
@@ -212,13 +212,7 @@ final class SchedulerListener implements ResetInterface
 
     private static function getMessageName(object $message): ?string
     {
-        if ($message instanceof RedispatchMessage) {
-            $message = $message->envelope;
-        }
-
-        if ($message instanceof Envelope) {
-            $message = $message->getMessage();
-        }
+        $message = self::unwrap($message);
 
         if ($message instanceof RunCommandMessage || $message instanceof ServiceCallMessage) {
             return (string) $message;
@@ -237,6 +231,7 @@ final class SchedulerListener implements ResetInterface
 
     private function isExcluded(string $slug, object $message): bool
     {
+        $message = self::unwrap($message);
         $names = [$slug, \get_class($message)];
 
         if ($message instanceof RunCommandMessage) {
@@ -257,6 +252,15 @@ final class SchedulerListener implements ResetInterface
         }
 
         return false;
+    }
+
+    private static function unwrap(object $message): object
+    {
+        if ($message instanceof RedispatchMessage) {
+            $message = $message->envelope;
+        }
+
+        return $message instanceof Envelope ? $message->getMessage() : $message;
     }
 
     private function getLogger(): LoggerInterface
