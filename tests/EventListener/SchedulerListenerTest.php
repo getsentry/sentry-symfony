@@ -19,6 +19,7 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Message\RedispatchMessage;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
+use Symfony\Component\Messenger\Stamp\StampInterface;
 use Symfony\Component\Scheduler\Event\FailureEvent;
 use Symfony\Component\Scheduler\Event\PostRunEvent;
 use Symfony\Component\Scheduler\Event\PreRunEvent;
@@ -177,6 +178,26 @@ final class SchedulerListenerTest extends TestCase
         $this->listener->handlePreRunEvent(new PreRunEvent((new Schedule())->add($recurringMessage), $context, $message));
 
         $this->assertSame(['default-send-daily-report-message'], array_column($this->checkIns, 'slug'));
+    }
+
+    public function testMessageSentToAnotherTransportIsNotReported(): void
+    {
+        $redispatchStampClass = 'Symfony\Component\Messenger\Stamp\RedispatchStamp';
+
+        if (!class_exists($redispatchStampClass)) {
+            $this->markTestSkipped('This test requires the "symfony/messenger" Composer package (8.2 or newer) to be installed.');
+        }
+
+        $message = new SendDailyReportMessage();
+        $recurringMessage = RecurringMessage::cron('0 * * * *', new RedispatchMessage($message, 'async'));
+        $context = $this->createContext($recurringMessage);
+        $redispatchStamp = new $redispatchStampClass();
+        $this->assertInstanceOf(StampInterface::class, $redispatchStamp);
+
+        $this->listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent(new Envelope($message, [new ScheduledStamp($context), $redispatchStamp]), 'scheduler_default'));
+        $this->listener->handlePreRunEvent(new PreRunEvent((new Schedule())->add($recurringMessage), $context, $message));
+
+        $this->assertSame([], $this->checkIns);
     }
 
     public function testAnonymousMessageIsNotReported(): void

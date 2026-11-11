@@ -32,6 +32,9 @@ final class SchedulerListener implements ResetInterface
 {
     private const MAX_SLUG_LENGTH = 50;
 
+    // Symfony 8.2+ adds this stamp to the messages that a worker sends to other transports instead of handling them
+    private const REDISPATCH_STAMP = 'Symfony\Component\Messenger\Stamp\RedispatchStamp';
+
     /**
      * @var HubInterface
      */
@@ -45,7 +48,7 @@ final class SchedulerListener implements ResetInterface
     /**
      * @var object|null
      */
-    private $redeliveredMessage;
+    private $skippedMessage;
 
     public function __construct(HubInterface $hub)
     {
@@ -53,14 +56,15 @@ final class SchedulerListener implements ResetInterface
     }
 
     /**
-     * Remembers scheduled messages that are retried or replayed, so that they don't report another run.
+     * Remembers scheduled messages that are retried or sent to another transport, so that they don't report a run.
      */
     public function handleWorkerMessageReceivedEvent(WorkerMessageReceivedEvent $event): void
     {
         $envelope = $event->getEnvelope();
-        $isRedelivered = null !== $envelope->last(ScheduledStamp::class) && null !== $envelope->last(RedeliveryStamp::class);
+        $stamps = $envelope->all();
+        $isSkipped = isset($stamps[ScheduledStamp::class]) && (isset($stamps[RedeliveryStamp::class]) || isset($stamps[self::REDISPATCH_STAMP]));
 
-        $this->redeliveredMessage = $isRedelivered ? $envelope->getMessage() : null;
+        $this->skippedMessage = $isSkipped ? $envelope->getMessage() : null;
     }
 
     public function handlePreRunEvent(PreRunEvent $event): void
@@ -68,7 +72,7 @@ final class SchedulerListener implements ResetInterface
         $message = $event->getMessage();
 
         // A redispatched message is monitored when a worker consumes it from the other transport
-        if ($event->shouldCancel() || $message === $this->redeliveredMessage || $message instanceof RedispatchMessage) {
+        if ($event->shouldCancel() || $message === $this->skippedMessage || $message instanceof RedispatchMessage) {
             return;
         }
 
@@ -108,7 +112,7 @@ final class SchedulerListener implements ResetInterface
     public function reset(): void
     {
         $this->checkIns = [];
-        $this->redeliveredMessage = null;
+        $this->skippedMessage = null;
     }
 
     private function finishCheckIn(MessageContext $context, object $message, CheckInStatus $status): void
