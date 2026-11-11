@@ -26,13 +26,20 @@ abstract class AbstractTracingRequestListener
     protected $hub;
 
     /**
+     * @var bool Whether tracing is enabled, which is only known at runtime if it is set by an env var
+     */
+    protected $enabled;
+
+    /**
      * Constructor.
      *
-     * @param HubInterface $hub The current hub
+     * @param HubInterface $hub     The current hub
+     * @param bool         $enabled Whether tracing is enabled
      */
-    public function __construct(HubInterface $hub)
+    public function __construct(HubInterface $hub, bool $enabled = true)
     {
         $this->hub = $hub;
+        $this->enabled = $enabled;
     }
 
     /**
@@ -45,6 +52,10 @@ abstract class AbstractTracingRequestListener
      */
     public function handleKernelResponseEvent(ResponseEvent $event): void
     {
+        if (!$this->enabled) {
+            return;
+        }
+
         $response = $event->getResponse();
         $span = $this->hub->getSpan();
 

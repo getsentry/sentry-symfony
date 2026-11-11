@@ -638,6 +638,16 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertEmpty($container->getParameter('sentry.tracing.dbal.connections'));
     }
 
+    public function testTracingListenersResolveTheEnabledEnvVarAtRuntime(): void
+    {
+        $container = $this->createContainerFromFixture('tracing_enabled_env_var');
+
+        foreach ([TracingRequestListener::class, TracingSubRequestListener::class, TracingConsoleListener::class] as $listener) {
+            $this->assertTrue($container->hasDefinition($listener));
+            $this->assertFalse($container->resolveEnvPlaceholders($container->getDefinition($listener)->getArgument('$enabled'), true));
+        }
+    }
+
     public function testTracingDriverMiddlewareIsConfiguredWhenDbalTracingIsEnabled(): void
     {
         if (!class_exists(DoctrineBundle::class)) {

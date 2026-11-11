@@ -182,7 +182,7 @@
             <xsd:element name="http-client" type="tracing-http-client" minOccurs="0" maxOccurs="1" />
         </xsd:choice>
 
-        <xsd:attribute name="enabled" type="xsd:boolean" default="true"/>
+        <xsd:attribute name="enabled" type="xsd:string" default="true"/>
     </xsd:complexType>
 
     <xsd:complexType name="tracing-dbal">

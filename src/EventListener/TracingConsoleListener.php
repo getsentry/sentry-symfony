@@ -32,15 +32,22 @@ final class TracingConsoleListener
     private $excludedCommands;
 
     /**
+     * @var bool Whether tracing is enabled, which is only known at runtime if it is set by an env var
+     */
+    private $enabled;
+
+    /**
      * Constructor.
      *
      * @param HubInterface $hub              The current hub
      * @param string[]     $excludedCommands The list of commands for which distributed tracing must be skipped
+     * @param bool         $enabled          Whether tracing is enabled
      */
-    public function __construct(HubInterface $hub, array $excludedCommands = [])
+    public function __construct(HubInterface $hub, array $excludedCommands = [], bool $enabled = true)
     {
         $this->hub = $hub;
         $this->excludedCommands = $excludedCommands;
+        $this->enabled = $enabled;
     }
 
     /**
@@ -53,7 +60,7 @@ final class TracingConsoleListener
     {
         $command = $event->getCommand();
 
-        if ($this->isCommandExcluded($command)) {
+        if (!$this->enabled || $this->isCommandExcluded($command)) {
             return;
         }
 
@@ -87,7 +94,7 @@ final class TracingConsoleListener
      */
     public function handleConsoleTerminateEvent(ConsoleTerminateEvent $event): void
     {
-        if ($this->isCommandExcluded($event->getCommand())) {
+        if (!$this->enabled || $this->isCommandExcluded($event->getCommand())) {
             return;
         }
 
