@@ -82,6 +82,29 @@ final class TracingStatementForV4Test extends DoctrineTestCase
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
+    public function testExecuteDoesNotCreateSpanIfParentSpanIsNotSampled(): void
+    {
+        $driverResult = $this->createMock(Result::class);
+
+        $transactionContext = new TransactionContext();
+        $transactionContext->setSampled(false);
+
+        $transaction = new Transaction($transactionContext, $this->hub);
+        $transaction->initSpanRecorder();
+
+        $this->hub->expects($this->once())
+            ->method('getSpan')
+            ->willReturn($transaction);
+
+        $this->decoratedStatement->expects($this->once())
+            ->method('execute')
+            ->willReturn($driverResult);
+
+        $this->assertSame($driverResult, $this->statement->execute());
+        $this->assertNotNull($transaction->getSpanRecorder());
+        $this->assertCount(1, $transaction->getSpanRecorder()->getSpans());
+    }
+
     /**
      * @param array<string, mixed> $expectedData
      *

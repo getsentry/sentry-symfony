@@ -155,6 +155,18 @@ final class TracingConsoleListenerTest extends TestCase
         ));
     }
 
+    public function testDoesNothingIfTracingIsDisabled(): void
+    {
+        $this->hub->expects($this->never())
+            ->method($this->anything());
+
+        $listener = new TracingConsoleListener($this->hub, [], false);
+        $command = new Command('app:command');
+
+        $listener->handleConsoleCommandEvent(new ConsoleCommandEvent($command, new ArrayInput([]), new NullOutput()));
+        $listener->handleConsoleTerminateEvent(new ConsoleTerminateEvent($command, new ArrayInput([]), new NullOutput(), 0));
+    }
+
     public function testHandleConsoleTerminateEvent(): void
     {
         $span = new Span();

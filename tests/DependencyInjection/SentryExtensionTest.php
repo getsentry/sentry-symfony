@@ -16,6 +16,7 @@ use Sentry\DataCollection\KeyValueCollectionBehavior;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\Logger\DebugStdOutLogger;
 use Sentry\Options;
+use Sentry\SentryBundle\DependencyInjection\EnvVarProcessor\SampleRateEnvVarProcessor;
 use Sentry\SentryBundle\DependencyInjection\SentryExtension;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\EventListener\ErrorListener;
@@ -457,6 +458,10 @@ abstract class SentryExtensionTest extends TestCase
             'ignore_transactions' => [
                 'GET tracing_ignored_transaction',
             ],
+            'trace_ignore_status_codes' => [
+                404,
+                403,
+            ],
             'before_send' => new Reference('App\\Sentry\\BeforeSendCallback'),
             'before_send_transaction' => new Reference('App\\Sentry\\BeforeSendTransactionCallback'),
             'before_send_check_in' => new Reference('App\\Sentry\\BeforeSendCheckInCallback'),
@@ -623,10 +628,11 @@ abstract class SentryExtensionTest extends TestCase
     public function testErrorTypesOptionIsParsedFromStringToIntegerValue(): void
     {
         $container = $this->createContainerFromFixture('error_types');
-        $optionsDefinition = $container->getDefinition('sentry.client.options');
+        $options = $container->getDefinition('sentry.client.options')->getArgument(0);
 
+        $this->assertIsArray($options);
         // 2048 is \E_STRICT which has been deprecated in PHP 8.4 so we should not reference it directly to prevent deprecation notices
-        $this->assertSame(\E_ALL & ~(\E_NOTICE | 2048 | \E_DEPRECATED), $optionsDefinition->getArgument(0)['error_types']);
+        $this->assertSame(\E_ALL & ~(\E_NOTICE | 2048 | \E_DEPRECATED), $options['error_types']);
     }
 
     public function testConsoleInputSerializerIsRegisteredAndResolvesAsClassSerializer(): void
@@ -690,6 +696,16 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertFalse($container->hasDefinition(TraceableHttpClient::class));
         $this->assertFalse($container->getParameter('sentry.tracing.enabled'));
         $this->assertEmpty($container->getParameter('sentry.tracing.dbal.connections'));
+    }
+
+    public function testTracingListenersResolveTheEnabledEnvVarAtRuntime(): void
+    {
+        $container = $this->createContainerFromFixture('tracing_enabled_env_var');
+
+        foreach ([TracingRequestListener::class, TracingSubRequestListener::class, TracingConsoleListener::class] as $listener) {
+            $this->assertTrue($container->hasDefinition($listener));
+            $this->assertFalse($container->resolveEnvPlaceholders($container->getDefinition($listener)->getArgument('$enabled'), true));
+        }
     }
 
     public function testTracingDriverMiddlewareIsConfiguredWhenDbalTracingIsEnabled(): void
@@ -819,6 +835,15 @@ abstract class SentryExtensionTest extends TestCase
             'release_option_fallback_to_composer_version',
             PrettyVersions::getRootPackageVersion()->getPrettyVersion(),
         ];
+    }
+
+    public function testSampleRateEnvVarProcessor(): void
+    {
+        $container = $this->createContainerFromFixture('sample_rate_env_var_processor');
+
+        $this->assertTrue($container->getDefinition(SampleRateEnvVarProcessor::class)->hasTag('container.env_var_processor'));
+        $this->assertSame(0.5, $container->resolveEnvPlaceholders($container->getParameter('sentry_traces_sample_rate'), true));
+        $this->assertNull($container->resolveEnvPlaceholders($container->getParameter('sentry_profiles_sample_rate'), true));
     }
 
     private function createContainerFromFixture(string $fixtureFile): ContainerBuilder

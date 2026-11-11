@@ -25,7 +25,7 @@ final class TracingSubRequestListener extends AbstractTracingRequestListener
      */
     public function handleKernelRequestEvent(RequestEvent $event): void
     {
-        if ($this->isMainRequest($event)) {
+        if (!$this->enabled || $this->isMainRequest($event)) {
             return;
         }
 
@@ -56,7 +56,7 @@ final class TracingSubRequestListener extends AbstractTracingRequestListener
      */
     public function collectKernelResponseData(ResponseEvent $event): void
     {
-        if ($this->isMainRequest($event)) {
+        if (!$this->enabled || $this->isMainRequest($event)) {
             return;
         }
 
@@ -77,7 +77,7 @@ final class TracingSubRequestListener extends AbstractTracingRequestListener
      */
     public function handleKernelFinishRequestEvent(FinishRequestEvent $event): void
     {
-        if ($this->isMainRequest($event)) {
+        if (!$this->enabled || $this->isMainRequest($event)) {
             return;
         }
 

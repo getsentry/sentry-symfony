@@ -298,6 +298,8 @@ final class SentryExtension extends ConfigurableExtension
     {
         $container->setParameter('sentry.tracing.enabled', $config['enabled']);
 
+        // If an env placeholder is used here, it will resolve to true. Only an explicit
+        // 'false' will remove the definition
         if (!$this->isConfigEnabled($container, $config)) {
             $container->removeDefinition(TracingRequestListener::class);
             $container->removeDefinition(TracingSubRequestListener::class);
@@ -307,6 +309,10 @@ final class SentryExtension extends ConfigurableExtension
         }
 
         $container->getDefinition(TracingConsoleListener::class)->replaceArgument(1, $config['console']['excluded_commands']);
+
+        foreach ([TracingRequestListener::class, TracingSubRequestListener::class, TracingConsoleListener::class] as $listener) {
+            $container->getDefinition($listener)->setArgument('$enabled', $config['enabled']);
+        }
     }
 
     /**
