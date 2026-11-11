@@ -12,7 +12,7 @@ final class TraceableHttpClientForV6 extends AbstractTraceableHttpClient
     /**
      * {@inheritdoc}
      *
-     * @param array<string, mixed> $options
+     * @param array<mixed> $options
      */
     public function withOptions(array $options): static
     {
