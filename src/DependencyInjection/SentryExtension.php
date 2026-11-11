@@ -91,7 +91,7 @@ final class SentryExtension extends ConfigurableExtension
         $this->registerErrorListenerConfiguration($container, $mergedConfig);
         $this->registerMonologHandlerConfiguration($container, $mergedConfig);
         $this->registerMessengerListenerConfiguration($container, $mergedConfig['messenger']);
-        $this->registerSchedulerListenerConfiguration($container, $mergedConfig['scheduler']);
+        $this->registerSchedulerListenerConfiguration($container, $mergedConfig);
         $this->registerTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerDbalTracingConfiguration($container, $mergedConfig['tracing']);
         $this->registerTwigTracingConfiguration($container, $mergedConfig['tracing']);
@@ -276,10 +276,13 @@ final class SentryExtension extends ConfigurableExtension
     }
 
     /**
-     * @param array<string, mixed> $config
+     * @param array<string, mixed> $mergedConfig
      */
-    private function registerSchedulerListenerConfiguration(ContainerBuilder $container, array $config): void
+    private function registerSchedulerListenerConfiguration(ContainerBuilder $container, array $mergedConfig): void
     {
+        /** @var array{enabled: bool} $config */
+        $config = $mergedConfig['scheduler'];
+
         if (!$this->isConfigEnabled($container, $config)) {
             $container->removeDefinition(SchedulerListener::class);
 
