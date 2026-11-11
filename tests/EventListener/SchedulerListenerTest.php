@@ -577,6 +577,43 @@ final class SchedulerListenerTest extends TestCase
         $this->assertSame([], $this->checkIns);
     }
 
+    /**
+     * @dataProvider cronReadDifferentlyDataProvider
+     */
+    public function testCronThatSentryReadsDifferentlyIsNotMonitored(string $expression): void
+    {
+        $this->logger->expects($this->never())->method('warning');
+
+        try {
+            $trigger = CronExpressionTrigger::fromSpec($expression);
+        } catch (\InvalidArgumentException $exception) {
+            $this->markTestSkipped('This version of dragonmantank/cron-expression rejects the expression.');
+        }
+
+        // Some cron-expression versions can't compute the run dates, so build the context by hand
+        $recurringMessage = RecurringMessage::trigger($trigger, new SendDailyReportMessage());
+        $this->runPreRunEvents($recurringMessage, new MessageContext('default', $recurringMessage->getId(), $trigger, new \DateTimeImmutable('2026-01-02 00:00:00', new \DateTimeZone('UTC'))));
+
+        $this->assertSame([], $this->checkIns);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public function cronReadDifferentlyDataProvider(): iterable
+    {
+        yield 'descending hour list' => ['0 22,6 * * *'];
+        yield 'hour range before an earlier hour' => ['0 20,9-17 * * *'];
+        yield 'hour step before an earlier hour' => ['0 */6,3 * * *'];
+        yield 'descending minute list' => ['30,0 * * * *'];
+        yield 'minute list and a range' => ['5,10-15 * * * *'];
+        yield 'minute list and a step' => ['*/20,5 * * * *'];
+        yield 'single-value range and a step' => ['0 5-5/2 * * *'];
+        yield 'sunday range from 0' => ['0 0 * * 0-0'];
+        yield 'sunday range from 7' => ['0 0 * * 7-7'];
+        yield 'whole week range and a step' => ['0 0 * * 0-7/2'];
+    }
+
     public function testHashedCronExpression(): void
     {
         $recurringMessage = RecurringMessage::cron('#midnight', new RunCommandMessage('app:send-report'));
@@ -635,6 +672,7 @@ final class SchedulerListenerTest extends TestCase
         yield 'cron with a reversed range' => [static function () { return CronExpressionTrigger::fromSpec('0 1,22-2 * * *'); }, null];
         yield 'cron with a step longer than the field' => [static function () { return CronExpressionTrigger::fromSpec('*/90 * * * *'); }, null];
         yield 'cron with a weekday range ending on sunday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 * * SAT-SUN'); }, null];
+        yield 'cron with ascending minute and hour lists' => [static function () { return CronExpressionTrigger::fromSpec('0,30 6,9-17,20 * * *'); }, $crontab('0,30 6,9-17,20 * * *')];
         yield 'cron with excluded time' => [static function () use ($excluded) { return $excluded(CronExpressionTrigger::fromSpec('0 * * * *')); }, null];
         yield 'cron with jitter and excluded time' => [static function () use ($excluded) { return new JitterTrigger($excluded(CronExpressionTrigger::fromSpec('0 * * * *'))); }, null];
         yield 'every minute' => [static function () { return new PeriodicalTrigger(60); }, $interval(1, 'minute')];
@@ -709,17 +747,14 @@ final class SchedulerListenerTest extends TestCase
 
     public function testCalendarIntervalKeepsTheTimeOfDayAcrossDst(): void
     {
-        $trigger = new PeriodicalTrigger('1 day', new \DateTimeImmutable('2026-03-27 13:47 Europe/Vienna'));
-        $run = new \DateTimeImmutable('2026-03-27 13:47 Europe/Vienna');
+        // Europe/Vienna moves to summer time on 2026-03-29
+        $this->assertSame(['47 13 * * *', '47 13 * * *', '47 13 * * *', '47 13 * * *'], $this->runCalendarInterval('2026-03-27 13:47'));
+    }
 
-        // Symfony keeps the time of day, which is what the crontab in the time zone expects
-        for ($i = 0; $i < 4; ++$i) {
-            $run = $trigger->getNextRunDate($run);
-            $this->assertNotNull($run);
-            $this->assertSame('13:47', $run->format('H:i'));
-        }
-
-        $this->assertSame('+02:00', $run->format('P'));
+    public function testCalendarIntervalStartingInADstGapHourIsNotMonitoredAfterTheGap(): void
+    {
+        // 02:30 doesn't exist on 2026-03-29 in Europe/Vienna, so Symfony runs at 03:30 from then on
+        $this->assertSame(['30 2 * * *', null, null, null], $this->runCalendarInterval('2026-03-27 02:30'));
     }
 
     public function testCalendarIntervalWithoutStartUsesTheRunTime(): void
@@ -865,6 +900,35 @@ final class SchedulerListenerTest extends TestCase
             'async' => static function (): InMemoryTransport { return new InMemoryTransport(); },
             'sync' => static function (): SyncTransport { return new SyncTransport(new MessageBus()); },
         ]));
+    }
+
+    /**
+     * Starts the first runs of a daily message from the given time in Europe/Vienna.
+     *
+     * @return list<string|null> The crontab of each run, or null when it isn't monitored
+     */
+    private function runCalendarInterval(string $from): array
+    {
+        $trigger = new PeriodicalTrigger('1 day', new \DateTimeImmutable($from, new \DateTimeZone('Europe/Vienna')));
+        $message = new SendDailyReportMessage();
+        $recurringMessage = RecurringMessage::trigger($trigger, $message);
+        $this->schedule->add($recurringMessage);
+        $crontabs = [];
+        $run = new \DateTimeImmutable($from, new \DateTimeZone('Europe/Vienna'));
+
+        for ($i = 0; $i < 4; ++$i) {
+            $run = $trigger->getNextRunDate($run);
+            $this->assertNotNull($run);
+            $started = \count($this->checkIns);
+
+            $context = new MessageContext('default', $recurringMessage->getId(), $trigger, $run);
+            $this->dispatcher->dispatch(new WorkerMessageReceivedEvent(new Envelope($message, [new ScheduledStamp($context)]), 'scheduler_default'));
+
+            $monitorConfig = $this->checkIns[$started]['monitor_config'] ?? null;
+            $crontabs[] = null !== $monitorConfig ? (string) $monitorConfig->getSchedule()->getValue() : null;
+        }
+
+        return $crontabs;
     }
 
     /**

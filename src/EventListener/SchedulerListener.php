@@ -154,6 +154,8 @@ final class SchedulerListener implements ResetInterface
         $monitorConfig = self::createMonitorConfig($schedule, $context);
 
         if (null === $monitorConfig) {
+            $this->getLogger()->debug(\sprintf('Not monitoring the scheduled messages with the slug "%s" because Sentry can\'t express their schedule.', $slug));
+
             return;
         }
 
@@ -259,7 +261,7 @@ final class SchedulerListener implements ResetInterface
                 // Without a start, the trigger starts on its first run, which a worker that only consumes the message never makes
                 $from = self::getProperty($trigger, 'from') ?? (0 === $jitterSeconds ? $context->triggeredAt : null);
 
-                return $interval instanceof \DateInterval && $from instanceof \DateTimeImmutable ? self::createCalendarMonitorConfig($interval, $from, $checkinMargin) : null;
+                return $interval instanceof \DateInterval && $from instanceof \DateTimeImmutable ? self::createCalendarMonitorConfig($interval, $from, $context->triggeredAt, $jitterSeconds, $checkinMargin) : null;
             }
 
             if (!\is_float($seconds) || $seconds < 60 || 0.0 !== fmod($seconds, 60)) {
@@ -283,7 +285,7 @@ final class SchedulerListener implements ResetInterface
     /**
      * Returns null for calendar intervals that neither a crontab nor a fixed interval can express.
      */
-    private static function createCalendarMonitorConfig(\DateInterval $interval, \DateTimeImmutable $from, ?int $checkinMargin): ?MonitorConfig
+    private static function createCalendarMonitorConfig(\DateInterval $interval, \DateTimeImmutable $from, \DateTimeImmutable $triggeredAt, int $jitterSeconds, ?int $checkinMargin): ?MonitorConfig
     {
         $calendarInterval = self::getCalendarInterval($interval);
         $timezone = self::toTimezone($from);
@@ -293,6 +295,15 @@ final class SchedulerListener implements ResetInterface
         }
 
         [$count, $unit] = $calendarInterval;
+
+        // A run that falls in a DST gap moves to a later time, and the runs after it keep that time
+        $run = $triggeredAt->setTimezone($from->getTimezone());
+        $delay = (self::getSecondOfDay($run) - self::getSecondOfDay($from) + 86400) % 86400;
+        $run = $run->setTimestamp($run->getTimestamp() - $delay);
+
+        if ($delay > $jitterSeconds || ('day' === $unit && 0 === $count % 7 && $run->format('w') !== $from->format('w')) || ('month' === $unit && $run->format('j') !== $from->format('j'))) {
+            return null;
+        }
         $time = (int) $from->format('i') . ' ' . $from->format('G');
         $day = (int) $from->format('j');
         $crontab = null;
@@ -323,6 +334,11 @@ final class SchedulerListener implements ResetInterface
         }
 
         return null;
+    }
+
+    private static function getSecondOfDay(\DateTimeImmutable $date): int
+    {
+        return 3600 * (int) $date->format('G') + 60 * (int) $date->format('i') + (int) $date->format('s');
     }
 
     /**
@@ -397,9 +413,45 @@ final class SchedulerListener implements ResetInterface
                     return null;
                 }
             }
+
+            // cron-expression skips values of minute and hour lists that aren't in ascending order
+            if ($position < 2 && str_contains($field, ',') && !self::isAscendingList($position, $field)) {
+                return null;
+            }
         }
 
         return implode(' ', $fields);
+    }
+
+    private static function isAscendingList(int $position, string $field): bool
+    {
+        $previous = -1;
+
+        foreach (explode(',', $field) as $item) {
+            // cron-expression releases order the minutes of lists with ranges or steps differently
+            if (0 === $position && !ctype_digit($item)) {
+                return false;
+            }
+
+            $step = 1;
+
+            if (preg_match('/^(.+)\/(\d+)$/', $item, $matches)) {
+                $item = $matches[1];
+                $step = (int) $matches[2];
+            }
+
+            $bounds = '*' === $item ? [0, self::CRON_FIELD_MAXIMUMS[$position]] : array_map('intval', explode('-', $item));
+
+            foreach (range($bounds[0], $bounds[\count($bounds) - 1], $step) as $value) {
+                if ($value <= $previous) {
+                    return false;
+                }
+
+                $previous = $value;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -411,11 +463,14 @@ final class SchedulerListener implements ResetInterface
             return true;
         }
 
+        $hasStep = false;
+
         // cron-expression wraps steps that reach the end of the field around to another value
         if (preg_match('/^(\*|\d+-\d+)\/(\d+)$/', $item, $matches)) {
             $item = $matches[1];
+            $hasStep = true;
 
-            if ((int) $matches[2] >= self::CRON_FIELD_MAXIMUMS[$position]) {
+            if (0 === (int) $matches[2] || (int) $matches[2] >= self::CRON_FIELD_MAXIMUMS[$position]) {
                 return false;
             }
         }
@@ -431,8 +486,21 @@ final class SchedulerListener implements ResetInterface
         $start = self::CRON_NAMES[strtoupper($matches[1])] ?? (is_numeric($matches[1]) ? (int) $matches[1] : null);
         $end = self::CRON_NAMES[strtoupper($matches[2])] ?? (is_numeric($matches[2]) ? (int) $matches[2] : null);
 
+        if (null === $start || null === $end) {
+            return false;
+        }
+
+        // cron-expression and cronsim read these ranges differently
+        if ($hasStep && $start === $end) {
+            return false;
+        }
+
+        if (4 === $position && (($start === $end && \in_array($start, [0, 7], true)) || ($hasStep && 0 === $start && 7 === $end))) {
+            return false;
+        }
+
         // cronsim rejects ranges that end before they start
-        return null !== $start && null !== $end && $start <= $end;
+        return $start <= $end;
     }
 
     /**
