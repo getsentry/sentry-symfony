@@ -12,7 +12,6 @@ use Symfony\Component\Console\Messenger\RunCommandMessage;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Message\RedispatchMessage;
-use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Symfony\Component\Messenger\Stamp\TransportNamesStamp;
 use Symfony\Component\Messenger\Transport\Sender\SendersLocatorInterface;
 use Symfony\Component\Messenger\Transport\Sync\SyncTransport;
@@ -94,8 +93,8 @@ final class SchedulerListener implements ResetInterface
         }
 
         try {
-            // Retries aren't reported, and a message sent to another transport is monitored when a worker consumes it there
-            if (null !== $envelope->last(RedeliveryStamp::class) || $this->isSentToAnotherTransport($envelope)) {
+            // A message sent to another transport is monitored when a worker consumes it there
+            if ($this->isSentToAnotherTransport($envelope)) {
                 return;
             }
 
