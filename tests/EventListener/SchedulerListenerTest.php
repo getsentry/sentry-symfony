@@ -26,6 +26,8 @@ use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Message\RedispatchMessage;
 use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
+use Symfony\Component\Messenger\Stamp\SentToFailureTransportStamp;
+use Symfony\Component\Messenger\Stamp\StampInterface;
 use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 use Symfony\Component\Messenger\Transport\Sender\SendersLocator;
 use Symfony\Component\Messenger\Transport\Sync\SyncTransport;
@@ -335,18 +337,57 @@ final class SchedulerListenerTest extends TestCase
         $this->assertSame([], $this->checkIns);
     }
 
-    public function testRedeliveredMessageIsNotReported(): void
+    public function testRetryIsReportedAsItsOwnRun(): void
     {
         $this->schedule->add(RecurringMessage::cron('0 * * * *', new SendDailyReportMessage()));
         $envelope = $this->getScheduledEnvelope();
 
+        $this->consume($envelope, new \RuntimeException());
         $this->consume($envelope->with(new RedeliveryStamp(1)));
 
-        $this->assertCount(0, $this->checkIns);
+        $this->assertSame([CheckInStatus::inProgress(), CheckInStatus::error(), CheckInStatus::inProgress(), CheckInStatus::ok()], array_column($this->checkIns, 'status'));
+        $this->assertSame([null, 'check-in-id-1', null, 'check-in-id-3'], array_column($this->checkIns, 'check_in_id'));
+        $this->assertSame(['default-send-daily-report-message'], array_unique(array_column($this->checkIns, 'slug')));
+    }
 
-        $this->consume($envelope);
+    /**
+     * @dataProvider retryOfARedispatchedMessageDataProvider
+     *
+     * @param StampInterface[] $stamps
+     */
+    public function testRetryOfARedispatchedMessageIsReportedWhenConsumed(string $receiverName, array $stamps): void
+    {
+        $this->setListener(new SchedulerListener($this->hub, $this->createSendersLocator()));
+        $message = new SendDailyReportMessage();
+        $this->schedule->add(RecurringMessage::cron('0 * * * *', new RedispatchMessage($message, 'async')));
+        $stamp = $this->getScheduledEnvelope()->last(ScheduledStamp::class);
+        $this->assertNotNull($stamp);
+        $envelope = new Envelope($message, [$stamp]);
 
-        $this->assertCount(2, $this->checkIns);
+        $this->consume($envelope, new \RuntimeException(), 'async');
+        $this->consume($envelope->with(new RedeliveryStamp(1), ...$stamps), null, $receiverName);
+
+        $this->assertSame([CheckInStatus::inProgress(), CheckInStatus::error(), CheckInStatus::inProgress(), CheckInStatus::ok()], array_column($this->checkIns, 'status'));
+        $this->assertSame([null, 'check-in-id-1', null, 'check-in-id-3'], array_column($this->checkIns, 'check_in_id'));
+    }
+
+    /**
+     * @return iterable<string, array{string, StampInterface[]}>
+     */
+    public function retryOfARedispatchedMessageDataProvider(): iterable
+    {
+        yield 'retried by the worker of the transport' => ['async', []];
+        yield 'retried from the failure transport' => ['failed', [new SentToFailureTransportStamp('async')]];
+    }
+
+    public function testRetryOfAMessageSentToAnotherTransportIsNotReported(): void
+    {
+        $this->setListener(new SchedulerListener($this->hub, $this->createSendersLocator()));
+        $this->schedule->add(RecurringMessage::cron('0 * * * *', new RedispatchMessage(new SendDailyReportMessage(), 'async')));
+
+        $this->consume($this->getScheduledEnvelope()->with(new RedeliveryStamp(1)));
+
+        $this->assertSame([], $this->checkIns);
     }
 
     public function testFailingCheckInIsLoggedAndDoesNotThrow(): void
@@ -912,16 +953,16 @@ final class SchedulerListenerTest extends TestCase
     /**
      * Dispatches the events of a worker that consumes the envelope, and returns whether it handled it.
      */
-    private function consume(Envelope $envelope, ?\Throwable $failure = null): bool
+    private function consume(Envelope $envelope, ?\Throwable $failure = null, string $receiverName = 'scheduler_default'): bool
     {
-        $event = new WorkerMessageReceivedEvent($envelope, 'scheduler_default');
+        $event = new WorkerMessageReceivedEvent($envelope, $receiverName);
         $this->dispatcher->dispatch($event);
 
         if (!$event->shouldHandle()) {
             return false;
         }
 
-        $this->dispatcher->dispatch(null === $failure ? new WorkerMessageHandledEvent($envelope, 'scheduler_default') : new WorkerMessageFailedEvent($envelope, 'scheduler_default', $failure));
+        $this->dispatcher->dispatch(null === $failure ? new WorkerMessageHandledEvent($envelope, $receiverName) : new WorkerMessageFailedEvent($envelope, $receiverName, $failure));
 
         return true;
     }
