@@ -449,7 +449,8 @@ final class SchedulerListener implements ResetInterface
 
             $bounds = '*' === $item ? [0, self::CRON_FIELD_MAXIMUMS[$position]] : array_map('intval', explode('-', $item));
 
-            foreach (range($bounds[0], $bounds[\count($bounds) - 1], $step) as $value) {
+            // range() throws when the step is longer than the range
+            for ($value = $bounds[0], $end = $bounds[\count($bounds) - 1]; $value <= $end; $value += $step) {
                 if ($value <= $previous) {
                     return false;
                 }

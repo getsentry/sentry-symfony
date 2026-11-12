@@ -621,6 +621,35 @@ final class SchedulerListenerTest extends TestCase
         yield 'whole week range and a step' => ['0 0 * * 0-7/2'];
     }
 
+    /**
+     * @dataProvider stepLongerThanItsRangeDataProvider
+     */
+    public function testCronListWithAStepLongerThanItsRange(string $expression, ?string $expectedCrontab): void
+    {
+        try {
+            $trigger = CronExpressionTrigger::fromSpec($expression);
+            $trigger->getNextRunDate(new \DateTimeImmutable());
+        } catch (\Throwable $exception) {
+            $this->markTestSkipped('This version of dragonmantank/cron-expression can\'t run the expression.');
+        }
+
+        $this->runPreRunEvents(RecurringMessage::trigger($trigger, new SendDailyReportMessage()));
+
+        $monitorConfig = $this->checkIns[0]['monitor_config'] ?? null;
+
+        $this->assertSame($expectedCrontab, null !== $monitorConfig ? $monitorConfig->getSchedule()->getValue() : null);
+    }
+
+    /**
+     * @return iterable<string, array{string, string|null}>
+     */
+    public function stepLongerThanItsRangeDataProvider(): iterable
+    {
+        yield 'before a later hour' => ['0 8-9/2,12 * * *', '0 8-9/2,12 * * *'];
+        yield 'after an earlier hour' => ['0 1,8-9/2 * * *', '0 1,8-9/2 * * *'];
+        yield 'before an earlier hour' => ['0 10-11/5,6 * * *', null];
+    }
+
     public function testHashedCronExpression(): void
     {
         $recurringMessage = RecurringMessage::cron('#midnight', new RunCommandMessage('app:send-report'));
