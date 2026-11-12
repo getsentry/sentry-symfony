@@ -277,7 +277,9 @@ final class SchedulerListenerTest extends TestCase
         $this->schedule->add(RecurringMessage::cron('0 * * * *', new RedispatchMessage(new SendDailyReportMessage(), 'typo')));
         $this->logger->expects($this->once())->method('warning')->with('Failed to send a cron check-in for a scheduled message.');
 
-        $this->consume($this->getScheduledEnvelope());
+        $envelope = $this->getScheduledEnvelope();
+        $this->consume($envelope);
+        $this->consume($envelope);
 
         $this->assertSame([], $this->checkIns);
     }
@@ -395,7 +397,7 @@ final class SchedulerListenerTest extends TestCase
     public function testMessagesThatShareASlugAreNotReported(callable $createFirst, callable $createSecond, string $sharedSlug): void
     {
         $this->setListener(new SchedulerListener($this->hub, $this->createSendersLocator()));
-        $this->logger->expects($this->atLeastOnce())
+        $this->logger->expects($this->once())
             ->method('warning')
             ->with(\sprintf('Not monitoring the scheduled messages with the slug "%s" because more than one recurring message uses it. Use a separate message class or schedule for each one.', $sharedSlug));
 
@@ -404,12 +406,13 @@ final class SchedulerListenerTest extends TestCase
             RecurringMessage::cron('0 0 * * *', $createSecond()),
             RecurringMessage::cron('0 0 * * *', new RunCommandMessage('app:other'))
         );
+        $envelopes = $this->getScheduledEnvelopes();
 
-        foreach ($this->getScheduledEnvelopes() as $envelope) {
+        foreach (array_merge($envelopes, $envelopes) as $envelope) {
             $this->consume($envelope);
         }
 
-        $this->assertSame(['default-app-other', 'default-app-other'], array_column($this->checkIns, 'slug'));
+        $this->assertSame(array_fill(0, 4, 'default-app-other'), array_column($this->checkIns, 'slug'));
     }
 
     /**
@@ -482,16 +485,18 @@ final class SchedulerListenerTest extends TestCase
 
     public function testInvalidRegularExpressionIsLoggedAndIgnored(): void
     {
-        $this->logger->expects($this->atLeastOnce())
+        $this->logger->expects($this->once())
             ->method('warning')
             ->with('Ignoring the invalid regular expression "/[/" in the excluded messages of the scheduler.');
 
         $this->setListener(new SchedulerListener($this->hub, null, ['/[/']));
         $this->schedule->add(RecurringMessage::cron('0 0 * * *', new SendDailyReportMessage()));
 
-        $this->consume($this->getScheduledEnvelope());
+        $envelope = $this->getScheduledEnvelope();
+        $this->consume($envelope);
+        $this->consume($envelope);
 
-        $this->assertSame([CheckInStatus::inProgress(), CheckInStatus::ok()], array_column($this->checkIns, 'status'));
+        $this->assertSame([CheckInStatus::inProgress(), CheckInStatus::ok(), CheckInStatus::inProgress(), CheckInStatus::ok()], array_column($this->checkIns, 'status'));
     }
 
     public function testExcludedMessageDoesNotShareItsSlug(): void

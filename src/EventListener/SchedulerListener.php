@@ -80,6 +80,13 @@ final class SchedulerListener implements ResetInterface
     private $preRunEvent;
 
     /**
+     * Workers check every run, so each warning is logged once per process.
+     *
+     * @var array<string, true>
+     */
+    private $loggedWarnings = [];
+
+    /**
      * @param string[] $excludedMessages Message classes, command names or monitor slugs, or regular expressions wrapped in slashes
      */
     public function __construct(HubInterface $hub, ?SendersLocatorInterface $sendersLocator = null, array $excludedMessages = [])
@@ -565,7 +572,7 @@ final class SchedulerListener implements ResetInterface
 
         // Other providers decide their messages when they run, so they're only checked against the static ones
         if ($usages > ($isStatic ? 1 : 0)) {
-            $this->getLogger()->warning(\sprintf('Not monitoring the scheduled messages with the slug "%s" because more than one recurring message uses it. Use a separate message class or schedule for each one.', $slug));
+            $this->warnOnce('shared|' . $slug, \sprintf('Not monitoring the scheduled messages with the slug "%s" because more than one recurring message uses it. Use a separate message class or schedule for each one.', $slug));
 
             return null;
         }
@@ -608,19 +615,20 @@ final class SchedulerListener implements ResetInterface
     private function isSentToAnotherTransport(Envelope $envelope): bool
     {
         $message = $envelope->getMessage();
+        $name = self::getMessageName($message) ?? \get_class($message);
 
         // Symfony 6.4 to 8.1 handle a RedispatchMessage by dispatching its message to the given transports
         if ($message instanceof RedispatchMessage) {
-            return $this->hasSenders(Envelope::wrap($message->envelope, [new TransportNamesStamp($message->transportNames)]));
+            return $this->hasSenders(Envelope::wrap($message->envelope, [new TransportNamesStamp($message->transportNames)]), $name);
         }
 
-        return \array_key_exists(self::REDISPATCH_STAMP, $envelope->all()) && $this->hasSenders($envelope);
+        return \array_key_exists(self::REDISPATCH_STAMP, $envelope->all()) && $this->hasSenders($envelope, $name);
     }
 
     /**
      * Whether a transport other than the sync one, which handles the message in the same run, takes the message.
      */
-    private function hasSenders(Envelope $envelope): bool
+    private function hasSenders(Envelope $envelope, string $messageName): bool
     {
         if (null === $this->sendersLocator) {
             return true;
@@ -634,7 +642,7 @@ final class SchedulerListener implements ResetInterface
             }
         } catch (\Throwable $exception) {
             // Such as a transport name that doesn't exist, which fails the run anyway
-            $this->logException($exception);
+            $this->warnOnce('transport|' . $messageName, 'Failed to send a cron check-in for a scheduled message.', ['exception' => $exception]);
 
             return true;
         }
@@ -668,7 +676,7 @@ final class SchedulerListener implements ResetInterface
                 $result = @preg_match($excluded, $name);
 
                 if (false === $result) {
-                    $this->getLogger()->warning(\sprintf('Ignoring the invalid regular expression "%s" in the excluded messages of the scheduler.', $excluded));
+                    $this->warnOnce('pattern|' . $excluded, \sprintf('Ignoring the invalid regular expression "%s" in the excluded messages of the scheduler.', $excluded));
 
                     continue 2;
                 }
@@ -694,6 +702,19 @@ final class SchedulerListener implements ResetInterface
     private function logException(\Throwable $exception): void
     {
         $this->getLogger()->warning('Failed to send a cron check-in for a scheduled message.', ['exception' => $exception]);
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     */
+    private function warnOnce(string $key, string $message, array $context = []): void
+    {
+        if (isset($this->loggedWarnings[$key])) {
+            return;
+        }
+
+        $this->loggedWarnings[$key] = true;
+        $this->getLogger()->warning($message, $context);
     }
 
     private function getLogger(): LoggerInterface
