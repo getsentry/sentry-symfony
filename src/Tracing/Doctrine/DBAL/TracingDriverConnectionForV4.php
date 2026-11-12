@@ -201,6 +201,8 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
 
     /**
      * {@inheritdoc}
+     *
+     * @return array<mixed>
      */
     public function errorInfo(): array
     {

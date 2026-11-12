@@ -201,11 +201,6 @@ parameters:
 			path: src/EventListener/SubRequestListener.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionForV4\\:\\:errorInfo\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
-
-		-
 			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionForV4\\:\\:exec\\(\\) should return int\\|numeric\\-string but returns int\\|string\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
