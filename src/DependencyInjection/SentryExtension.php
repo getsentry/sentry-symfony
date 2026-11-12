@@ -280,7 +280,7 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function registerSchedulerListenerConfiguration(ContainerBuilder $container, array $mergedConfig): void
     {
-        /** @var array{enabled: bool} $config */
+        /** @var array{enabled: bool, excluded_messages: string[]} $config */
         $config = $mergedConfig['scheduler'];
 
         if (!$this->isConfigEnabled($container, $config)) {
@@ -292,6 +292,8 @@ final class SentryExtension extends ConfigurableExtension
         if (!class_exists(PreRunEvent::class)) {
             throw new \LogicException('Scheduler cron monitoring cannot be enabled because the symfony/scheduler Composer package (6.4 or newer) is not installed.');
         }
+
+        $container->getDefinition(SchedulerListener::class)->setArgument(2, $config['excluded_messages']);
     }
 
     /**

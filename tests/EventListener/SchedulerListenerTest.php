@@ -108,7 +108,7 @@ final class SchedulerListenerTest extends TestCase
             'default' => function (): Schedule { return $this->schedule; },
             'reports' => function (): Schedule { return $this->schedule; },
         ]), $this->dispatcher));
-        $this->setListener(new SchedulerListener($this->hub));
+        $this->setListener(new SchedulerListener($this->hub, null, ['app:excluded', '/^default-cleanup/']));
     }
 
     public function testSuccessfulRun(): void
@@ -461,6 +461,87 @@ final class SchedulerListenerTest extends TestCase
             $command('app:a-very-long-command-name --with-many --options --second'),
             'default-app-a-very-long-command-name-with-many-opt',
         ];
+    }
+
+    /**
+     * @dataProvider excludedMessageDataProvider
+     */
+    public function testExcludedMessageIsNotReported(?string $command, bool $isExcluded): void
+    {
+        $this->schedule->add(RecurringMessage::cron('0 0 * * *', null !== $command ? new RunCommandMessage($command) : new SendDailyReportMessage()));
+
+        $this->consume($this->getScheduledEnvelope());
+
+        $this->assertCount($isExcluded ? 0 : 2, $this->checkIns);
+    }
+
+    /**
+     * @return iterable<string, array{string|null, bool}>
+     */
+    public function excludedMessageDataProvider(): iterable
+    {
+        yield 'command name' => ['app:excluded --force', true];
+        yield 'slug pattern' => ['cleanup', true];
+        yield 'other command' => ['app:included', false];
+        yield 'other message class' => [null, false];
+    }
+
+    /**
+     * @dataProvider excludedMessageClassDataProvider
+     */
+    public function testExcludedMessageClassIsNotReported(string $excluded): void
+    {
+        $this->setListener(new SchedulerListener($this->hub, null, [$excluded]));
+        $this->schedule->add(RecurringMessage::cron('0 0 * * *', new SendDailyReportMessage()));
+
+        $this->consume($this->getScheduledEnvelope());
+
+        $this->assertSame([], $this->checkIns);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public function excludedMessageClassDataProvider(): iterable
+    {
+        yield 'message class' => [SendDailyReportMessage::class];
+        yield 'message class with a leading backslash' => ['\\' . SendDailyReportMessage::class];
+        yield 'slug' => ['default-send-daily-report-message'];
+        yield 'regular expression' => ['/report-message$/'];
+        yield 'regular expression with flags' => ['/^DEFAULT-SEND-/i'];
+    }
+
+    public function testInvalidRegularExpressionIsLoggedAndIgnored(): void
+    {
+        $this->logger->expects($this->once())
+            ->method('warning')
+            ->with('Ignoring the invalid regular expression "/[/" in the excluded messages of the scheduler.');
+
+        $this->setListener(new SchedulerListener($this->hub, null, ['/[/']));
+        $this->schedule->add(RecurringMessage::cron('0 0 * * *', new SendDailyReportMessage()));
+
+        $envelope = $this->getScheduledEnvelope();
+        $this->consume($envelope);
+        $this->consume($envelope);
+
+        $this->assertSame([CheckInStatus::inProgress(), CheckInStatus::ok(), CheckInStatus::inProgress(), CheckInStatus::ok()], array_column($this->checkIns, 'status'));
+    }
+
+    public function testExcludedMessageDoesNotShareItsSlug(): void
+    {
+        $this->logger->expects($this->never())->method('warning');
+
+        $this->setListener(new SchedulerListener($this->hub, null, ['app:send-report -all']));
+        $this->schedule->add(
+            RecurringMessage::cron('0 * * * *', new RunCommandMessage('app:send-report --all')),
+            RecurringMessage::cron('0 0 * * *', new RunCommandMessage('app:send-report -all'))
+        );
+
+        foreach ($this->getScheduledEnvelopes() as $envelope) {
+            $this->consume($envelope);
+        }
+
+        $this->assertSame(['default-app-send-report-all', 'default-app-send-report-all'], array_column($this->checkIns, 'slug'));
     }
 
     public function testMessageOfAnotherProviderIsReported(): void

@@ -367,6 +367,21 @@ final class Configuration implements ConfigurationInterface
                 ->arrayNode('scheduler')
                     ->info('Sends cron check-ins for every recurring message of the Symfony Scheduler.')
                     ->canBeEnabled()
+                    ->fixXmlConfig('excluded_message')
+                    ->children()
+                        ->arrayNode('excluded_messages')
+                            ->info('Message classes, command names or monitor slugs that are not monitored. Values wrapped in slashes are regular expressions.')
+                            ->scalarPrototype()
+                                ->cannotBeEmpty()
+                                ->validate()
+                                    ->ifTrue(static function ($value): bool {
+                                        return !\is_string($value);
+                                    })
+                                    ->thenInvalid('Expected a string, but got %s.')
+                                ->end()
+                            ->end()
+                        ->end()
+                    ->end()
                 ->end()
             ->end();
     }

@@ -8,5 +8,6 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 $container->loadFromExtension('sentry', [
     'scheduler' => [
         'enabled' => true,
+        'excluded_messages' => ['app:cleanup', '/^reports-/'],
     ],
 ]);

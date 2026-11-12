@@ -53,6 +53,7 @@ final class ConfigurationTest extends TestCase
             ],
             'scheduler' => [
                 'enabled' => false,
+                'excluded_messages' => [],
             ],
             'tracing' => [
                 'enabled' => true,
@@ -348,6 +349,26 @@ final class ConfigurationTest extends TestCase
         yield 'range with too many values' => [[[500, 502, 599]]];
         yield 'descending range' => [[[599, 500]]];
         yield 'range of strings' => [[['500', '599']]];
+    }
+
+    /**
+     * @param mixed $value
+     *
+     * @dataProvider schedulerExcludedMessagesWithInvalidValuesDataProvider
+     */
+    public function testSchedulerExcludedMessagesWithInvalidValues($value): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+
+        $this->processConfiguration(['scheduler' => ['excluded_messages' => [$value]]]);
+    }
+
+    public function schedulerExcludedMessagesWithInvalidValuesDataProvider(): \Generator
+    {
+        yield 'empty string' => [''];
+        yield 'null' => [null];
+        yield 'integer' => [1];
+        yield 'boolean' => [true];
     }
 
     /**

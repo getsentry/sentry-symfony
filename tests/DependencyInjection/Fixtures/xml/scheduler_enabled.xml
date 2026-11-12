@@ -7,6 +7,9 @@
                                https://sentry.io/schema/dic/sentry-symfony https://sentry.io/schema/dic/sentry-symfony/sentry-1.0.xsd">
 
     <sentry:config>
-        <sentry:scheduler enabled="true" />
+        <sentry:scheduler enabled="true">
+            <sentry:excluded-message>app:cleanup</sentry:excluded-message>
+            <sentry:excluded-message>/^reports-/</sentry:excluded-message>
+        </sentry:scheduler>
     </sentry:config>
 </container>

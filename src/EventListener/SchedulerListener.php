@@ -49,6 +49,11 @@ final class SchedulerListener implements ResetInterface
     private $sendersLocator;
 
     /**
+     * @var string[]
+     */
+    private $excludedMessages;
+
+    /**
      * @var array<string, array{slug: string, check_in_id: string, started_at: float}>
      */
     private $checkIns = [];
@@ -59,16 +64,20 @@ final class SchedulerListener implements ResetInterface
     private $preRunEvent;
 
     /**
-     * Workers check every run, so each warning is logged once per slug or message per process.
+     * Workers check every run, so each warning is logged once per process.
      *
      * @var array<string, true>
      */
     private $loggedWarnings = [];
 
-    public function __construct(HubInterface $hub, ?SendersLocatorInterface $sendersLocator = null)
+    /**
+     * @param string[] $excludedMessages Message classes, command names or monitor slugs, or regular expressions wrapped in slashes
+     */
+    public function __construct(HubInterface $hub, ?SendersLocatorInterface $sendersLocator = null, array $excludedMessages = [])
     {
         $this->hub = $hub;
         $this->sendersLocator = $sendersLocator;
+        $this->excludedMessages = $excludedMessages;
     }
 
     /**
@@ -187,7 +196,7 @@ final class SchedulerListener implements ResetInterface
     {
         $slug = self::createSlug($context->name, $message);
 
-        if (null === $slug) {
+        if (null === $slug || $this->isExcluded($slug, $message)) {
             return null;
         }
 
@@ -208,7 +217,7 @@ final class SchedulerListener implements ResetInterface
             }
 
             foreach ($provider->getMessages($context) as $otherMessage) {
-                if (self::createSlug($context->name, $otherMessage) === $slug) {
+                if (self::createSlug($context->name, $otherMessage) === $slug && !$this->isExcluded($slug, $otherMessage)) {
                     ++$usages;
                 }
             }
@@ -243,13 +252,7 @@ final class SchedulerListener implements ResetInterface
 
     private static function getMessageName(object $message): ?string
     {
-        if ($message instanceof RedispatchMessage) {
-            $message = $message->envelope;
-        }
-
-        if ($message instanceof Envelope) {
-            $message = $message->getMessage();
-        }
+        $message = self::unwrap($message);
 
         if ($message instanceof RunCommandMessage || $message instanceof ServiceCallMessage) {
             return (string) $message;
@@ -302,6 +305,55 @@ final class SchedulerListener implements ResetInterface
         }
 
         return false;
+    }
+
+    private function isExcluded(string $slug, object $message): bool
+    {
+        $message = self::unwrap($message);
+        $names = [$slug, \get_class($message)];
+
+        if ($message instanceof RunCommandMessage) {
+            $names[] = (string) $message;
+            $names[] = explode(' ', trim((string) $message))[0];
+        } elseif ($message instanceof ServiceCallMessage) {
+            $names[] = (string) $message;
+        }
+
+        foreach ($this->excludedMessages as $excluded) {
+            if (!preg_match('/^\/.+\/[a-zA-Z]*$/', $excluded)) {
+                if (\in_array(ltrim($excluded, '\\'), $names, true)) {
+                    return true;
+                }
+
+                continue;
+            }
+
+            foreach ($names as $name) {
+                // Without the @, PHP raises a warning for an invalid pattern
+                $result = @preg_match($excluded, $name);
+
+                if (false === $result) {
+                    $this->warnOnce('pattern|' . $excluded, \sprintf('Ignoring the invalid regular expression "%s" in the excluded messages of the scheduler.', $excluded));
+
+                    continue 2;
+                }
+
+                if (1 === $result) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static function unwrap(object $message): object
+    {
+        if ($message instanceof RedispatchMessage) {
+            $message = $message->envelope;
+        }
+
+        return $message instanceof Envelope ? $message->getMessage() : $message;
     }
 
     private function logException(\Throwable $exception): void

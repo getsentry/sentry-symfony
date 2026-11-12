@@ -88,6 +88,7 @@ services:
     arguments:
       - '@Sentry\State\HubInterface'
       - '@?messenger.senders_locator'
+      - []
     tags:
       - { name: kernel.event_listener, event: 'Symfony\Component\Scheduler\Event\PreRunEvent', method: handlePreRunEvent }
       # Run after the Scheduler dispatches PreRunEvent, and after the listeners of Schedule::before() on Symfony 8.2+
