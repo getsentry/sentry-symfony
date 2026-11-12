@@ -469,16 +469,18 @@ final class SchedulerListenerTest extends TestCase
 
     public function testInvalidRegularExpressionIsLoggedAndIgnored(): void
     {
-        $this->logger->expects($this->atLeastOnce())
+        $this->logger->expects($this->once())
             ->method('warning')
             ->with('Ignoring the invalid regular expression "/[/" in the excluded messages of the scheduler.');
 
         $this->setListener(new SchedulerListener($this->hub, null, ['/[/']));
         $this->schedule->add(RecurringMessage::cron('0 0 * * *', new SendDailyReportMessage()));
 
-        $this->consume($this->getScheduledEnvelope());
+        $envelope = $this->getScheduledEnvelope();
+        $this->consume($envelope);
+        $this->consume($envelope);
 
-        $this->assertSame([CheckInStatus::inProgress(), CheckInStatus::ok()], array_column($this->checkIns, 'status'));
+        $this->assertSame([CheckInStatus::inProgress(), CheckInStatus::ok(), CheckInStatus::inProgress(), CheckInStatus::ok()], array_column($this->checkIns, 'status'));
     }
 
     public function testExcludedMessageDoesNotShareItsSlug(): void

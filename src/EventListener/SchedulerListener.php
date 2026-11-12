@@ -65,7 +65,7 @@ final class SchedulerListener implements ResetInterface
     private $preRunEvent;
 
     /**
-     * Workers check every run, so each warning is logged once per slug or message per process.
+     * Workers check every run, so each warning is logged once per process.
      *
      * @var array<string, true>
      */
@@ -334,7 +334,7 @@ final class SchedulerListener implements ResetInterface
                 $result = @preg_match($excluded, $name);
 
                 if (false === $result) {
-                    $this->getLogger()->warning(\sprintf('Ignoring the invalid regular expression "%s" in the excluded messages of the scheduler.', $excluded));
+                    $this->warnOnce('pattern|' . $excluded, \sprintf('Ignoring the invalid regular expression "%s" in the excluded messages of the scheduler.', $excluded));
 
                     continue 2;
                 }
