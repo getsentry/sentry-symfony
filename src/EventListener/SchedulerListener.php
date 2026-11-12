@@ -162,7 +162,7 @@ final class SchedulerListener implements ResetInterface
         $monitorConfig = self::createMonitorConfig($schedule, $context);
 
         if (null === $monitorConfig) {
-            $this->getLogger()->debug(\sprintf('Not monitoring the scheduled messages with the slug "%s" because Sentry can\'t express their schedule.', $slug));
+            $this->getLogger()->debug(\sprintf('Not monitoring the scheduled messages with the slug "%s" because Sentry can\'t express their schedule. Cron expressions need dragonmantank/cron-expression 3.3.0 or later.', $slug));
 
             return;
         }
@@ -406,15 +406,12 @@ final class SchedulerListener implements ResetInterface
 
     private static function toCrontab(string $expression): ?string
     {
-        if (str_contains($expression, '?')) {
-            if (!self::readsQuestionMarkAsAsterisk()) {
-                return null;
-            }
-
-            $expression = str_replace('?', '*', $expression);
+        if (!self::isCronExpressionSupported()) {
+            return null;
         }
 
-        $fields = preg_split('/\s+/', trim($expression));
+        // cron-expression reads "?" as "*"
+        $fields = preg_split('/\s+/', trim(str_replace('?', '*', $expression)));
 
         if (false === $fields || 5 !== \count($fields)) {
             return null;
@@ -442,9 +439,9 @@ final class SchedulerListener implements ResetInterface
     }
 
     /**
-     * Whether the installed cron-expression reads "?" as "*", which it does since 3.3.0.
+     * Whether cron-expression is 3.3.0 or later, since older releases read more expressions, such as ones with "?", differently from cronsim.
      */
-    private static function readsQuestionMarkAsAsterisk(): bool
+    private static function isCronExpressionSupported(): bool
     {
         if (!class_exists(InstalledVersions::class) || !InstalledVersions::isInstalled('dragonmantank/cron-expression')) {
             return false;

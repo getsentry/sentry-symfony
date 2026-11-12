@@ -40,6 +40,7 @@ use Symfony\Component\Scheduler\Messenger\SchedulerTransport;
 use Symfony\Component\Scheduler\Messenger\ServiceCallMessage;
 use Symfony\Component\Scheduler\RecurringMessage;
 use Symfony\Component\Scheduler\Schedule;
+use Symfony\Component\Scheduler\Trigger\AbstractDecoratedTrigger;
 use Symfony\Component\Scheduler\Trigger\CallbackMessageProvider;
 use Symfony\Component\Scheduler\Trigger\CallbackTrigger;
 use Symfony\Component\Scheduler\Trigger\CronExpressionTrigger;
@@ -209,6 +210,7 @@ final class SchedulerListenerTest extends TestCase
     {
         $recurringMessage = RecurringMessage::cron('0 * * * *', new SendDailyReportMessage());
         $this->schedule->add($recurringMessage);
+        $this->skipCronBeforeCronExpression330();
         $envelopes = [];
 
         for ($i = 0; $i <= 100; ++$i) {
@@ -651,6 +653,22 @@ final class SchedulerListenerTest extends TestCase
         yield 'before an earlier hour' => ['0 10-11/5,6 * * *', null];
     }
 
+    public function testCronIsNotMonitoredBeforeCronExpression330(): void
+    {
+        if (self::isCronMonitored()) {
+            $this->markTestSkipped('This test requires dragonmantank/cron-expression older than 3.3.0.');
+        }
+
+        $this->logger->expects($this->once())->method('debug')->with('Not monitoring the scheduled messages with the slug "default-send-daily-report-message" because Sentry can\'t express their schedule. Cron expressions need dragonmantank/cron-expression 3.3.0 or later.');
+        $recurringMessage = RecurringMessage::cron('0 * * * *', new SendDailyReportMessage());
+        $this->schedule->add($recurringMessage);
+        $context = $this->createContext($recurringMessage);
+
+        $this->dispatcher->dispatch(new WorkerMessageReceivedEvent(new Envelope(new SendDailyReportMessage(), [new ScheduledStamp($context)]), 'scheduler_default'));
+
+        $this->assertSame([], $this->checkIns);
+    }
+
     public function testHashedCronExpression(): void
     {
         $recurringMessage = RecurringMessage::cron('#midnight', new RunCommandMessage('app:send-report'));
@@ -699,8 +717,7 @@ final class SchedulerListenerTest extends TestCase
         yield 'cron last day of month' => [static function () { return CronExpressionTrigger::fromSpec('0 0 L * *'); }, $crontab('0 0 L * *')];
         yield 'cron last friday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 * * 5L'); }, $crontab('0 0 * * 5L')];
         yield 'cron second friday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 * * FRI#2', 'context'); }, $crontab('0 0 * * FRI#2')];
-        // cron-expression before 3.3.0 reads "?" as a restriction
-        yield 'cron question mark' => [static function () { return CronExpressionTrigger::fromSpec('0 0 ? * MON'); }, version_compare((string) InstalledVersions::getVersion('dragonmantank/cron-expression'), '3.3.0', '>=') ? $crontab('0 0 * * MON') : null];
+        yield 'cron question mark' => [static function () { return CronExpressionTrigger::fromSpec('0 0 ? * MON'); }, $crontab('0 0 * * MON')];
         yield 'cron with jitter' => [static function () { return new JitterTrigger(CronExpressionTrigger::fromSpec('0 * * * *')); }, $crontab('0 * * * *')];
         yield 'cron last weekday of month' => [static function () { return CronExpressionTrigger::fromSpec('0 0 LW * *'); }, null];
         yield 'cron nearest weekday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 15W * *'); }, null];
@@ -921,6 +938,7 @@ final class SchedulerListenerTest extends TestCase
      */
     private function getScheduledEnvelopes(bool $useMessengerRouting = false, string $scheduleName = 'default'): array
     {
+        $this->skipCronBeforeCronExpression330();
         $clock = new MockClock('2025-12-31 23:59:30', 'UTC');
         // The $useMessengerRouting argument exists since Symfony 8.2, and older versions ignore it
         $transport = (new \ReflectionClass(SchedulerTransport::class))->newInstance(new MessageGenerator($this->schedule, $scheduleName, $clock), $useMessengerRouting);
@@ -980,11 +998,29 @@ final class SchedulerListenerTest extends TestCase
     private function runPreRunEvents(RecurringMessage $recurringMessage, ?MessageContext $context = null): void
     {
         $this->schedule->add($recurringMessage);
+        $this->skipCronBeforeCronExpression330();
         $context = $context ?? $this->createContext($recurringMessage);
 
         foreach ($recurringMessage->getMessages($context) as $message) {
             $this->dispatcher->dispatch(new WorkerMessageReceivedEvent(Envelope::wrap($message, [new ScheduledStamp($context)]), 'scheduler_default'));
         }
+    }
+
+    private function skipCronBeforeCronExpression330(): void
+    {
+        foreach ($this->schedule->getRecurringMessages() as $recurringMessage) {
+            $trigger = $recurringMessage->getTrigger();
+            $trigger = $trigger instanceof AbstractDecoratedTrigger ? $trigger->inner() : $trigger;
+
+            if ($trigger instanceof CronExpressionTrigger && !self::isCronMonitored()) {
+                $this->markTestSkipped('Cron expressions aren\'t monitored before dragonmantank/cron-expression 3.3.0.');
+            }
+        }
+    }
+
+    private static function isCronMonitored(): bool
+    {
+        return version_compare((string) InstalledVersions::getVersion('dragonmantank/cron-expression'), '3.3.0', '>=');
     }
 
     private function createContext(RecurringMessage $recurringMessage): MessageContext

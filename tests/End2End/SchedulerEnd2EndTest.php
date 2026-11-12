@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\End2End;
 
+use Composer\InstalledVersions;
 use Sentry\CheckInStatus;
 use Sentry\EventType;
 use Sentry\SentryBundle\Tests\End2End\App\KernelWithScheduler;
@@ -27,6 +28,11 @@ final class SchedulerEnd2EndTest extends KernelTestCase
     {
         if (!class_exists(PreRunEvent::class)) {
             $this->markTestSkipped('This test requires the "symfony/scheduler" Composer package (6.4 or newer) to be installed.');
+        }
+
+        // The schedules of this app use cron expressions
+        if (version_compare((string) InstalledVersions::getVersion('dragonmantank/cron-expression'), '3.3.0', '<')) {
+            $this->markTestSkipped('Cron expressions aren\'t monitored before dragonmantank/cron-expression 3.3.0.');
         }
 
         StubTransport::$events = [];
