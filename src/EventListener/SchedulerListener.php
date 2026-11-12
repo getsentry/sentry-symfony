@@ -239,13 +239,12 @@ final class SchedulerListener implements ResetInterface
                     return null;
                 }
 
+                // Jitter delays runs, but no check-in margin is sent since it would overwrite the one set in Sentry
                 $jitterSeconds += (int) $matches[1];
             }
 
             $trigger = $trigger->inner();
         }
-
-        $checkinMargin = $jitterSeconds > 0 ? (int) ceil($jitterSeconds / 60) + 1 : null;
 
         if ($trigger instanceof CronExpressionTrigger) {
             $crontab = self::toCrontab((string) $trigger);
@@ -256,7 +255,7 @@ final class SchedulerListener implements ResetInterface
                 return null;
             }
 
-            return new MonitorConfig(MonitorSchedule::crontab($crontab), $checkinMargin, null, $timezone);
+            return new MonitorConfig(MonitorSchedule::crontab($crontab), null, null, $timezone);
         }
 
         // Subclasses can compute other run dates
@@ -269,7 +268,7 @@ final class SchedulerListener implements ResetInterface
                 // Without a start, the trigger starts on its first run, which a worker that only consumes the message never makes
                 $from = self::getProperty($trigger, 'from') ?? (0 === $jitterSeconds ? $context->triggeredAt : null);
 
-                return $interval instanceof \DateInterval && $from instanceof \DateTimeImmutable ? self::createCalendarMonitorConfig($interval, $from, $context->triggeredAt, $jitterSeconds, $checkinMargin) : null;
+                return $interval instanceof \DateInterval && $from instanceof \DateTimeImmutable ? self::createCalendarMonitorConfig($interval, $from, $context->triggeredAt, $jitterSeconds) : null;
             }
 
             if (!\is_float($seconds) || $seconds < 60 || 0.0 !== fmod($seconds, 60)) {
@@ -280,11 +279,11 @@ final class SchedulerListener implements ResetInterface
 
             foreach ([[10080, MonitorScheduleUnit::week()], [1440, MonitorScheduleUnit::day()], [60, MonitorScheduleUnit::hour()]] as [$size, $unit]) {
                 if (0 === $minutes % $size) {
-                    return new MonitorConfig(MonitorSchedule::interval(intdiv($minutes, $size), $unit), $checkinMargin);
+                    return new MonitorConfig(MonitorSchedule::interval(intdiv($minutes, $size), $unit));
                 }
             }
 
-            return new MonitorConfig(MonitorSchedule::interval($minutes, MonitorScheduleUnit::minute()), $checkinMargin);
+            return new MonitorConfig(MonitorSchedule::interval($minutes, MonitorScheduleUnit::minute()));
         }
 
         return null;
@@ -293,7 +292,7 @@ final class SchedulerListener implements ResetInterface
     /**
      * Returns null for calendar intervals that neither a crontab nor a fixed interval can express.
      */
-    private static function createCalendarMonitorConfig(\DateInterval $interval, \DateTimeImmutable $from, \DateTimeImmutable $triggeredAt, int $jitterSeconds, ?int $checkinMargin): ?MonitorConfig
+    private static function createCalendarMonitorConfig(\DateInterval $interval, \DateTimeImmutable $from, \DateTimeImmutable $triggeredAt, int $jitterSeconds): ?MonitorConfig
     {
         $calendarInterval = self::getCalendarInterval($interval);
         $timezone = self::toTimezone($from);
@@ -334,14 +333,14 @@ final class SchedulerListener implements ResetInterface
         }
 
         if (null !== $crontab) {
-            return new MonitorConfig(MonitorSchedule::crontab($crontab), $checkinMargin, null, $timezone);
+            return new MonitorConfig(MonitorSchedule::crontab($crontab), null, null, $timezone);
         }
 
         // Without DST, the days are all as long as Sentry expects
         if ('day' === $unit && ('UTC' === $timezone || str_starts_with($timezone, 'Etc/'))) {
             $schedule = 0 === $count % 7 ? MonitorSchedule::interval(intdiv($count, 7), MonitorScheduleUnit::week()) : MonitorSchedule::interval($count, MonitorScheduleUnit::day());
 
-            return new MonitorConfig($schedule, $checkinMargin);
+            return new MonitorConfig($schedule);
         }
 
         return null;

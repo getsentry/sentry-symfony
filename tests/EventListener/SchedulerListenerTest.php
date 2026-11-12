@@ -540,12 +540,15 @@ final class SchedulerListenerTest extends TestCase
         $this->assertSame('Europe/Vienna', $monitorConfig->getTimezone());
     }
 
-    public function testJitterWidensCheckInMargin(): void
+    public function testJitterDoesNotSetCheckInMargin(): void
     {
         $this->runPreRunEvents(RecurringMessage::cron('0 * * * *', new SendDailyReportMessage())->withJitter(90)->withJitter(30));
 
-        $this->assertNotNull($this->checkIns[0]['monitor_config']);
-        $this->assertSame(3, $this->checkIns[0]['monitor_config']->getCheckinMargin());
+        $monitorConfig = $this->checkIns[0]['monitor_config'];
+
+        $this->assertNotNull($monitorConfig);
+        $this->assertSame('0 * * * *', $monitorConfig->getSchedule()->getValue());
+        $this->assertNull($monitorConfig->getCheckinMargin());
     }
 
     /**
@@ -839,7 +842,7 @@ final class SchedulerListenerTest extends TestCase
 
         $this->assertNotNull($monitorConfig);
         $this->assertSame('47 13 * * *', $monitorConfig->getSchedule()->getValue());
-        $this->assertSame(3, $monitorConfig->getCheckinMargin());
+        $this->assertNull($monitorConfig->getCheckinMargin());
     }
 
     public function testMessageOfAnotherProviderIsReported(): void
