@@ -151,8 +151,8 @@ jobs:
           file: build/coverage-report.xml
           token: ${{ secrets.CODECOV_TOKEN }}
 
-  scheduler-beta-tests:
-    name: Scheduler tests (Symfony 8.2 beta)
+  scheduler-symfony-82-tests:
+    name: Scheduler tests (Symfony 8.2)
     runs-on: ubuntu-latest
     env:
       SYMFONY_REQUIRE: 8.2.*
@@ -174,7 +174,7 @@ jobs:
       - name: Remove unused dependencies
         run: composer remove vimeo/psalm phpstan/phpstan friendsofphp/php-cs-fixer --dev --no-interaction --no-update
 
-      # The 8.* entries of the tests job resolve to the latest stable release
+      # Uses an 8.2 beta until 8.2.0 is out, since prefer-stable picks a stable release when there is one
       - name: Allow beta releases
         run: |
           composer config minimum-stability beta
