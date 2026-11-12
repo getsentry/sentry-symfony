@@ -787,10 +787,15 @@ final class SchedulerListenerTest extends TestCase
         $this->assertSame(['47 13 * * *', '47 13 * * *', '47 13 * * *', '47 13 * * *'], $this->runCalendarInterval('2026-03-27 13:47'));
     }
 
-    public function testCalendarIntervalStartingInADstGapHourIsNotMonitoredAfterTheGap(): void
+    public function testCalendarIntervalStartingInADstGapHourMovesToTheNextHour(): void
     {
         // 02:30 doesn't exist on 2026-03-29 in Europe/Vienna, so Symfony runs at 03:30 from then on
-        $this->assertSame(['30 2 * * *', null, null, null], $this->runCalendarInterval('2026-03-27 02:30'));
+        $this->assertSame(['30 2 * * *', '30 3 * * *', '30 3 * * *', '30 3 * * *'], $this->runCalendarInterval('2026-03-27 02:30'));
+    }
+
+    public function testCalendarIntervalWithJitterStartingInADstGapHourIsNotMonitoredAfterTheGap(): void
+    {
+        $this->assertSame(['30 2 * * *', null, null, null], $this->runCalendarInterval('2026-03-27 02:30', true));
     }
 
     public function testCalendarIntervalWithoutStartUsesTheRunTime(): void
@@ -943,11 +948,11 @@ final class SchedulerListenerTest extends TestCase
      *
      * @return list<string|null> The crontab of each run, or null when it isn't monitored
      */
-    private function runCalendarInterval(string $from): array
+    private function runCalendarInterval(string $from, bool $withJitter = false): array
     {
         $trigger = new PeriodicalTrigger('1 day', new \DateTimeImmutable($from, new \DateTimeZone('Europe/Vienna')));
         $message = new SendDailyReportMessage();
-        $recurringMessage = RecurringMessage::trigger($trigger, $message);
+        $recurringMessage = RecurringMessage::trigger($withJitter ? new JitterTrigger($trigger, 60) : $trigger, $message);
         $this->schedule->add($recurringMessage);
         $crontabs = [];
         $run = new \DateTimeImmutable($from, new \DateTimeZone('Europe/Vienna'));

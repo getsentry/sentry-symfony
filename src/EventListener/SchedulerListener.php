@@ -303,15 +303,18 @@ final class SchedulerListener implements ResetInterface
 
         [$count, $unit] = $calendarInterval;
 
-        // A run that falls in a DST gap moves to a later time, and the runs after it keep that time
         $run = $triggeredAt->setTimezone($from->getTimezone());
-        $delay = (self::getSecondOfDay($run) - self::getSecondOfDay($from) + 86400) % 86400;
+        $delay = 0 === $jitterSeconds ? 0 : (self::getSecondOfDay($run) - self::getSecondOfDay($from) + 86400) % 86400;
         $run = $run->setTimestamp($run->getTimestamp() - $delay);
 
         if ($delay > $jitterSeconds || ('day' === $unit && 0 === $count % 7 && $run->format('w') !== $from->format('w')) || ('month' === $unit && $run->format('j') !== $from->format('j'))) {
             return null;
         }
-        $time = (int) $from->format('i') . ' ' . $from->format('G');
+
+        // A run that falls in a DST gap moves to a later time, and the runs after it keep that time.
+        // A jittered run can't show that, so its time comes from the start.
+        $timeOfDay = 0 === $jitterSeconds ? $run : $from;
+        $time = (int) $timeOfDay->format('i') . ' ' . $timeOfDay->format('G');
         $day = (int) $from->format('j');
         $crontab = null;
 
