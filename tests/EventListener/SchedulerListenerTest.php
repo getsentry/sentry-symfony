@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\EventListener;
 
+use Composer\InstalledVersions;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -698,7 +699,8 @@ final class SchedulerListenerTest extends TestCase
         yield 'cron last day of month' => [static function () { return CronExpressionTrigger::fromSpec('0 0 L * *'); }, $crontab('0 0 L * *')];
         yield 'cron last friday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 * * 5L'); }, $crontab('0 0 * * 5L')];
         yield 'cron second friday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 * * FRI#2', 'context'); }, $crontab('0 0 * * FRI#2')];
-        yield 'cron question mark' => [static function () { return CronExpressionTrigger::fromSpec('0 0 ? * MON'); }, $crontab('0 0 * * MON')];
+        // cron-expression before 3.3.0 reads "?" as a restriction
+        yield 'cron question mark' => [static function () { return CronExpressionTrigger::fromSpec('0 0 ? * MON'); }, version_compare((string) InstalledVersions::getVersion('dragonmantank/cron-expression'), '3.3.0', '>=') ? $crontab('0 0 * * MON') : null];
         yield 'cron with jitter' => [static function () { return new JitterTrigger(CronExpressionTrigger::fromSpec('0 * * * *')); }, $crontab('0 * * * *')];
         yield 'cron last weekday of month' => [static function () { return CronExpressionTrigger::fromSpec('0 0 LW * *'); }, null];
         yield 'cron nearest weekday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 15W * *'); }, null];

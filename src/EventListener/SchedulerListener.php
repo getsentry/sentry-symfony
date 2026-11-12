@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Composer\InstalledVersions;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Sentry\CheckInStatus;
@@ -405,8 +406,15 @@ final class SchedulerListener implements ResetInterface
 
     private static function toCrontab(string $expression): ?string
     {
-        // cron-expression reads "?" as "*"
-        $fields = preg_split('/\s+/', trim(str_replace('?', '*', $expression)));
+        if (str_contains($expression, '?')) {
+            if (!self::readsQuestionMarkAsAsterisk()) {
+                return null;
+            }
+
+            $expression = str_replace('?', '*', $expression);
+        }
+
+        $fields = preg_split('/\s+/', trim($expression));
 
         if (false === $fields || 5 !== \count($fields)) {
             return null;
@@ -431,6 +439,20 @@ final class SchedulerListener implements ResetInterface
         }
 
         return implode(' ', $fields);
+    }
+
+    /**
+     * Whether the installed cron-expression reads "?" as "*", which it does since 3.3.0.
+     */
+    private static function readsQuestionMarkAsAsterisk(): bool
+    {
+        if (!class_exists(InstalledVersions::class) || !InstalledVersions::isInstalled('dragonmantank/cron-expression')) {
+            return false;
+        }
+
+        $version = InstalledVersions::getVersion('dragonmantank/cron-expression');
+
+        return null !== $version && version_compare($version, '3.3.0', '>=');
     }
 
     private static function isAscendingList(int $position, string $field): bool
