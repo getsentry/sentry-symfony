@@ -90,6 +90,7 @@ final class ConfigurationTest extends TestCase
     {
         $config = $this->processConfiguration(['options' => ['sample_rate' => $value]]);
 
+        $this->assertIsArray($config['options']);
         $this->assertSame($value, $config['options']['sample_rate']);
     }
 
