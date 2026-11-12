@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\EventListener;
 
+use Composer\InstalledVersions;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -40,8 +41,15 @@ use Symfony\Component\Scheduler\Messenger\SchedulerTransport;
 use Symfony\Component\Scheduler\Messenger\ServiceCallMessage;
 use Symfony\Component\Scheduler\RecurringMessage;
 use Symfony\Component\Scheduler\Schedule;
+use Symfony\Component\Scheduler\Trigger\AbstractDecoratedTrigger;
 use Symfony\Component\Scheduler\Trigger\CallbackMessageProvider;
+use Symfony\Component\Scheduler\Trigger\CallbackTrigger;
+use Symfony\Component\Scheduler\Trigger\CronExpressionTrigger;
+use Symfony\Component\Scheduler\Trigger\ExcludeTimeTrigger;
+use Symfony\Component\Scheduler\Trigger\JitterTrigger;
+use Symfony\Component\Scheduler\Trigger\PeriodicalTrigger;
 use Symfony\Component\Scheduler\Trigger\StaticMessageProvider;
+use Symfony\Component\Scheduler\Trigger\TriggerInterface;
 
 final class SchedulerListenerTest extends TestCase
 {
@@ -113,7 +121,7 @@ final class SchedulerListenerTest extends TestCase
 
     public function testSuccessfulRun(): void
     {
-        $this->schedule->add(RecurringMessage::cron('0 * * * *', new SendDailyReportMessage()));
+        $this->schedule->add(RecurringMessage::cron('0 * * * *', new SendDailyReportMessage(), 'Europe/Vienna'));
 
         $this->assertTrue($this->consume($this->getScheduledEnvelope()));
         $this->assertCount(2, $this->checkIns);
@@ -124,11 +132,21 @@ final class SchedulerListenerTest extends TestCase
         $this->assertSame(CheckInStatus::inProgress(), $start['status']);
         $this->assertNull($start['duration']);
         $this->assertNull($start['check_in_id']);
+        $this->assertNotNull($start['monitor_config']);
+        $this->assertSame([
+            'schedule' => ['type' => 'crontab', 'value' => '0 * * * *', 'unit' => ''],
+            'checkin_margin' => null,
+            'max_runtime' => null,
+            'timezone' => 'Europe/Vienna',
+            'failure_issue_threshold' => null,
+            'recovery_threshold' => null,
+        ], $start['monitor_config']->toArray());
 
         $this->assertSame($start['slug'], $finish['slug']);
         $this->assertSame(CheckInStatus::ok(), $finish['status']);
         $this->assertIsFloat($finish['duration']);
         $this->assertSame('check-in-id-1', $finish['check_in_id']);
+        $this->assertSame($start['monitor_config'], $finish['monitor_config']);
     }
 
     public function testFailedRun(): void
@@ -193,6 +211,7 @@ final class SchedulerListenerTest extends TestCase
     {
         $recurringMessage = RecurringMessage::cron('0 * * * *', new SendDailyReportMessage());
         $this->schedule->add($recurringMessage);
+        $this->skipCronBeforeCronExpression330();
         $envelopes = [];
 
         for ($i = 0; $i <= 100; ++$i) {
@@ -544,6 +563,332 @@ final class SchedulerListenerTest extends TestCase
         $this->assertSame(['default-app-send-report-all', 'default-app-send-report-all'], array_column($this->checkIns, 'slug'));
     }
 
+    public function testScheduleOfMessageThatCrossedATransport(): void
+    {
+        $message = new SendDailyReportMessage();
+        $recurringMessage = RecurringMessage::cron('0 3 * * *', $message, 'Europe/Vienna');
+        $context = $this->createContext($recurringMessage);
+
+        // Symfony keeps only the trigger's description when it serializes the context
+        $trigger = new CallbackTrigger(static function (): ?\DateTimeImmutable {
+            throw new \LogicException('Not possible to get next run date from a deserialized trigger.');
+        }, (string) $recurringMessage->getTrigger());
+        $context = new MessageContext($context->name, $context->id, $trigger, $context->triggeredAt, $context->nextTriggerAt);
+
+        $this->runPreRunEvents($recurringMessage, $context);
+
+        $monitorConfig = $this->checkIns[0]['monitor_config'];
+
+        $this->assertNotNull($monitorConfig);
+        $this->assertSame('0 3 * * *', $monitorConfig->getSchedule()->getValue());
+        $this->assertSame('Europe/Vienna', $monitorConfig->getTimezone());
+    }
+
+    public function testJitterDoesNotSetCheckInMargin(): void
+    {
+        $this->runPreRunEvents(RecurringMessage::cron('0 * * * *', new SendDailyReportMessage())->withJitter(90)->withJitter(30));
+
+        $monitorConfig = $this->checkIns[0]['monitor_config'];
+
+        $this->assertNotNull($monitorConfig);
+        $this->assertSame('0 * * * *', $monitorConfig->getSchedule()->getValue());
+        $this->assertNull($monitorConfig->getCheckinMargin());
+    }
+
+    /**
+     * @dataProvider timezoneDataProvider
+     */
+    public function testTimezone(string $timezone, ?string $expectedTimezone): void
+    {
+        $this->runPreRunEvents(RecurringMessage::cron('0 3 * * *', new SendDailyReportMessage(), $timezone));
+
+        $this->assertCount(null === $expectedTimezone ? 0 : 1, $this->checkIns);
+
+        $monitorConfig = $this->checkIns[0]['monitor_config'] ?? null;
+
+        $this->assertSame($expectedTimezone, null !== $monitorConfig ? $monitorConfig->getTimezone() : null);
+    }
+
+    /**
+     * @return iterable<string, array{string, string|null}>
+     */
+    public function timezoneDataProvider(): iterable
+    {
+        yield 'identifier' => ['America/New_York', 'America/New_York'];
+        yield 'UTC' => ['UTC', 'UTC'];
+        yield 'zero offset' => ['+00:00', 'UTC'];
+        yield 'positive offset' => ['+05:00', 'Etc/GMT-5'];
+        yield 'negative offset' => ['-03:00', 'Etc/GMT+3'];
+        yield 'abbreviation' => ['CEST', 'Etc/GMT-2'];
+        yield 'half hour offset' => ['+05:30', null];
+    }
+
+    public function testCronWithWeekdayNamesAndStepIsNotMonitored(): void
+    {
+        // Older cron-expression versions can't compute the run dates, so build the context by hand
+        $recurringMessage = RecurringMessage::trigger(CronExpressionTrigger::fromSpec('0 0 * * MON-FRI/2'), new SendDailyReportMessage());
+        $context = new MessageContext('default', $recurringMessage->getId(), $recurringMessage->getTrigger(), new \DateTimeImmutable('2026-01-02 00:00:00', new \DateTimeZone('UTC')));
+
+        $this->runPreRunEvents($recurringMessage, $context);
+
+        $this->assertSame([], $this->checkIns);
+    }
+
+    /**
+     * @dataProvider cronReadDifferentlyDataProvider
+     */
+    public function testCronThatSentryReadsDifferentlyIsNotMonitored(string $expression): void
+    {
+        $this->logger->expects($this->never())->method('warning');
+
+        try {
+            $trigger = CronExpressionTrigger::fromSpec($expression);
+        } catch (\InvalidArgumentException $exception) {
+            $this->markTestSkipped('This version of dragonmantank/cron-expression rejects the expression.');
+        }
+
+        // Some cron-expression versions can't compute the run dates, so build the context by hand
+        $recurringMessage = RecurringMessage::trigger($trigger, new SendDailyReportMessage());
+        $this->runPreRunEvents($recurringMessage, new MessageContext('default', $recurringMessage->getId(), $trigger, new \DateTimeImmutable('2026-01-02 00:00:00', new \DateTimeZone('UTC'))));
+
+        $this->assertSame([], $this->checkIns);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public function cronReadDifferentlyDataProvider(): iterable
+    {
+        yield 'descending hour list' => ['0 22,6 * * *'];
+        yield 'hour range before an earlier hour' => ['0 20,9-17 * * *'];
+        yield 'hour step before an earlier hour' => ['0 */6,3 * * *'];
+        yield 'descending minute list' => ['30,0 * * * *'];
+        yield 'minute list and a range' => ['5,10-15 * * * *'];
+        yield 'minute list and a step' => ['*/20,5 * * * *'];
+        yield 'single-value range and a step' => ['0 5-5/2 * * *'];
+        yield 'sunday range from 0' => ['0 0 * * 0-0'];
+        yield 'sunday range from 7' => ['0 0 * * 7-7'];
+        yield 'whole week range and a step' => ['0 0 * * 0-7/2'];
+    }
+
+    /**
+     * @dataProvider stepLongerThanItsRangeDataProvider
+     */
+    public function testCronListWithAStepLongerThanItsRange(string $expression, ?string $expectedCrontab): void
+    {
+        try {
+            $trigger = CronExpressionTrigger::fromSpec($expression);
+            $trigger->getNextRunDate(new \DateTimeImmutable());
+        } catch (\Throwable $exception) {
+            $this->markTestSkipped('This version of dragonmantank/cron-expression can\'t run the expression.');
+        }
+
+        $this->runPreRunEvents(RecurringMessage::trigger($trigger, new SendDailyReportMessage()));
+
+        $monitorConfig = $this->checkIns[0]['monitor_config'] ?? null;
+
+        $this->assertSame($expectedCrontab, null !== $monitorConfig ? $monitorConfig->getSchedule()->getValue() : null);
+    }
+
+    /**
+     * @return iterable<string, array{string, string|null}>
+     */
+    public function stepLongerThanItsRangeDataProvider(): iterable
+    {
+        yield 'before a later hour' => ['0 8-9/2,12 * * *', '0 8-9/2,12 * * *'];
+        yield 'after an earlier hour' => ['0 1,8-9/2 * * *', '0 1,8-9/2 * * *'];
+        yield 'before an earlier hour' => ['0 10-11/5,6 * * *', null];
+    }
+
+    public function testCronIsNotMonitoredBeforeCronExpression330(): void
+    {
+        if (self::isCronMonitored()) {
+            $this->markTestSkipped('This test requires dragonmantank/cron-expression older than 3.3.0.');
+        }
+
+        $this->logger->expects($this->once())->method('debug')->with('Not monitoring the scheduled messages with the slug "default-send-daily-report-message" because Sentry can\'t express their schedule. Cron expressions need dragonmantank/cron-expression 3.3.0 or later.');
+        $recurringMessage = RecurringMessage::cron('0 * * * *', new SendDailyReportMessage());
+        $this->schedule->add($recurringMessage);
+        $context = $this->createContext($recurringMessage);
+
+        $this->dispatcher->dispatch(new WorkerMessageReceivedEvent(new Envelope(new SendDailyReportMessage(), [new ScheduledStamp($context)]), 'scheduler_default'));
+
+        $this->assertSame([], $this->checkIns);
+    }
+
+    public function testHashedCronExpression(): void
+    {
+        $recurringMessage = RecurringMessage::cron('#midnight', new RunCommandMessage('app:send-report'));
+        $this->runPreRunEvents($recurringMessage);
+
+        $this->assertNotNull($this->checkIns[0]['monitor_config']);
+        $this->assertSame((string) $recurringMessage->getTrigger(), $this->checkIns[0]['monitor_config']->getSchedule()->getValue());
+    }
+
+    /**
+     * @dataProvider scheduleDataProvider
+     *
+     * @param array<string, mixed>|null $expectedSchedule
+     */
+    public function testSchedule(callable $createTrigger, ?array $expectedSchedule): void
+    {
+        $this->runPreRunEvents(RecurringMessage::trigger($createTrigger(), new SendDailyReportMessage()));
+
+        $this->assertCount(null === $expectedSchedule ? 0 : 1, $this->checkIns);
+
+        $monitorConfig = $this->checkIns[0]['monitor_config'] ?? null;
+
+        $this->assertSame($expectedSchedule, null !== $monitorConfig ? $monitorConfig->getSchedule()->toArray() : null);
+    }
+
+    /**
+     * @return iterable<string, array{callable(): TriggerInterface, array<string, mixed>|null}>
+     */
+    public function scheduleDataProvider(): iterable
+    {
+        $crontab = static function (string $value): array {
+            return ['type' => 'crontab', 'value' => $value, 'unit' => ''];
+        };
+        $interval = static function (int $value, string $unit): array {
+            return ['type' => 'interval', 'value' => $value, 'unit' => $unit];
+        };
+        $excluded = static function (TriggerInterface $trigger): TriggerInterface {
+            return new ExcludeTimeTrigger($trigger, new \DateTimeImmutable('2026-06-01'), new \DateTimeImmutable('2026-06-02'));
+        };
+
+        yield 'cron' => [static function () { return CronExpressionTrigger::fromSpec('15 * * * 1'); }, $crontab('15 * * * 1')];
+        yield 'cron alias' => [static function () { return CronExpressionTrigger::fromSpec('@daily'); }, $crontab('0 0 * * *')];
+        yield 'cron with names' => [static function () { return CronExpressionTrigger::fromSpec('0 9 * JAN-JUN mon-fri'); }, $crontab('0 9 * JAN-JUN mon-fri')];
+        yield 'cron with steps and lists' => [static function () { return CronExpressionTrigger::fromSpec('*/15 8-18/2 1,15 * *'); }, $crontab('*/15 8-18/2 1,15 * *')];
+        yield 'cron with both days' => [static function () { return CronExpressionTrigger::fromSpec('0 0 1-7 * 1'); }, $crontab('0 0 1-7 * 1')];
+        yield 'cron last day of month' => [static function () { return CronExpressionTrigger::fromSpec('0 0 L * *'); }, $crontab('0 0 L * *')];
+        yield 'cron last friday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 * * 5L'); }, $crontab('0 0 * * 5L')];
+        yield 'cron second friday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 * * FRI#2', 'context'); }, $crontab('0 0 * * FRI#2')];
+        yield 'cron question mark' => [static function () { return CronExpressionTrigger::fromSpec('0 0 ? * MON'); }, $crontab('0 0 * * MON')];
+        yield 'cron with jitter' => [static function () { return new JitterTrigger(CronExpressionTrigger::fromSpec('0 * * * *')); }, $crontab('0 * * * *')];
+        yield 'cron last weekday of month' => [static function () { return CronExpressionTrigger::fromSpec('0 0 LW * *'); }, null];
+        yield 'cron nearest weekday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 15W * *'); }, null];
+        yield 'cron last friday by name' => [static function () { return CronExpressionTrigger::fromSpec('0 0 * * FRIL'); }, null];
+        yield 'cron day step and weekday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 */2 * 1'); }, null];
+        yield 'cron day and weekday step' => [static function () { return CronExpressionTrigger::fromSpec('0 0 1 * */2'); }, null];
+        yield 'cron with a reversed range' => [static function () { return CronExpressionTrigger::fromSpec('0 1,22-2 * * *'); }, null];
+        yield 'cron with a step longer than the field' => [static function () { return CronExpressionTrigger::fromSpec('*/90 * * * *'); }, null];
+        yield 'cron with a weekday range ending on sunday' => [static function () { return CronExpressionTrigger::fromSpec('0 0 * * SAT-SUN'); }, null];
+        yield 'cron with ascending minute and hour lists' => [static function () { return CronExpressionTrigger::fromSpec('0,30 6,9-17,20 * * *'); }, $crontab('0,30 6,9-17,20 * * *')];
+        yield 'cron with excluded time' => [static function () use ($excluded) { return $excluded(CronExpressionTrigger::fromSpec('0 * * * *')); }, null];
+        yield 'cron with jitter and excluded time' => [static function () use ($excluded) { return new JitterTrigger($excluded(CronExpressionTrigger::fromSpec('0 * * * *'))); }, null];
+        yield 'every minute' => [static function () { return new PeriodicalTrigger(60); }, $interval(1, 'minute')];
+        yield 'every 5 minutes' => [static function () { return new PeriodicalTrigger('PT5M'); }, $interval(5, 'minute')];
+        yield 'every 90 minutes' => [static function () { return new PeriodicalTrigger('90 minutes'); }, $interval(90, 'minute')];
+        yield 'every 2 hours' => [static function () { return new PeriodicalTrigger('2 hours'); }, $interval(2, 'hour')];
+        yield 'every day' => [static function () { return new PeriodicalTrigger('P1D'); }, $interval(1, 'day')];
+        yield 'every week' => [static function () { return new PeriodicalTrigger('P1W'); }, $interval(1, 'week')];
+        yield 'every 30 seconds' => [static function () { return new PeriodicalTrigger(30); }, null];
+        yield 'every 90 seconds' => [static function () { return new PeriodicalTrigger(90); }, null];
+        yield 'periodical subclass' => [static function () { return new class(3600) extends PeriodicalTrigger {}; }, null];
+        yield 'callback' => [static function () {
+            return new CallbackTrigger(static function (\DateTimeImmutable $run): \DateTimeImmutable {
+                return $run->modify('+1 hour');
+            }, 'hourly');
+        }, null];
+    }
+
+    /**
+     * @dataProvider calendarIntervalDataProvider
+     *
+     * @param array<string, mixed>|null $expectedSchedule
+     */
+    public function testCalendarInterval(string $interval, string $from, ?array $expectedSchedule, ?string $expectedTimezone = null): void
+    {
+        $trigger = new PeriodicalTrigger($interval, new \DateTimeImmutable($from));
+        $this->runPreRunEvents(RecurringMessage::trigger($trigger, new SendDailyReportMessage()));
+
+        $this->assertCount(null === $expectedSchedule ? 0 : 1, $this->checkIns);
+
+        $monitorConfig = $this->checkIns[0]['monitor_config'] ?? null;
+
+        $this->assertSame($expectedSchedule, null !== $monitorConfig ? $monitorConfig->getSchedule()->toArray() : null);
+        $this->assertSame($expectedTimezone, null !== $monitorConfig ? $monitorConfig->getTimezone() : null);
+    }
+
+    /**
+     * @return iterable<string, array{string, string, array<string, mixed>|null, 3?: string|null}>
+     */
+    public function calendarIntervalDataProvider(): iterable
+    {
+        $crontab = static function (string $value): array {
+            return ['type' => 'crontab', 'value' => $value, 'unit' => ''];
+        };
+        $interval = static function (int $value, string $unit): array {
+            return ['type' => 'interval', 'value' => $value, 'unit' => $unit];
+        };
+
+        yield 'day' => ['1 day', '2026-01-05 13:47 Europe/Vienna', $crontab('47 13 * * *'), 'Europe/Vienna'];
+        yield 'week' => ['1 week', '2026-01-05 13:47 Europe/Vienna', $crontab('47 13 * * 1'), 'Europe/Vienna'];
+        yield 'month' => ['1 month', '2026-01-15 08:05 UTC', $crontab('5 8 15 * *'), 'UTC'];
+        yield 'quarter' => ['3 months', '2026-05-15 08:05 UTC', $crontab('5 8 15 2,5,8,11 *'), 'UTC'];
+        yield 'year' => ['1 year', '2026-03-10 08:05 UTC', $crontab('5 8 10 3 *'), 'UTC'];
+        yield 'days without DST' => ['2 days', '2026-01-05 13:47 UTC', $interval(2, 'day')];
+        yield 'weeks without DST' => ['2 weeks', '2026-01-05 13:47 +02:00', $interval(2, 'week')];
+        yield 'days with DST' => ['2 days', '2026-01-05 13:47 Europe/Vienna', null];
+        yield 'month from a day some months lack' => ['1 month', '2026-01-31 08:05 UTC', null];
+        yield 'months that do not divide a year' => ['5 months', '2026-01-15 08:05 UTC', null];
+        yield 'day and hours' => ['1 day 2 hours', '2026-01-05 13:47 UTC', null];
+        yield 'relative weekday' => ['next monday', '2026-01-05 13:47 UTC', null];
+    }
+
+    public function testCalendarIntervalObject(): void
+    {
+        $this->runPreRunEvents(RecurringMessage::trigger(new PeriodicalTrigger(new \DateInterval('P1D'), new \DateTimeImmutable('2026-01-05 13:47 UTC')), new SendDailyReportMessage()));
+
+        $monitorConfig = $this->checkIns[0]['monitor_config'];
+
+        $this->assertNotNull($monitorConfig);
+        $this->assertSame('47 13 * * *', $monitorConfig->getSchedule()->getValue());
+    }
+
+    public function testCalendarIntervalKeepsTheTimeOfDayAcrossDst(): void
+    {
+        // Europe/Vienna moves to summer time on 2026-03-29
+        $this->assertSame(['47 13 * * *', '47 13 * * *', '47 13 * * *', '47 13 * * *'], $this->runCalendarInterval('2026-03-27 13:47'));
+    }
+
+    public function testCalendarIntervalStartingInADstGapHourMovesToTheNextHour(): void
+    {
+        // 02:30 doesn't exist on 2026-03-29 in Europe/Vienna, so Symfony runs at 03:30 from then on
+        $this->assertSame(['30 2 * * *', '30 3 * * *', '30 3 * * *', '30 3 * * *'], $this->runCalendarInterval('2026-03-27 02:30'));
+    }
+
+    public function testCalendarIntervalWithJitterStartingInADstGapHourIsNotMonitoredAfterTheGap(): void
+    {
+        $this->assertSame(['30 2 * * *', null, null, null], $this->runCalendarInterval('2026-03-27 02:30', true));
+    }
+
+    public function testCalendarIntervalWithoutStartUsesTheRunTime(): void
+    {
+        $recurringMessage = RecurringMessage::every('1 day', new SendDailyReportMessage());
+        $context = new MessageContext('default', $recurringMessage->getId(), $recurringMessage->getTrigger(), new \DateTimeImmutable('2026-01-02 06:30 Europe/Paris'));
+
+        $this->runPreRunEvents($recurringMessage, $context);
+
+        $monitorConfig = $this->checkIns[0]['monitor_config'];
+
+        $this->assertNotNull($monitorConfig);
+        $this->assertSame('30 6 * * *', $monitorConfig->getSchedule()->getValue());
+        $this->assertSame('Europe/Paris', $monitorConfig->getTimezone());
+    }
+
+    public function testCalendarIntervalWithJitter(): void
+    {
+        $this->runPreRunEvents(RecurringMessage::every('1 day', new SendDailyReportMessage(), '2026-01-05 13:47 UTC')->withJitter(120));
+
+        $monitorConfig = $this->checkIns[0]['monitor_config'];
+
+        $this->assertNotNull($monitorConfig);
+        $this->assertSame('47 13 * * *', $monitorConfig->getSchedule()->getValue());
+        $this->assertNull($monitorConfig->getCheckinMargin());
+    }
+
     public function testMessageOfAnotherProviderIsReported(): void
     {
         $this->schedule->add(RecurringMessage::cron('0 * * * *', new CallbackMessageProvider(static function (): iterable {
@@ -640,6 +985,7 @@ final class SchedulerListenerTest extends TestCase
      */
     private function getScheduledEnvelopes(bool $useMessengerRouting = false, string $scheduleName = 'default'): array
     {
+        $this->skipCronBeforeCronExpression330();
         $clock = new MockClock('2025-12-31 23:59:30', 'UTC');
         // The $useMessengerRouting argument exists since Symfony 8.2, and older versions ignore it
         $transport = (new \ReflectionClass(SchedulerTransport::class))->newInstance(new MessageGenerator($this->schedule, $scheduleName, $clock), $useMessengerRouting);
@@ -662,6 +1008,66 @@ final class SchedulerListenerTest extends TestCase
             'async' => static function (): InMemoryTransport { return new InMemoryTransport(); },
             'sync' => static function (): SyncTransport { return new SyncTransport(new MessageBus()); },
         ]));
+    }
+
+    /**
+     * Starts the first runs of a daily message from the given time in Europe/Vienna.
+     *
+     * @return list<string|null> The crontab of each run, or null when it isn't monitored
+     */
+    private function runCalendarInterval(string $from, bool $withJitter = false): array
+    {
+        $trigger = new PeriodicalTrigger('1 day', new \DateTimeImmutable($from, new \DateTimeZone('Europe/Vienna')));
+        $message = new SendDailyReportMessage();
+        $recurringMessage = RecurringMessage::trigger($withJitter ? new JitterTrigger($trigger, 60) : $trigger, $message);
+        $this->schedule->add($recurringMessage);
+        $crontabs = [];
+        $run = new \DateTimeImmutable($from, new \DateTimeZone('Europe/Vienna'));
+
+        for ($i = 0; $i < 4; ++$i) {
+            $run = $trigger->getNextRunDate($run);
+            $this->assertNotNull($run);
+            $started = \count($this->checkIns);
+
+            $context = new MessageContext('default', $recurringMessage->getId(), $trigger, $run);
+            $this->dispatcher->dispatch(new WorkerMessageReceivedEvent(new Envelope($message, [new ScheduledStamp($context)]), 'scheduler_default'));
+
+            $monitorConfig = $this->checkIns[$started]['monitor_config'] ?? null;
+            $crontabs[] = null !== $monitorConfig ? (string) $monitorConfig->getSchedule()->getValue() : null;
+        }
+
+        return $crontabs;
+    }
+
+    /**
+     * Starts the runs of the recurring message, at its first run of 2026 unless a context is given.
+     */
+    private function runPreRunEvents(RecurringMessage $recurringMessage, ?MessageContext $context = null): void
+    {
+        $this->schedule->add($recurringMessage);
+        $this->skipCronBeforeCronExpression330();
+        $context = $context ?? $this->createContext($recurringMessage);
+
+        foreach ($recurringMessage->getMessages($context) as $message) {
+            $this->dispatcher->dispatch(new WorkerMessageReceivedEvent(Envelope::wrap($message, [new ScheduledStamp($context)]), 'scheduler_default'));
+        }
+    }
+
+    private function skipCronBeforeCronExpression330(): void
+    {
+        foreach ($this->schedule->getRecurringMessages() as $recurringMessage) {
+            $trigger = $recurringMessage->getTrigger();
+            $trigger = $trigger instanceof AbstractDecoratedTrigger ? $trigger->inner() : $trigger;
+
+            if ($trigger instanceof CronExpressionTrigger && !self::isCronMonitored()) {
+                $this->markTestSkipped('Cron expressions aren\'t monitored before dragonmantank/cron-expression 3.3.0.');
+            }
+        }
+    }
+
+    private static function isCronMonitored(): bool
+    {
+        return version_compare((string) InstalledVersions::getVersion('dragonmantank/cron-expression'), '3.3.0', '>=');
     }
 
     private function createContext(RecurringMessage $recurringMessage): MessageContext

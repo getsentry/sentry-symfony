@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\End2End;
 
+use Composer\InstalledVersions;
 use Sentry\CheckInStatus;
 use Sentry\EventType;
 use Sentry\SentryBundle\Tests\End2End\App\KernelWithScheduler;
@@ -29,6 +30,11 @@ final class SchedulerEnd2EndTest extends KernelTestCase
             $this->markTestSkipped('This test requires the "symfony/scheduler" Composer package (6.4 or newer) to be installed.');
         }
 
+        // The schedules of this app use cron expressions
+        if (version_compare((string) InstalledVersions::getVersion('dragonmantank/cron-expression'), '3.3.0', '<')) {
+            $this->markTestSkipped('Cron expressions aren\'t monitored before dragonmantank/cron-expression 3.3.0.');
+        }
+
         StubTransport::$events = [];
         StaticInMemoryTransport::reset();
     }
@@ -52,6 +58,7 @@ final class SchedulerEnd2EndTest extends KernelTestCase
         $this->assertSame($checkIns[2]['slug'], $checkIns[3]['slug']);
         $this->assertSame($checkIns[0]['id'], $checkIns[1]['id']);
         $this->assertSame($checkIns[2]['id'], $checkIns[3]['id']);
+        $this->assertSame(['type' => 'crontab', 'value' => '* * * * *', 'unit' => ''], $checkIns[0]['schedule']);
     }
 
     public function testRedispatchedMessageIsMonitoredWhenConsumed(): void
