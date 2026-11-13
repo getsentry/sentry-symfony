@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\DataCollection\DataCollectionPolicy;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
@@ -42,7 +41,7 @@ final class TracingSubRequestListener extends AbstractTracingRequestListener
                     ->setOp('http.server')
                     ->setData([
                         'http.request.method' => $request->getMethod(),
-                        'http.url' => $this->getRequestUrl($request, DataCollectionPolicy::fromOptions($this->sentry->getClient()->getOptions())),
+                        'http.url' => $this->getRequestUrl($request, $this->sentry->getClient()->getOptions()),
                         'route' => $this->getRouteName($request),
                     ])
                     ->setOrigin('auto.http.server')

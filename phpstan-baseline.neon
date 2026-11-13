@@ -342,7 +342,7 @@ parameters:
 
 		-
 			message: "#^Access to undefined constant Symfony\\\\Component\\\\HttpKernel\\\\HttpKernelInterface\\:\\:MASTER_REQUEST\\.$#"
-			count: 9
+			count: 7
 			path: tests/EventListener/RequestListenerTest.php
 
 		-

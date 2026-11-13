@@ -111,6 +111,7 @@ final class TraceableHttpClientTest extends TestCase
             'http.request.method' => 'GET',
             'http.query' => 'foo=bar',
             'http.fragment' => 'baz',
+            'url.full' => 'https://[Filtered]:[Filtered]@www.example.com/test-page?foo=bar#baz',
             'http.response.status_code' => 200,
         ];
 
@@ -183,17 +184,6 @@ final class TraceableHttpClientTest extends TestCase
      */
     public function requestCollectsDataDataProvider(): \Generator
     {
-        yield 'The legacy options only collect the query string' => [
-            new Options(['send_default_pii' => true]),
-            [
-                'http.url' => 'https://www.example.com/test-page',
-                'http.request.method' => 'GET',
-                'http.query' => 'token=secret&page=1',
-                'http.fragment' => 'baz',
-                'http.response.status_code' => 200,
-            ],
-        ];
-
         yield 'The data collection options collect and filter the URL, headers and cookies' => [
             new Options(['data_collection' => []]),
             [
@@ -368,12 +358,6 @@ final class TraceableHttpClientTest extends TestCase
      */
     public function requestCollectsBodyDataProvider(): \Generator
     {
-        yield 'The legacy options do not collect the body' => [
-            new Options(['send_default_pii' => true]),
-            ['json' => ['username' => 'jane', 'password' => 'secret']],
-            null,
-        ];
-
         yield 'The body of the json option is collected and filtered' => [
             new Options(['data_collection' => []]),
             ['json' => ['username' => 'jane', 'password' => 'secret']],
@@ -476,6 +460,7 @@ final class TraceableHttpClientTest extends TestCase
         $expectedData = [
             'http.url' => 'https://www.example.com/test-page',
             'http.request.method' => 'PUT',
+            'url.full' => 'https://www.example.com/test-page',
         ];
 
         $this->assertCount(2, $spans);
@@ -583,14 +568,14 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame(SpanStatus::unknownError(), $spans[1]->getStatus());
     }
 
-    public function testRequestDoesNotReadResponseDataWithLegacyOptions(): void
+    public function testRequestDoesNotReadResponseDataIfSpanIsNotSampled(): void
     {
         $client = $this->createMock(ClientInterface::class);
         $client->method('getOptions')
-            ->willReturn(new Options(['send_default_pii' => true, 'trace_propagation_targets' => []]));
+            ->willReturn(new Options(['trace_propagation_targets' => []]));
 
         $transactionContext = new TransactionContext();
-        $transactionContext->setSampled(true);
+        $transactionContext->setSampled(false);
 
         $transaction = new Transaction($transactionContext);
         $transaction->initSpanRecorder();
@@ -657,6 +642,7 @@ final class TraceableHttpClientTest extends TestCase
         $expectedData = [
             'http.url' => 'https://www.example.com/test-page',
             'http.request.method' => 'GET',
+            'url.full' => 'https://www.example.com/test-page',
             'http.response.status_code' => 200,
         ];
 

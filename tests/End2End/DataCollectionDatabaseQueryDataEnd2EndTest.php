@@ -77,11 +77,6 @@ final class DataCollectionDatabaseQueryDataEnd2EndTest extends WebTestCase
 
     public function queryDataDataProvider(): \Generator
     {
-        yield 'The legacy options do not collect query parameters' => [
-            [],
-            [],
-        ];
-
         yield 'The data collection options collect query parameters by default' => [
             [__DIR__ . '/App/config/data_collection/defaults.yml'],
             ['db.query.parameter.0' => 1],

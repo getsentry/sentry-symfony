@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\DataCollection\DataCollectionPolicy;
 use Sentry\DataCollection\KeyValueCollectionBehavior;
 use Sentry\DataCollection\KeyValueDataFilter;
 use Sentry\Event;
 use Sentry\EventHint;
 use Sentry\ExceptionMechanism;
 use Sentry\Logs\Logs;
-use Sentry\Metrics\TraceMetrics;
+use Sentry\Metrics\Metrics;
 use Sentry\SentryBundle\Sentry;
 use Sentry\State\IsolationScope;
 use Symfony\Component\Console\Command\Command;
@@ -72,17 +71,13 @@ class ConsoleListener
     }
 
     /**
-     * Gets the command as it was run. The data collection options filter the values
-     * of arguments and options with a sensitive name, e.g. "app:import --password=secret"
-     * becomes "app:import --password=[Filtered]".
+     * Gets the command as it was run. The values of arguments and options with a
+     * sensitive name are filtered, e.g. "app:import --password=secret" becomes
+     * "app:import --password=[Filtered]".
      */
     private function getFullCommand(ArgvInput $input, ?Command $command): string
     {
         $fullCommand = (string) $input;
-
-        if (DataCollectionPolicy::fromOptions($this->sentry->getClient()->getOptions())->isLegacyMode()) {
-            return $fullCommand;
-        }
 
         // The tokens after an invalid one, e.g. an unknown option, are not parsed,
         // so it is unknown whether their values are sensitive so we assume they are.
@@ -136,7 +131,7 @@ class ConsoleListener
     public function handleConsoleTerminateEvent(ConsoleTerminateEvent $event): void
     {
         Logs::getInstance()->flush();
-        TraceMetrics::getInstance()->flush();
+        Metrics::getInstance()->flush();
         $this->sentry->popScope();
     }
 

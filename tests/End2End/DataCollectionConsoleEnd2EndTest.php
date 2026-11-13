@@ -53,13 +53,6 @@ final class DataCollectionConsoleEnd2EndTest extends KernelTestCase
 
     public function fullCommandDataProvider(): \Generator
     {
-        yield 'The legacy options do not filter the command' => [
-            [],
-            ['--api-key=secret', '--option1', 'bar'],
-            'This is an intentional error',
-            'main-command --api-key=secret --option1 bar',
-        ];
-
         yield 'The data collection options filter the values of sensitive options' => [
             [__DIR__ . '/App/config/data_collection/defaults.yml'],
             ['--api-key=secret', '--option1', 'bar'],

@@ -127,11 +127,6 @@ final class TracingStatementForV4Test extends DoctrineTestCase
      */
     public function executeCollectsBoundParametersDataProvider(): \Generator
     {
-        yield 'The legacy options do not collect query parameters' => [
-            new Options(['send_default_pii' => true]),
-            ['db.system' => 'sqlite'],
-        ];
-
         yield 'The data collection options collect query parameters by default' => [
             new Options(['data_collection' => []]),
             [
