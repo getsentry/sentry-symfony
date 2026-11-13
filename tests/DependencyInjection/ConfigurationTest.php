@@ -30,7 +30,6 @@ final class ConfigurationTest extends TestCase
                 'integrations' => [],
                 'prefixes' => array_merge(['%kernel.project_dir%'], array_filter(explode(\PATH_SEPARATOR, get_include_path() ?: ''))),
                 'log_flush_threshold' => null,
-                'enable_metrics' => true,
                 'environment' => '%kernel.environment%',
                 'release' => '%env(default::SENTRY_RELEASE)%',
                 'ignore_exceptions' => [],
@@ -443,7 +442,7 @@ final class ConfigurationTest extends TestCase
     public function testDataCollectionOptionDoesNotAcceptFalse(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid configuration for path "sentry.options.data_collection": the value false is not supported, use null to keep the legacy options.');
+        $this->expectExceptionMessage('Invalid configuration for path "sentry.options.data_collection": the value false is not supported, use null to apply the defaults.');
 
         $this->processConfiguration(['options' => ['data_collection' => false]]);
     }

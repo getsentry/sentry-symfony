@@ -94,11 +94,8 @@ final class Configuration implements ConfigurationInterface
                             ->max(1.0)
                             ->info('The sampling factor to apply to profiles. A value of 0 will deny sending any profiles, and a value of 1 will send all profiles. Profiles are sampled in relation to traces_sample_rate')
                         ->end()
-                        ->booleanNode('enable_logs')->end()
                         ->variableNode('log_flush_threshold')->defaultNull()->end()
-                        ->booleanNode('enable_metrics')->defaultTrue()->end()
                         ->booleanNode('attach_stacktrace')->end()
-                        ->integerNode('context_lines')->min(0)->end()
                         ->scalarNode('environment')
                             ->cannotBeEmpty()
                             ->defaultValue('%kernel.environment%')
@@ -192,7 +189,6 @@ final class Configuration implements ConfigurationInterface
                             ->scalarPrototype()->end()
                             ->beforeNormalization()->castToArray()->end()
                         ->end()
-                        ->booleanNode('send_default_pii')->end()
                         ->append($this->createDataCollectionNode())
                         ->scalarNode('transport')->end()
                         ->scalarNode('http_client')->end()
@@ -241,16 +237,16 @@ final class Configuration implements ConfigurationInterface
 
         // @phpstan-ignore-next-line
         $node
-            ->info('Opts into the data collection options, which replace legacy options such as "send_default_pii". An empty array applies the default of every option, null keeps the legacy options even if an earlier config file opted in.')
-            // A null value is unset after merging, which keeps the legacy options such as `send_default_pii`
-            // even if an earlier config file opted in. The false value is only used internally for this.
+            ->info('Configures the data that is collected automatically. An empty array or null applies the default of every option, null does so even if an earlier config file set some of them.')
+            // A null value is unset after merging, which restores the default of every option
+            // even if an earlier config file set some of them. The false value is only used internally for this.
             ->treatNullLike(false)
             ->canBeUnset()
             ->beforeNormalization()
                 ->ifTrue(static function ($value): bool {
                     return false === $value;
                 })
-                ->thenInvalid('Invalid configuration for path "sentry.options.data_collection": the value %s is not supported, use null to keep the legacy options.')
+                ->thenInvalid('Invalid configuration for path "sentry.options.data_collection": the value %s is not supported, use null to apply the defaults.')
             ->end()
             ->fixXmlConfig('http_body', 'http_bodies')
             ->children()

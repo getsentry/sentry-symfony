@@ -6,11 +6,8 @@ namespace Sentry\SentryBundle\Tests\EventListener;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Sentry\ClientInterface;
 use Sentry\Event;
 use Sentry\EventHint;
-use Sentry\NoOpClient;
-use Sentry\Options;
 use Sentry\SentryBundle\EventListener\ConsoleListener;
 use Sentry\SentryBundle\Sentry;
 use Sentry\State\GlobalScope;
@@ -55,9 +52,6 @@ abstract class AbstractConsoleListenerTest extends TestCase
             ->method('pushScope')
             ->willReturn($scope);
 
-        $this->sentry->method('getClient')
-            ->willReturn(new NoOpClient());
-
         $listener->handleConsoleCommandEvent($consoleEvent);
 
         $event = (new GlobalScope())->merge($scope)->applyToEvent(Event::createEvent());
@@ -90,8 +84,14 @@ abstract class AbstractConsoleListenerTest extends TestCase
             [],
         ];
 
+        $command = new Command('foo:bar');
+        $command->setDefinition(new InputDefinition([
+            new InputArgument('command'),
+            new InputOption('foo', null, InputOption::VALUE_REQUIRED),
+        ]));
+
         yield [
-            new ConsoleCommandEvent(new Command('foo:bar'), new ArgvInput(['bin/console', 'foo:bar', '--foo=bar']), new NullOutput()),
+            new ConsoleCommandEvent($command, new ArgvInput(['bin/console', 'foo:bar', '--foo=bar']), new NullOutput()),
             ['console.command' => 'foo:bar'],
             ['Full command' => "'foo:bar' --foo=bar"],
         ];
@@ -102,18 +102,11 @@ abstract class AbstractConsoleListenerTest extends TestCase
      *
      * @dataProvider handleConsoleCommandEventFiltersSensitiveValuesDataProvider
      */
-    public function testHandleConsoleCommandEventFiltersSensitiveValues(Options $options, array $argv, string $expectedFullCommand): void
+    public function testHandleConsoleCommandEventFiltersSensitiveValues(array $argv, string $expectedFullCommand): void
     {
         $listenerClass = static::getListenerClass();
         $scope = new IsolationScope();
         $listener = new $listenerClass($this->sentry);
-
-        $client = $this->createMock(ClientInterface::class);
-        $client->method('getOptions')
-            ->willReturn($options);
-
-        $this->sentry->method('getClient')
-            ->willReturn($client);
 
         $this->sentry->expects($this->once())
             ->method('pushScope')
@@ -149,64 +142,44 @@ abstract class AbstractConsoleListenerTest extends TestCase
      */
     public function handleConsoleCommandEventFiltersSensitiveValuesDataProvider(): \Generator
     {
-        yield 'The legacy options do not filter the command' => [
-            new Options(['send_default_pii' => true]),
-            ['bin/console', 'app:import', '--password=secret'],
-            "'app:import' --password=secret",
-        ];
-
         yield 'The value of a sensitive option given after "="' => [
-            new Options(['data_collection' => []]),
             ['bin/console', 'app:import', '--password=secret', '--limit=10'],
             "'app:import' --password=[Filtered] --limit=10",
         ];
 
         yield 'The value of a sensitive option given as separate token' => [
-            new Options(['data_collection' => []]),
             ['bin/console', 'app:import', '--password', 'secret'],
             "'app:import' --password [Filtered]",
         ];
 
         yield 'The value of a sensitive option given with its shortcut' => [
-            new Options(['data_collection' => []]),
             ['bin/console', 'app:import', '-p', 'secret'],
             "'app:import' -p [Filtered]",
         ];
 
         yield 'The value of a sensitive option given right after its shortcut' => [
-            new Options(['data_collection' => []]),
             ['bin/console', 'app:import', '-psecret'],
             "'app:import' -p[Filtered]",
         ];
 
         yield 'The value of a sensitive option that is escaped' => [
-            new Options(['data_collection' => []]),
             ['bin/console', 'app:import', '--password=my secret'],
             "'app:import' --password=[Filtered]",
         ];
 
         yield 'The value of a sensitive argument' => [
-            new Options(['data_collection' => []]),
             ['bin/console', 'app:import', 'abc123', '--limit=10'],
             "'app:import' [Filtered] --limit=10",
         ];
 
         yield 'The value of a sensitive option given right after combined shortcuts' => [
-            new Options(['data_collection' => []]),
             ['bin/console', 'app:import', '-fpsecret'],
             "'app:import' -fp[Filtered]",
         ];
 
         yield 'The arguments and options of an invalid input are filtered' => [
-            new Options(['data_collection' => []]),
             ['bin/console', 'app:import', '--unknown', '--password=secret'],
             "'app:import' [Filtered]",
-        ];
-
-        yield 'The legacy options do not filter an invalid input' => [
-            new Options(['send_default_pii' => true]),
-            ['bin/console', 'app:import', '--unknown', '--password=secret'],
-            "'app:import' --unknown --password=secret",
         ];
     }
 

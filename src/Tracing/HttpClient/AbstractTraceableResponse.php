@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tracing\HttpClient;
 
-use Sentry\DataCollection\DataCollectionPolicy;
 use Sentry\DataCollection\HttpMessageType;
 use Sentry\DataCollection\HttpSpanDataCollector;
+use Sentry\Options;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanStatus;
 use Symfony\Contracts\HttpClient\ChunkInterface;
@@ -42,9 +42,11 @@ abstract class AbstractTraceableResponse implements ResponseInterface
     protected $streamed = false;
 
     /**
-     * @var DataCollectionPolicy|null
+     * The SDK options, or null if no data is collected from the response.
+     *
+     * @var Options|null
      */
-    private $policy;
+    private $options;
 
     /**
      * @var bool
@@ -56,12 +58,12 @@ abstract class AbstractTraceableResponse implements ResponseInterface
      */
     private $responseContentCollected = false;
 
-    public function __construct(HttpClientInterface $client, ResponseInterface $response, ?Span $span, ?DataCollectionPolicy $policy = null)
+    public function __construct(HttpClientInterface $client, ResponseInterface $response, ?Span $span, ?Options $options = null)
     {
         $this->client = $client;
         $this->response = $response;
         $this->span = $span;
-        $this->policy = $policy;
+        $this->options = $options;
     }
 
     public function __destruct()
@@ -194,8 +196,8 @@ abstract class AbstractTraceableResponse implements ResponseInterface
         }
 
         $span = $this->span;
-        $policy = $this->policy;
-        if (null === $policy || !$span->getSampled()) {
+        $options = $this->options;
+        if (null === $options || !$span->getSampled()) {
             $this->span = null;
 
             return;
@@ -204,15 +206,15 @@ abstract class AbstractTraceableResponse implements ResponseInterface
         // The span is kept, as the headers can be received after it finished when streaming,
         // and the content is only collected once the application reads it
         if (!$this->responseHeadersCollected) {
-            $this->collectResponseHeaders($span, $policy);
+            $this->collectResponseHeaders($span, $options);
         }
 
         if (null !== $content && !$this->responseContentCollected) {
-            $this->collectResponseContent($span, $policy, $content);
+            $this->collectResponseContent($span, $options, $content);
         }
     }
 
-    private function collectResponseHeaders(Span $span, DataCollectionPolicy $policy): void
+    private function collectResponseHeaders(Span $span, Options $options): void
     {
         // The headers are not received yet
         if (0 === $this->response->getInfo('http_code')) {
@@ -224,8 +226,8 @@ abstract class AbstractTraceableResponse implements ResponseInterface
         $type = HttpMessageType::incomingResponse();
 
         $span->setData(
-            HttpSpanDataCollector::collectHeaders($policy, $type, $responseHeaders)
-            + HttpSpanDataCollector::collectCookieHeaders($policy, $type, $responseHeaders['set-cookie'] ?? [])
+            HttpSpanDataCollector::collectHeaders($options, $type, $responseHeaders)
+            + HttpSpanDataCollector::collectCookieHeaders($options, $type, $responseHeaders['set-cookie'] ?? [])
         );
     }
 
@@ -235,11 +237,11 @@ abstract class AbstractTraceableResponse implements ResponseInterface
      */
     private function getErrorResponseContent(): ?string
     {
-        if (null === $this->span || null === $this->policy || $this->responseContentCollected) {
+        if (null === $this->span || null === $this->options || $this->responseContentCollected) {
             return null;
         }
 
-        if (null === $this->policy->getHttpBodyLimit(HttpMessageType::incomingResponse())) {
+        if (!$this->options->getDataCollection()->shouldCollectHttpBody(HttpMessageType::incomingResponse())) {
             return null;
         }
 
@@ -253,10 +255,10 @@ abstract class AbstractTraceableResponse implements ResponseInterface
     /**
      * @param array<array-key, mixed>|string $content The content returned by getContent() or toArray()
      */
-    private function collectResponseContent(Span $span, DataCollectionPolicy $policy, $content): void
+    private function collectResponseContent(Span $span, Options $options, $content): void
     {
         $this->responseContentCollected = true;
-        $span->setData(HttpSpanDataCollector::collectBody($policy, HttpMessageType::incomingResponse(), $content, $this->getResponseHeaders()['content-type'][0] ?? ''));
+        $span->setData(HttpSpanDataCollector::collectBody($options, HttpMessageType::incomingResponse(), $content, $this->getResponseHeaders()['content-type'][0] ?? ''));
     }
 
     /**

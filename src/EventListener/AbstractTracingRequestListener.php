@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\DataCollection\DataCollectionPolicy;
 use Sentry\DataCollection\HttpMessageType;
 use Sentry\DataCollection\HttpSpanDataCollector;
 use Sentry\DataCollection\HttpUrlCollector;
 use Sentry\DataCollection\KeyValueDataFilter;
+use Sentry\Options;
 use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\Span;
 use Symfony\Component\HttpFoundation\Request;
@@ -62,15 +62,11 @@ abstract class AbstractTracingRequestListener
      *
      * @internal
      */
-    protected function getRequestUrl(Request $request, DataCollectionPolicy $policy): string
+    protected function getRequestUrl(Request $request, Options $options): string
     {
-        if ($policy->isLegacyMode()) {
-            return $request->getUri();
-        }
-
         $url = $request->getSchemeAndHttpHost() . $request->getBaseUrl() . $request->getPathInfo();
         $queryString = $request->server->get('QUERY_STRING');
-        $queryString = HttpUrlCollector::collectQueryString($policy, \is_string($queryString) ? $queryString : '');
+        $queryString = HttpUrlCollector::collectQueryString($options, \is_string($queryString) ? $queryString : '');
 
         if (null !== $queryString) {
             $url .= '?' . $queryString;
@@ -90,7 +86,7 @@ abstract class AbstractTracingRequestListener
             return;
         }
 
-        $policy = DataCollectionPolicy::fromOptions($this->sentry->getClient()->getOptions());
+        $options = $this->sentry->getClient()->getOptions();
         $type = HttpMessageType::outgoingResponse();
 
         // Headers can be set to null, which removes their value
@@ -104,13 +100,13 @@ abstract class AbstractTracingRequestListener
             $cookies[] = [$cookie->getName(), $cookie->getValue()];
         }
 
-        $spanData = HttpSpanDataCollector::collectHeaders($policy, $type, $responseHeaders)
-            + HttpSpanDataCollector::collectCookiePairs($policy, $type, $cookies);
+        $spanData = HttpSpanDataCollector::collectHeaders($options, $type, $responseHeaders)
+            + HttpSpanDataCollector::collectCookiePairs($options, $type, $cookies);
 
         $content = $response->getContent();
         if (false !== $content) {
-            $spanData += HttpSpanDataCollector::collectBody($policy, $type, $content, (string) $response->headers->get('Content-Type', ''));
-        } elseif (null !== $policy->getHttpBodyLimit($type)) {
+            $spanData += HttpSpanDataCollector::collectBody($options, $type, $content, (string) $response->headers->get('Content-Type', ''));
+        } elseif ($options->getDataCollection()->shouldCollectHttpBody($type)) {
             $spanData['http.response.body.data'] = KeyValueDataFilter::FILTERED_VALUE;
         }
 
