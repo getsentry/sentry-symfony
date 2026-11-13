@@ -123,6 +123,10 @@ jobs:
         if: ${{ runner.os == 'Windows' || matrix.php == '7.2' || matrix.php == '7.3' || matrix.php == '7.4' || matrix.php == '8.0' }}
         run: composer remove spiral/roadrunner-http spiral/roadrunner-worker --dev --no-interaction --no-update
 
+      - name: Remove Scheduler on unsupported PHP and Symfony versions
+        if: ${{ contains(fromJSON('["7.2","7.3","7.4","8.0"]'), matrix.php) || contains(fromJSON('["4.4.*","5.*"]'), matrix.symfony-version) }}
+        run: composer remove symfony/scheduler --dev --no-interaction --no-update
+
       - name: Use PHPUnit 9 for lowest dependencies on newer PHP versions
         if: ${{ matrix.dependencies == 'lowest' && matrix.php != '7.2' }}
         run: composer require phpunit/phpunit:^9.6.34 --dev --no-interaction --no-update
@@ -146,6 +150,48 @@ jobs:
         with:
           file: build/coverage-report.xml
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  scheduler-symfony-82-tests:
+    name: Scheduler tests (Symfony 8.2)
+    runs-on: ubuntu-latest
+    env:
+      SYMFONY_REQUIRE: 8.2.*
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@728c6c6b8cf02c2e48117716a91ee48313958a19 # v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: flex
+
+      - name: Setup Problem Matchers for PHPUnit
+        run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+      - name: Remove unused dependencies
+        run: composer remove vimeo/psalm phpstan/phpstan friendsofphp/php-cs-fixer --dev --no-interaction --no-update
+
+      # Uses an 8.2 beta until 8.2.0 is out, since prefer-stable picks a stable release when there is one
+      - name: Allow beta releases
+        run: |
+          composer config minimum-stability beta
+          composer config prefer-stable true
+
+      - name: Resolve dependencies
+        run: composer update --no-progress --no-interaction --prefer-dist --no-install --no-scripts --no-audit
+
+      - name: Install dependencies
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
+
+      - name: Check the Symfony version
+        run: |
+          composer show symfony/scheduler | grep -E '^versions : \* v8\.2\.'
+
+      - name: Run tests
+        run: vendor/bin/phpunit --filter Scheduler
 
   missing-optional-packages-tests:
     name: Tests without optional packages
@@ -191,7 +237,7 @@ jobs:
         run: composer remove spiral/roadrunner-http spiral/roadrunner-worker --dev --no-interaction --no-update
 
       - name: Remove optional packages
-        run: composer remove doctrine/dbal doctrine/doctrine-bundle symfony/messenger symfony/twig-bundle symfony/cache symfony/http-client --dev --no-update
+        run: composer remove doctrine/dbal doctrine/doctrine-bundle symfony/messenger symfony/scheduler symfony/twig-bundle symfony/cache symfony/http-client --dev --no-update
 
       - name: Use PHPUnit 9 for lowest dependencies on newer PHP versions
         if: ${{ matrix.dependencies == 'lowest' && matrix.php != '7.2' }}
