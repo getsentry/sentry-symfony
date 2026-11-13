@@ -95,6 +95,8 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
 
     /**
      * {@inheritdoc}
+     *
+     * @param string $sql
      */
     public function prepare($sql): Statement
     {

@@ -206,11 +206,6 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionForV4\\:\\:prepare\\(\\) has parameter \\$sql with no type specified\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
-
-		-
 			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionForV4\\:\\:query\\(\\) has parameter \\$args with no type specified\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
