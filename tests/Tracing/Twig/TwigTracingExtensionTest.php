@@ -6,8 +6,8 @@ namespace Sentry\SentryBundle\Tests\Tracing\Twig;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
-use Sentry\State\HubInterface;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
 use Symfony\Bundle\TwigBundle\TwigBundle;
@@ -16,9 +16,9 @@ use Twig\Profiler\Profile;
 final class TwigTracingExtensionTest extends TestCase
 {
     /**
-     * @var MockObject&HubInterface
+     * @var MockObject&Sentry
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var TwigTracingExtension
@@ -34,8 +34,8 @@ final class TwigTracingExtensionTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->hub = $this->createMock(HubInterface::class);
-        $this->listener = new TwigTracingExtension($this->hub);
+        $this->sentry = $this->createMock(Sentry::class);
+        $this->listener = new TwigTracingExtension($this->sentry);
     }
 
     /**
@@ -46,7 +46,7 @@ final class TwigTracingExtensionTest extends TestCase
         $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getTransaction')
             ->willReturn($transaction);
 
@@ -88,9 +88,9 @@ final class TwigTracingExtensionTest extends TestCase
         ];
     }
 
-    public function testEnterDoesNothingIfNoSpanIsSetOnHub(): void
+    public function testEnterDoesNothingIfNoSpanIsSetOnScope(): void
     {
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getTransaction')
             ->willReturn(null);
 
@@ -102,7 +102,7 @@ final class TwigTracingExtensionTest extends TestCase
         $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getTransaction')
             ->willReturn($transaction);
 

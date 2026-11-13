@@ -8,11 +8,11 @@ use Doctrine\DBAL\Driver\Connection as DriverConnectionInterface;
 use Doctrine\DBAL\Driver\Result as DriverResultInterface;
 use Doctrine\DBAL\Driver\Statement as DriverStatementInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tests\Tracing\Doctrine\DBAL\Fixture\NativeDriverConnectionInterfaceStub;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionForV4 as TracingDriverConnection;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatement;
-use Sentry\State\HubInterface;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
 
@@ -22,9 +22,9 @@ use Sentry\Tracing\TransactionContext;
 final class TracingDriverConnectionForV4Test extends DoctrineTestCase
 {
     /**
-     * @var MockObject&HubInterface
+     * @var MockObject&Sentry
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var MockObject&DriverConnectionInterface
@@ -45,9 +45,9 @@ final class TracingDriverConnectionForV4Test extends DoctrineTestCase
 
     protected function setUp(): void
     {
-        $this->hub = $this->createMock(HubInterface::class);
+        $this->sentry = $this->createMock(Sentry::class);
         $this->decoratedConnection = $this->createMock(DriverConnectionInterface::class);
-        $this->connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', []);
+        $this->connection = new TracingDriverConnection($this->sentry, $this->decoratedConnection, 'foo_platform', []);
     }
 
     /**
@@ -62,13 +62,13 @@ final class TracingDriverConnectionForV4Test extends DoctrineTestCase
     {
         $sql = 'SELECT 1 + 1';
         $statement = $this->createMock(DriverStatementInterface::class);
-        $resultStatement = new TracingStatement($this->hub, $statement, $sql, $expectedData);
-        $connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', $params);
+        $resultStatement = new TracingStatement($this->sentry, $statement, $sql, $expectedData);
+        $connection = new TracingDriverConnection($this->sentry, $this->decoratedConnection, 'foo_platform', $params);
 
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -89,13 +89,13 @@ final class TracingDriverConnectionForV4Test extends DoctrineTestCase
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
-    public function testPrepareDoesNothingIfNoSpanIsSetOnHub(): void
+    public function testPrepareDoesNothingIfNoSpanIsSetOnScope(): void
     {
         $sql = 'SELECT 1 + 1';
         $statement = $this->createMock(DriverStatementInterface::class);
-        $resultStatement = new TracingStatement($this->hub, $statement, $sql, ['db.system' => 'foo_platform']);
+        $resultStatement = new TracingStatement($this->sentry, $statement, $sql, ['db.system' => 'foo_platform']);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn(null);
 
@@ -111,10 +111,10 @@ final class TracingDriverConnectionForV4Test extends DoctrineTestCase
     {
         $sql = 'SELECT 1 + 1';
         $statement = $this->createMock(DriverStatementInterface::class);
-        $resultStatement = new TracingStatement($this->hub, $statement, $sql, ['db.system' => 'foo_platform']);
-        $connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', [], true);
+        $resultStatement = new TracingStatement($this->sentry, $statement, $sql, ['db.system' => 'foo_platform']);
+        $connection = new TracingDriverConnection($this->sentry, $this->decoratedConnection, 'foo_platform', [], true);
 
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('getSpan');
 
         $this->decoratedConnection->expects($this->once())
@@ -136,13 +136,13 @@ final class TracingDriverConnectionForV4Test extends DoctrineTestCase
     public function testQuery(array $params, array $expectedData): void
     {
         $result = $this->createMock(DriverResultInterface::class);
-        $connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', $params);
+        $connection = new TracingDriverConnection($this->sentry, $this->decoratedConnection, 'foo_platform', $params);
         $sql = 'SELECT 1 + 1';
 
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -163,12 +163,12 @@ final class TracingDriverConnectionForV4Test extends DoctrineTestCase
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
-    public function testQueryDoesNothingIfNoSpanIsSetOnHub(): void
+    public function testQueryDoesNothingIfNoSpanIsSetOnScope(): void
     {
         $result = $this->createMock(DriverResultInterface::class);
         $sql = 'SELECT 1 + 1';
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn(null);
 
@@ -200,13 +200,13 @@ final class TracingDriverConnectionForV4Test extends DoctrineTestCase
      */
     public function testExec(array $params, array $expectedData): void
     {
-        $connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', $params);
+        $connection = new TracingDriverConnection($this->sentry, $this->decoratedConnection, 'foo_platform', $params);
         $sql = 'SELECT 1 + 1';
 
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -246,11 +246,11 @@ final class TracingDriverConnectionForV4Test extends DoctrineTestCase
      */
     public function testBeginTransaction(array $params, array $expectedData): void
     {
-        $connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', $params);
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $connection = new TracingDriverConnection($this->sentry, $this->decoratedConnection, 'foo_platform', $params);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -269,9 +269,9 @@ final class TracingDriverConnectionForV4Test extends DoctrineTestCase
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
-    public function testBeginTransactionDoesNothingIfNoSpanIsSetOnHub(): void
+    public function testBeginTransactionDoesNothingIfNoSpanIsSetOnScope(): void
     {
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn(null);
 
@@ -291,11 +291,11 @@ final class TracingDriverConnectionForV4Test extends DoctrineTestCase
      */
     public function testCommit(array $params, array $expectedData): void
     {
-        $connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', $params);
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $connection = new TracingDriverConnection($this->sentry, $this->decoratedConnection, 'foo_platform', $params);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -314,9 +314,9 @@ final class TracingDriverConnectionForV4Test extends DoctrineTestCase
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
-    public function testCommitDoesNothingIfNoSpanIsSetOnHub(): void
+    public function testCommitDoesNothingIfNoSpanIsSetOnScope(): void
     {
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn(null);
 
@@ -336,11 +336,11 @@ final class TracingDriverConnectionForV4Test extends DoctrineTestCase
      */
     public function testRollBack(array $params, array $expectedData): void
     {
-        $connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', $params);
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $connection = new TracingDriverConnection($this->sentry, $this->decoratedConnection, 'foo_platform', $params);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -359,9 +359,9 @@ final class TracingDriverConnectionForV4Test extends DoctrineTestCase
         $this->assertNotNull($spans[1]->getEndTimestamp());
     }
 
-    public function testRollBackDoesNothingIfNoSpanIsSetOnHub(): void
+    public function testRollBackDoesNothingIfNoSpanIsSetOnScope(): void
     {
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn(null);
 
@@ -423,7 +423,7 @@ final class TracingDriverConnectionForV4Test extends DoctrineTestCase
 
     public function testGetWrappedConnection(): void
     {
-        $connection = new TracingDriverConnection($this->hub, $this->decoratedConnection, 'foo_platform', []);
+        $connection = new TracingDriverConnection($this->sentry, $this->decoratedConnection, 'foo_platform', []);
 
         $this->assertSame($this->decoratedConnection, $connection->getWrappedConnection());
     }
@@ -438,7 +438,7 @@ final class TracingDriverConnectionForV4Test extends DoctrineTestCase
             ->method('getNativeConnection')
             ->willReturn($nativeConnection);
 
-        $connection = new TracingDriverConnection($this->hub, $decoratedConnection, 'foo_platform', []);
+        $connection = new TracingDriverConnection($this->sentry, $decoratedConnection, 'foo_platform', []);
 
         $this->assertSame($nativeConnection, $connection->getNativeConnection());
     }

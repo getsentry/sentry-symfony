@@ -9,13 +9,12 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\NullLogger;
 use Sentry\ClientInterface;
+use Sentry\NoOpClient;
 use Sentry\Options;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\Tracing\HttpClient\AbstractTraceableResponse;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableHttpClient;
 use Sentry\SentrySdk;
-use Sentry\State\Hub;
-use Sentry\State\HubInterface;
-use Sentry\State\Scope;
 use Sentry\Tracing\PropagationContext;
 use Sentry\Tracing\SpanId;
 use Sentry\Tracing\SpanStatus;
@@ -32,9 +31,9 @@ use Symfony\Contracts\Service\ResetInterface;
 final class TraceableHttpClientTest extends TestCase
 {
     /**
-     * @var MockObject&HubInterface
+     * @var MockObject&Sentry
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var MockObject&TestableHttpClientInterface
@@ -55,9 +54,17 @@ final class TraceableHttpClientTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->hub = $this->createMock(HubInterface::class);
+        // The spans resolve the client from the SDK state, so a client bound by another test must not be used
+        SentrySdk::init(new NoOpClient());
+
+        $this->sentry = $this->createMock(Sentry::class);
         $this->decoratedHttpClient = $this->createMock(TestableHttpClientInterface::class);
-        $this->httpClient = new TraceableHttpClient($this->decoratedHttpClient, $this->hub);
+        $this->httpClient = new TraceableHttpClient($this->decoratedHttpClient, $this->sentry);
+    }
+
+    protected function tearDown(): void
+    {
+        SentrySdk::init(new NoOpClient());
     }
 
     public function testRequest(): void
@@ -73,16 +80,16 @@ final class TraceableHttpClientTest extends TestCase
         $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($client);
 
         $mockResponse = new MockResponse();
         $decoratedHttpClient = new MockHttpClient($mockResponse);
-        $httpClient = new TraceableHttpClient($decoratedHttpClient, $this->hub);
+        $httpClient = new TraceableHttpClient($decoratedHttpClient, $this->sentry);
         $response = $httpClient->request('GET', 'https://username:password@www.example.com/test-page?foo=bar#baz');
 
         $this->assertNotNull($transaction->getSpanRecorder());
@@ -139,10 +146,10 @@ final class TraceableHttpClientTest extends TestCase
         $transaction = new Transaction($transactionContext);
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($client);
 
@@ -152,7 +159,7 @@ final class TraceableHttpClientTest extends TestCase
                 'Set-Cookie' => 'session_id=foo; Path=/',
             ],
         ]);
-        $httpClient = new TraceableHttpClient(new MockHttpClient($mockResponse), $this->hub);
+        $httpClient = new TraceableHttpClient(new MockHttpClient($mockResponse), $this->sentry);
         $response = $httpClient->request('GET', 'https://username:password@www.example.com/test-page?token=secret&page=1#baz', [
             'headers' => [
                 'Authorization' => 'Bearer foo',
@@ -235,14 +242,14 @@ final class TraceableHttpClientTest extends TestCase
         $transaction = new Transaction($transactionContext);
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($client);
 
-        $httpClient = new TraceableHttpClient(new MockHttpClient(new MockResponse()), $this->hub);
+        $httpClient = new TraceableHttpClient(new MockHttpClient(new MockResponse()), $this->sentry);
         $httpClient->request('GET', 'https://www.example.com/', ['headers' => $headers])->getContent();
 
         $this->assertNotNull($transaction->getSpanRecorder());
@@ -338,14 +345,14 @@ final class TraceableHttpClientTest extends TestCase
         $transaction = new Transaction($transactionContext);
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($client);
 
-        $httpClient = new TraceableHttpClient(new MockHttpClient(new MockResponse()), $this->hub);
+        $httpClient = new TraceableHttpClient(new MockHttpClient(new MockResponse()), $this->sentry);
         $httpClient->request('POST', 'https://www.example.com/', $requestOptions)->getContent();
 
         $this->assertNotNull($transaction->getSpanRecorder());
@@ -444,16 +451,16 @@ final class TraceableHttpClientTest extends TestCase
         $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($client);
 
         $mockResponse = new MockResponse();
         $decoratedHttpClient = new MockHttpClient($mockResponse);
-        $httpClient = new TraceableHttpClient($decoratedHttpClient, $this->hub);
+        $httpClient = new TraceableHttpClient($decoratedHttpClient, $this->sentry);
         $response = $httpClient->request('PUT', 'https://www.example.com/test-page');
 
         $this->assertInstanceOf(AbstractTraceableResponse::class, $response);
@@ -495,15 +502,12 @@ final class TraceableHttpClientTest extends TestCase
         $propagationContext->setTraceId(new TraceId('566e3688a61d4bc888951642d6f14a19'));
         $propagationContext->setSpanId(new SpanId('566e3688a61d4bc8'));
 
-        $scope = new Scope($propagationContext);
-
-        $hub = new Hub($client, $scope);
-
-        SentrySdk::setCurrentHub($hub);
+        SentrySdk::init($client);
+        SentrySdk::getIsolationScope()->setPropagationContext($propagationContext);
 
         $mockResponse = new MockResponse();
         $decoratedHttpClient = new MockHttpClient($mockResponse);
-        $httpClient = new TraceableHttpClient($decoratedHttpClient, $hub);
+        $httpClient = new TraceableHttpClient($decoratedHttpClient, new Sentry());
         $response = $httpClient->request('POST', 'https://www.example.com/test-page');
 
         $this->assertInstanceOf(AbstractTraceableResponse::class, $response);
@@ -514,29 +518,47 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertSame([\sprintf('baggage: %s', $propagationContext->toBaggage())], $mockResponse->getRequestOptions()['normalized_headers']['baggage']);
     }
 
+    public function testRequestContainsTracingHeadersOfTheDefaultOptionsWithoutClient(): void
+    {
+        $propagationContext = PropagationContext::fromDefaults();
+        $propagationContext->setTraceId(new TraceId('566e3688a61d4bc888951642d6f14a19'));
+        $propagationContext->setSpanId(new SpanId('566e3688a61d4bc8'));
+
+        SentrySdk::getIsolationScope()->setPropagationContext($propagationContext);
+
+        $mockResponse = new MockResponse();
+        $decoratedHttpClient = new MockHttpClient($mockResponse);
+        $httpClient = new TraceableHttpClient($decoratedHttpClient, new Sentry());
+        $httpClient->request('GET', 'https://www.example.com/test-page');
+
+        // Like the Guzzle middleware of the SDK, the default `trace_propagation_targets` option propagates the trace to every host
+        $this->assertSame([\sprintf('sentry-trace: %s', $propagationContext->toTraceparent())], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
+        $this->assertSame([\sprintf('baggage: %s', $propagationContext->toBaggage())], $mockResponse->getRequestOptions()['normalized_headers']['baggage']);
+    }
+
     public function testRequestSetsUnknownErrorAsSpanStatusIfResponseStatusCodeIsUnavailable(): void
     {
         $options = new Options([
             'dsn' => 'http://public:secret@example.com/sentry/1',
         ]);
         $client = $this->createMock(ClientInterface::class);
-        $client->expects($this->exactly(2))
+        $client->expects($this->once())
             ->method('getOptions')
             ->willReturn($options);
 
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
-        $this->hub->expects($this->exactly(2))
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($client);
 
         $decoratedHttpClient = new MockHttpClient(new MockResponse());
-        $httpClient = new TraceableHttpClient($decoratedHttpClient, $this->hub);
+        $httpClient = new TraceableHttpClient($decoratedHttpClient, $this->sentry);
 
         // Cancelling the response is the only way that does not override in any
         // way the status code and leave it set to 0. This is a required precondition
@@ -573,10 +595,10 @@ final class TraceableHttpClientTest extends TestCase
         $transaction = new Transaction($transactionContext);
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
-        $this->hub->method('getClient')
+        $this->sentry->method('getClient')
             ->willReturn($client);
 
         $decoratedResponse = $this->createMock(ResponseInterface::class);
@@ -611,12 +633,15 @@ final class TraceableHttpClientTest extends TestCase
         $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
+        $this->sentry->method('getClient')
+            ->willReturn(new NoOpClient());
+
         $decoratedHttpClient = new MockHttpClient(new MockResponse(['foo', 'bar']));
-        $httpClient = new TraceableHttpClient($decoratedHttpClient, $this->hub);
+        $httpClient = new TraceableHttpClient($decoratedHttpClient, $this->sentry);
         $response = $httpClient->request('GET', 'https://www.example.com/test-page');
         $chunks = [];
 
@@ -688,9 +713,12 @@ final class TraceableHttpClientTest extends TestCase
         $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->exactly(2))
+        $this->sentry->expects($this->exactly(2))
             ->method('getSpan')
             ->willReturn($transaction);
+
+        $this->sentry->method('getClient')
+            ->willReturn(new NoOpClient());
 
         $responses = [
             new MockResponse(),
@@ -698,7 +726,7 @@ final class TraceableHttpClientTest extends TestCase
         ];
 
         $decoratedHttpClient = new MockHttpClient($responses, 'https://www.example.com');
-        $httpClient1 = new TraceableHttpClient($decoratedHttpClient, $this->hub);
+        $httpClient1 = new TraceableHttpClient($decoratedHttpClient, $this->sentry);
         $httpClient2 = $httpClient1->withOptions(['base_uri' => 'https://www.example.org']);
 
         $this->assertNotSame($httpClient1, $httpClient2);
@@ -731,14 +759,14 @@ final class TraceableHttpClientTest extends TestCase
         $transaction = new Transaction($transactionContext);
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($client);
 
-        $httpClient = new TraceableHttpClient(new MockHttpClient(new MockResponse()), $this->hub, [
+        $httpClient = new TraceableHttpClient(new MockHttpClient(new MockResponse()), $this->sentry, [
             'User-Agent' => 'my-app',
             'Accept' => 'text/html',
         ]);
@@ -770,14 +798,14 @@ final class TraceableHttpClientTest extends TestCase
         $transaction = new Transaction($transactionContext);
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($client);
 
-        $httpClient = (new TraceableHttpClient(new MockHttpClient(new MockResponse()), $this->hub, ['User-Agent' => 'my-app']))
+        $httpClient = (new TraceableHttpClient(new MockHttpClient(new MockResponse()), $this->sentry, ['User-Agent' => 'my-app']))
             ->withOptions(['headers' => ['User-Agent' => 'my-other-app', 'X-Api-Version' => '2']]);
         $httpClient->request('GET', 'https://www.example.com/')->getContent();
 

@@ -8,14 +8,14 @@ use Monolog\Handler\AbstractHandler;
 use Monolog\Logger;
 use Monolog\LogRecord;
 use Sentry\Monolog\ExceptionToSentryIssueHandler;
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\Sentry;
 
 final class UncaughtExceptionHandler extends AbstractHandler
 {
     /**
-     * @var HubInterface
+     * @var Sentry
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var CapturedExceptionTracker
@@ -37,17 +37,17 @@ final class UncaughtExceptionHandler extends AbstractHandler
      */
     private $exceptionHandler;
 
-    public function __construct(HubInterface $hub, CapturedExceptionTracker $tracker, bool $captureSoftFails = true)
+    public function __construct(Sentry $sentry, CapturedExceptionTracker $tracker, bool $captureSoftFails = true)
     {
         // Messages that will be retried are logged at WARNING level since Symfony 5.1
         $this->minLevel = $captureSoftFails ? Logger::WARNING : Logger::ERROR;
 
         parent::__construct($captureSoftFails ? 'warning' : 'error', true);
 
-        $this->hub = $hub;
+        $this->sentry = $sentry;
         $this->tracker = $tracker;
         $this->captureSoftFails = $captureSoftFails;
-        $this->exceptionHandler = new ExceptionToSentryIssueHandler($hub, 'error');
+        $this->exceptionHandler = new ExceptionToSentryIssueHandler('error');
     }
 
     /**
@@ -84,7 +84,7 @@ final class UncaughtExceptionHandler extends AbstractHandler
             if ($this->captureSoftFails) {
                 // Captured directly, the delegate only handles records of at least ERROR level
                 $this->tracker->setLastCaptured($error);
-                $this->hub->captureException($error);
+                $this->sentry->captureException($error);
             }
 
             return false;

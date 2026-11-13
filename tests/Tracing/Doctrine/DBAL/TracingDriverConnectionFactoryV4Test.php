@@ -13,17 +13,17 @@ use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Doctrine\DBAL\Platforms\SQLServerPlatform;
 use PHPUnit\Framework\MockObject\MockObject;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionFactory;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverConnectionForV4;
-use Sentry\State\HubInterface;
 
 final class TracingDriverConnectionFactoryV4Test extends DoctrineTestCase
 {
     /**
-     * @var MockObject&HubInterface
+     * @var MockObject&Sentry
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var MockObject&AbstractPlatform
@@ -44,9 +44,9 @@ final class TracingDriverConnectionFactoryV4Test extends DoctrineTestCase
 
     protected function setUp(): void
     {
-        $this->hub = $this->createMock(HubInterface::class);
+        $this->sentry = $this->createMock(Sentry::class);
         $this->databasePlatform = $this->createMock(AbstractPlatform::class);
-        $this->tracingDriverConnectionFactory = new TracingDriverConnectionFactory($this->hub);
+        $this->tracingDriverConnectionFactory = new TracingDriverConnectionFactory($this->sentry);
     }
 
     /**
@@ -59,7 +59,7 @@ final class TracingDriverConnectionFactoryV4Test extends DoctrineTestCase
         $connection = $this->createMock(Connection::class);
         $databasePlatform = $this->createMock($databasePlatformFqcn);
         $driverConnection = $this->tracingDriverConnectionFactory->create($connection, $databasePlatform, []);
-        $expectedDriverConnection = new TracingDriverConnectionForV4($this->hub, $connection, $expectedDatabasePlatform, []);
+        $expectedDriverConnection = new TracingDriverConnectionForV4($this->sentry, $connection, $expectedDatabasePlatform, []);
 
         $this->assertEquals($expectedDriverConnection, $driverConnection);
     }
@@ -68,9 +68,9 @@ final class TracingDriverConnectionFactoryV4Test extends DoctrineTestCase
     {
         $connection = $this->createMock(Connection::class);
         $databasePlatform = $this->createMock(AbstractPlatform::class);
-        $tracingDriverConnectionFactory = new TracingDriverConnectionFactory($this->hub, true);
+        $tracingDriverConnectionFactory = new TracingDriverConnectionFactory($this->sentry, true);
         $driverConnection = $tracingDriverConnectionFactory->create($connection, $databasePlatform, []);
-        $expectedDriverConnection = new TracingDriverConnectionForV4($this->hub, $connection, 'other_sql', [], true);
+        $expectedDriverConnection = new TracingDriverConnectionForV4($this->sentry, $connection, 'other_sql', [], true);
 
         $this->assertEquals($expectedDriverConnection, $driverConnection);
     }

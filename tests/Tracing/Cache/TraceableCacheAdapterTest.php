@@ -18,7 +18,7 @@ final class TraceableCacheAdapterTest extends AbstractTraceableCacheAdapterTest
      */
     protected function createCacheAdapter(AdapterInterface $decoratedAdapter): TraceableCacheAdapter
     {
-        return new TraceableCacheAdapter($this->hub, $decoratedAdapter);
+        return new TraceableCacheAdapter($this->sentry, $decoratedAdapter);
     }
 
     /**

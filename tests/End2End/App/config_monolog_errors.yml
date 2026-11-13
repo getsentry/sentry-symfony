@@ -26,8 +26,8 @@ framework:
     app: cache.adapter.filesystem
 
 services:
-  test.hub:
-    alias: Sentry\State\HubInterface
+  test.sentry:
+    alias: Sentry\SentryBundle\Sentry
     public: true
 
   Sentry\SentryBundle\Tests\End2End\StubTransport: ~

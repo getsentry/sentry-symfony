@@ -9,7 +9,7 @@ use Sentry\DataCollection\HttpMessageType;
 use Sentry\DataCollection\HttpSpanDataCollector;
 use Sentry\DataCollection\HttpUrlCollector;
 use Sentry\DataCollection\KeyValueDataFilter;
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\Span;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,18 +21,18 @@ abstract class AbstractTracingRequestListener
     use KernelEventForwardCompatibilityTrait;
 
     /**
-     * @var HubInterface The current hub
+     * @var Sentry
      */
-    protected $hub;
+    protected $sentry;
 
     /**
      * Constructor.
      *
-     * @param HubInterface $hub The current hub
+     * @param Sentry $sentry
      */
-    public function __construct(HubInterface $hub)
+    public function __construct(Sentry $sentry)
     {
-        $this->hub = $hub;
+        $this->sentry = $sentry;
     }
 
     /**
@@ -46,7 +46,7 @@ abstract class AbstractTracingRequestListener
     public function handleKernelResponseEvent(ResponseEvent $event): void
     {
         $response = $event->getResponse();
-        $span = $this->hub->getSpan();
+        $span = $this->sentry->getSpan();
 
         if (null === $span) {
             return;
@@ -90,7 +90,7 @@ abstract class AbstractTracingRequestListener
             return;
         }
 
-        $policy = DataCollectionPolicy::fromHub($this->hub);
+        $policy = DataCollectionPolicy::fromOptions($this->sentry->getClient()->getOptions());
         $type = HttpMessageType::outgoingResponse();
 
         // Headers can be set to null, which removes their value

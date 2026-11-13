@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\End2End;
 
 use Sentry\Event;
+use Sentry\EventType;
 use Sentry\SentryBundle\Tests\End2End\App\KernelWithExtraConfig;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -102,7 +103,7 @@ final class StrictTraceContinuationEnd2EndTest extends WebTestCase
     private function getTracingEvent(): Event
     {
         $tracingEvents = array_values(array_filter(StubTransport::$events, static function (Event $event): bool {
-            return null !== $event->getTransaction();
+            return EventType::transaction() === $event->getType();
         }));
 
         $this->assertCount(1, $tracingEvents);

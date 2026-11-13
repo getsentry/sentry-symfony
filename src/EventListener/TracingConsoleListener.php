@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 use Sentry\Tracing\SpanStatus;
@@ -22,9 +22,9 @@ use Symfony\Component\Console\Event\ConsoleTerminateEvent;
 final class TracingConsoleListener
 {
     /**
-     * @var HubInterface The current hub
+     * @var Sentry
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var string[] The list of commands for which distributed tracing must be skipped
@@ -34,12 +34,12 @@ final class TracingConsoleListener
     /**
      * Constructor.
      *
-     * @param HubInterface $hub              The current hub
-     * @param string[]     $excludedCommands The list of commands for which distributed tracing must be skipped
+     * @param Sentry   $sentry
+     * @param string[] $excludedCommands The list of commands for which distributed tracing must be skipped
      */
-    public function __construct(HubInterface $hub, array $excludedCommands = [])
+    public function __construct(Sentry $sentry, array $excludedCommands = [])
     {
-        $this->hub = $hub;
+        $this->sentry = $sentry;
         $this->excludedCommands = $excludedCommands;
     }
 
@@ -57,10 +57,10 @@ final class TracingConsoleListener
             return;
         }
 
-        $currentSpan = $this->hub->getSpan();
+        $currentSpan = $this->sentry->getSpan();
 
         if (null === $currentSpan) {
-            $span = $this->hub->startTransaction(
+            $span = $this->sentry->startTransaction(
                 TransactionContext::make()
                     ->setOp('console.command')
                     ->setOrigin('auto.console')
@@ -76,7 +76,7 @@ final class TracingConsoleListener
             );
         }
 
-        $this->hub->setSpan($span);
+        $this->sentry->setSpan($span);
     }
 
     /**
@@ -91,7 +91,7 @@ final class TracingConsoleListener
             return;
         }
 
-        $span = $this->hub->getSpan();
+        $span = $this->sentry->getSpan();
 
         if (null !== $span) {
             $span->setStatus(0 === $event->getExitCode() ? SpanStatus::ok() : SpanStatus::internalError());

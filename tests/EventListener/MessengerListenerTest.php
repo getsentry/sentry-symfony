@@ -10,10 +10,10 @@ use Sentry\ClientInterface;
 use Sentry\Event;
 use Sentry\EventHint;
 use Sentry\SentryBundle\EventListener\MessengerListener;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentrySdk;
-use Sentry\State\HubAdapter;
-use Sentry\State\HubInterface;
-use Sentry\State\Scope;
+use Sentry\State\GlobalScope;
+use Sentry\State\IsolationScope;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
@@ -31,14 +31,14 @@ final class MessengerListenerTest extends TestCase
     private $client;
 
     /**
-     * @var MockObject&HubInterface
+     * @var MockObject&Sentry
      */
-    private $hub;
+    private $sentry;
 
     protected function setUp(): void
     {
         $this->client = $this->createMock(ClientInterface::class);
-        $this->hub = $this->createMock(HubInterface::class);
+        $this->sentry = $this->createMock(Sentry::class);
     }
 
     protected function tearDown(): void
@@ -58,15 +58,15 @@ final class MessengerListenerTest extends TestCase
             $this->markTestSkipped('Messenger not supported in this environment.');
         }
 
-        $scope = new Scope();
+        $scope = new IsolationScope();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('withScope')
             ->willReturnCallback(static function (callable $callback) use ($scope): void {
                 $callback($scope);
             });
 
-        $this->hub->expects($this->exactly(\count($exceptions)))
+        $this->sentry->expects($this->exactly(\count($exceptions)))
             ->method('captureEvent')
             ->withConsecutive(...array_map(function (\Throwable $expectedException) use ($expectedIsHandled): array {
                 return [
@@ -84,17 +84,17 @@ final class MessengerListenerTest extends TestCase
                 ];
             }, $exceptions));
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($this->client);
 
         $this->client->expects($this->once())
             ->method('flush');
 
-        $listener = new MessengerListener($this->hub);
+        $listener = new MessengerListener($this->sentry);
         $listener->handleWorkerMessageFailedEvent($event);
 
-        $sentryEvent = $scope->applyToEvent(Event::createEvent());
+        $sentryEvent = (new GlobalScope())->merge($scope)->applyToEvent(Event::createEvent());
 
         $this->assertNotNull($sentryEvent);
         $this->assertSame($expectedTags, $sentryEvent->getTags());
@@ -192,38 +192,38 @@ final class MessengerListenerTest extends TestCase
         $event = $this->getMessageFailedEvent($envelope, 'receiver', new \Exception(), $retry);
 
         if ($shouldCapture) {
-            $this->hub->expects($this->once())
+            $this->sentry->expects($this->once())
                 ->method('withScope')
                 ->willReturnCallback(static function (callable $callback): void {
-                    $callback(new Scope());
+                    $callback(new IsolationScope());
                 });
 
-            $this->hub->expects($this->once())
+            $this->sentry->expects($this->once())
                 ->method('captureEvent')
                 ->with(
                     $this->isInstanceOf(Event::class),
                     $this->isInstanceOf(EventHint::class)
                 );
 
-            $this->hub->expects($this->once())
+            $this->sentry->expects($this->once())
                 ->method('getClient')
                 ->willReturn($this->client);
 
             $this->client->expects($this->once())
                 ->method('flush');
         } else {
-            $this->hub->expects($this->never())
+            $this->sentry->expects($this->never())
                 ->method('withScope');
 
-            $this->hub->expects($this->never())
+            $this->sentry->expects($this->never())
                 ->method('captureEvent');
-            $this->hub->expects($this->never())
+            $this->sentry->expects($this->never())
                 ->method('getClient');
             $this->client->expects($this->never())
                 ->method('flush');
         }
 
-        $listener = new MessengerListener($this->hub, $captureSoftFails);
+        $listener = new MessengerListener($this->sentry, $captureSoftFails);
         $listener->handleWorkerMessageFailedEvent($event);
     }
 
@@ -263,14 +263,14 @@ final class MessengerListenerTest extends TestCase
             $this->markTestSkipped('Messenger not supported in this environment.');
         }
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($this->client);
 
         $this->client->expects($this->once())
             ->method('flush');
 
-        $listener = new MessengerListener($this->hub);
+        $listener = new MessengerListener($this->sentry);
         $listener->handleWorkerMessageHandledEvent(new WorkerMessageHandledEvent(Envelope::wrap((object) []), 'receiver'));
     }
 
@@ -281,21 +281,21 @@ final class MessengerListenerTest extends TestCase
         }
 
         // Received event should push
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('pushScope');
 
         // Handled event should pop
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('popScope');
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($this->client);
 
         $this->client->expects($this->once())
             ->method('flush');
 
-        $listener = new MessengerListener($this->hub, true, true);
+        $listener = new MessengerListener($this->sentry, true, true);
 
         $envelope = Envelope::wrap((object) []);
         $listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent($envelope, 'receiver'));
@@ -308,20 +308,20 @@ final class MessengerListenerTest extends TestCase
             $this->markTestSkipped('Messenger not supported in this environment.');
         }
 
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('pushScope');
 
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('popScope');
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($this->client);
 
         $this->client->expects($this->once())
             ->method('flush');
 
-        $listener = new MessengerListener($this->hub, true, false);
+        $listener = new MessengerListener($this->sentry, true, false);
 
         $envelope = Envelope::wrap((object) []);
         $listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent($envelope, 'receiver'));
@@ -334,26 +334,26 @@ final class MessengerListenerTest extends TestCase
             $this->markTestSkipped('Messenger not supported in this environment.');
         }
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('pushScope');
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('popScope');
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('withScope')
             ->willReturnCallback(static function (callable $callback): void {
-                $callback(new Scope());
+                $callback(new IsolationScope());
             });
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($this->client);
 
         $this->client->expects($this->once())
             ->method('flush');
 
-        $listener = new MessengerListener($this->hub, true, true);
+        $listener = new MessengerListener($this->sentry, true, true);
         $envelope = Envelope::wrap((object) []);
 
         $listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent($envelope, 'receiver'));
@@ -369,13 +369,13 @@ final class MessengerListenerTest extends TestCase
         }
 
         SentrySdk::init();
-        $globalHub = SentrySdk::getCurrentHub();
-        $listener = new MessengerListener($this->hub, true, false, false);
+        $globalContext = SentrySdk::getCurrentRuntimeContext();
+        $listener = new MessengerListener($this->sentry, true, false, false);
         $envelope = Envelope::wrap((object) []);
 
         $listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent($envelope, 'receiver'));
 
-        $this->assertSame($globalHub, SentrySdk::getCurrentHub());
+        $this->assertSame($globalContext, SentrySdk::getCurrentRuntimeContext());
     }
 
     public function testRuntimeContextIsStartedAndEndedForHandledMessage(): void
@@ -385,17 +385,17 @@ final class MessengerListenerTest extends TestCase
         }
 
         SentrySdk::init();
-        $globalHub = SentrySdk::getCurrentHub();
-        $listener = new MessengerListener(HubAdapter::getInstance(), true, false, true);
+        $globalContext = SentrySdk::getCurrentRuntimeContext();
+        $listener = new MessengerListener(new Sentry(), true, false, true);
         $envelope = Envelope::wrap((object) []);
 
         $listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent($envelope, 'receiver'));
 
-        $this->assertNotSame($globalHub, SentrySdk::getCurrentHub());
+        $this->assertNotSame($globalContext, SentrySdk::getCurrentRuntimeContext());
 
         $listener->handleWorkerMessageHandledEvent(new WorkerMessageHandledEvent($envelope, 'receiver'));
 
-        $this->assertSame($globalHub, SentrySdk::getCurrentHub());
+        $this->assertSame($globalContext, SentrySdk::getCurrentRuntimeContext());
     }
 
     public function testRuntimeContextIsEndedForFailedMessageEvenIfSoftFailIsSkipped(): void
@@ -405,18 +405,18 @@ final class MessengerListenerTest extends TestCase
         }
 
         SentrySdk::init();
-        $globalHub = SentrySdk::getCurrentHub();
-        $listener = new MessengerListener(HubAdapter::getInstance(), false, false, true);
+        $globalContext = SentrySdk::getCurrentRuntimeContext();
+        $listener = new MessengerListener(new Sentry(), false, false, true);
         $envelope = Envelope::wrap((object) []);
 
         $listener->handleWorkerMessageReceivedEvent(new WorkerMessageReceivedEvent($envelope, 'receiver'));
 
-        $this->assertNotSame($globalHub, SentrySdk::getCurrentHub());
+        $this->assertNotSame($globalContext, SentrySdk::getCurrentRuntimeContext());
 
         $event = $this->getMessageFailedEvent($envelope, 'receiver', new \Exception('retrying'), true);
         $listener->handleWorkerMessageFailedEvent($event);
 
-        $this->assertSame($globalHub, SentrySdk::getCurrentHub());
+        $this->assertSame($globalContext, SentrySdk::getCurrentRuntimeContext());
     }
 
     private function getMessageFailedEvent(Envelope $envelope, string $receiverName, \Throwable $error, bool $retry): WorkerMessageFailedEvent

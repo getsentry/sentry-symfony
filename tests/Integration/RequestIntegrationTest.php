@@ -13,6 +13,8 @@ use Sentry\SentrySdk;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
+use function Sentry\captureMessage;
+
 /**
  * Covers the request data that the SDK collects from the requests converted by
  * the {@see RequestFetcher}. The integration registers its event processor only
@@ -152,8 +154,8 @@ final class RequestIntegrationTest extends TestCase
             },
         ]))->getClient();
 
-        SentrySdk::getCurrentHub()->bindClient($client);
-        SentrySdk::getCurrentHub()->captureMessage('foo');
+        SentrySdk::init($client);
+        captureMessage('foo');
 
         $this->assertCount(1, $events);
 

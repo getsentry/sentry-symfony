@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\DataCollection\DataCollectionPolicy;
-use Sentry\State\HubInterface;
-use Sentry\State\Scope;
+use Sentry\SentryBundle\Sentry;
+use Sentry\State\IsolationScope;
 use Sentry\UserDataBag;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -21,9 +21,9 @@ final class LoginListener
     use KernelEventForwardCompatibilityTrait;
 
     /**
-     * @var HubInterface The current hub
+     * @var Sentry
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var TokenStorageInterface|null The token storage
@@ -33,12 +33,12 @@ final class LoginListener
     /**
      * Constructor.
      *
-     * @param HubInterface               $hub          The current hub
+     * @param Sentry                     $sentry
      * @param TokenStorageInterface|null $tokenStorage The token storage
      */
-    public function __construct(HubInterface $hub, ?TokenStorageInterface $tokenStorage)
+    public function __construct(Sentry $sentry, ?TokenStorageInterface $tokenStorage)
     {
-        $this->hub = $hub;
+        $this->sentry = $sentry;
         $this->tokenStorage = $tokenStorage;
     }
 
@@ -89,11 +89,11 @@ final class LoginListener
             return;
         }
 
-        if (!DataCollectionPolicy::fromHub($this->hub)->shouldCollectUserInfo()) {
+        if (!DataCollectionPolicy::fromOptions($this->sentry->getClient()->getOptions())->shouldCollectUserInfo()) {
             return;
         }
 
-        $this->hub->configureScope(function (Scope $scope) use ($token): void {
+        $this->sentry->configureScope(function (IsolationScope $scope) use ($token): void {
             $user = $scope->getUser() ?? new UserDataBag();
 
             if (null === $user->getId()) {

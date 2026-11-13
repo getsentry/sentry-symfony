@@ -31,13 +31,13 @@ use Sentry\SentryBundle\Integration\IntegrationConfigurator;
 use Sentry\SentryBundle\Monolog\CapturedExceptionTracker;
 use Sentry\SentryBundle\Monolog\PhpErrorHandler;
 use Sentry\SentryBundle\Monolog\UncaughtExceptionHandler;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\SentryBundle;
 use Sentry\SentryBundle\Serializer\ConsoleInputSerializer;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\ConnectionConfigurator;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingDriverMiddleware;
 use Sentry\SentryBundle\Tracing\Twig\TwigTracingExtension;
 use Sentry\Serializer\RepresentationSerializer;
-use Sentry\State\HubInterface;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\Console\Input\InputInterface;
@@ -114,11 +114,11 @@ abstract class SentryExtensionTest extends TestCase
         $definition = $container->getDefinition(SentryExtension::MONOLOG_PHP_ERROR_HANDLER_SERVICE_ID);
         $this->assertSame(PhpErrorHandler::class, $definition->getClass());
         // Silenced errors bubble unless MonologErrorReportingPass enables the scream mode itself
-        $this->assertEquals([new Reference(HubInterface::class), $tracker, true], $definition->getArguments());
+        $this->assertEquals([new Reference(Sentry::class), $tracker, true], $definition->getArguments());
 
         $definition = $container->getDefinition(SentryExtension::MONOLOG_UNCAUGHT_EXCEPTION_HANDLER_SERVICE_ID);
         $this->assertSame(UncaughtExceptionHandler::class, $definition->getClass());
-        $this->assertEquals([new Reference(HubInterface::class), $tracker, false], $definition->getArguments());
+        $this->assertEquals([new Reference(Sentry::class), $tracker, false], $definition->getArguments());
     }
 
     public function testConsoleCommandListener(): void
@@ -258,7 +258,7 @@ abstract class SentryExtensionTest extends TestCase
         $this->assertSame(RuntimeContextListener::class, $definition->getClass());
         // Keep this dependency explicit: removing it can break runtime-context bootstrap
         // in some long-running/no-optional package environments.
-        $this->assertEquals(new Reference(HubInterface::class), $definition->getArgument(0));
+        $this->assertEquals(new Reference(Sentry::class), $definition->getArgument(0));
         $this->assertSame([
             'kernel.event_listener' => [
                 [
@@ -374,7 +374,6 @@ abstract class SentryExtensionTest extends TestCase
             'default_integrations' => false,
             'prefixes' => [$container->getParameter('kernel.project_dir')],
             'sample_rate' => 1,
-            'enable_tracing' => true,
             'traces_sample_rate' => 1,
             'traces_sampler' => new Reference('App\\Sentry\\Tracing\\TracesSampler'),
             'profiles_sample_rate' => 1,
@@ -382,12 +381,10 @@ abstract class SentryExtensionTest extends TestCase
             'log_flush_threshold' => 2,
             'enable_metrics' => true,
             'attach_stacktrace' => true,
-            'attach_metric_code_locations' => true,
             'context_lines' => 0,
             'environment' => 'development',
             'logger' => new Reference(DebugStdOutLogger::class),
             'spotlight' => true,
-            'spotlight_url' => 'http://localhost:8969',
             'release' => '4.0.x-dev',
             'org_id' => 1,
             'server_name' => 'localhost',
@@ -404,7 +401,6 @@ abstract class SentryExtensionTest extends TestCase
             'before_send' => new Reference('App\\Sentry\\BeforeSendCallback'),
             'before_send_transaction' => new Reference('App\\Sentry\\BeforeSendTransactionCallback'),
             'before_send_check_in' => new Reference('App\\Sentry\\BeforeSendCheckInCallback'),
-            'before_send_metrics' => new Reference('App\\Sentry\\BeforeSendMetricsCallback'),
             'before_send_log' => new Reference('App\\Sentry\\BeforeSendLogsCallback'),
             'trace_propagation_targets' => ['website.invalid'],
             'strict_trace_continuation' => true,
@@ -449,7 +445,6 @@ abstract class SentryExtensionTest extends TestCase
                 ],
                 'frame_context_lines' => 3,
             ],
-            'max_value_length' => 255,
             'transport' => new Reference('App\\Sentry\\Transport'),
             'http_client' => new Reference('App\\Sentry\\HttpClient'),
             'http_proxy' => 'proxy.example.com:8080',
@@ -459,7 +454,7 @@ abstract class SentryExtensionTest extends TestCase
             'http_ssl_verify_peer' => true,
             'http_compression' => true,
             'capture_silenced_errors' => true,
-            'max_request_body_size' => 'none',
+            'max_request_body_size' => 'never',
             'class_serializers' => [
                 'App\\FooClass' => new Reference('App\\Sentry\\Serializer\\FooClassSerializer'),
             ],

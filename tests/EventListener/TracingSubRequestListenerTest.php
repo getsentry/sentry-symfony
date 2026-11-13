@@ -7,9 +7,10 @@ namespace Sentry\SentryBundle\Tests\EventListener;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
+use Sentry\NoOpClient;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanStatus;
 use Symfony\Component\HttpFoundation\Cookie;
@@ -23,9 +24,9 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 final class TracingSubRequestListenerTest extends TestCase
 {
     /**
-     * @var MockObject&HubInterface
+     * @var MockObject&Sentry
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var TracingSubRequestListener
@@ -34,8 +35,8 @@ final class TracingSubRequestListenerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->hub = $this->createMock(HubInterface::class);
-        $this->listener = new TracingSubRequestListener($this->hub);
+        $this->sentry = $this->createMock(Sentry::class);
+        $this->listener = new TracingSubRequestListener($this->sentry);
     }
 
     /**
@@ -45,11 +46,14 @@ final class TracingSubRequestListenerTest extends TestCase
     {
         $span = new Span();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($span);
 
-        $this->hub->expects($this->once())
+        $this->sentry->method('getClient')
+            ->willReturn(new NoOpClient());
+
+        $this->sentry->expects($this->once())
             ->method('setSpan')
             ->with($this->callback(function (Span $span) use ($expectedSpan): bool {
                 $this->assertSame($expectedSpan->getOp(), $span->getOp());
@@ -151,15 +155,15 @@ final class TracingSubRequestListenerTest extends TestCase
             ->method('getOptions')
             ->willReturn($options);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($client);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn(new Span());
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('setSpan')
             ->with($this->callback(function (Span $span) use ($expectedUrl): bool {
                 $this->assertSame($expectedUrl, $span->getData()['http.url'] ?? null);
@@ -198,7 +202,7 @@ final class TracingSubRequestListenerTest extends TestCase
 
     public function testHandleKernelRequestEventDoesNothingIfRequestTypeIsMasterRequest(): void
     {
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('getSpan');
 
         $this->listener->handleKernelRequestEvent(new RequestEvent(
@@ -208,9 +212,9 @@ final class TracingSubRequestListenerTest extends TestCase
         ));
     }
 
-    public function testHandleKernelRequestEventDoesNothingIfNoSpanIsSetOnHub(): void
+    public function testHandleKernelRequestEventDoesNothingIfNoSpanIsSetOnScope(): void
     {
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn(null);
 
@@ -228,7 +232,7 @@ final class TracingSubRequestListenerTest extends TestCase
     {
         $span = new Span();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($span);
 
@@ -243,7 +247,7 @@ final class TracingSubRequestListenerTest extends TestCase
 
     public function testHandleKernelFinishRequestEventDoesNothingIfRequestTypeIsMasterRequest(): void
     {
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('getSpan');
 
         $this->listener->handleKernelFinishRequestEvent(new FinishRequestEvent(
@@ -253,9 +257,9 @@ final class TracingSubRequestListenerTest extends TestCase
         ));
     }
 
-    public function testHandleKernelFinishRequestEventDoesNothingIfNoSpanIsSetOnHub(): void
+    public function testHandleKernelFinishRequestEventDoesNothingIfNoSpanIsSetOnScope(): void
     {
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn(null);
 
@@ -275,10 +279,10 @@ final class TracingSubRequestListenerTest extends TestCase
         $span = new Span();
         $span->setSampled(true);
 
-        $this->hub->method('getClient')
+        $this->sentry->method('getClient')
             ->willReturn($client);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($span);
 
@@ -301,7 +305,7 @@ final class TracingSubRequestListenerTest extends TestCase
 
     public function testCollectKernelResponseDataDoesNothingIfRequestTypeIsMasterRequest(): void
     {
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('getSpan');
 
         $this->listener->collectKernelResponseData(new ResponseEvent(
@@ -312,13 +316,13 @@ final class TracingSubRequestListenerTest extends TestCase
         ));
     }
 
-    public function testCollectKernelResponseDataDoesNothingIfNoSpanIsSetOnHub(): void
+    public function testCollectKernelResponseDataDoesNothingIfNoSpanIsSetOnScope(): void
     {
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn(null);
 
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('getClient');
 
         $this->listener->collectKernelResponseData(new ResponseEvent(
@@ -333,7 +337,7 @@ final class TracingSubRequestListenerTest extends TestCase
     {
         $span = new Span();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($span);
 
@@ -348,9 +352,9 @@ final class TracingSubRequestListenerTest extends TestCase
         $this->assertSame(200, $span->getData('http.response.status_code'));
     }
 
-    public function testHandleResponseRequestEventDoesNothingIfNoTransactionIsSetOnHub(): void
+    public function testHandleResponseRequestEventDoesNothingIfNoTransactionIsSetOnScope(): void
     {
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn(null);
 

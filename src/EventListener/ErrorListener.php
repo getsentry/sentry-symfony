@@ -7,7 +7,7 @@ namespace Sentry\SentryBundle\EventListener;
 use Sentry\Event;
 use Sentry\EventHint;
 use Sentry\ExceptionMechanism;
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\Sentry;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 
 /**
@@ -16,18 +16,18 @@ use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 final class ErrorListener
 {
     /**
-     * @var HubInterface The current hub
+     * @var Sentry
      */
-    private $hub;
+    private $sentry;
 
     /**
      * Constructor.
      *
-     * @param HubInterface $hub The current hub
+     * @param Sentry $sentry
      */
-    public function __construct(HubInterface $hub)
+    public function __construct(Sentry $sentry)
     {
-        $this->hub = $hub;
+        $this->sentry = $sentry;
     }
 
     /**
@@ -42,6 +42,6 @@ final class ErrorListener
             'mechanism' => new ExceptionMechanism(ExceptionMechanism::TYPE_GENERIC, false),
         ]);
 
-        $this->hub->captureEvent(Event::createEvent(), $hint);
+        $this->sentry->captureEvent(Event::createEvent(), $hint);
     }
 }

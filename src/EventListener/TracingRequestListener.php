@@ -8,7 +8,7 @@ use Sentry\DataCollection\DataCollectionPolicy;
 use Sentry\DataCollection\HttpSpanDataCollector;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\SentryBundle\Integration\RequestFetcher;
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionSource;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,7 +17,6 @@ use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
 use function Sentry\continueTrace;
-use function Sentry\metrics;
 
 /**
  * This event listener acts on the master requests and starts a transaction
@@ -32,9 +31,9 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      */
     private $requestFetcher;
 
-    public function __construct(HubInterface $hub, ?RequestFetcherInterface $requestFetcher = null)
+    public function __construct(Sentry $sentry, ?RequestFetcherInterface $requestFetcher = null)
     {
-        parent::__construct($hub);
+        parent::__construct($sentry);
 
         $this->requestFetcher = $requestFetcher;
     }
@@ -81,7 +80,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
         $context->setStartTimestamp($requestStartTime);
         $context->setData($this->getData($request));
 
-        $this->hub->setSpan($this->hub->startTransaction($context));
+        $this->sentry->setSpan($this->sentry->startTransaction($context));
     }
 
     /**
@@ -93,7 +92,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
             return;
         }
 
-        $transaction = $this->hub->getTransaction();
+        $transaction = $this->sentry->getTransaction();
 
         if (null === $transaction) {
             return;
@@ -110,13 +109,12 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      */
     public function handleKernelTerminateEvent(TerminateEvent $event): void
     {
-        $transaction = $this->hub->getTransaction();
+        $transaction = $this->sentry->getTransaction();
 
         try {
             if (null !== $transaction) {
                 $this->collectRequestData($transaction);
                 $transaction->finish();
-                metrics()->flush();
             }
         } finally {
             if ($this->requestFetcher instanceof RequestFetcher) {
@@ -134,7 +132,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
             return;
         }
 
-        $policy = DataCollectionPolicy::fromHub($this->hub);
+        $policy = DataCollectionPolicy::fromOptions($this->sentry->getClient()->getOptions());
 
         // The legacy options only collected the request data on the event
         if ($policy->isLegacyMode()) {
@@ -158,7 +156,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      */
     private function getData(Request $request): array
     {
-        $policy = DataCollectionPolicy::fromHub($this->hub);
+        $policy = DataCollectionPolicy::fromOptions($this->sentry->getClient()->getOptions());
         $httpFlavor = $this->getHttpFlavor($request);
 
         $data = [

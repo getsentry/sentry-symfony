@@ -7,7 +7,7 @@ sentry:
 services:
   Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController:
     arguments:
-      $hub: '@Sentry\State\HubInterface'
+      $sentry: '@Sentry\SentryBundle\Sentry'
       $connection: '@?doctrine.dbal.default_connection'
     tags:
       - { name: controller.service_arguments }

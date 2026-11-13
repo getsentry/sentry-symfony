@@ -364,6 +364,34 @@ final class ConfigurationTest extends TestCase
     }
 
     /**
+     * @param bool|string $value
+     *
+     * @dataProvider spotlightOptionDataProvider
+     */
+    public function testSpotlightOption($value): void
+    {
+        /** @var array{options: array{spotlight: bool|string}} $config */
+        $config = $this->processConfiguration(['options' => ['spotlight' => $value]]);
+
+        $this->assertSame($value, $config['options']['spotlight']);
+    }
+
+    public function spotlightOptionDataProvider(): \Generator
+    {
+        yield [true];
+        yield [false];
+        yield ['http://localhost:8969'];
+    }
+
+    public function testSpotlightOptionWithInvalidValue(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('Invalid configuration for path "sentry.options.spotlight": the value must be a boolean or the URL of the Spotlight sidecar.');
+
+        $this->processConfiguration(['options' => ['spotlight' => 1]]);
+    }
+
+    /**
      * @dataProvider ignorePrepareSpansOptionDataProvider
      */
     public function testIgnorePrepareSpansOption(bool $value): void
@@ -538,9 +566,38 @@ final class ConfigurationTest extends TestCase
     public function maxRequestBodySizeValuesDataProvider(): \Generator
     {
         yield ['never'];
-        yield ['none'];
         yield ['small'];
         yield ['medium'];
         yield ['always'];
+    }
+
+    public function testMaxRequestBodySizeOptionDoesNotAcceptNone(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('The value "none" is not allowed for path "sentry.options.max_request_body_size".');
+
+        $this->processConfiguration(['options' => ['max_request_body_size' => 'none']]);
+    }
+
+    /**
+     * @param mixed $value
+     *
+     * @dataProvider optionsRemovedFromTheSdkDataProvider
+     */
+    public function testOptionsRemovedFromTheSdkAreRejected(string $option, $value): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage(\sprintf('Unrecognized option "%s" under "sentry.options"', $option));
+
+        $this->processConfiguration(['options' => [$option => $value]]);
+    }
+
+    public function optionsRemovedFromTheSdkDataProvider(): \Generator
+    {
+        yield ['enable_tracing', true];
+        yield ['attach_metric_code_locations', true];
+        yield ['spotlight_url', 'http://localhost:8969'];
+        yield ['before_send_metrics', 'App\\Sentry\\BeforeSendMetricsCallback'];
+        yield ['max_value_length', 255];
     }
 }

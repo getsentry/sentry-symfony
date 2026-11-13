@@ -18,7 +18,6 @@ services:
 
   Sentry\Monolog\BreadcrumbHandler:
     arguments:
-      - '@Sentry\State\HubInterface'
       - !php/const Monolog\Logger::WARNING
 
 monolog:

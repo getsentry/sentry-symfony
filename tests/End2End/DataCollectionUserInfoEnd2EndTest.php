@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\End2End;
 
 use Sentry\Event;
+use Sentry\EventType;
 use Sentry\SentryBundle\Tests\End2End\App\KernelWithExtraConfig;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -90,7 +91,8 @@ final class DataCollectionUserInfoEnd2EndTest extends WebTestCase
     private function getEvent(bool $isTransaction): Event
     {
         $events = array_values(array_filter(StubTransport::$events, static function (Event $event) use ($isTransaction): bool {
-            return $isTransaction === (null !== $event->getTransaction());
+            // Error events have the name of the active transaction too, so only the type tells them apart
+            return $isTransaction === (EventType::transaction() === $event->getType());
         }));
 
         $this->assertCount(1, $events);

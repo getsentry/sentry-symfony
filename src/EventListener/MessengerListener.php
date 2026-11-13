@@ -7,9 +7,9 @@ namespace Sentry\SentryBundle\EventListener;
 use Sentry\Event;
 use Sentry\EventHint;
 use Sentry\ExceptionMechanism;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentrySdk;
-use Sentry\State\HubInterface;
-use Sentry\State\Scope;
+use Sentry\State\IsolationScope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
@@ -21,9 +21,9 @@ use Symfony\Component\Messenger\Stamp\BusNameStamp;
 final class MessengerListener
 {
     /**
-     * @var HubInterface The current hub
+     * @var Sentry
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var bool Whether to capture errors thrown while processing a message that
@@ -45,16 +45,16 @@ final class MessengerListener
     private $isolateContextByMessage;
 
     /**
-     * @param HubInterface $hub                         The current hub
-     * @param bool         $captureSoftFails            Whether to capture errors thrown
-     *                                                  while processing a message that
-     *                                                  will be retried
-     * @param bool         $isolateBreadcrumbsByMessage Whether messages should have isolated breadcrumbs
-     * @param bool         $isolateContextByMessage     Whether messages should have isolated runtime contexts
+     * @param Sentry $sentry
+     * @param bool   $captureSoftFails            Whether to capture errors thrown
+     *                                            while processing a message that
+     *                                            will be retried
+     * @param bool   $isolateBreadcrumbsByMessage Whether messages should have isolated breadcrumbs
+     * @param bool   $isolateContextByMessage     Whether messages should have isolated runtime contexts
      */
-    public function __construct(HubInterface $hub, bool $captureSoftFails = true, bool $isolateBreadcrumbsByMessage = false, bool $isolateContextByMessage = false)
+    public function __construct(Sentry $sentry, bool $captureSoftFails = true, bool $isolateBreadcrumbsByMessage = false, bool $isolateContextByMessage = false)
     {
-        $this->hub = $hub;
+        $this->sentry = $sentry;
         $this->captureSoftFails = $captureSoftFails;
         $this->isolateBreadcrumbsByMessage = $isolateBreadcrumbsByMessage;
         $this->isolateContextByMessage = $isolateContextByMessage;
@@ -76,7 +76,7 @@ final class MessengerListener
                 return;
             }
 
-            $this->hub->withScope(function (Scope $scope) use ($event): void {
+            $this->sentry->withScope(function (IsolationScope $scope) use ($event): void {
                 $envelope = $event->getEnvelope();
                 $exception = $event->getThrowable();
 
@@ -96,7 +96,7 @@ final class MessengerListener
             // We always want to pop the scope at the end of this method to add the breadcrumbs
             // to any potential event that is produced.
             if ($this->isolateBreadcrumbsByMessage) {
-                $this->hub->popScope();
+                $this->sentry->popScope();
             }
 
             $this->finishMessageHandling($shouldFlushClient);
@@ -111,14 +111,14 @@ final class MessengerListener
     public function handleWorkerMessageHandledEvent(WorkerMessageHandledEvent $event): void
     {
         if ($this->isolateBreadcrumbsByMessage) {
-            $this->hub->popScope();
+            $this->sentry->popScope();
         }
 
         $this->finishMessageHandling(true);
     }
 
     /**
-     * Method that will push a new scope on the hub to create message local breadcrumbs that will not
+     * Method that will push a new scope to create message local breadcrumbs that will not
      * "leak" into future messages.
      *
      * @param WorkerMessageReceivedEvent $event
@@ -132,7 +132,7 @@ final class MessengerListener
         }
 
         if ($this->isolateBreadcrumbsByMessage) {
-            $this->hub->pushScope();
+            $this->sentry->pushScope();
         }
     }
 
@@ -168,7 +168,7 @@ final class MessengerListener
             'mechanism' => new ExceptionMechanism(ExceptionMechanism::TYPE_GENERIC, $willRetry),
         ]);
 
-        $this->hub->captureEvent(Event::createEvent(), $hint);
+        $this->sentry->captureEvent(Event::createEvent(), $hint);
     }
 
     private function finishMessageHandling(bool $shouldFlushClient): void
@@ -186,10 +186,6 @@ final class MessengerListener
 
     private function flushClient(): void
     {
-        $client = $this->hub->getClient();
-
-        if (null !== $client) {
-            $client->flush();
-        }
+        $this->sentry->getClient()->flush();
     }
 }

@@ -8,12 +8,14 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
 use Sentry\Event;
+use Sentry\NoOpClient;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\LoginListener;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\Tests\EventListener\Fixtures\UserWithIdentifierStub;
 use Sentry\SentryBundle\Tests\EventListener\Fixtures\UserWithoutIdentifierStub;
-use Sentry\State\HubInterface;
-use Sentry\State\Scope;
+use Sentry\State\GlobalScope;
+use Sentry\State\IsolationScope;
 use Sentry\UserDataBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -33,9 +35,9 @@ use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
 final class LoginListenerTest extends TestCase
 {
     /**
-     * @var MockObject&HubInterface
+     * @var MockObject&Sentry
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var MockObject&TokenStorageInterface
@@ -49,9 +51,9 @@ final class LoginListenerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->hub = $this->createMock(HubInterface::class);
+        $this->sentry = $this->createMock(Sentry::class);
         $this->tokenStorage = $this->createMock(TokenStorageInterface::class);
-        $this->listener = new LoginListener($this->hub, $this->tokenStorage);
+        $this->listener = new LoginListener($this->sentry, $this->tokenStorage);
     }
 
     /**
@@ -60,18 +62,18 @@ final class LoginListenerTest extends TestCase
      */
     public function testHandleKernelRequestEvent(TokenInterface $token, ?UserDataBag $user, ?UserDataBag $expectedUser): void
     {
-        $scope = new Scope();
+        $scope = new IsolationScope();
 
         $client = $this->createMock(ClientInterface::class);
         $client->expects($this->once())
             ->method('getOptions')
             ->willReturn(new Options(['send_default_pii' => true]));
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($client);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('configureScope')
             ->willReturnCallback(static function (callable $callback) use ($scope): void {
                 $callback($scope);
@@ -91,7 +93,7 @@ final class LoginListenerTest extends TestCase
             \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
         ));
 
-        $event = $scope->applyToEvent(Event::createEvent());
+        $event = (new GlobalScope())->merge($scope)->applyToEvent(Event::createEvent());
 
         $this->assertNotNull($event);
         $this->assertEquals($expectedUser, $event->getUser());
@@ -106,18 +108,18 @@ final class LoginListenerTest extends TestCase
             $this->markTestSkipped('This test is incompatible with versions of Symfony where the LoginSuccessEvent event does not exist.');
         }
 
-        $scope = new Scope();
+        $scope = new IsolationScope();
 
         $client = $this->createMock(ClientInterface::class);
         $client->expects($this->once())
             ->method('getOptions')
             ->willReturn(new Options(['send_default_pii' => true]));
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($client);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('configureScope')
             ->willReturnCallback(static function (callable $callback) use ($scope): void {
                 $callback($scope);
@@ -136,7 +138,7 @@ final class LoginListenerTest extends TestCase
             'main'
         ));
 
-        $event = $scope->applyToEvent(Event::createEvent());
+        $event = (new GlobalScope())->merge($scope)->applyToEvent(Event::createEvent());
 
         $this->assertNotNull($event);
         $this->assertEquals($expectedUser, $event->getUser());
@@ -152,18 +154,18 @@ final class LoginListenerTest extends TestCase
             $this->markTestSkipped('This test is incompatible with versions of Symfony where the LoginSuccessEvent event exists.');
         }
 
-        $scope = new Scope();
+        $scope = new IsolationScope();
 
         $client = $this->createMock(ClientInterface::class);
         $client->expects($this->once())
             ->method('getOptions')
             ->willReturn(new Options(['send_default_pii' => true]));
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($client);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('configureScope')
             ->willReturnCallback(static function (callable $callback) use ($scope): void {
                 $callback($scope);
@@ -175,7 +177,7 @@ final class LoginListenerTest extends TestCase
 
         $this->listener->handleAuthenticationSuccessEvent(new AuthenticationSuccessEvent($token));
 
-        $event = $scope->applyToEvent(Event::createEvent());
+        $event = (new GlobalScope())->merge($scope)->applyToEvent(Event::createEvent());
 
         $this->assertNotNull($event);
         $this->assertEquals($expectedUser, $event->getUser());
@@ -340,18 +342,18 @@ final class LoginListenerTest extends TestCase
      */
     public function testHandleKernelRequestEventRespectsUserInfoOption(Options $options, ?UserDataBag $expectedUser): void
     {
-        $scope = new Scope();
+        $scope = new IsolationScope();
 
         $client = $this->createMock(ClientInterface::class);
         $client->expects($this->once())
             ->method('getOptions')
             ->willReturn($options);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($client);
 
-        $this->hub->expects($this->any())
+        $this->sentry->expects($this->any())
             ->method('configureScope')
             ->willReturnCallback(static function (callable $callback) use ($scope): void {
                 $callback($scope);
@@ -369,7 +371,7 @@ final class LoginListenerTest extends TestCase
             \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
         ));
 
-        $event = $scope->applyToEvent(Event::createEvent());
+        $event = (new GlobalScope())->merge($scope)->applyToEvent(Event::createEvent());
 
         $this->assertNotNull($event);
         $this->assertEquals($expectedUser, $event->getUser());
@@ -402,10 +404,10 @@ final class LoginListenerTest extends TestCase
             $this->markTestSkipped('This test is incompatible with versions of Symfony where the LoginSuccessEvent event does not exist.');
         }
 
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('getClient');
 
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('configureScope');
 
         $this->listener->handleLoginSuccessEvent(new LoginSuccessEvent(
@@ -418,17 +420,17 @@ final class LoginListenerTest extends TestCase
         ));
     }
 
-    public function testHandleLoginSuccessEventDoesNothingIfClientIsNotSetOnHub(): void
+    public function testHandleLoginSuccessEventDoesNothingIfNoClientIsBound(): void
     {
         if (!class_exists(LoginSuccessEvent::class)) {
             $this->markTestSkipped('This test is incompatible with versions of Symfony where the LoginSuccessEvent event does not exist.');
         }
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
-            ->willReturn(null);
+            ->willReturn(new NoOpClient());
 
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('configureScope');
 
         if (version_compare(Kernel::VERSION, '5.4', '<')) {
@@ -463,11 +465,11 @@ final class LoginListenerTest extends TestCase
             ->method('getOptions')
             ->willReturn(new Options(['send_default_pii' => false]));
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($client);
 
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('configureScope');
 
         if (version_compare(Kernel::VERSION, '5.4', '<')) {
@@ -497,26 +499,26 @@ final class LoginListenerTest extends TestCase
             $this->markTestSkipped('This test is incompatible with versions of Symfony where the LoginSuccessEvent event exists.');
         }
 
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('getClient');
 
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('configureScope');
 
         $this->listener->handleAuthenticationSuccessEvent(new AuthenticationSuccessEvent(new UnauthenticatedTokenStub()));
     }
 
-    public function testHandleAuthenticationSuccessEventDoesNothingIfClientIsNotSetOnHub(): void
+    public function testHandleAuthenticationSuccessEventDoesNothingIfNoClientIsBound(): void
     {
         if (class_exists(LoginSuccessEvent::class)) {
             $this->markTestSkipped('This test is incompatible with versions of Symfony where the LoginSuccessEvent event exists.');
         }
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
-            ->willReturn(null);
+            ->willReturn(new NoOpClient());
 
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('configureScope');
 
         if (version_compare(Kernel::VERSION, '5.4', '<')) {
@@ -537,11 +539,11 @@ final class LoginListenerTest extends TestCase
             ->method('getOptions')
             ->willReturn(new Options(['send_default_pii' => false]));
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($client);
 
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('configureScope');
 
         if (version_compare(Kernel::VERSION, '5.4', '<')) {

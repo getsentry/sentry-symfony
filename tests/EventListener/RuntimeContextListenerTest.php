@@ -6,8 +6,8 @@ namespace Sentry\SentryBundle\Tests\EventListener;
 
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\EventListener\RuntimeContextListener;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentrySdk;
-use Sentry\State\HubInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -25,7 +25,7 @@ final class RuntimeContextListenerTest extends TestCase
     {
         SentrySdk::init();
 
-        $this->listener = new RuntimeContextListener($this->createMock(HubInterface::class));
+        $this->listener = new RuntimeContextListener($this->createMock(Sentry::class));
     }
 
     protected function tearDown(): void
@@ -35,25 +35,25 @@ final class RuntimeContextListenerTest extends TestCase
 
     public function testHandleKernelRequestEventStartsContextForMainRequest(): void
     {
-        $globalHub = SentrySdk::getCurrentHub();
+        $globalContext = SentrySdk::getCurrentRuntimeContext();
 
         $this->listener->handleKernelRequestEvent($this->createRequestEvent($this->getMainRequestType()));
 
-        $this->assertNotSame($globalHub, SentrySdk::getCurrentHub());
+        $this->assertNotSame($globalContext, SentrySdk::getCurrentRuntimeContext());
     }
 
     public function testHandleKernelRequestEventDoesNothingForSubRequest(): void
     {
-        $globalHub = SentrySdk::getCurrentHub();
+        $globalContext = SentrySdk::getCurrentRuntimeContext();
 
         $this->listener->handleKernelRequestEvent($this->createRequestEvent(HttpKernelInterface::SUB_REQUEST));
 
-        $this->assertSame($globalHub, SentrySdk::getCurrentHub());
+        $this->assertSame($globalContext, SentrySdk::getCurrentRuntimeContext());
     }
 
     public function testHandleKernelTerminateEventEndsActiveContext(): void
     {
-        $globalHub = SentrySdk::getCurrentHub();
+        $globalContext = SentrySdk::getCurrentRuntimeContext();
 
         $this->listener->handleKernelRequestEvent($this->createRequestEvent($this->getMainRequestType()));
 
@@ -63,18 +63,18 @@ final class RuntimeContextListenerTest extends TestCase
             new Response()
         ));
 
-        $this->assertSame($globalHub, SentrySdk::getCurrentHub());
+        $this->assertSame($globalContext, SentrySdk::getCurrentRuntimeContext());
     }
 
     public function testResetEndsActiveContext(): void
     {
-        $globalHub = SentrySdk::getCurrentHub();
+        $globalContext = SentrySdk::getCurrentRuntimeContext();
 
         $this->listener->handleKernelRequestEvent($this->createRequestEvent($this->getMainRequestType()));
 
         $this->listener->reset();
 
-        $this->assertSame($globalHub, SentrySdk::getCurrentHub());
+        $this->assertSame($globalContext, SentrySdk::getCurrentRuntimeContext());
     }
 
     private function createRequestEvent(int $requestType): RequestEvent

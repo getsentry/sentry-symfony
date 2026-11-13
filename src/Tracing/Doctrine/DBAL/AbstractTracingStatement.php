@@ -7,7 +7,7 @@ namespace Sentry\SentryBundle\Tracing\Doctrine\DBAL;
 use Doctrine\DBAL\Driver\Statement;
 use Sentry\DataCollection\DatabaseDataCollector;
 use Sentry\DataCollection\DataCollectionPolicy;
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
 
@@ -19,9 +19,9 @@ abstract class AbstractTracingStatement
     public const SPAN_OP_STMT_EXECUTE = 'db.sql.execute';
 
     /**
-     * @var HubInterface The current hub
+     * @var Sentry
      */
-    protected $hub;
+    protected $sentry;
 
     /**
      * @var Statement The decorated statement
@@ -46,14 +46,14 @@ abstract class AbstractTracingStatement
     /**
      * Constructor.
      *
-     * @param HubInterface          $hub                The current hub
+     * @param Sentry                $sentry
      * @param Statement             $decoratedStatement The decorated statement
      * @param string                $sqlQuery           The SQL query executed by the decorated statement
      * @param array<string, string> $spanData           The span data
      */
-    public function __construct(HubInterface $hub, Statement $decoratedStatement, string $sqlQuery, array $spanData)
+    public function __construct(Sentry $sentry, Statement $decoratedStatement, string $sqlQuery, array $spanData)
     {
-        $this->hub = $hub;
+        $this->sentry = $sentry;
         $this->decoratedStatement = $decoratedStatement;
         $this->sqlQuery = $sqlQuery;
         $this->spanData = $spanData;
@@ -74,7 +74,7 @@ abstract class AbstractTracingStatement
      */
     protected function traceFunction(SpanContext $spanContext, callable $callback, ...$args)
     {
-        $span = $this->hub->getSpan();
+        $span = $this->sentry->getSpan();
 
         if (null !== $span) {
             $span = $span->startChild($spanContext);
@@ -122,7 +122,7 @@ abstract class AbstractTracingStatement
         }
 
         $data = DatabaseDataCollector::collectQueryData(
-            DataCollectionPolicy::fromHub($this->hub),
+            DataCollectionPolicy::fromOptions($this->sentry->getClient()->getOptions()),
             \is_array($params) && [] !== $params ? $params : $this->parameters
         );
 

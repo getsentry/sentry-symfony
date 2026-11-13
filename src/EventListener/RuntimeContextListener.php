@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentrySdk;
-use Sentry\State\HubInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Contracts\Service\ResetInterface;
@@ -21,10 +21,10 @@ final class RuntimeContextListener implements ResetInterface
     use KernelEventForwardCompatibilityTrait;
 
     /**
-     * Keep HubInterface as an explicit dependency so the container initializes
-     * and configures the hub service before this listener handles requests.
+     * Keep Sentry as an explicit dependency so the container initializes
+     * it and binds the client before this listener handles requests.
      */
-    public function __construct(HubInterface $hub)
+    public function __construct(Sentry $sentry)
     {
     }
 

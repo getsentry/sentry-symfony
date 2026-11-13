@@ -5,32 +5,32 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\Tests\End2End\App\Controller;
 
 use Doctrine\DBAL\Connection;
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\SpanContext;
 use Symfony\Component\HttpFoundation\Response;
 
 class TracingController
 {
     /**
-     * @var HubInterface
+     * @var Sentry
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var Connection|null
      */
     private $connection;
 
-    public function __construct(HubInterface $hub, ?Connection $connection = null)
+    public function __construct(Sentry $sentry, ?Connection $connection = null)
     {
-        $this->hub = $hub;
+        $this->sentry = $sentry;
         $this->connection = $connection;
     }
 
     public function pingDatabase(): Response
     {
-        $this->hub->setSpan(
-            $this->hub->getSpan()
+        $this->sentry->setSpan(
+            $this->sentry->getSpan()
                 ->startChild($this->createSpan())
         );
 
@@ -43,8 +43,8 @@ class TracingController
 
     public function pingPreparedDatabase(): Response
     {
-        $this->hub->setSpan(
-            $this->hub->getSpan()
+        $this->sentry->setSpan(
+            $this->sentry->getSpan()
                 ->startChild($this->createSpan())
         );
 
@@ -57,8 +57,8 @@ class TracingController
 
     public function ignoredTransaction(): Response
     {
-        $this->hub->setSpan(
-            $this->hub->getSpan()
+        $this->sentry->setSpan(
+            $this->sentry->getSpan()
                 ->startChild($this->createSpan())
         );
 

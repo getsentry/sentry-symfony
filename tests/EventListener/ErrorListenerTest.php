@@ -8,7 +8,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sentry\EventHint;
 use Sentry\SentryBundle\EventListener\ErrorListener;
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\Sentry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -16,9 +16,9 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 final class ErrorListenerTest extends TestCase
 {
     /**
-     * @var MockObject&HubInterface
+     * @var MockObject&Sentry
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var ErrorListener
@@ -27,8 +27,8 @@ final class ErrorListenerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->hub = $this->createMock(HubInterface::class);
-        $this->listener = new ErrorListener($this->hub);
+        $this->sentry = $this->createMock(Sentry::class);
+        $this->listener = new ErrorListener($this->sentry);
     }
 
     /**
@@ -38,7 +38,7 @@ final class ErrorListenerTest extends TestCase
     {
         $expectedException = $event->getThrowable();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('captureEvent')
             ->with(
                 $this->anything(),

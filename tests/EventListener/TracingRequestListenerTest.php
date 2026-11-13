@@ -10,7 +10,7 @@ use Sentry\ClientInterface;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
 use Sentry\SentryBundle\Integration\RequestFetcher;
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\DynamicSamplingContext;
 use Sentry\Tracing\SpanId;
 use Sentry\Tracing\SpanStatus;
@@ -35,9 +35,9 @@ use Symfony\Component\Routing\Route;
 final class TracingRequestListenerTest extends TestCase
 {
     /**
-     * @var MockObject&HubInterface
+     * @var MockObject&Sentry
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var TracingRequestListener
@@ -46,8 +46,8 @@ final class TracingRequestListenerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->hub = $this->createMock(HubInterface::class);
-        $this->listener = new TracingRequestListener($this->hub);
+        $this->sentry = $this->createMock(Sentry::class);
+        $this->listener = new TracingRequestListener($this->sentry);
     }
 
     /**
@@ -64,11 +64,11 @@ final class TracingRequestListenerTest extends TestCase
             ->method('getOptions')
             ->willReturn($options);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getClient')
             ->willReturn($client);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('startTransaction')
             ->with($this->callback(function (TransactionContext $context) use ($expectedTransactionContext): bool {
                 if (null === $expectedTransactionContext->getTraceId() && null !== $context->getTraceId()) {
@@ -84,7 +84,7 @@ final class TracingRequestListenerTest extends TestCase
             }))
             ->willReturn($transaction);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('setSpan')
             ->with($transaction);
 
@@ -573,7 +573,7 @@ final class TracingRequestListenerTest extends TestCase
 
     public function testHandleKernelRequestEventDoesNothingIfRequestTypeIsSubRequest(): void
     {
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('startTransaction');
 
         $this->listener->handleKernelRequestEvent(new RequestEvent(
@@ -599,10 +599,10 @@ final class TracingRequestListenerTest extends TestCase
 
         $transaction = new Transaction($transactionContext);
 
-        $this->hub->method('getClient')
+        $this->sentry->method('getClient')
             ->willReturn($client);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getTransaction')
             ->willReturn($transaction);
 
@@ -677,10 +677,10 @@ final class TracingRequestListenerTest extends TestCase
 
         $transaction = new Transaction($transactionContext);
 
-        $this->hub->method('getClient')
+        $this->sentry->method('getClient')
             ->willReturn($client);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getTransaction')
             ->willReturn($transaction);
 
@@ -731,10 +731,10 @@ final class TracingRequestListenerTest extends TestCase
 
         $transaction = new Transaction($transactionContext);
 
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('getClient');
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getTransaction')
             ->willReturn($transaction);
 
@@ -750,7 +750,7 @@ final class TracingRequestListenerTest extends TestCase
 
     public function testCollectKernelResponseDataIgnoresSubRequests(): void
     {
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('getTransaction');
 
         $this->listener->collectKernelResponseData(new ResponseEvent(
@@ -765,7 +765,7 @@ final class TracingRequestListenerTest extends TestCase
     {
         $transaction = new Transaction(new TransactionContext());
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -780,9 +780,9 @@ final class TracingRequestListenerTest extends TestCase
         $this->assertSame(200, $transaction->getData('http.response.status_code'));
     }
 
-    public function testHandleResponseRequestEventDoesNothingIfNoTransactionIsSetOnHub(): void
+    public function testHandleResponseRequestEventDoesNothingIfNoTransactionIsSetOnScope(): void
     {
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn(null);
 
@@ -801,7 +801,7 @@ final class TracingRequestListenerTest extends TestCase
     {
         $transaction = new Transaction(new TransactionContext());
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getTransaction')
             ->willReturn($transaction);
 
@@ -814,9 +814,9 @@ final class TracingRequestListenerTest extends TestCase
         $this->assertSame(microtime(true), $transaction->getEndTimestamp());
     }
 
-    public function testHandleKernelTerminateEventDoesNothingIfNoTransactionIsSetOnHub(): void
+    public function testHandleKernelTerminateEventDoesNothingIfNoTransactionIsSetOnScope(): void
     {
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getTransaction')
             ->willReturn(null);
 
@@ -827,16 +827,16 @@ final class TracingRequestListenerTest extends TestCase
         ));
     }
 
-    public function testHandleKernelTerminateEventClearsRequestFetcherIfNoTransactionIsSetOnHub(): void
+    public function testHandleKernelTerminateEventClearsRequestFetcherIfNoTransactionIsSetOnScope(): void
     {
         $requestStack = $this->createMock(RequestStack::class);
         $httpMessageFactory = $this->createMock(HttpMessageFactoryInterface::class);
         $requestFetcher = new RequestFetcher($requestStack, $httpMessageFactory);
-        $listener = new TracingRequestListener($this->hub, $requestFetcher);
+        $listener = new TracingRequestListener($this->sentry, $requestFetcher);
 
         $requestFetcher->setRequest(Request::create('https://www.example.com/manual'));
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getTransaction')
             ->willReturn(null);
 
@@ -870,13 +870,13 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->setSampled($sampled);
         $transaction = new Transaction($transactionContext);
 
-        $this->hub->method('getClient')->willReturn($client);
-        $this->hub->method('getTransaction')->willReturn($transaction);
+        $this->sentry->method('getClient')->willReturn($client);
+        $this->sentry->method('getTransaction')->willReturn($transaction);
 
         $requestFetcher = new RequestFetcher($this->createMock(RequestStack::class));
         $requestFetcher->setRequest($request);
 
-        (new TracingRequestListener($this->hub, $requestFetcher))->handleKernelTerminateEvent(new TerminateEvent(
+        (new TracingRequestListener($this->sentry, $requestFetcher))->handleKernelTerminateEvent(new TerminateEvent(
             $this->createMock(HttpKernelInterface::class),
             $request,
             new Response()

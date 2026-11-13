@@ -8,8 +8,8 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\EventListener\KernelEventForwardCompatibilityTrait;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
-use Sentry\State\HubInterface;
-use Sentry\State\Scope;
+use Sentry\SentryBundle\Sentry;
+use Sentry\State\IsolationScope;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -20,9 +20,9 @@ class SubRequestListenerTest extends TestCase
     use KernelEventForwardCompatibilityTrait;
 
     /**
-     * @var MockObject&HubInterface
+     * @var MockObject&Sentry
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var SubRequestListener
@@ -31,8 +31,8 @@ class SubRequestListenerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->hub = $this->createMock(HubInterface::class);
-        $this->listener = new SubRequestListener($this->hub);
+        $this->sentry = $this->createMock(Sentry::class);
+        $this->listener = new SubRequestListener($this->sentry);
     }
 
     /**
@@ -40,9 +40,9 @@ class SubRequestListenerTest extends TestCase
      */
     public function testHandleKernelRequestEvent(RequestEvent $event): void
     {
-        $this->hub->expects($this->isMainRequest($event) ? $this->never() : $this->once())
+        $this->sentry->expects($this->isMainRequest($event) ? $this->never() : $this->once())
             ->method('pushScope')
-            ->willReturn(new Scope());
+            ->willReturn(new IsolationScope());
 
         $this->listener->handleKernelRequestEvent($event);
     }
@@ -68,7 +68,7 @@ class SubRequestListenerTest extends TestCase
      */
     public function testHandleKernelFinishRequestEvent($event): void
     {
-        $this->hub->expects($this->isMainRequest($event) ? $this->never() : $this->once())
+        $this->sentry->expects($this->isMainRequest($event) ? $this->never() : $this->once())
             ->method('popScope');
 
         $this->listener->handleKernelFinishRequestEvent($event);

@@ -7,7 +7,7 @@ namespace Sentry\SentryBundle\Tests\EventListener;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sentry\SentryBundle\EventListener\TracingConsoleListener;
-use Sentry\State\HubInterface;
+use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
@@ -21,27 +21,27 @@ use Symfony\Component\Console\Output\NullOutput;
 final class TracingConsoleListenerTest extends TestCase
 {
     /**
-     * @var MockObject&HubInterface
+     * @var MockObject&Sentry
      */
-    private $hub;
+    private $sentry;
 
     protected function setUp(): void
     {
-        $this->hub = $this->createMock(HubInterface::class);
+        $this->sentry = $this->createMock(Sentry::class);
     }
 
     /**
-     * @dataProvider handleConsoleCommandEventStartsTransactionIfNoSpanIsSetOnHubDataProvider
+     * @dataProvider handleConsoleCommandEventStartsTransactionIfNoSpanIsSetOnScopeDataProvider
      */
-    public function testHandleConsoleCommandEventStartsTransactionIfNoSpanIsSetOnHub(Command $command, TransactionContext $expectedTransactionContext): void
+    public function testHandleConsoleCommandEventStartsTransactionIfNoSpanIsSetOnScope(Command $command, TransactionContext $expectedTransactionContext): void
     {
         $transaction = new Transaction(new TransactionContext());
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn(null);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('startTransaction')
             ->with($this->callback(function (TransactionContext $context) use ($expectedTransactionContext): bool {
                 // This value is random when the metadata is constructed, thus we set it to a fixed expected value since we don't care for the value here
@@ -53,12 +53,12 @@ final class TracingConsoleListenerTest extends TestCase
             }))
             ->willReturn($transaction);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('setSpan')
             ->with($transaction)
             ->willReturnSelf();
 
-        $listener = new TracingConsoleListener($this->hub);
+        $listener = new TracingConsoleListener($this->sentry);
         $listener->handleConsoleCommandEvent(new ConsoleCommandEvent(
             $command,
             new ArrayInput([]),
@@ -69,7 +69,7 @@ final class TracingConsoleListenerTest extends TestCase
     /**
      * @return \Generator<mixed>
      */
-    public function handleConsoleCommandEventStartsTransactionIfNoSpanIsSetOnHubDataProvider(): \Generator
+    public function handleConsoleCommandEventStartsTransactionIfNoSpanIsSetOnScopeDataProvider(): \Generator
     {
         $transactionContext = new TransactionContext();
         $transactionContext->setOp('console.command');
@@ -97,17 +97,17 @@ final class TracingConsoleListenerTest extends TestCase
     }
 
     /**
-     * @dataProvider handleConsoleCommandEventStartsChildSpanIfSpanIsSetOnHubDataProvider
+     * @dataProvider handleConsoleCommandEventStartsChildSpanIfSpanIsSetOnScopeDataProvider
      */
-    public function testHandleConsoleCommandEventStartsChildSpanIfSpanIsSetOnHub(Command $command, string $expectedDescription): void
+    public function testHandleConsoleCommandEventStartsChildSpanIfSpanIsSetOnScope(Command $command, string $expectedDescription): void
     {
         $span = new Span();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($span);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('setSpan')
             ->with($this->callback(function (Span $spanArg) use ($span, $expectedDescription): bool {
                 $this->assertSame('console.command', $spanArg->getOp());
@@ -118,7 +118,7 @@ final class TracingConsoleListenerTest extends TestCase
             }))
             ->willReturnSelf();
 
-        $listener = new TracingConsoleListener($this->hub);
+        $listener = new TracingConsoleListener($this->sentry);
         $listener->handleConsoleCommandEvent(new ConsoleCommandEvent(
             $command,
             new ArrayInput([]),
@@ -129,7 +129,7 @@ final class TracingConsoleListenerTest extends TestCase
     /**
      * @return \Generator<mixed>
      */
-    public function handleConsoleCommandEventStartsChildSpanIfSpanIsSetOnHubDataProvider(): \Generator
+    public function handleConsoleCommandEventStartsChildSpanIfSpanIsSetOnScopeDataProvider(): \Generator
     {
         yield [
             new Command(),
@@ -144,10 +144,10 @@ final class TracingConsoleListenerTest extends TestCase
 
     public function testHandleConsoleCommandEvent(): void
     {
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('getSpan');
 
-        $listener = new TracingConsoleListener($this->hub, ['foo:bar']);
+        $listener = new TracingConsoleListener($this->sentry, ['foo:bar']);
         $listener->handleConsoleCommandEvent(new ConsoleCommandEvent(
             new Command('foo:bar'),
             new ArrayInput([]),
@@ -159,11 +159,11 @@ final class TracingConsoleListenerTest extends TestCase
     {
         $span = new Span();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($span);
 
-        $listener = new TracingConsoleListener($this->hub);
+        $listener = new TracingConsoleListener($this->sentry);
         $listener->handleConsoleTerminateEvent(new ConsoleTerminateEvent(
             new Command(),
             new ArrayInput([]),
@@ -174,13 +174,13 @@ final class TracingConsoleListenerTest extends TestCase
         $this->assertNotNull($span->getEndTimestamp());
     }
 
-    public function testHandleConsoleTerminateEventDoesNothingIfNoSpanIsSetOnHub(): void
+    public function testHandleConsoleTerminateEventDoesNothingIfNoSpanIsSetOnScope(): void
     {
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn(null);
 
-        $listener = new TracingConsoleListener($this->hub);
+        $listener = new TracingConsoleListener($this->sentry);
         $listener->handleConsoleTerminateEvent(new ConsoleTerminateEvent(
             new Command(),
             new ArrayInput([]),
@@ -191,10 +191,10 @@ final class TracingConsoleListenerTest extends TestCase
 
     public function testHandleConsoleTerminateEventDoesNothingIfCommandIsExcluded(): void
     {
-        $this->hub->expects($this->never())
+        $this->sentry->expects($this->never())
             ->method('getSpan');
 
-        $listener = new TracingConsoleListener($this->hub, ['foo:bar']);
+        $listener = new TracingConsoleListener($this->sentry, ['foo:bar']);
         $listener->handleConsoleTerminateEvent(new ConsoleTerminateEvent(
             new Command('foo:bar'),
             new ArrayInput([]),

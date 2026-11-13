@@ -10,18 +10,18 @@ use Doctrine\DBAL\ParameterType;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sentry\ClientInterface;
 use Sentry\Options;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\Tests\DoctrineTestCase;
 use Sentry\SentryBundle\Tracing\Doctrine\DBAL\TracingStatementForV4;
-use Sentry\State\HubInterface;
 use Sentry\Tracing\Transaction;
 use Sentry\Tracing\TransactionContext;
 
 final class TracingStatementForV4Test extends DoctrineTestCase
 {
     /**
-     * @var MockObject&HubInterface
+     * @var MockObject&Sentry
      */
-    private $hub;
+    private $sentry;
 
     /**
      * @var Statement&MockObject
@@ -42,9 +42,9 @@ final class TracingStatementForV4Test extends DoctrineTestCase
 
     protected function setUp(): void
     {
-        $this->hub = $this->createMock(HubInterface::class);
+        $this->sentry = $this->createMock(Sentry::class);
         $this->decoratedStatement = $this->createMock(Statement::class);
-        $this->statement = new TracingStatementForV4($this->hub, $this->decoratedStatement, 'SELECT 1', ['db.system' => 'sqlite']);
+        $this->statement = new TracingStatementForV4($this->sentry, $this->decoratedStatement, 'SELECT 1', ['db.system' => 'sqlite']);
     }
 
     public function testBindValue(): void
@@ -59,10 +59,10 @@ final class TracingStatementForV4Test extends DoctrineTestCase
     public function testExecute(): void
     {
         $driverResult = $this->createMock(Result::class);
-        $transaction = new Transaction(new TransactionContext(), $this->hub);
+        $transaction = new Transaction(new TransactionContext());
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
@@ -97,14 +97,14 @@ final class TracingStatementForV4Test extends DoctrineTestCase
         $transactionContext = new TransactionContext();
         $transactionContext->setSampled(true);
 
-        $transaction = new Transaction($transactionContext, $this->hub);
+        $transaction = new Transaction($transactionContext);
         $transaction->initSpanRecorder();
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn($transaction);
 
-        $this->hub->expects($this->any())
+        $this->sentry->expects($this->any())
             ->method('getClient')
             ->willReturn($client);
 
@@ -157,11 +157,11 @@ final class TracingStatementForV4Test extends DoctrineTestCase
         $transactionContext = new TransactionContext();
         $transactionContext->setSampled(false);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
-            ->willReturn(new Transaction($transactionContext, $this->hub));
+            ->willReturn(new Transaction($transactionContext));
 
-        $this->hub->expects($this->any())
+        $this->sentry->expects($this->any())
             ->method('getClient')
             ->willReturn($client);
 
@@ -173,11 +173,11 @@ final class TracingStatementForV4Test extends DoctrineTestCase
         $this->statement->execute();
     }
 
-    public function testExecuteDoesNothingIfNoSpanIsSetOnHub(): void
+    public function testExecuteDoesNothingIfNoSpanIsSetOnScope(): void
     {
         $driverResult = $this->createMock(Result::class);
 
-        $this->hub->expects($this->once())
+        $this->sentry->expects($this->once())
             ->method('getSpan')
             ->willReturn(null);
 

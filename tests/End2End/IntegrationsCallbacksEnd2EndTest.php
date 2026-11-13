@@ -6,10 +6,10 @@ namespace Sentry\SentryBundle\Tests\End2End;
 
 use PHPUnit\Framework\TestCase;
 use Sentry\Client;
+use Sentry\SentryBundle\Sentry;
 use Sentry\SentryBundle\Tests\End2End\App\KernelWithExtraConfig;
 use Sentry\SentryBundle\Tests\End2End\Fixtures\TestIntegrationForFactory;
 use Sentry\SentryBundle\Tests\End2End\Fixtures\TestIntegrationForInvokable;
-use Sentry\State\HubInterface;
 
 /**
  * @runTestsInSeparateProcesses
@@ -25,13 +25,13 @@ final class IntegrationsCallbacksEnd2EndTest extends TestCase
         $kernel->boot();
 
         /**
-         * @var HubInterface $hub
+         * @var Sentry $sentry
          */
-        $hub = $kernel->getContainer()->get('test.hub');
+        $sentry = $kernel->getContainer()->get('test.sentry');
         /**
          * @var Client $client
          */
-        $client = $hub->getClient();
+        $client = $sentry->getClient();
 
         // This integration is added by the declared service
         $this->assertNotNull($client->getIntegration(TestIntegrationForInvokable::class));
@@ -48,13 +48,13 @@ final class IntegrationsCallbacksEnd2EndTest extends TestCase
         $kernel->boot();
 
         /**
-         * @var HubInterface $hub
+         * @var Sentry $sentry
          */
-        $hub = $kernel->getContainer()->get('test.hub');
+        $sentry = $kernel->getContainer()->get('test.sentry');
         /**
          * @var Client $client
          */
-        $client = $hub->getClient();
+        $client = $sentry->getClient();
 
         // This integration is added by the declared service
         $this->assertNotNull($client->getIntegration(TestIntegrationForFactory::class));
