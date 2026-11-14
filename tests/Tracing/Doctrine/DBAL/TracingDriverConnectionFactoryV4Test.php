@@ -26,11 +26,6 @@ final class TracingDriverConnectionFactoryV4Test extends DoctrineTestCase
     private $hub;
 
     /**
-     * @var MockObject&AbstractPlatform
-     */
-    private $databasePlatform;
-
-    /**
      * @var TracingDriverConnectionFactory
      */
     private $tracingDriverConnectionFactory;
@@ -45,7 +40,6 @@ final class TracingDriverConnectionFactoryV4Test extends DoctrineTestCase
     protected function setUp(): void
     {
         $this->hub = $this->createMock(HubInterface::class);
-        $this->databasePlatform = $this->createMock(AbstractPlatform::class);
         $this->tracingDriverConnectionFactory = new TracingDriverConnectionFactory($this->hub);
     }
 
