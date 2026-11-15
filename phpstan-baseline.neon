@@ -381,11 +381,6 @@ parameters:
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
 
 		-
-			message: "#^Property Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionFactoryV4Test\\:\\:\\$databasePlatform is never read, only written\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionFactoryV4Test.php
-
-		-
 			message: "#^Trying to mock an undefined method errorCode\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Connection\\.$#"
 			count: 1
 			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4Test.php
