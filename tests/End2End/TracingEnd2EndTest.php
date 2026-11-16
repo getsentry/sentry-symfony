@@ -64,6 +64,31 @@ class TracingEnd2EndTest extends WebTestCase
         $this->assertTracingEventCount(0);
     }
 
+    public function testSubRequestWithoutRouteDoesNotFinishTheTransaction(): void
+    {
+        $client = static::createClient(['debug' => false]);
+
+        $client->request('GET', '/tracing/sub-request-without-route');
+
+        $response = $client->getResponse();
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
+
+        $transactions = array_values(array_filter(StubTransport::$events, static function (Event $event): bool {
+            return 'GET tracing_sub_request_without_route' === $event->getTransaction();
+        }));
+
+        $this->assertCount(1, $transactions);
+
+        $spanOps = array_map(static function ($span): ?string {
+            return $span->getOp();
+        }, $transactions[0]->getSpans());
+
+        // The span was started after the sub-request, the transaction must still be open then
+        $this->assertContains('after.sub_request', $spanOps);
+    }
+
     private function assertTracingEventCount(int $expectedCount): void
     {
         $tracingEvents = array_values(array_filter(StubTransport::$events, static function (Event $event): bool {

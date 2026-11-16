@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\DataCollection\DataCollectionPolicy;
+use Sentry\State\HubInterface;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
@@ -17,6 +19,18 @@ use Symfony\Component\HttpKernel\Event\ResponseEvent;
  */
 final class TracingSubRequestListener extends AbstractTracingRequestListener
 {
+    /**
+     * @var \SplObjectStorage<Request, Span> The spans started for the sub-requests that are being handled
+     */
+    private $spans;
+
+    public function __construct(HubInterface $hub, bool $enabled = true)
+    {
+        parent::__construct($hub, $enabled);
+
+        $this->spans = new \SplObjectStorage();
+    }
+
     /**
      * This method is called for each subrequest handled by the framework and
      * traces each by starting a new {@see Span}.
@@ -36,19 +50,41 @@ final class TracingSubRequestListener extends AbstractTracingRequestListener
             return;
         }
 
-        $this->hub->setSpan(
-            $span->startChild(
-                SpanContext::make()
-                    ->setOp('http.server')
-                    ->setData([
-                        'http.request.method' => $request->getMethod(),
-                        'http.url' => $this->getRequestUrl($request, DataCollectionPolicy::fromHub($this->hub)),
-                        'route' => $this->getRouteName($request),
-                    ])
-                    ->setOrigin('auto.http.server')
-                    ->setDescription(\sprintf('%s %s%s%s', $request->getMethod(), $request->getSchemeAndHttpHost(), $request->getBaseUrl(), $request->getPathInfo()))
-            )
+        $subRequestSpan = $span->startChild(
+            SpanContext::make()
+                ->setOp('http.server')
+                ->setData([
+                    'http.request.method' => $request->getMethod(),
+                    'http.url' => $this->getRequestUrl($request, DataCollectionPolicy::fromHub($this->hub)),
+                    'route' => $this->getRouteName($request),
+                ])
+                ->setOrigin('auto.http.server')
+                ->setDescription(\sprintf('%s %s%s%s', $request->getMethod(), $request->getSchemeAndHttpHost(), $request->getBaseUrl(), $request->getPathInfo()))
         );
+
+        $this->spans[$request] = $subRequestSpan;
+        $this->hub->setSpan($subRequestSpan);
+    }
+
+    /**
+     * Sets the HTTP status of the response on the span of the sub-request.
+     */
+    public function handleKernelResponseEvent(ResponseEvent $event): void
+    {
+        if (!$this->enabled || $this->isMainRequest($event)) {
+            return;
+        }
+
+        $span = $this->getSubRequestSpan($event->getRequest());
+
+        if (null === $span) {
+            return;
+        }
+
+        $response = $event->getResponse();
+
+        $span->setHttpStatus($response->getStatusCode());
+        $span->setData(['http.response.status_code' => $response->getStatusCode()]);
     }
 
     /**
@@ -60,7 +96,7 @@ final class TracingSubRequestListener extends AbstractTracingRequestListener
             return;
         }
 
-        $span = $this->hub->getSpan();
+        $span = $this->getSubRequestSpan($event->getRequest());
 
         if (null === $span) {
             return;
@@ -81,12 +117,22 @@ final class TracingSubRequestListener extends AbstractTracingRequestListener
             return;
         }
 
-        $span = $this->hub->getSpan();
+        $request = $event->getRequest();
+        $span = $this->getSubRequestSpan($request);
 
+        // A sub-request can fail before its span is started, e.g. if no route matches. The current span is not
+        // the span of the sub-request then, finishing it would end the transaction in the middle of the request.
         if (null === $span) {
             return;
         }
 
+        unset($this->spans[$request]);
+
         $span->finish();
+    }
+
+    private function getSubRequestSpan(Request $request): ?Span
+    {
+        return isset($this->spans[$request]) ? $this->spans[$request] : null;
     }
 }
