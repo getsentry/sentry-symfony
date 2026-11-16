@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\DataCollection\DataCollectionPolicy;
+use Sentry\Event;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Sentry\UserDataBag;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\SwitchUserToken;
@@ -31,36 +33,48 @@ final class LoginListener
     private $tokenStorage;
 
     /**
+     * @var RequestStack|null The request stack
+     */
+    private $requestStack;
+
+    /**
+     * @var bool Whether the event processor adding the user was added to the scope
+     */
+    private $eventProcessorAdded = false;
+
+    /**
      * Constructor.
      *
      * @param HubInterface               $hub          The current hub
      * @param TokenStorageInterface|null $tokenStorage The token storage
+     * @param RequestStack|null          $requestStack The request stack
      */
-    public function __construct(HubInterface $hub, ?TokenStorageInterface $tokenStorage)
+    public function __construct(HubInterface $hub, ?TokenStorageInterface $tokenStorage, ?RequestStack $requestStack = null)
     {
         $this->hub = $hub;
         $this->tokenStorage = $tokenStorage;
+        $this->requestStack = $requestStack;
     }
 
     /**
-     * This method is called for each request handled by the framework and
-     * fills the Sentry scope with information about the current user.
+     * This method is called for each request handled by the framework. It makes
+     * the current user be added to the events sent to Sentry, reading the token
+     * only once an event is captured: with a lazy firewall, reading it reads the
+     * session, and locks it for the rest of the request with most handlers.
      */
     public function handleKernelRequestEvent(RequestEvent $event): void
     {
-        if (
-            null === $this->tokenStorage
-            || !$this->isMainRequest($event)
-            || $event->getRequest()->attributes->get('_stateless')
-        ) {
+        if (null === $this->tokenStorage || $this->eventProcessorAdded || !$this->isMainRequest($event)) {
             return;
         }
 
-        $token = $this->tokenStorage->getToken();
+        $this->eventProcessorAdded = true;
 
-        if (null !== $token) {
-            $this->updateUserContext($token);
-        }
+        $this->hub->configureScope(function (Scope $scope): void {
+            $scope->addEventProcessor(function (Event $event): Event {
+                return $this->addUserToEvent($event);
+            });
+        });
     }
 
     /**
@@ -81,6 +95,45 @@ final class LoginListener
     public function handleAuthenticationSuccessEvent(AuthenticationSuccessEvent $event): void
     {
         $this->updateUserContext($event->getAuthenticationToken());
+    }
+
+    private function addUserToEvent(Event $event): Event
+    {
+        $user = $event->getUser();
+
+        if (null === $this->tokenStorage || (null !== $user && null !== $user->getId())) {
+            return $event;
+        }
+
+        $request = null !== $this->requestStack ? $this->requestStack->getMainRequest() : null;
+
+        if (null !== $request && $request->attributes->get('_stateless')) {
+            return $event;
+        }
+
+        if (!DataCollectionPolicy::fromHub($this->hub)->shouldCollectUserInfo()) {
+            return $event;
+        }
+
+        $token = $this->tokenStorage->getToken();
+
+        if (null === $token || !$this->isTokenAuthenticated($token)) {
+            return $event;
+        }
+
+        // the user of the event can be the one of the scope, which outlives the request
+        $user = null !== $user ? clone $user : new UserDataBag();
+        $user->setId($this->getUserIdentifier($token->getUser()));
+
+        $impersonatorUser = $this->getImpersonatorUser($token);
+
+        if (null !== $impersonatorUser) {
+            $user->setMetadata('impersonator_username', $impersonatorUser);
+        }
+
+        $event->setUser($user);
+
+        return $event;
     }
 
     private function updateUserContext(TokenInterface $token): void

@@ -88,6 +88,7 @@ services:
     arguments:
       - '@Sentry\State\HubInterface'
       - '@?security.untracked_token_storage'
+      - '@?request_stack'
     tags:
       - { name: kernel.event_listener, event: kernel.request, method: handleKernelRequestEvent }
 
