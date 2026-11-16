@@ -1,11 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Call to an undefined method Symfony\\\\Component\\\\Config\\\\Definition\\\\Builder\\\\TreeBuilder\\:\\:root\\(\\)\\.$#"
-			count: 1
-			path: src/DependencyInjection/Configuration.php
-
-		-
 			message: "#^Cannot access offset 'before_breadcrumb' on mixed\\.$#"
 			count: 1
 			path: src/DependencyInjection/SentryExtension.php
@@ -206,11 +201,6 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionForV4\\:\\:prepare\\(\\) has parameter \\$sql with no type specified\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
-
-		-
 			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionForV4\\:\\:query\\(\\) has parameter \\$args with no type specified\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
@@ -379,16 +369,6 @@ parameters:
 			message: "#^Parameter \\#1 \\$decoratedAdapter of method Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Cache\\\\AbstractTraceableCacheAdapterTest\\<TCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface,TDecoratedCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface\\>\\:\\:createCacheAdapter\\(\\) expects TDecoratedCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface, PHPUnit\\\\Framework\\\\MockObject\\\\MockObject&Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Cache\\\\ResettableCacheAdapterInterface given\\.$#"
 			count: 1
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
-
-		-
-			message: "#^Trying to mock an undefined method errorCode\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Connection\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4Test.php
-
-		-
-			message: "#^Trying to mock an undefined method errorInfo\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Connection\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4Test.php
 
 		-
 			message: "#^Parameter \\#1 \\$hubOrConnectionFactory of class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverMiddleware constructor expects Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionFactoryInterface\\|Sentry\\\\State\\\\HubInterface, null given\\.$#"
