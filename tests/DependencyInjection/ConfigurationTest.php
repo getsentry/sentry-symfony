@@ -30,6 +30,7 @@ final class ConfigurationTest extends TestCase
                 'integrations' => [],
                 'prefixes' => array_merge(['%kernel.project_dir%'], array_filter(explode(\PATH_SEPARATOR, get_include_path() ?: ''))),
                 'log_flush_threshold' => null,
+                'metric_flush_threshold' => null,
                 'enable_metrics' => true,
                 'environment' => '%kernel.environment%',
                 'release' => '%env(default::SENTRY_RELEASE)%',
@@ -284,32 +285,12 @@ final class ConfigurationTest extends TestCase
         $this->assertSame(1, $config['options']['org_id']);
     }
 
-    public function testProfilingAndClientReportOptions(): void
-    {
-        $options = [
-            'profiles_sampler' => 'App\\Sentry\\Profiling\\ProfilesSampler',
-            'profile_session_sample_rate' => 0.5,
-            'profile_lifecycle' => 'trace',
-            'metric_flush_threshold' => 3,
-            'max_breadth' => 500,
-            'send_client_reports' => true,
-            'http_ssl_native_ca' => true,
-        ];
-
-        /** @var array{options: array<string, mixed>} $config */
-        $config = $this->processConfiguration(['options' => $options]);
-
-        foreach ($options as $name => $value) {
-            $this->assertSame($value, $config['options'][$name]);
-        }
-    }
-
     /**
-     * @dataProvider invalidProfilingAndBufferOptionsDataProvider
+     * @dataProvider invalidProfilingOptionsDataProvider
      *
      * @param mixed $value
      */
-    public function testInvalidProfilingAndBufferOptions(string $option, $value, string $exceptionMessage): void
+    public function testInvalidProfilingOptions(string $option, $value, string $exceptionMessage): void
     {
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage($exceptionMessage);
@@ -320,12 +301,10 @@ final class ConfigurationTest extends TestCase
     /**
      * @return \Generator<mixed>
      */
-    public static function invalidProfilingAndBufferOptionsDataProvider(): \Generator
+    public static function invalidProfilingOptionsDataProvider(): \Generator
     {
         yield ['profile_lifecycle', 'request', 'The value "request" is not allowed for path "sentry.options.profile_lifecycle". Permissible values: "manual", "trace"'];
         yield ['profile_session_sample_rate', 2, 'The value 2 is too big for path "sentry.options.profile_session_sample_rate". Should be less than or equal to 1'];
-        yield ['metric_flush_threshold', 0, 'The value 0 is too small for path "sentry.options.metric_flush_threshold". Should be greater than or equal to 1'];
-        yield ['max_breadth', 0, 'The value 0 is too small for path "sentry.options.max_breadth". Should be greater than or equal to 1'];
     }
 
     public function testLogFlushThresholdOption(): void
