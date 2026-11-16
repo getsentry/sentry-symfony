@@ -371,11 +371,6 @@ parameters:
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
 
 		-
-			message: "#^Property Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionFactoryV4Test\\:\\:\\$databasePlatform is never read, only written\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionFactoryV4Test.php
-
-		-
 			message: "#^Parameter \\#1 \\$hubOrConnectionFactory of class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverMiddleware constructor expects Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionFactoryInterface\\|Sentry\\\\State\\\\HubInterface, null given\\.$#"
 			count: 1
 			path: tests/Tracing/Doctrine/DBAL/TracingDriverMiddlewareTest.php
