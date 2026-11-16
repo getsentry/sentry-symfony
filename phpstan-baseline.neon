@@ -386,11 +386,6 @@ parameters:
 			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionFactoryV4Test.php
 
 		-
-			message: "#^Trying to mock an undefined method errorInfo\\(\\) on class Doctrine\\\\DBAL\\\\Driver\\\\Connection\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4Test.php
-
-		-
 			message: "#^Parameter \\#1 \\$hubOrConnectionFactory of class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverMiddleware constructor expects Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionFactoryInterface\\|Sentry\\\\State\\\\HubInterface, null given\\.$#"
 			count: 1
 			path: tests/Tracing/Doctrine/DBAL/TracingDriverMiddlewareTest.php
