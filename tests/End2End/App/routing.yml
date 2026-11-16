@@ -22,6 +22,10 @@ subrequest:
   path:  /subrequest
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::subrequest' }
 
+subrequest_failing_subrequest:
+  path:  /subrequest/failing-subrequest
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::subrequestWithFailingSubrequest' }
+
 response_data:
   path:  /response-data
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::responseData' }

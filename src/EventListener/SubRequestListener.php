@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\State\HubInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 
@@ -22,6 +23,11 @@ final class SubRequestListener
     private $hub;
 
     /**
+     * @var \SplObjectStorage<Request, true> The sub-requests a scope was pushed for
+     */
+    private $requests;
+
+    /**
      * Constructor.
      *
      * @param HubInterface $hub The current hub
@@ -29,6 +35,7 @@ final class SubRequestListener
     public function __construct(HubInterface $hub)
     {
         $this->hub = $hub;
+        $this->requests = new \SplObjectStorage();
     }
 
     /**
@@ -44,6 +51,7 @@ final class SubRequestListener
         }
 
         $this->hub->pushScope();
+        $this->requests[$event->getRequest()] = true;
     }
 
     /**
@@ -57,6 +65,15 @@ final class SubRequestListener
         if ($this->isMainRequest($event)) {
             return;
         }
+
+        $request = $event->getRequest();
+
+        // A sub-request can fail before its scope is pushed, e.g. if no route matches
+        if (!isset($this->requests[$request])) {
+            return;
+        }
+
+        unset($this->requests[$request]);
 
         $this->hub->popScope();
     }
