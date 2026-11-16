@@ -396,19 +396,6 @@ final class TracingDriverConnectionForV4Test extends DoctrineTestCase
         $this->connection->rollBack();
     }
 
-    public function testErrorCode(): void
-    {
-        if (!self::isDoctrineDBALVersion2Installed()) {
-            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be ^2.13.');
-        }
-
-        $this->decoratedConnection->expects($this->once())
-            ->method('errorCode')
-            ->willReturn('1002');
-
-        $this->assertSame('1002', $this->connection->errorCode());
-    }
-
     public function testErrorCodeThrowsExceptionIfDecoratedConnectionDoesNotImplementMethod(): void
     {
         if (!self::isDoctrineDBALVersion3Installed()) {
