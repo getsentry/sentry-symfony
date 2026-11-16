@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\DataCollection\DataCollectionPolicy;
 use Sentry\DataCollection\HttpSpanDataCollector;
 use Sentry\Integration\RequestFetcherInterface;
 use Sentry\SentryBundle\Integration\RequestFetcher;
@@ -132,19 +131,12 @@ final class TracingRequestListener extends AbstractTracingRequestListener
             return;
         }
 
-        $policy = DataCollectionPolicy::fromOptions($this->sentry->getClient()->getOptions());
-
-        // The legacy options only collected the request data on the event
-        if ($policy->isLegacyMode()) {
-            return;
-        }
-
         $request = $this->requestFetcher->fetchRequest();
         if (null === $request) {
             return;
         }
 
-        $transaction->setData(HttpSpanDataCollector::collectServerRequest($policy, $request));
+        $transaction->setData(HttpSpanDataCollector::collectServerRequest($this->sentry->getClient()->getOptions(), $request));
     }
 
     /**
@@ -156,13 +148,13 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      */
     private function getData(Request $request): array
     {
-        $policy = DataCollectionPolicy::fromOptions($this->sentry->getClient()->getOptions());
+        $options = $this->sentry->getClient()->getOptions();
         $httpFlavor = $this->getHttpFlavor($request);
 
         $data = [
             'net.host.port' => (string) $request->getPort(),
             'http.request.method' => $request->getMethod(),
-            'http.url' => $this->getRequestUrl($request, $policy),
+            'http.url' => $this->getRequestUrl($request, $options),
             'route' => $this->getRouteName($request),
         ];
 
@@ -176,7 +168,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
             $data['net.host.name'] = $request->getHost();
         }
 
-        if (null !== $request->getClientIp() && $policy->shouldCollectUserInfo()) {
+        if (null !== $request->getClientIp() && $options->getDataCollection()->shouldCollectUserInfo()) {
             $data['net.peer.ip'] = $request->getClientIp();
         }
 

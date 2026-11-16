@@ -1,6 +1,5 @@
 sentry:
   options:
-    enable_logs: true
     before_send_log: "sentry.callback.before_send_log"
 
 monolog:

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\Metrics\TraceMetrics;
+use Sentry\Metrics\Metrics;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
 /**
@@ -21,6 +21,6 @@ class MetricsRequestListener
      */
     public function handleKernelTerminateEvent(TerminateEvent $event): void
     {
-        TraceMetrics::getInstance()->flush();
+        Metrics::getInstance()->flush();
     }
 }

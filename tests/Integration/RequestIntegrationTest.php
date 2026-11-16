@@ -112,27 +112,6 @@ final class RequestIntegrationTest extends TestCase
         $this->assertArrayNotHasKey('data', $requestData);
     }
 
-    public function testLegacyOptionsAreNotAffected(): void
-    {
-        $request = Request::create('http://www.example.com/?token=secret', 'POST', [], ['session_id' => 'foo'], [], [
-            'REMOTE_ADDR' => '1.2.3.4',
-            'CONTENT_TYPE' => 'text/plain',
-            'CONTENT_LENGTH' => '11',
-            'HTTP_AUTHORIZATION' => 'Bearer foo',
-        ], 'Hello World');
-
-        $requestData = $this->captureRequestData($request, ['send_default_pii' => false]);
-        /** @var array<string, string[]> $headers */
-        $headers = $requestData['headers'];
-
-        $this->assertSame('http://www.example.com/?token=secret', $requestData['url']);
-        $this->assertSame('token=secret', $requestData['query_string']);
-        $this->assertArrayNotHasKey('env', $requestData);
-        $this->assertArrayNotHasKey('cookies', $requestData);
-        $this->assertSame(['[Filtered]'], $headers['authorization']);
-        $this->assertSame('Hello World', $requestData['data']);
-    }
-
     /**
      * @param array<string, mixed> $options
      *

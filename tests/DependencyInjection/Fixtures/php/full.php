@@ -19,10 +19,8 @@ $container->loadFromExtension('sentry', [
         'traces_sample_rate' => 1,
         'traces_sampler' => 'App\\Sentry\\Tracing\\TracesSampler',
         'profiles_sample_rate' => 1,
-        'enable_logs' => true,
         'log_flush_threshold' => 2,
         'attach_stacktrace' => true,
-        'context_lines' => 0,
         'environment' => 'development',
         'logger' => Sentry\Logger\DebugStdOutLogger::class,
         'spotlight' => true,
@@ -46,7 +44,6 @@ $container->loadFromExtension('sentry', [
         'before_breadcrumb' => 'App\\Sentry\\BeforeBreadcrumbCallback',
         'in_app_exclude' => ['%kernel.cache_dir%'],
         'in_app_include' => ['%kernel.project_dir%'],
-        'send_default_pii' => true,
         'data_collection' => [
             'user_info' => false,
             'cookies' => [

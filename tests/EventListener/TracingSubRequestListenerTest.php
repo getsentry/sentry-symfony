@@ -184,11 +184,6 @@ final class TracingSubRequestListenerTest extends TestCase
      */
     public function handleKernelRequestEventCollectsRequestUrlDataProvider(): \Generator
     {
-        yield 'client.options.data_collection IS NULL' => [
-            new Options(),
-            'http://www.example.com/path?page=5&q=a%20b%26c&token=secret',
-        ];
-
         yield 'client.options.data_collection.url_query_params defaults to denyList' => [
             new Options(['data_collection' => []]),
             'http://www.example.com/path?token=[Filtered]&q=a%20b%26c&page=5',

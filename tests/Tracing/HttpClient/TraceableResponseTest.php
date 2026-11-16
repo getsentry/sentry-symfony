@@ -6,7 +6,6 @@ namespace Sentry\SentryBundle\Tests\Tracing\HttpClient;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Sentry\DataCollection\DataCollectionPolicy;
 use Sentry\Options;
 use Sentry\SentryBundle\Tracing\HttpClient\TraceableResponse;
 use Sentry\Tracing\Span;
@@ -118,7 +117,7 @@ final class TraceableResponseTest extends TestCase
                 'Set-Cookie: theme=dark',
             ],
         ]));
-        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, DataCollectionPolicy::fromOptions($options));
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, $options);
 
         $response->getContent();
 
@@ -130,13 +129,6 @@ final class TraceableResponseTest extends TestCase
      */
     public function getContentCollectsResponseDataDataProvider(): \Generator
     {
-        yield 'The legacy options do not collect response headers' => [
-            new Options(['send_default_pii' => true]),
-            [
-                'http.response.status_code' => 200,
-            ],
-        ];
-
         yield 'The data collection options collect and filter response headers and cookies' => [
             new Options(['data_collection' => []]),
             [
@@ -172,7 +164,7 @@ final class TraceableResponseTest extends TestCase
         $decoratedResponse->expects($this->never())
             ->method('getHeaders');
 
-        $response = new TraceableResponse($this->client, $decoratedResponse, $span, DataCollectionPolicy::fromOptions(new Options(['data_collection' => []])));
+        $response = new TraceableResponse($this->client, $decoratedResponse, $span, new Options(['data_collection' => []]));
 
         $response->getContent();
         $endTimestamp = $span->getEndTimestamp();
@@ -202,7 +194,7 @@ final class TraceableResponseTest extends TestCase
                 'Content-Type: application/json',
             ],
         ]));
-        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, DataCollectionPolicy::fromOptions(new Options(['data_collection' => []])));
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, new Options(['data_collection' => []]));
 
         $response->getContent();
 
@@ -222,7 +214,7 @@ final class TraceableResponseTest extends TestCase
 
         $span = new Span($spanContext);
         $httpClient = new MockHttpClient(new MockResponse($content, ['response_headers' => ['Content-Type: ' . $contentType]]));
-        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, DataCollectionPolicy::fromOptions($options));
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, $options);
 
         $this->assertSame($content, $response->getContent());
         $this->assertSame($expectedBody, $span->getData()['http.response.body.data'] ?? null);
@@ -233,13 +225,6 @@ final class TraceableResponseTest extends TestCase
      */
     public function getContentCollectsResponseBodyDataProvider(): \Generator
     {
-        yield 'The legacy options do not collect the body' => [
-            new Options(['send_default_pii' => true]),
-            'application/json',
-            '{"username":"jane","password":"secret"}',
-            null,
-        ];
-
         yield 'A JSON body is collected and filtered' => [
             new Options(['data_collection' => []]),
             'application/json',
@@ -269,7 +254,7 @@ final class TraceableResponseTest extends TestCase
 
         $span = new Span($spanContext);
         $httpClient = new MockHttpClient(new MockResponse('{"username":"jane","password":"secret"}', ['response_headers' => ['Content-Type: application/json']]));
-        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, DataCollectionPolicy::fromOptions(new Options(['data_collection' => []])));
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, new Options(['data_collection' => []]));
 
         $this->assertSame(['username' => 'jane', 'password' => 'secret'], $response->toArray());
         $this->assertSame('{"username":"jane","password":"[Filtered]"}', $span->getData()['http.response.body.data'] ?? null);
@@ -282,7 +267,7 @@ final class TraceableResponseTest extends TestCase
 
         $span = new Span($spanContext);
         $httpClient = new MockHttpClient(new MockResponse('{"password":"secret"}', ['response_headers' => ['Content-Type: application/json']]));
-        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, DataCollectionPolicy::fromOptions(new Options(['data_collection' => []])));
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, new Options(['data_collection' => []]));
 
         foreach (TraceableResponse::stream($httpClient, [$response], null) as $chunk) {
         }
@@ -308,7 +293,7 @@ final class TraceableResponseTest extends TestCase
             'http_code' => 404,
             'response_headers' => ['Content-Type: ' . $contentType],
         ]));
-        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, DataCollectionPolicy::fromOptions(new Options(['data_collection' => []])));
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/'), $span, new Options(['data_collection' => []]));
 
         try {
             $response->{$method}();
@@ -348,10 +333,7 @@ final class TraceableResponseTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider errorResponseBodyIsNotReadIfItIsNotCollectedDataProvider
-     */
-    public function testErrorResponseBodyIsNotReadIfItIsNotCollected(Options $options): void
+    public function testErrorResponseBodyIsNotReadIfItIsNotCollected(): void
     {
         $spanContext = new SpanContext();
         $spanContext->setSampled(true);
@@ -368,7 +350,7 @@ final class TraceableResponseTest extends TestCase
             ->with(true)
             ->willThrowException($exception);
 
-        $response = new TraceableResponse($this->client, $decoratedResponse, $span, DataCollectionPolicy::fromOptions($options));
+        $response = new TraceableResponse($this->client, $decoratedResponse, $span, new Options(['data_collection' => ['http_bodies' => ['outgoingRequest']]]));
 
         try {
             $response->getContent();
@@ -379,20 +361,6 @@ final class TraceableResponseTest extends TestCase
         }
 
         $this->assertArrayNotHasKey('http.response.body.data', $span->getData());
-    }
-
-    /**
-     * @return \Generator<mixed>
-     */
-    public function errorResponseBodyIsNotReadIfItIsNotCollectedDataProvider(): \Generator
-    {
-        yield 'The legacy options' => [
-            new Options(['send_default_pii' => true]),
-        ];
-
-        yield 'Incoming response bodies are disabled' => [
-            new Options(['data_collection' => ['http_bodies' => ['outgoingRequest']]]),
-        ];
     }
 
     public function testStatusCodeExceptionIsRethrownIfErrorResponseBodyCannotBeRead(): void
@@ -406,7 +374,7 @@ final class TraceableResponseTest extends TestCase
             'response_headers' => ['Content-Type: application/json'],
         ]));
         // The exception reads the JSON body, which cannot be read again without buffering
-        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/', ['buffer' => false]), $span, DataCollectionPolicy::fromOptions(new Options(['data_collection' => []])));
+        $response = new TraceableResponse($httpClient, $httpClient->request('GET', 'https://www.example.org/', ['buffer' => false]), $span, new Options(['data_collection' => []]));
 
         try {
             $response->getContent();

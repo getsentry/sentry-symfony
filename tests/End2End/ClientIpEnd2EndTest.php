@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\Tests\End2End;
 
-use Sentry\SentryBundle\Tests\End2End\App\KernelWithSendDefaultPii;
+use Sentry\SentryBundle\Tests\End2End\App\Kernel;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -19,7 +19,7 @@ final class ClientIpEnd2EndTest extends WebTestCase
 
     protected static function getKernelClass(): string
     {
-        return KernelWithSendDefaultPii::class;
+        return Kernel::class;
     }
 
     protected function setUp(): void

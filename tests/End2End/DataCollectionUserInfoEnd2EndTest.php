@@ -67,22 +67,12 @@ final class DataCollectionUserInfoEnd2EndTest extends WebTestCase
 
     public function userInfoDataProvider(): \Generator
     {
-        yield 'send_default_pii is disabled' => [
-            [],
-            null,
-        ];
-
-        yield 'send_default_pii is enabled' => [
-            [__DIR__ . '/App/send_default_pii.yml'],
-            self::CLIENT_IP,
-        ];
-
         yield 'data_collection.user_info is enabled by default' => [
             [__DIR__ . '/App/config/data_collection/defaults.yml'],
             self::CLIENT_IP,
         ];
 
-        yield 'data_collection.user_info is disabled while send_default_pii is enabled' => [
+        yield 'data_collection.user_info is disabled' => [
             [__DIR__ . '/App/config/data_collection/user_info_disabled.yml'],
             null,
         ];

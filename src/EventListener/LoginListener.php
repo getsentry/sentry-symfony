@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sentry\SentryBundle\EventListener;
 
-use Sentry\DataCollection\DataCollectionPolicy;
 use Sentry\SentryBundle\Sentry;
 use Sentry\State\IsolationScope;
 use Sentry\UserDataBag;
@@ -89,7 +88,7 @@ final class LoginListener
             return;
         }
 
-        if (!DataCollectionPolicy::fromOptions($this->sentry->getClient()->getOptions())->shouldCollectUserInfo()) {
+        if (!$this->sentry->getClient()->getOptions()->getDataCollection()->shouldCollectUserInfo()) {
             return;
         }
 

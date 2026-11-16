@@ -7,7 +7,6 @@ namespace Sentry\SentryBundle\Tracing\HttpClient;
 use GuzzleHttp\Psr7\Uri;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
-use Sentry\DataCollection\DataCollectionPolicy;
 use Sentry\DataCollection\HttpMessageType;
 use Sentry\DataCollection\HttpSpanDataCollector;
 use Sentry\DataCollection\HttpUrlCollector;
@@ -78,7 +77,6 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
             return new TraceableResponse($this->client, $this->client->request($method, $url, $options), $span);
         }
 
-        $policy = DataCollectionPolicy::fromOptions($sdkOptions);
         $partialUri = Uri::fromParts([
             'scheme' => $uri->getScheme(),
             'host' => $uri->getHost(),
@@ -96,7 +94,7 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
             'http.request.method' => $method,
         ];
 
-        $queryString = HttpUrlCollector::collectQueryString($policy, $uri->getQuery());
+        $queryString = HttpUrlCollector::collectQueryString($sdkOptions, $uri->getQuery());
         if (null !== $queryString) {
             $contextData['http.query'] = $queryString;
         }
@@ -105,7 +103,7 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
             $contextData['http.fragment'] = $uri->getFragment();
         }
 
-        $fullUrl = HttpUrlCollector::collect($policy, HttpMessageType::outgoingRequest(), $uri);
+        $fullUrl = HttpUrlCollector::collect($sdkOptions, $uri);
         if (null !== $fullUrl) {
             $contextData['url.full'] = $fullUrl;
         }
@@ -114,10 +112,7 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
 
         $childSpan = $span->startChild($context);
 
-        // The legacy options collect nothing from outgoing requests and their responses
-        $shouldCollectData = $childSpan->getSampled() && !$policy->isLegacyMode();
-
-        if ($shouldCollectData) {
+        if ($childSpan->getSampled()) {
             // Headers added by the HTTP client itself, e.g. by the `auth_bearer` or `json` options, are not collected
             $requestHeaders = self::normalizeHeaders($headers) + $this->defaultHeaders;
             $type = HttpMessageType::outgoingRequest();
@@ -132,9 +127,9 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
             }
 
             $childSpan->setData(
-                HttpSpanDataCollector::collectHeaders($policy, $type, $requestHeaders)
-                + HttpSpanDataCollector::collectCookieHeaders($policy, $type, $requestHeaders['cookie'] ?? [])
-                + HttpSpanDataCollector::collectBody($policy, $type, $body, $contentType)
+                HttpSpanDataCollector::collectHeaders($sdkOptions, $type, $requestHeaders)
+                + HttpSpanDataCollector::collectCookieHeaders($sdkOptions, $type, $requestHeaders['cookie'] ?? [])
+                + HttpSpanDataCollector::collectBody($sdkOptions, $type, $body, $contentType)
             );
         }
 
@@ -145,7 +140,7 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
 
         $options['headers'] = $headers;
 
-        return new TraceableResponse($this->client, $this->client->request($method, $url, $options), $childSpan, $shouldCollectData ? $policy : null);
+        return new TraceableResponse($this->client, $this->client->request($method, $url, $options), $childSpan, $childSpan->getSampled() ? $sdkOptions : null);
     }
 
     /**

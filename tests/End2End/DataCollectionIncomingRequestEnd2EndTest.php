@@ -64,19 +64,14 @@ final class DataCollectionIncomingRequestEnd2EndTest extends WebTestCase
 
     public function transactionUrlDataProvider(): \Generator
     {
-        yield 'The legacy options normalize the query string' => [
-            [],
-            'http://localhost/200?page=5&q=a%20b%26c&token=secret',
-        ];
-
         yield 'The data collection options keep the query string as received and filter sensitive values' => [
             [__DIR__ . '/App/config/data_collection/defaults.yml'],
             'http://localhost/200?token=[Filtered]&q=a%20b%26c&page=5',
         ];
 
-        yield 'A null value in a later config file restores the legacy options' => [
-            [__DIR__ . '/App/config/data_collection/defaults.yml', __DIR__ . '/App/config/data_collection/legacy.yml'],
-            'http://localhost/200?page=5&q=a%20b%26c&token=secret',
+        yield 'A null value in a later config file restores the defaults' => [
+            [__DIR__ . '/App/config/data_collection/url_query_params_disabled.yml', __DIR__ . '/App/config/data_collection/unset.yml'],
+            'http://localhost/200?token=[Filtered]&q=a%20b%26c&page=5',
         ];
 
         yield 'The data collection options omit the query string if query parameters are not collected' => [
@@ -109,27 +104,6 @@ final class DataCollectionIncomingRequestEnd2EndTest extends WebTestCase
         $this->assertSame('[Filtered]', $transactionData['http.request.header.authorization'] ?? null);
         $this->assertSame(['theme=dark', 'REMEMBERME=[Filtered]'], $transactionData['http.request.header.cookie'] ?? null);
         $this->assertSame('{"username":"jane","password":"[Filtered]"}', $transactionData['http.request.body.data'] ?? null);
-    }
-
-    public function testTransactionDoesNotContainRequestDataWithLegacyOptions(): void
-    {
-        $client = static::createClient();
-
-        $client->request('POST', '/200', [], [], [
-            'CONTENT_TYPE' => 'application/json',
-            'HTTP_X_REQUEST_ID' => 'bar',
-        ], '{"username":"jane"}');
-
-        $response = $client->getResponse();
-
-        $this->assertInstanceOf(Response::class, $response);
-        $this->assertSame(200, $response->getStatusCode());
-
-        /** @var array<string, mixed> $transactionData */
-        $transactionData = $this->getTransactionEvent()->getContexts()['trace']['data'] ?? [];
-
-        $this->assertArrayNotHasKey('http.request.header.x-request-id', $transactionData);
-        $this->assertArrayNotHasKey('http.request.body.data', $transactionData);
     }
 
     private function getTransactionEvent(): Event

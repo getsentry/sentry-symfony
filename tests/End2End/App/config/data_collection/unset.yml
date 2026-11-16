@@ -1,0 +1,4 @@
+sentry:
+  options:
+    # Restores the defaults if an earlier config file set data collection options
+    data_collection: ~

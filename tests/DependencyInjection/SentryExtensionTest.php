@@ -377,11 +377,8 @@ abstract class SentryExtensionTest extends TestCase
             'traces_sample_rate' => 1,
             'traces_sampler' => new Reference('App\\Sentry\\Tracing\\TracesSampler'),
             'profiles_sample_rate' => 1,
-            'enable_logs' => true,
             'log_flush_threshold' => 2,
-            'enable_metrics' => true,
             'attach_stacktrace' => true,
-            'context_lines' => 0,
             'environment' => 'development',
             'logger' => new Reference(DebugStdOutLogger::class),
             'spotlight' => true,
@@ -412,7 +409,6 @@ abstract class SentryExtensionTest extends TestCase
             'before_breadcrumb' => new Reference('App\\Sentry\\BeforeBreadcrumbCallback'),
             'in_app_exclude' => [$container->getParameter('kernel.cache_dir')],
             'in_app_include' => [$container->getParameter('kernel.project_dir')],
-            'send_default_pii' => true,
             'data_collection' => [
                 'user_info' => false,
                 'cookies' => [

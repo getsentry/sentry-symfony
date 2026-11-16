@@ -8,7 +8,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sentry\ClientInterface;
 use Sentry\Event;
-use Sentry\NoOpClient;
 use Sentry\Options;
 use Sentry\SentryBundle\EventListener\LoginListener;
 use Sentry\SentryBundle\Sentry;
@@ -67,7 +66,7 @@ final class LoginListenerTest extends TestCase
         $client = $this->createMock(ClientInterface::class);
         $client->expects($this->once())
             ->method('getOptions')
-            ->willReturn(new Options(['send_default_pii' => true]));
+            ->willReturn(new Options());
 
         $this->sentry->expects($this->once())
             ->method('getClient')
@@ -113,7 +112,7 @@ final class LoginListenerTest extends TestCase
         $client = $this->createMock(ClientInterface::class);
         $client->expects($this->once())
             ->method('getOptions')
-            ->willReturn(new Options(['send_default_pii' => true]));
+            ->willReturn(new Options());
 
         $this->sentry->expects($this->once())
             ->method('getClient')
@@ -159,7 +158,7 @@ final class LoginListenerTest extends TestCase
         $client = $this->createMock(ClientInterface::class);
         $client->expects($this->once())
             ->method('getOptions')
-            ->willReturn(new Options(['send_default_pii' => true]));
+            ->willReturn(new Options());
 
         $this->sentry->expects($this->once())
             ->method('getClient')
@@ -382,18 +381,13 @@ final class LoginListenerTest extends TestCase
      */
     public function userInfoOptionDataProvider(): \Generator
     {
-        yield 'options.send_default_pii = FALSE' => [
-            new Options(['send_default_pii' => false]),
-            null,
-        ];
-
-        yield 'data_collection.user_info defaults to TRUE && options.send_default_pii = FALSE' => [
-            new Options(['send_default_pii' => false, 'data_collection' => []]),
+        yield 'data_collection.user_info defaults to TRUE' => [
+            new Options(),
             new UserDataBag('foo_user'),
         ];
 
-        yield 'data_collection.user_info = FALSE && options.send_default_pii = TRUE' => [
-            new Options(['send_default_pii' => true, 'data_collection' => ['user_info' => false]]),
+        yield 'data_collection.user_info = FALSE' => [
+            new Options(['data_collection' => ['user_info' => false]]),
             null,
         ];
     }
@@ -420,41 +414,7 @@ final class LoginListenerTest extends TestCase
         ));
     }
 
-    public function testHandleLoginSuccessEventDoesNothingIfNoClientIsBound(): void
-    {
-        if (!class_exists(LoginSuccessEvent::class)) {
-            $this->markTestSkipped('This test is incompatible with versions of Symfony where the LoginSuccessEvent event does not exist.');
-        }
-
-        $this->sentry->expects($this->once())
-            ->method('getClient')
-            ->willReturn(new NoOpClient());
-
-        $this->sentry->expects($this->never())
-            ->method('configureScope');
-
-        if (version_compare(Kernel::VERSION, '5.4', '<')) {
-            $this->listener->handleLoginSuccessEvent(new LoginSuccessEvent(
-                $this->createMock(AuthenticatorInterface::class),
-                new SelfValidatingPassport(new UserBadge('foo_passport_user')),
-                new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub()),
-                new Request(),
-                null,
-                'main'
-            ));
-        } else {
-            $this->listener->handleLoginSuccessEvent(new LoginSuccessEvent(
-                $this->createMock(AuthenticatorInterface::class),
-                new SelfValidatingPassport(new UserBadge('foo_passport_user')),
-                new AuthenticatedTokenStub(new UserWithIdentifierStub()),
-                new Request(),
-                null,
-                'main'
-            ));
-        }
-    }
-
-    public function testHandleLoginSuccessEventDoesNothingIfSendingDefaultPiiIsDisabled(): void
+    public function testHandleLoginSuccessEventDoesNothingIfUserInfoIsNotCollected(): void
     {
         if (!class_exists(LoginSuccessEvent::class)) {
             $this->markTestSkipped('This test is incompatible with versions of Symfony where the LoginSuccessEvent event does not exist.');
@@ -463,7 +423,7 @@ final class LoginListenerTest extends TestCase
         $client = $this->createMock(ClientInterface::class);
         $client->expects($this->once())
             ->method('getOptions')
-            ->willReturn(new Options(['send_default_pii' => false]));
+            ->willReturn(new Options(['data_collection' => ['user_info' => false]]));
 
         $this->sentry->expects($this->once())
             ->method('getClient')
@@ -508,27 +468,7 @@ final class LoginListenerTest extends TestCase
         $this->listener->handleAuthenticationSuccessEvent(new AuthenticationSuccessEvent(new UnauthenticatedTokenStub()));
     }
 
-    public function testHandleAuthenticationSuccessEventDoesNothingIfNoClientIsBound(): void
-    {
-        if (class_exists(LoginSuccessEvent::class)) {
-            $this->markTestSkipped('This test is incompatible with versions of Symfony where the LoginSuccessEvent event exists.');
-        }
-
-        $this->sentry->expects($this->once())
-            ->method('getClient')
-            ->willReturn(new NoOpClient());
-
-        $this->sentry->expects($this->never())
-            ->method('configureScope');
-
-        if (version_compare(Kernel::VERSION, '5.4', '<')) {
-            $this->listener->handleAuthenticationSuccessEvent(new AuthenticationSuccessEvent(new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())));
-        } else {
-            $this->listener->handleAuthenticationSuccessEvent(new AuthenticationSuccessEvent(new AuthenticatedTokenStub(new UserWithIdentifierStub())));
-        }
-    }
-
-    public function testHandleAuthenticationSuccessEventDoesNothingIfSendingDefaultPiiIsDisabled(): void
+    public function testHandleAuthenticationSuccessEventDoesNothingIfUserInfoIsNotCollected(): void
     {
         if (class_exists(LoginSuccessEvent::class)) {
             $this->markTestSkipped('This test is incompatible with versions of Symfony where the LoginSuccessEvent event exists.');
@@ -537,7 +477,7 @@ final class LoginListenerTest extends TestCase
         $client = $this->createMock(ClientInterface::class);
         $client->expects($this->once())
             ->method('getOptions')
-            ->willReturn(new Options(['send_default_pii' => false]));
+            ->willReturn(new Options(['data_collection' => ['user_info' => false]]));
 
         $this->sentry->expects($this->once())
             ->method('getClient')

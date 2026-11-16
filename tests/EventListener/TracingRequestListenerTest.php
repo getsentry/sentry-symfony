@@ -119,6 +119,7 @@ final class TracingRequestListenerTest extends TestCase
             'http.flavor' => '1.1',
             'route' => '<unknown>',
             'net.host.name' => 'www.example.com',
+            'net.peer.ip' => '127.0.0.1',
         ]);
         $transactionContext->getMetadata()->setDynamicSamplingContext($samplingContext);
         $transactionContext->getMetadata()->setSampleRand(0.1337);
@@ -158,6 +159,7 @@ final class TracingRequestListenerTest extends TestCase
             'http.flavor' => '1.1',
             'route' => '<unknown>',
             'net.host.name' => 'www.example.com',
+            'net.peer.ip' => '127.0.0.1',
         ]);
         $transactionContext->getMetadata()->setDynamicSamplingContext($samplingContext);
         $transactionContext->getMetadata()->setParentSamplingRate(1.0);
@@ -193,6 +195,7 @@ final class TracingRequestListenerTest extends TestCase
             'http.flavor' => '1.1',
             'route' => '<unknown>',
             'net.host.name' => 'www.example.com',
+            'net.peer.ip' => '127.0.0.1',
         ]);
         $transactionContext->getMetadata()->setSampleRand(0.1337);
 
@@ -218,6 +221,7 @@ final class TracingRequestListenerTest extends TestCase
             'http.flavor' => '1.1',
             'route' => '<unknown>',
             'net.host.ip' => '127.0.0.1',
+            'net.peer.ip' => '127.0.0.1',
         ]);
         $transactionContext->getMetadata()->setSampleRand(0.1337);
 
@@ -251,6 +255,7 @@ final class TracingRequestListenerTest extends TestCase
             'http.flavor' => '1.1',
             'route' => 'app_homepage',
             'net.host.name' => 'www.example.com',
+            'net.peer.ip' => '127.0.0.1',
         ]);
         $transactionContext->getMetadata()->setSampleRand(0.1337);
 
@@ -277,6 +282,7 @@ final class TracingRequestListenerTest extends TestCase
             'http.flavor' => '1.1',
             'route' => '/path',
             'net.host.name' => 'www.example.com',
+            'net.peer.ip' => '127.0.0.1',
         ]);
         $transactionContext->getMetadata()->setSampleRand(0.1337);
 
@@ -303,6 +309,7 @@ final class TracingRequestListenerTest extends TestCase
             'http.flavor' => '1.1',
             'route' => 'App\\Controller::indexAction',
             'net.host.name' => 'www.example.com',
+            'net.peer.ip' => '127.0.0.1',
         ]);
         $transactionContext->getMetadata()->setSampleRand(0.1337);
 
@@ -329,6 +336,7 @@ final class TracingRequestListenerTest extends TestCase
             'http.flavor' => '1.1',
             'route' => 'App\\Controller::indexAction',
             'net.host.name' => 'www.example.com',
+            'net.peer.ip' => '127.0.0.1',
         ]);
         $transactionContext->getMetadata()->setSampleRand(0.1337);
 
@@ -356,6 +364,7 @@ final class TracingRequestListenerTest extends TestCase
             'http.flavor' => '1.1',
             'route' => 'class@anonymous::indexAction',
             'net.host.name' => 'www.example.com',
+            'net.peer.ip' => '127.0.0.1',
         ]);
         $transactionContext->getMetadata()->setSampleRand(0.1337);
 
@@ -382,38 +391,12 @@ final class TracingRequestListenerTest extends TestCase
             'http.flavor' => '1.1',
             'route' => '<unknown>',
             'net.host.name' => 'www.example.com',
+            'net.peer.ip' => '127.0.0.1',
         ]);
         $transactionContext->getMetadata()->setSampleRand(0.1337);
 
         yield 'request.attributes._controller IS ARRAY and NOT VALID CALLABLE' => [
             new Options(),
-            $request,
-            $transactionContext,
-        ];
-
-        $request = Request::create('http://www.example.com/');
-        $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
-        $request->attributes->set('_controller', [10]);
-
-        $transactionContext = new TransactionContext();
-        $transactionContext->setName('GET http://www.example.com/');
-        $transactionContext->setSource(TransactionSource::url());
-        $transactionContext->setOp('http.server');
-        $transactionContext->setOrigin('auto.http.server');
-        $transactionContext->setStartTimestamp(1613493597.010275);
-        $transactionContext->setData([
-            'net.host.port' => '80',
-            'http.request.method' => 'GET',
-            'http.url' => 'http://www.example.com/',
-            'http.flavor' => '1.1',
-            'route' => '<unknown>',
-            'net.host.name' => 'www.example.com',
-            'net.peer.ip' => '127.0.0.1',
-        ]);
-        $transactionContext->getMetadata()->setSampleRand(0.1337);
-
-        yield 'request.server.REMOTE_ADDR EXISTS and client.options.send_default_pii = TRUE' => [
-            new Options(['send_default_pii' => true]),
             $request,
             $transactionContext,
         ];
@@ -439,7 +422,7 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->getMetadata()->setSampleRand(0.1337);
 
         yield 'request.server.REMOTE_ADDR EXISTS and client.options.data_collection.user_info defaults to TRUE' => [
-            new Options(['send_default_pii' => false, 'data_collection' => []]),
+            new Options(),
             $request,
             $transactionContext,
         ];
@@ -464,32 +447,7 @@ final class TracingRequestListenerTest extends TestCase
         $transactionContext->getMetadata()->setSampleRand(0.1337);
 
         yield 'request.server.REMOTE_ADDR EXISTS and client.options.data_collection.user_info = FALSE' => [
-            new Options(['send_default_pii' => true, 'data_collection' => ['user_info' => false]]),
-            $request,
-            $transactionContext,
-        ];
-
-        $request = Request::create('http://www.example.com/?token=secret&q=a%20b%26c&page=5');
-        $request->server->set('REQUEST_TIME_FLOAT', 1613493597.010275);
-
-        $transactionContext = new TransactionContext();
-        $transactionContext->setName('GET http://www.example.com/');
-        $transactionContext->setSource(TransactionSource::url());
-        $transactionContext->setOp('http.server');
-        $transactionContext->setOrigin('auto.http.server');
-        $transactionContext->setStartTimestamp(1613493597.010275);
-        $transactionContext->setData([
-            'net.host.port' => '80',
-            'http.request.method' => 'GET',
-            'http.url' => 'http://www.example.com/?page=5&q=a%20b%26c&token=secret',
-            'http.flavor' => '1.1',
-            'route' => '<unknown>',
-            'net.host.name' => 'www.example.com',
-        ]);
-        $transactionContext->getMetadata()->setSampleRand(0.1337);
-
-        yield 'request.server.QUERY_STRING EXISTS and client.options.data_collection IS NULL' => [
-            new Options(),
+            new Options(['data_collection' => ['user_info' => false]]),
             $request,
             $transactionContext,
         ];
@@ -634,11 +592,6 @@ final class TracingRequestListenerTest extends TestCase
      */
     public function collectKernelResponseDataDataProvider(): \Generator
     {
-        yield 'The legacy options do not collect the response' => [
-            new Options(['send_default_pii' => true]),
-            [],
-        ];
-
         yield 'The data collection options collect and filter the headers, cookies and body' => [
             new Options(['data_collection' => []]),
             [
@@ -713,12 +666,6 @@ final class TracingRequestListenerTest extends TestCase
 
         yield 'The body is not collected if outgoing response bodies are disabled' => [
             new Options(['data_collection' => ['http_bodies' => ['incomingRequest']]]),
-            new StreamedResponse(static function (): void {}, 200, ['Content-Type' => 'application/json']),
-            null,
-        ];
-
-        yield 'The legacy options do not collect the body' => [
-            new Options(['send_default_pii' => true]),
             new StreamedResponse(static function (): void {}, 200, ['Content-Type' => 'application/json']),
             null,
         ];
@@ -942,12 +889,6 @@ final class TracingRequestListenerTest extends TestCase
                 'http_headers' => ['request' => ['mode' => 'off']],
                 'http_bodies' => ['outgoingRequest', 'incomingResponse', 'outgoingResponse'],
             ]]),
-            new Request([], [], [], ['theme' => 'dark'], [], $server, '{"username":"jane"}'),
-            [],
-        ];
-
-        yield 'The legacy options only collect the request data on the event' => [
-            new Options(['send_default_pii' => true]),
             new Request([], [], [], ['theme' => 'dark'], [], $server, '{"username":"jane"}'),
             [],
         ];

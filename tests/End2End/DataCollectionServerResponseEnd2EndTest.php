@@ -57,17 +57,6 @@ final class DataCollectionServerResponseEnd2EndTest extends WebTestCase
         $this->assertResponseData(self::EXPECTED_RESPONSE_DATA, $this->getTransactionData());
     }
 
-    public function testTransactionDoesNotContainResponseDataWithLegacyOptions(): void
-    {
-        $client = static::createClient();
-
-        $client->request('GET', '/response-data');
-
-        $this->assertResponseIsOk($client->getResponse());
-        $this->assertNoResponseData($this->getTransactionData());
-        $this->assertSame(200, $this->getTransactionData()['http.response.status_code'] ?? null);
-    }
-
     public function testTransactionContainsFilteredBodyOfFileResponse(): void
     {
         $client = static::createClient(['extra_config_files' => [__DIR__ . '/App/config/data_collection/defaults.yml']]);
@@ -114,16 +103,6 @@ final class DataCollectionServerResponseEnd2EndTest extends WebTestCase
     private function assertResponseData(array $expectedData, array $data): void
     {
         $this->assertEquals($expectedData, array_intersect_key($data, $expectedData));
-    }
-
-    /**
-     * The status code is not response data, as it is always collected.
-     *
-     * @param array<string, mixed> $data
-     */
-    private function assertNoResponseData(array $data): void
-    {
-        $this->assertSame([], preg_grep('/^http\.response\.(?!status_code$)/', array_keys($data)));
     }
 
     /**

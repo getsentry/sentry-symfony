@@ -6,7 +6,6 @@ namespace Sentry\SentryBundle\Tracing\Doctrine\DBAL;
 
 use Doctrine\DBAL\Driver\Statement;
 use Sentry\DataCollection\DatabaseDataCollector;
-use Sentry\DataCollection\DataCollectionPolicy;
 use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanContext;
@@ -122,7 +121,7 @@ abstract class AbstractTracingStatement
         }
 
         $data = DatabaseDataCollector::collectQueryData(
-            DataCollectionPolicy::fromOptions($this->sentry->getClient()->getOptions()),
+            $this->sentry->getClient()->getOptions(),
             \is_array($params) && [] !== $params ? $params : $this->parameters
         );
 

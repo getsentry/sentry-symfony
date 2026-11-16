@@ -1,3 +1,0 @@
-sentry:
-  options:
-    send_default_pii: true
