@@ -31,9 +31,7 @@ final class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder('sentry');
 
         /** @phpstan-var ArrayNodeDefinition<NodeParentInterface|null> $rootNode */
-        $rootNode = method_exists(TreeBuilder::class, 'getRootNode')
-            ? $treeBuilder->getRootNode()
-            : $treeBuilder->root('sentry');
+        $rootNode = $treeBuilder->getRootNode();
 
         $inAppExcludes = [
             '%kernel.cache_dir%',
