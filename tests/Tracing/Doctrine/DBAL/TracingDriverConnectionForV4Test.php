@@ -396,52 +396,18 @@ final class TracingDriverConnectionForV4Test extends DoctrineTestCase
         $this->connection->rollBack();
     }
 
-    public function testErrorCode(): void
-    {
-        if (!self::isDoctrineDBALVersion2Installed()) {
-            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be ^2.13.');
-        }
-
-        $this->decoratedConnection->expects($this->once())
-            ->method('errorCode')
-            ->willReturn('1002');
-
-        $this->assertSame('1002', $this->connection->errorCode());
-    }
-
     public function testErrorCodeThrowsExceptionIfDecoratedConnectionDoesNotImplementMethod(): void
     {
-        if (!self::isDoctrineDBALVersion3Installed()) {
-            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.3.');
-        }
-
         $this->expectException(\BadMethodCallException::class);
-        $this->expectExceptionMessage('The Sentry\\SentryBundle\\Tracing\\Doctrine\\DBAL\\TracingDriverConnection::errorCode() method is not supported on Doctrine DBAL 3.0.');
+        $this->expectExceptionMessage(\sprintf('The %s::errorCode() method is not supported on Doctrine DBAL 3.0.', TracingDriverConnection::class));
 
         $this->connection->errorCode();
     }
 
-    public function testErrorInfo(): void
-    {
-        if (!self::isDoctrineDBALVersion2Installed()) {
-            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be ^2.13.');
-        }
-
-        $this->decoratedConnection->expects($this->once())
-            ->method('errorInfo')
-            ->willReturn(['foobar']);
-
-        $this->assertSame(['foobar'], $this->connection->errorInfo());
-    }
-
     public function testErrorInfoThrowsExceptionIfDecoratedConnectionDoesNotImplementMethod(): void
     {
-        if (!self::isDoctrineDBALVersion3Installed()) {
-            self::markTestSkipped('This test requires the version of the "doctrine/dbal" Composer package to be >= 3.3.');
-        }
-
         $this->expectException(\BadMethodCallException::class);
-        $this->expectExceptionMessage('The Sentry\\SentryBundle\\Tracing\\Doctrine\\DBAL\\TracingDriverConnection::errorInfo() method is not supported on Doctrine DBAL 3.0.');
+        $this->expectExceptionMessage(\sprintf('The %s::errorInfo() method is not supported on Doctrine DBAL 3.0.', TracingDriverConnection::class));
 
         $this->connection->errorInfo();
     }
