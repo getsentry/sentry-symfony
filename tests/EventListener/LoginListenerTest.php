@@ -16,7 +16,6 @@ use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Sentry\UserDataBag;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\Kernel;
@@ -108,7 +107,6 @@ final class LoginListenerTest extends TestCase
 
         $listener = new LoginListener($this->hub, $tokenStorage);
         $listener->handleKernelRequestEvent($this->createMainRequestEvent());
-        $listener->handleKernelRequestEvent($this->createMainRequestEvent());
 
         $this->assertCount(0, $initializerCalls);
 
@@ -120,7 +118,47 @@ final class LoginListenerTest extends TestCase
     }
 
     /**
-     * The user of the scope outlives the request in long-running processes.
+     * Each main request runs in its own runtime context, with its own scope.
+     */
+    public function testHandleKernelRequestEventAddsTheUserToTheScopeOfEachRequest(): void
+    {
+        $scopes = [new Scope(), new Scope()];
+        $currentScope = $scopes[0];
+
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->any())
+            ->method('getOptions')
+            ->willReturn(new Options(['send_default_pii' => true]));
+
+        $this->hub->expects($this->any())
+            ->method('getClient')
+            ->willReturn($client);
+
+        $this->hub->expects($this->exactly(2))
+            ->method('configureScope')
+            ->willReturnCallback(static function (callable $callback) use (&$currentScope): void {
+                $callback($currentScope);
+            });
+
+        $this->tokenStorage->expects($this->exactly(2))
+            ->method('getToken')
+            ->willReturn(version_compare(Kernel::VERSION, '5.4', '<')
+                ? new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())
+                : new AuthenticatedTokenStub(new UserWithIdentifierStub()));
+
+        foreach ($scopes as $scope) {
+            $currentScope = $scope;
+            $this->listener->handleKernelRequestEvent($this->createMainRequestEvent());
+
+            $event = $scope->applyToEvent(Event::createEvent());
+
+            $this->assertNotNull($event);
+            $this->assertEquals(new UserDataBag('foo_user'), $event->getUser());
+        }
+    }
+
+    /**
+     * Later events of the request read the token again, it can change.
      */
     public function testUserAddedToAnEventIsNotAddedToTheScope(): void
     {
@@ -344,25 +382,15 @@ final class LoginListenerTest extends TestCase
         }
     }
 
-    public function testUserIsNotAddedForStatelessRoute(): void
+    public function testHandleKernelRequestEventDoesNothingIfRequestIsForStatelessRoute(): void
     {
-        $scope = new Scope();
-        $this->expectScope($scope, new Options(['send_default_pii' => true]));
+        $this->hub->expects($this->never())
+            ->method('configureScope');
 
         $this->tokenStorage->expects($this->never())
             ->method('getToken');
 
-        $request = new Request([], [], ['_stateless' => true]);
-        $requestStack = new RequestStack();
-        $requestStack->push($request);
-
-        $listener = new LoginListener($this->hub, $this->tokenStorage, $requestStack);
-        $listener->handleKernelRequestEvent($this->createMainRequestEvent($request));
-
-        $event = $scope->applyToEvent(Event::createEvent());
-
-        $this->assertNotNull($event);
-        $this->assertNull($event->getUser());
+        $this->listener->handleKernelRequestEvent($this->createMainRequestEvent(new Request([], [], ['_stateless' => true])));
     }
 
     public function testHandleKernelRequestEventDoesNothingIfRequestIsNotMain(): void

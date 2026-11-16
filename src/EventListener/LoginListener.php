@@ -9,7 +9,6 @@ use Sentry\Event;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Sentry\UserDataBag;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\SwitchUserToken;
@@ -33,27 +32,15 @@ final class LoginListener
     private $tokenStorage;
 
     /**
-     * @var RequestStack|null The request stack
-     */
-    private $requestStack;
-
-    /**
-     * @var bool Whether the event processor adding the user was added to the scope
-     */
-    private $eventProcessorAdded = false;
-
-    /**
      * Constructor.
      *
      * @param HubInterface               $hub          The current hub
      * @param TokenStorageInterface|null $tokenStorage The token storage
-     * @param RequestStack|null          $requestStack The request stack
      */
-    public function __construct(HubInterface $hub, ?TokenStorageInterface $tokenStorage, ?RequestStack $requestStack = null)
+    public function __construct(HubInterface $hub, ?TokenStorageInterface $tokenStorage)
     {
         $this->hub = $hub;
         $this->tokenStorage = $tokenStorage;
-        $this->requestStack = $requestStack;
     }
 
     /**
@@ -64,12 +51,15 @@ final class LoginListener
      */
     public function handleKernelRequestEvent(RequestEvent $event): void
     {
-        if (null === $this->tokenStorage || $this->eventProcessorAdded || !$this->isMainRequest($event)) {
+        if (
+            null === $this->tokenStorage
+            || !$this->isMainRequest($event)
+            || $event->getRequest()->attributes->get('_stateless')
+        ) {
             return;
         }
 
-        $this->eventProcessorAdded = true;
-
+        // the scope belongs to the runtime context of the request, which ends with it
         $this->hub->configureScope(function (Scope $scope): void {
             $scope->addEventProcessor(function (Event $event): Event {
                 return $this->addUserToEvent($event);
@@ -105,12 +95,6 @@ final class LoginListener
             return $event;
         }
 
-        $request = null !== $this->requestStack ? $this->requestStack->getMainRequest() : null;
-
-        if (null !== $request && $request->attributes->get('_stateless')) {
-            return $event;
-        }
-
         if (!DataCollectionPolicy::fromHub($this->hub)->shouldCollectUserInfo()) {
             return $event;
         }
@@ -121,7 +105,7 @@ final class LoginListener
             return $event;
         }
 
-        // the user of the event can be the one of the scope, which outlives the request
+        // the user of the event can be the one of the scope, shared with the next events
         $user = null !== $user ? clone $user : new UserDataBag();
         $user->setId($this->getUserIdentifier($token->getUser()));
 
