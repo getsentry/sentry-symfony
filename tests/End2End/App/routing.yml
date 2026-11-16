@@ -58,6 +58,10 @@ tracing_ping_prepared_database:
   path: /tracing/ping-prepared-database
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::pingPreparedDatabase' }
 
+tracing_firewall_rejected:
+  path: /tracing/firewall-rejected
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::index' }
+
 tracing_ignored_transaction:
   path: /tracing/ignored-transaction
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::ignoredTransaction' }

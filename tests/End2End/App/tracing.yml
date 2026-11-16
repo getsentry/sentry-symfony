@@ -5,6 +5,12 @@ sentry:
     traces_sample_rate: 1
 
 services:
+  Sentry\SentryBundle\Tests\End2End\App\EventListener\FirewallStubListener:
+    arguments: ['@Sentry\State\HubInterface']
+    tags:
+      # The priority of Symfony's firewall
+      - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest, priority: 8 }
+
   Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController:
     arguments:
       $hub: '@Sentry\State\HubInterface'

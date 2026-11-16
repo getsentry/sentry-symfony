@@ -52,7 +52,9 @@ services:
       - '@Sentry\State\HubInterface'
       - '@Sentry\Integration\RequestFetcherInterface'
     tags:
-      - { name: kernel.event_listener, event: kernel.request, method: handleKernelRequestEvent, priority: 4 }
+      # Run after the router (priority 32), which sets the route the transaction is named after,
+      # and before the firewall (priority 8), so that the trace covers authentication
+      - { name: kernel.event_listener, event: kernel.request, method: handleKernelRequestEvent, priority: 12 }
       - { name: kernel.event_listener, event: kernel.response, method: handleKernelResponseEvent, priority: 15 }
       # Run after the session listener (priority -1000), which can still add the session cookie, and before
       # the streamed response listener (priority -1024) of Symfony < 7.0 sends the response
