@@ -113,6 +113,8 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
 
     /**
      * {@inheritdoc}
+     *
+     * @param mixed ...$args
      */
     public function query(?string $sql = null, ...$args): Result
     {
