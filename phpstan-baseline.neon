@@ -236,11 +236,6 @@ parameters:
 			path: tests/DependencyInjection/ConfigurationTest.php
 
 		-
-			message: "#^Cannot access offset 'traces_sample_rate' on mixed\\.$#"
-			count: 1
-			path: tests/DependencyInjection/ConfigurationTest.php
-
-		-
 			message: "#^Function Symfony\\\\Component\\\\DependencyInjection\\\\Loader\\\\Configurator\\\\ref not found\\.$#"
 			count: 1
 			path: tests/DependencyInjection/Fixtures/php/release_option_fallback_to_env_var.php
