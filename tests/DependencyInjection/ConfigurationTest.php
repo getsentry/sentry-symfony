@@ -155,6 +155,7 @@ final class ConfigurationTest extends TestCase
     {
         $config = $this->processConfiguration(['options' => ['traces_sample_rate' => $value]]);
 
+        $this->assertIsArray($config['options']);
         $this->assertSame($value, $config['options']['traces_sample_rate']);
     }
 
