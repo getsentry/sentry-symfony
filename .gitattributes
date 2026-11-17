@@ -6,3 +6,4 @@ phpunit.xml export-ignore
 codecov.yml export-ignore
 phpstan.neon export-ignore
 phpstan-baseline.neon export-ignore
+warden.toml export-ignore
