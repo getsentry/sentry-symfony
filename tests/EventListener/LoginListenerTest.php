@@ -403,6 +403,70 @@ final class LoginListenerTest extends TestCase
     }
 
     /**
+     * @dataProvider authenticationTokenDataProvider
+     * @dataProvider authenticationTokenForSymfonyVersionLowerThan54DataProvider
+     */
+    public function testHandleKernelRequestEventIfTheSessionIsNotStarted(TokenInterface $token, ?UserDataBag $user, ?UserDataBag $expectedUser): void
+    {
+        $scope = new Scope();
+        $this->expectScope($scope);
+
+        $this->tokenStorage->expects(null === $user ? $this->once() : $this->never())
+            ->method('getToken')
+            ->willReturn($token);
+
+        if (null !== $user) {
+            $scope->setUser($user);
+        }
+
+        $this->listener->handleKernelRequestEvent($this->createRequestEventWithPreviousSession(false));
+
+        $event = $scope->applyToEvent(Event::createEvent());
+
+        $this->assertNotNull($event);
+        $this->assertEquals($expectedUser, $event->getUser());
+    }
+
+    public function testHandleKernelRequestEventDoesNothingIfTokenIsNotSetAndTheSessionIsNotStarted(): void
+    {
+        $scope = new Scope();
+        $this->expectScope($scope);
+
+        $this->tokenStorage->expects($this->once())
+            ->method('getToken')
+            ->willReturn(null);
+
+        $this->listener->handleKernelRequestEvent($this->createRequestEventWithPreviousSession(false));
+
+        $event = $scope->applyToEvent(Event::createEvent());
+
+        $this->assertNotNull($event);
+        $this->assertNull($event->getUser());
+    }
+
+    /**
+     * @dataProvider userInfoOptionDataProvider
+     */
+    public function testHandleKernelRequestEventRespectsUserInfoOptionIfTheSessionIsNotStarted(Options $options, ?UserDataBag $expectedUser): void
+    {
+        $scope = new Scope();
+        $this->expectScope($scope, $options);
+
+        $this->tokenStorage->expects(null !== $expectedUser ? $this->once() : $this->never())
+            ->method('getToken')
+            ->willReturn(version_compare(Kernel::VERSION, '5.4', '<')
+                ? new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())
+                : new AuthenticatedTokenStub(new UserWithIdentifierStub()));
+
+        $this->listener->handleKernelRequestEvent($this->createRequestEventWithPreviousSession(false));
+
+        $event = $scope->applyToEvent(Event::createEvent());
+
+        $this->assertNotNull($event);
+        $this->assertEquals($expectedUser, $event->getUser());
+    }
+
+    /**
      * @dataProvider userInfoOptionDataProvider
      */
     public function testHandleKernelRequestEventRespectsUserInfoOption(Options $options, ?UserDataBag $expectedUser): void
@@ -618,12 +682,12 @@ final class LoginListenerTest extends TestCase
         }
     }
 
-    private function expectScope(Scope $scope): void
+    private function expectScope(Scope $scope, ?Options $options = null): void
     {
         $client = $this->createMock(ClientInterface::class);
         $client->expects($this->any())
             ->method('getOptions')
-            ->willReturn(new Options(['send_default_pii' => true]));
+            ->willReturn($options ?? new Options(['send_default_pii' => true]));
 
         $this->hub->expects($this->any())
             ->method('getClient')
