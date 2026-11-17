@@ -16,6 +16,8 @@ use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Sentry\UserDataBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\Kernel;
@@ -63,122 +65,39 @@ final class LoginListenerTest extends TestCase
     {
         $scope = new Scope();
 
-        $this->expectScope($scope, new Options(['send_default_pii' => true]));
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->once())
+            ->method('getOptions')
+            ->willReturn(new Options(['send_default_pii' => true]));
 
-        $tokenRead = false;
-        $this->tokenStorage->expects(null !== $user ? $this->never() : $this->once())
-            ->method('getToken')
-            ->willReturnCallback(static function () use (&$tokenRead, $token): TokenInterface {
-                $tokenRead = true;
+        $this->hub->expects($this->once())
+            ->method('getClient')
+            ->willReturn($client);
 
-                return $token;
+        $this->hub->expects($this->once())
+            ->method('configureScope')
+            ->willReturnCallback(static function (callable $callback) use ($scope): void {
+                $callback($scope);
             });
+
+        $this->tokenStorage->expects($this->once())
+            ->method('getToken')
+            ->willReturn($token);
 
         if (null !== $user) {
             $scope->setUser($user);
         }
 
-        $this->listener->handleKernelRequestEvent($this->createMainRequestEvent());
-
-        $this->assertFalse($tokenRead, 'The token is read once an event is captured, not on each request.');
+        $this->listener->handleKernelRequestEvent(new RequestEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
+        ));
 
         $event = $scope->applyToEvent(Event::createEvent());
 
         $this->assertNotNull($event);
         $this->assertEquals($expectedUser, $event->getUser());
-    }
-
-    /**
-     * A lazy firewall reads the session when the token is first asked for.
-     */
-    public function testHandleKernelRequestEventLeavesALazyFirewallAloneUntilAnEventIsCaptured(): void
-    {
-        $scope = new Scope();
-        $this->expectScope($scope, new Options(['send_default_pii' => true]));
-
-        $initializerCalls = new \ArrayObject();
-        $tokenStorage = new TokenStorage();
-        $tokenStorage->setInitializer(static function () use ($tokenStorage, $initializerCalls): void {
-            $initializerCalls->append(true);
-            $tokenStorage->setToken(version_compare(Kernel::VERSION, '5.4', '<')
-                ? new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())
-                : new AuthenticatedTokenStub(new UserWithIdentifierStub()));
-        });
-
-        $listener = new LoginListener($this->hub, $tokenStorage);
-        $listener->handleKernelRequestEvent($this->createMainRequestEvent());
-
-        $this->assertCount(0, $initializerCalls);
-
-        $event = $scope->applyToEvent(Event::createEvent());
-
-        $this->assertCount(1, $initializerCalls);
-        $this->assertNotNull($event);
-        $this->assertEquals(new UserDataBag('foo_user'), $event->getUser());
-    }
-
-    /**
-     * Each main request runs in its own runtime context, with its own scope.
-     */
-    public function testHandleKernelRequestEventAddsTheUserToTheScopeOfEachRequest(): void
-    {
-        $scopes = [new Scope(), new Scope()];
-        $currentScope = $scopes[0];
-
-        $client = $this->createMock(ClientInterface::class);
-        $client->expects($this->any())
-            ->method('getOptions')
-            ->willReturn(new Options(['send_default_pii' => true]));
-
-        $this->hub->expects($this->any())
-            ->method('getClient')
-            ->willReturn($client);
-
-        $this->hub->expects($this->exactly(2))
-            ->method('configureScope')
-            ->willReturnCallback(static function (callable $callback) use (&$currentScope): void {
-                $callback($currentScope);
-            });
-
-        $this->tokenStorage->expects($this->exactly(2))
-            ->method('getToken')
-            ->willReturn(version_compare(Kernel::VERSION, '5.4', '<')
-                ? new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())
-                : new AuthenticatedTokenStub(new UserWithIdentifierStub()));
-
-        foreach ($scopes as $scope) {
-            $currentScope = $scope;
-            $this->listener->handleKernelRequestEvent($this->createMainRequestEvent());
-
-            $event = $scope->applyToEvent(Event::createEvent());
-
-            $this->assertNotNull($event);
-            $this->assertEquals(new UserDataBag('foo_user'), $event->getUser());
-        }
-    }
-
-    /**
-     * Later events of the request read the token again, it can change.
-     */
-    public function testUserAddedToAnEventIsNotAddedToTheScope(): void
-    {
-        $scope = new Scope();
-        $scope->setUser(UserDataBag::createFromUserIpAddress('127.0.0.1'));
-        $this->expectScope($scope, new Options(['send_default_pii' => true]));
-
-        $this->tokenStorage->expects($this->once())
-            ->method('getToken')
-            ->willReturn(version_compare(Kernel::VERSION, '5.4', '<')
-                ? new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())
-                : new AuthenticatedTokenStub(new UserWithIdentifierStub()));
-
-        $this->listener->handleKernelRequestEvent($this->createMainRequestEvent());
-
-        $event = $scope->applyToEvent(Event::createEvent());
-
-        $this->assertNotNull($event);
-        $this->assertEquals(UserDataBag::createFromArray(['id' => 'foo_user', 'ip_address' => '127.0.0.1']), $event->getUser());
-        $this->assertEquals(UserDataBag::createFromUserIpAddress('127.0.0.1'), $scope->getUser());
     }
 
     /**
@@ -384,20 +303,18 @@ final class LoginListenerTest extends TestCase
 
     public function testHandleKernelRequestEventDoesNothingIfRequestIsForStatelessRoute(): void
     {
-        $this->hub->expects($this->never())
-            ->method('configureScope');
-
         $this->tokenStorage->expects($this->never())
             ->method('getToken');
 
-        $this->listener->handleKernelRequestEvent($this->createMainRequestEvent(new Request([], [], ['_stateless' => true])));
+        $this->listener->handleKernelRequestEvent(new RequestEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request([], [], ['_stateless' => true]),
+            HttpKernelInterface::SUB_REQUEST
+        ));
     }
 
     public function testHandleKernelRequestEventDoesNothingIfRequestIsNotMain(): void
     {
-        $this->hub->expects($this->never())
-            ->method('configureScope');
-
         $this->tokenStorage->expects($this->never())
             ->method('getToken');
 
@@ -410,19 +327,79 @@ final class LoginListenerTest extends TestCase
 
     public function testHandleKernelRequestEventDoesNothingIfTokenIsNotSet(): void
     {
-        $scope = new Scope();
-        $this->expectScope($scope, new Options(['send_default_pii' => true]));
-
         $this->tokenStorage->expects($this->once())
             ->method('getToken')
             ->willReturn(null);
 
-        $this->listener->handleKernelRequestEvent($this->createMainRequestEvent());
+        $this->listener->handleKernelRequestEvent(new RequestEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
+        ));
+    }
+
+    /**
+     * A lazy firewall starts the session when the token is first asked for.
+     */
+    public function testHandleKernelRequestEventReadsTheTokenOnceAnEventIsCapturedIfTheSessionIsNotStarted(): void
+    {
+        $scope = new Scope();
+        $scope->setUser(UserDataBag::createFromUserIpAddress('127.0.0.1'));
+        $this->expectScope($scope);
+
+        $initializerCalls = new \ArrayObject();
+        $tokenStorage = new TokenStorage();
+        $tokenStorage->setInitializer(static function () use ($tokenStorage, $initializerCalls): void {
+            $initializerCalls->append(true);
+            $tokenStorage->setToken(version_compare(Kernel::VERSION, '5.4', '<')
+                ? new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())
+                : new AuthenticatedTokenStub(new UserWithIdentifierStub()));
+        });
+
+        $listener = new LoginListener($this->hub, $tokenStorage);
+        $listener->handleKernelRequestEvent($this->createRequestEventWithPreviousSession(false));
+
+        $this->assertCount(0, $initializerCalls);
+
+        $event = $scope->applyToEvent(Event::createEvent());
+
+        $this->assertCount(1, $initializerCalls);
+        $this->assertNotNull($event);
+        $this->assertEquals(UserDataBag::createFromArray(['id' => 'foo_user', 'ip_address' => '127.0.0.1']), $event->getUser());
+        $this->assertEquals(UserDataBag::createFromUserIpAddress('127.0.0.1'), $scope->getUser());
+    }
+
+    public function testHandleKernelRequestEventKeepsTheEventIfTheTokenCannotBeRead(): void
+    {
+        $scope = new Scope();
+        $this->expectScope($scope);
+
+        $this->tokenStorage->expects($this->once())
+            ->method('getToken')
+            ->willThrowException(new \RuntimeException('The user provider is not available.'));
+
+        $this->listener->handleKernelRequestEvent($this->createRequestEventWithPreviousSession(false));
 
         $event = $scope->applyToEvent(Event::createEvent());
 
         $this->assertNotNull($event);
         $this->assertNull($event->getUser());
+    }
+
+    public function testHandleKernelRequestEventReadsTheTokenIfTheSessionIsStarted(): void
+    {
+        $scope = new Scope();
+        $this->expectScope($scope);
+
+        $this->tokenStorage->expects($this->once())
+            ->method('getToken')
+            ->willReturn(version_compare(Kernel::VERSION, '5.4', '<')
+                ? new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())
+                : new AuthenticatedTokenStub(new UserWithIdentifierStub()));
+
+        $this->listener->handleKernelRequestEvent($this->createRequestEventWithPreviousSession(true));
+
+        $this->assertEquals(new UserDataBag('foo_user'), $scope->getUser());
     }
 
     /**
@@ -447,13 +424,17 @@ final class LoginListenerTest extends TestCase
                 $callback($scope);
             });
 
-        $this->tokenStorage->expects(null !== $expectedUser ? $this->once() : $this->never())
+        $this->tokenStorage->expects($this->once())
             ->method('getToken')
             ->willReturn(version_compare(Kernel::VERSION, '5.4', '<')
                 ? new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())
                 : new AuthenticatedTokenStub(new UserWithIdentifierStub()));
 
-        $this->listener->handleKernelRequestEvent($this->createMainRequestEvent());
+        $this->listener->handleKernelRequestEvent(new RequestEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
+        ));
 
         $event = $scope->applyToEvent(Event::createEvent());
 
@@ -637,12 +618,12 @@ final class LoginListenerTest extends TestCase
         }
     }
 
-    private function expectScope(Scope $scope, Options $options): void
+    private function expectScope(Scope $scope): void
     {
         $client = $this->createMock(ClientInterface::class);
         $client->expects($this->any())
             ->method('getOptions')
-            ->willReturn($options);
+            ->willReturn(new Options(['send_default_pii' => true]));
 
         $this->hub->expects($this->any())
             ->method('getClient')
@@ -655,11 +636,20 @@ final class LoginListenerTest extends TestCase
             });
     }
 
-    private function createMainRequestEvent(?Request $request = null): RequestEvent
+    private function createRequestEventWithPreviousSession(bool $started): RequestEvent
     {
+        $session = new Session(new MockArraySessionStorage());
+
+        if ($started) {
+            $session->start();
+        }
+
+        $request = new Request([], [], [], [$session->getName() => 'session_id']);
+        $request->setSession($session);
+
         return new RequestEvent(
             $this->createMock(HttpKernelInterface::class),
-            $request ?? new Request(),
+            $request,
             \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
         );
     }

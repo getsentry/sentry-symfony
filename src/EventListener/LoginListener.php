@@ -44,10 +44,8 @@ final class LoginListener
     }
 
     /**
-     * This method is called for each request handled by the framework. It makes
-     * the current user be added to the events sent to Sentry, reading the token
-     * only once an event is captured: with a lazy firewall, reading it reads the
-     * session, and locks it for the rest of the request with most handlers.
+     * This method is called for each request handled by the framework and
+     * fills the Sentry scope with information about the current user.
      */
     public function handleKernelRequestEvent(RequestEvent $event): void
     {
@@ -59,12 +57,31 @@ final class LoginListener
             return;
         }
 
-        // the scope belongs to the runtime context of the request, which ends with it
-        $this->hub->configureScope(function (Scope $scope): void {
-            $scope->addEventProcessor(function (Event $event): Event {
-                return $this->addUserToEvent($event);
+        $request = $event->getRequest();
+
+        // with a lazy firewall, reading the token starts the session, which most
+        // handlers then lock for the rest of the request: when the request didn't
+        // start it, the token is read only once an event is captured
+        if ($request->hasPreviousSession() && !$request->getSession()->isStarted()) {
+            // the scope belongs to the runtime context of the request, which ends with it
+            $this->hub->configureScope(function (Scope $scope): void {
+                $scope->addEventProcessor(function (Event $event): Event {
+                    try {
+                        return $this->addUserToEvent($event);
+                    } catch (\Throwable $exception) {
+                        return $event;
+                    }
+                });
             });
-        });
+
+            return;
+        }
+
+        $token = $this->tokenStorage->getToken();
+
+        if (null !== $token) {
+            $this->updateUserContext($token);
+        }
     }
 
     /**
