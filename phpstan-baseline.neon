@@ -246,11 +246,6 @@ parameters:
 			path: tests/DependencyInjection/Fixtures/php/release_option_fallback_to_env_var.php
 
 		-
-			message: "#^Cannot access offset 'dsn' on mixed\\.$#"
-			count: 1
-			path: tests/DependencyInjection/SentryExtensionTest.php
-
-		-
 			message: "#^Cannot access offset 'class_serializers' on mixed\\.$#"
 			count: 1
 			path: tests/DependencyInjection/SentryExtensionTest.php
