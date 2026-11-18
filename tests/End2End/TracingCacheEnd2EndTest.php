@@ -57,15 +57,13 @@ class TracingCacheEnd2EndTest extends WebTestCase
         $client->request('GET', '/tracing/cache/populate-string');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
 
-        // Reset transport so we only get events for cache HITs
-        StubTransport::$events = [];
-
         $client->request('GET', '/tracing/cache/populate-string');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
 
-        $this->assertCount(1, StubTransport::$events);
+        // The second event is the request that hits the cache
+        $this->assertCount(2, StubTransport::$events);
 
-        $event = StubTransport::$events[0];
+        $event = StubTransport::$events[1];
         $this->assertCount(1, $event->getSpans());
 
         $span = $event->getSpans()[0];
@@ -194,13 +192,12 @@ class TracingCacheEnd2EndTest extends WebTestCase
         // This populates the cache and is tested in a different test
         $this->assertCount(1, StubTransport::$events);
         $this->assertCount(2, StubTransport::$events[0]->getSpans());
-        StubTransport::$events = [];
 
         $client->request('PUT', '/tracing/cache/psr/populate-string');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
 
-        $this->assertCount(1, StubTransport::$events);
-        $event = StubTransport::$events[0];
+        $this->assertCount(2, StubTransport::$events);
+        $event = StubTransport::$events[1];
 
         $this->assertCount(1, $event->getSpans());
         $span = $event->getSpans()[0];

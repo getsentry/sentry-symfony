@@ -30,9 +30,9 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      */
     private $requestFetcher;
 
-    public function __construct(Sentry $sentry, ?RequestFetcherInterface $requestFetcher = null)
+    public function __construct(Sentry $sentry, ?RequestFetcherInterface $requestFetcher = null, bool $enabled = true)
     {
-        parent::__construct($sentry);
+        parent::__construct($sentry, $enabled);
 
         $this->requestFetcher = $requestFetcher;
     }
@@ -45,7 +45,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      */
     public function handleKernelRequestEvent(RequestEvent $event): void
     {
-        if (!$this->isMainRequest($event)) {
+        if (!$this->enabled || !$this->isMainRequest($event)) {
             return;
         }
 
@@ -87,7 +87,7 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      */
     public function collectKernelResponseData(ResponseEvent $event): void
     {
-        if (!$this->isMainRequest($event)) {
+        if (!$this->enabled || !$this->isMainRequest($event)) {
             return;
         }
 
@@ -108,6 +108,10 @@ final class TracingRequestListener extends AbstractTracingRequestListener
      */
     public function handleKernelTerminateEvent(TerminateEvent $event): void
     {
+        if (!$this->enabled) {
+            return;
+        }
+
         $transaction = $this->sentry->getTransaction();
 
         try {
