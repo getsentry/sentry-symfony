@@ -1,5 +1,40 @@
 # CHANGELOG
 
+## 5.16.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.16.0.
+
+### Features
+
+- Add the `trace_ignore_status_codes` option, which drops the transactions of incoming requests whose response has one of the given HTTP status codes. Each entry is either a single status code or an inclusive `[min, max]` range. [(#1101)](https://github.com/getsentry/sentry-symfony/pull/1101)
+
+  ```yaml
+  sentry:
+      options:
+          trace_ignore_status_codes:
+              - 404
+              - [500, 599]
+  ```
+
+- Add the `sentry_sample_rate` env var processor, which resolves an empty or unset environment variable to `null`. [(#1096)](https://github.com/getsentry/sentry-symfony/pull/1096)
+
+  ```yaml
+  sentry:
+      options:
+          traces_sample_rate: '%env(sentry_sample_rate:SENTRY_TRACES_SAMPLE_RATE)%'
+          profiles_sample_rate: '%env(sentry_sample_rate:SENTRY_PROFILES_SAMPLE_RATE)%'
+  ```
+
+### Bug fixes
+
+- Fix `tracing.enabled` always enabling tracing when it is set through an environment variable such as `'%env(bool:SENTRY_TRACING)%'`. The value is now resolved at runtime. [(#1109)](https://github.com/getsentry/sentry-symfony/pull/1109)
+
+### Misc
+
+- Skip creating Doctrine DBAL spans when the parent span is not sampled, which reduces the overhead of unsampled requests. [(#1106)](https://github.com/getsentry/sentry-symfony/pull/1106)
+- Add PHP 8.6 to the CI test matrix. [(#1107)](https://github.com/getsentry/sentry-symfony/pull/1107)
+- Bump `sentry-php` version to `4.35.0`. [(#1101)](https://github.com/getsentry/sentry-symfony/pull/1101)
+
 ## 5.15.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.15.0.

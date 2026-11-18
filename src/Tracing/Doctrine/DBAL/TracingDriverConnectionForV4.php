@@ -95,6 +95,8 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
 
     /**
      * {@inheritdoc}
+     *
+     * @param string $sql
      */
     public function prepare($sql): Statement
     {
@@ -111,6 +113,8 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
 
     /**
      * {@inheritdoc}
+     *
+     * @param mixed ...$args
      */
     public function query(?string $sql = null, ...$args): Result
     {
@@ -201,6 +205,8 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
 
     /**
      * {@inheritdoc}
+     *
+     * @return array<mixed>
      */
     public function errorInfo(): array
     {
@@ -231,6 +237,11 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
     private function traceFunction(string $spanOperation, string $spanDescription, \Closure $callback)
     {
         $span = $this->sentry->getSpan();
+
+        // Children of an unsampled span are never recorded or sent, so don't build them
+        if (null !== $span && false === $span->getSampled()) {
+            $span = null;
+        }
 
         if (null !== $span) {
             $span = $span->startChild(

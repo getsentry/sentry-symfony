@@ -207,6 +207,21 @@ final class TracingSubRequestListenerTest extends TestCase
         ));
     }
 
+    public function testDoesNothingIfTracingIsDisabled(): void
+    {
+        $this->sentry->expects($this->never())
+            ->method($this->anything());
+
+        $listener = new TracingSubRequestListener($this->sentry, false);
+        $kernel = $this->createMock(HttpKernelInterface::class);
+        $request = new Request();
+
+        $listener->handleKernelRequestEvent(new RequestEvent($kernel, $request, HttpKernelInterface::SUB_REQUEST));
+        $listener->collectKernelResponseData(new ResponseEvent($kernel, $request, HttpKernelInterface::SUB_REQUEST, new Response()));
+        $listener->handleKernelResponseEvent(new ResponseEvent($kernel, $request, HttpKernelInterface::SUB_REQUEST, new Response()));
+        $listener->handleKernelFinishRequestEvent(new FinishRequestEvent($kernel, $request, HttpKernelInterface::SUB_REQUEST));
+    }
+
     public function testHandleKernelRequestEventDoesNothingIfNoSpanIsSetOnScope(): void
     {
         $this->sentry->expects($this->once())

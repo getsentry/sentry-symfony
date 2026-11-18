@@ -89,6 +89,7 @@ final class ConfigurationTest extends TestCase
     {
         $config = $this->processConfiguration(['options' => ['sample_rate' => $value]]);
 
+        $this->assertIsArray($config['options']);
         $this->assertSame($value, $config['options']['sample_rate']);
     }
 
@@ -145,7 +146,7 @@ final class ConfigurationTest extends TestCase
     }
 
     /**
-     * @param int|float $value
+     * @param int|float|null $value
      *
      * @dataProvider tracesSampleRateOptionDataProvider
      */
@@ -153,6 +154,7 @@ final class ConfigurationTest extends TestCase
     {
         $config = $this->processConfiguration(['options' => ['traces_sample_rate' => $value]]);
 
+        $this->assertIsArray($config['options']);
         $this->assertSame($value, $config['options']['traces_sample_rate']);
     }
 
@@ -161,6 +163,7 @@ final class ConfigurationTest extends TestCase
      */
     public function tracesSampleRateOptionDataProvider(): \Generator
     {
+        yield [null];
         yield [0];
         yield [1];
         yield [0.0];
@@ -209,7 +212,7 @@ final class ConfigurationTest extends TestCase
     }
 
     /**
-     * @param int|float $value
+     * @param int|float|null $value
      *
      * @dataProvider profilesSampleRateOptionDataProvider
      */
@@ -217,6 +220,7 @@ final class ConfigurationTest extends TestCase
     {
         $config = $this->processConfiguration(['options' => ['profiles_sample_rate' => $value]]);
 
+        $this->assertIsArray($config['options']);
         $this->assertSame($value, $config['options']['profiles_sample_rate']);
     }
 
@@ -225,6 +229,7 @@ final class ConfigurationTest extends TestCase
      */
     public function profilesSampleRateOptionDataProvider(): \Generator
     {
+        yield [null];
         yield [0];
         yield [1];
         yield [0.0];

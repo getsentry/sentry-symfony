@@ -541,6 +541,22 @@ final class TracingRequestListenerTest extends TestCase
         ));
     }
 
+    public function testDoesNothingIfTracingIsDisabled(): void
+    {
+        $this->sentry->expects($this->never())
+            ->method($this->anything());
+
+        $listener = new TracingRequestListener($this->sentry, null, false);
+        $kernel = $this->createMock(HttpKernelInterface::class);
+        $request = new Request();
+        $requestType = \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST;
+
+        $listener->handleKernelRequestEvent(new RequestEvent($kernel, $request, $requestType));
+        $listener->collectKernelResponseData(new ResponseEvent($kernel, $request, $requestType, new Response()));
+        $listener->handleKernelResponseEvent(new ResponseEvent($kernel, $request, $requestType, new Response()));
+        $listener->handleKernelTerminateEvent(new TerminateEvent($kernel, $request, new Response()));
+    }
+
     /**
      * @param array<string, mixed> $expectedData
      *

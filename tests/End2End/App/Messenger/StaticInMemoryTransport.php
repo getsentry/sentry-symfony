@@ -46,7 +46,7 @@ class StaticInMemoryTransport implements TransportInterface
     public function ack(Envelope $envelope): void
     {
         self::$acknowledged[] = $envelope;
-        $id = spl_object_hash($envelope->getMessage());
+        $id = spl_object_id($envelope->getMessage());
         unset(self::$queue[$id]);
     }
 
@@ -56,7 +56,7 @@ class StaticInMemoryTransport implements TransportInterface
     public function reject(Envelope $envelope): void
     {
         self::$rejected[] = $envelope;
-        $id = spl_object_hash($envelope->getMessage());
+        $id = spl_object_id($envelope->getMessage());
         unset(self::$queue[$id]);
     }
 
@@ -66,7 +66,7 @@ class StaticInMemoryTransport implements TransportInterface
     public function send(Envelope $envelope): Envelope
     {
         self::$sent[] = $envelope;
-        $id = spl_object_hash($envelope->getMessage());
+        $id = spl_object_id($envelope->getMessage());
         self::$queue[$id] = $envelope;
 
         return $envelope;

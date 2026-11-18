@@ -26,13 +26,20 @@ abstract class AbstractTracingRequestListener
     protected $sentry;
 
     /**
+     * @var bool Whether tracing is enabled, which is only known at runtime if it is set by an env var
+     */
+    protected $enabled;
+
+    /**
      * Constructor.
      *
      * @param Sentry $sentry
+     * @param bool   $enabled Whether tracing is enabled
      */
-    public function __construct(Sentry $sentry)
+    public function __construct(Sentry $sentry, bool $enabled = true)
     {
         $this->sentry = $sentry;
+        $this->enabled = $enabled;
     }
 
     /**
@@ -45,6 +52,10 @@ abstract class AbstractTracingRequestListener
      */
     public function handleKernelResponseEvent(ResponseEvent $event): void
     {
+        if (!$this->enabled) {
+            return;
+        }
+
         $response = $event->getResponse();
         $span = $this->sentry->getSpan();
 
