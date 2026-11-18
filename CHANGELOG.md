@@ -1,5 +1,155 @@
 # CHANGELOG
 
+## 6.0.0-beta1
+
+The Sentry SDK team is happy to announce the first beta release of Sentry Symfony SDK v6.0.0.
+
+This is a pre-release of the next major version. The API can still change before the stable release, so we do not recommend it for production yet. To try it out, install the beta explicitly. The PHP SDK has to be listed as well, because Composer does not install pre-releases of a dependency on its own:
+
+```bash
+composer require "sentry/sentry-symfony:^6.0@beta" "sentry/sentry:^5.0@beta"
+```
+
+### Breaking Changes
+
+Please refer to the [UPGRADE-6.0.md](https://github.com/getsentry/sentry-symfony/blob/6.x/UPGRADE-6.0.md) guide for a complete list of breaking changes and how to migrate.
+
+<details>
+<summary>Upgrading with an AI coding agent? Use this prompt.</summary>
+
+```text
+Upgrade this project from version 5 to version 6 of the Sentry Symfony SDK (sentry/sentry-symfony).
+
+1. Run `composer require "sentry/sentry-symfony:^6.0@beta" "sentry/sentry:^5.0@beta"`. If the
+   cache:clear script that Composer runs at the end fails, the packages are installed anyway and
+   the next steps fix the cause.
+2. Read vendor/sentry/sentry-symfony/UPGRADE-6.0.md completely. It is the source of truth for every
+   breaking change. If the project also uses the PHP SDK directly (the Sentry\ namespace or the
+   \Sentry\...() helper functions), read vendor/sentry/sentry/UPGRADE-5.0.md as well. Version 6 is
+   newer than what you know about these SDKs, so do not rely on your memory of their API. When the
+   guides do not cover something, read the code in vendor/sentry/sentry-symfony/src and
+   vendor/sentry/sentry/src instead of guessing.
+3. Search the whole project for usages of the SDK: the sentry configuration in config/packages,
+   including the when@<env> blocks and the files of each environment, the SENTRY_* variables in the
+   .env files, the Monolog handlers in config/packages/monolog.yaml, service definitions that
+   reference Sentry classes, type-hints on Sentry\State\HubInterface, everything from the Sentry\
+   namespace, and classes that extend or decorate SDK types.
+4. Apply the changes from the guides to every usage you found.
+5. Build the container of every environment the project deploys, for example with
+   `php bin/console lint:container --env=prod`. Then run the static analysis and the tests of the
+   project, if it has them, and fix what the upgrade broke.
+
+Some changes do not cause an error where you would look for it. Check each of these explicitly:
+
+- Removed options make the container fail with an "Unrecognized option" error, but only in the
+  environments that load them. The sentry configuration usually sits under when@prod, so the dev
+  and test environments keep working while production breaks. Compare every option with the guide.
+- The send_default_pii option is gone, and the defaults of the data_collection option collect more
+  data than before, whichever value send_default_pii had. What gets collected is a privacy decision
+  that is mine to make: apply the restrictive configuration from the guide, which is the closest to
+  the old behavior, and list what I could enable on top of it. This only applies if data_collection
+  is missing from the configuration or set to null. If the project already configures
+  data_collection, send_default_pii was already ignored and the existing data_collection
+  configuration keeps applying, so only remove send_default_pii.
+- Monolog handlers of the type sentry and services of the class Sentry\Monolog\Handler no longer
+  work, and neither does a hub_id or a HubInterface argument. Replace them with one of the handlers
+  from the guide, registered as a handler of the type service.
+- The enable_logs option is gone, so a Monolog LogsHandler sends logs whenever it is configured.
+  Tell me if the project relied on enable_logs to turn it off in some environments.
+- The client is never null anymore. Remove the null checks, and tell me where one of them was used
+  to detect that the SDK is not configured.
+- Scope data that is set before a request is handled, for example in Kernel::boot() or in the
+  boot() method of a bundle, is no longer part of the events of that request. The same goes for the
+  messages of a Messenger worker when isolate_context_by_message is enabled. Move the data that
+  should apply to every request or message to the global scope, and tell me where you did.
+
+When you are done, give me a summary of what you changed and a separate list of what I have to
+decide or check myself. Include the changes that affect what shows up in Sentry: transactions with
+a 404 status are no longer sent, error events can get a different transaction name, logs carry a
+span_id instead of the sentry.trace.parent_span_id attribute, and Monolog logs with PSR-3
+placeholders are sent with the interpolated message.
+```
+
+</details>
+
+- Require version 5 of the PHP SDK. Its Hub has been removed, so the `Sentry\State\HubInterface` service is no longer available. Use the functions of the PHP SDK instead, which work on the scopes of the current request, command or message. [(#1108)](https://github.com/getsentry/sentry-symfony/pull/1108)
+
+  ```php
+  // Before
+  public function __construct(private \Sentry\State\HubInterface $hub) {}
+
+  public function __invoke(): void
+  {
+      $this->hub->captureException($exception);
+  }
+
+  // After
+  public function __invoke(): void
+  {
+      \Sentry\captureException($exception);
+  }
+  ```
+
+- The callbacks of `\Sentry\configureScope()` receive a `Sentry\State\IsolationScope` instead of a `Sentry\State\Scope`. The `\Sentry\withScope()` function has been removed from the PHP SDK, use `\Sentry\withIsolationScope()` instead. [(#1108)](https://github.com/getsentry/sentry-symfony/pull/1108)
+
+- The scope of a request starts empty and no longer inherits the data that was set before the request was handled, for example in `Kernel::boot()`. The same applies to the messages of a Messenger worker when `isolate_context_by_message` is enabled. Set data that applies to every request or message on the global scope. [(#1108)](https://github.com/getsentry/sentry-symfony/pull/1108)
+
+- The `Sentry\Monolog\Handler` has been removed from the PHP SDK, and with it the `sentry` handler type of the MonologBundle stops working. Register the `Sentry\Monolog\LogToSentryIssueHandler` or `Sentry\Monolog\ExceptionToSentryIssueHandler` as a `service` handler instead. The Monolog handlers no longer take a `HubInterface` as their first constructor argument. [(#1108)](https://github.com/getsentry/sentry-symfony/pull/1108)
+
+  ```yaml
+  services:
+      Sentry\Monolog\LogToSentryIssueHandler:
+          arguments:
+              - !php/const Monolog\Logger::ERROR
+
+  monolog:
+      handlers:
+          sentry:
+              type: service
+              id: Sentry\Monolog\LogToSentryIssueHandler
+  ```
+
+- The `send_default_pii` option has been removed. The `data_collection` option now always decides which data the SDK collects, and its defaults collect more data than `send_default_pii` did. [(#1119)](https://github.com/getsentry/sentry-symfony/pull/1119)
+
+  If you already configure `data_collection`, it keeps applying as before and you only have to remove `send_default_pii` from your config. Otherwise, including when `data_collection` is `null`, restrict the collection to roughly what `send_default_pii: false` collected before with:
+
+  ```yaml
+  sentry:
+      options:
+          data_collection:
+              user_info: false
+              cookies:
+                  mode: off
+              http_bodies: [incomingRequest]
+              gen_ai:
+                  inputs: false
+                  outputs: false
+              database_query_data: false
+              queues: false
+  ```
+
+- The `trace_ignore_status_codes` option now defaults to `[404]`, so transactions of requests that end in a `404` response are no longer sent, including those of matched routes. [(#1059)](https://github.com/getsentry/sentry-symfony/pull/1059)
+
+- The options that the PHP SDK removed are no longer available under `sentry.options`: `enable_tracing`, `spotlight_url`, `enable_logs`, `enable_metrics`, `context_lines`, `max_value_length`, `attach_metric_code_locations` and `before_send_metrics`. A configuration that still contains one of them fails with an `Unrecognized option` error. Logs and metrics are always sent when their APIs or the `LogsHandler` are used, and the `spotlight` option accepts a boolean or the URL of the Spotlight sidecar. [(#1108)](https://github.com/getsentry/sentry-symfony/pull/1108), [(#1119)](https://github.com/getsentry/sentry-symfony/pull/1119)
+
+- The `max_request_body_size` option no longer accepts `none`, use `never` instead. [(#1108)](https://github.com/getsentry/sentry-symfony/pull/1108)
+
+- The listeners and the other services of the bundle take a `Sentry\SentryBundle\Sentry` instead of a `HubInterface` as constructor argument, and the deprecated constructor signatures of `SentryTestCommand`, `TracingDriverMiddleware` and the Twig `SentryExtension` have been removed. [(#1108)](https://github.com/getsentry/sentry-symfony/pull/1108)
+
+- The `jean85/pretty-package-versions` dependency has been removed. The bundle reads the version of the application through `Composer\InstalledVersions`, which requires Composer 2. [(#1047)](https://github.com/getsentry/sentry-symfony/pull/1047)
+
+### Features
+
+- Support the global scope and the isolation scope of the PHP SDK. Data on the global scope is applied to every event of the process and survives across requests and messages in long-running workers, while the isolation scope holds the data of the current request, command or message. [(#1108)](https://github.com/getsentry/sentry-symfony/pull/1108)
+
+  ```php
+  // Applied to every event of this worker process
+  \Sentry\getGlobalScope()->setTag('worker', 'queue-1');
+
+  // Applied to the events of the current request, command or message
+  \Sentry\getIsolationScope()->setTag('feature', 'checkout');
+  ```
+
 ## 5.16.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.16.0.
