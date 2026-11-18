@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 5.16.1
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.16.1.
+
+### Misc
+
+- Exclude `AGENTS.md`, `CLAUDE.md` and `CONTRIBUTING.md` from the distributed package. [(#1140)](https://github.com/getsentry/sentry-symfony/pull/1140)
+
 ## 5.16.0
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.16.0.
