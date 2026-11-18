@@ -598,8 +598,11 @@ abstract class SentryExtensionTest extends TestCase
         $container = $this->createContainerFromFixture($fixtureFile);
         $optionsDefinition = $container->getDefinition('sentry.client.options');
 
+        $options = $optionsDefinition->getArgument(0);
+
         $this->assertSame(Options::class, $optionsDefinition->getClass());
-        $this->assertSame($expectedResult, $optionsDefinition->getArgument(0)['dsn']);
+        $this->assertIsArray($options);
+        $this->assertSame($expectedResult, $options['dsn']);
     }
 
     /**
