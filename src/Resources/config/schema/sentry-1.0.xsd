@@ -40,9 +40,13 @@
         <xsd:attribute name="default-integrations" type="xsd:boolean" />
         <xsd:attribute name="sample-rate" type="xsd:float" />
         <xsd:attribute name="log-flush-threshold" type="xsd:integer" />
+        <xsd:attribute name="metric-flush-threshold" type="xsd:integer" />
         <xsd:attribute name="traces-sample-rate" type="xsd:float" />
         <xsd:attribute name="profiles-sample-rate" type="xsd:float" />
         <xsd:attribute name="traces-sampler" type="xsd:string" />
+        <xsd:attribute name="profiles-sampler" type="xsd:string" />
+        <xsd:attribute name="profile-session-sample-rate" type="xsd:float" />
+        <xsd:attribute name="profile-lifecycle" type="profile-lifecycle" />
         <xsd:attribute name="attach-stacktrace" type="xsd:boolean" />
         <xsd:attribute name="enable-compression" type="xsd:boolean" />
         <xsd:attribute name="environment" type="xsd:string" />
@@ -57,6 +61,8 @@
         <xsd:attribute name="before-send-log" type="xsd:string" />
         <xsd:attribute name="error-types" type="xsd:string" />
         <xsd:attribute name="max-breadcrumbs" type="xsd:integer" />
+        <xsd:attribute name="max-breadth" type="xsd:integer" />
+        <xsd:attribute name="send-client-reports" type="xsd:boolean" />
         <xsd:attribute name="before-breadcrumb" type="xsd:string" />
         <xsd:attribute name="transport" type="xsd:string" />
         <xsd:attribute name="http-client" type="xsd:string" />
@@ -65,6 +71,7 @@
         <xsd:attribute name="http-connect-timeout" type="xsd:integer" />
         <xsd:attribute name="http-timeout" type="xsd:integer" />
         <xsd:attribute name="http-ssl-verify-peer" type="xsd:boolean" />
+        <xsd:attribute name="http-ssl-native-ca" type="xsd:boolean" />
         <xsd:attribute name="http-compression" type="xsd:boolean" />
         <xsd:attribute name="capture-silenced-errors" type="xsd:boolean" />
         <xsd:attribute name="max-request-body-size" type="max-request-body-size" />
@@ -86,6 +93,13 @@
             </xsd:extension>
         </xsd:simpleContent>
     </xsd:complexType>
+
+    <xsd:simpleType name="profile-lifecycle">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="manual" />
+            <xsd:enumeration value="trace" />
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:simpleType name="max-request-body-size">
         <xsd:restriction base="xsd:string">

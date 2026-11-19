@@ -68,10 +68,26 @@ class SubRequestListenerTest extends TestCase
      */
     public function testHandleKernelFinishRequestEvent($event): void
     {
+        $this->sentry->method('pushScope')
+            ->willReturn(new IsolationScope());
+
         $this->sentry->expects($this->isMainRequest($event) ? $this->never() : $this->once())
             ->method('popScope');
 
+        $this->listener->handleKernelRequestEvent(new RequestEvent($event->getKernel(), $event->getRequest(), $event->getRequestType()));
         $this->listener->handleKernelFinishRequestEvent($event);
+    }
+
+    public function testHandleKernelFinishRequestEventDoesNotPopScopeIfNoneWasPushedForTheSubRequest(): void
+    {
+        $this->sentry->expects($this->never())
+            ->method('popScope');
+
+        $this->listener->handleKernelFinishRequestEvent(new FinishRequestEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            HttpKernelInterface::SUB_REQUEST
+        ));
     }
 
     /**

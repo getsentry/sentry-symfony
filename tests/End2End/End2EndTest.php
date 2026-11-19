@@ -88,6 +88,21 @@ class End2EndTest extends WebTestCase
         $this->assertEventCount(1);
     }
 
+    public function testFailedSubrequestKeepsTheScopeOfTheOuterSubrequest(): void
+    {
+        $client = static::createClient(['debug' => false]);
+
+        $client->request('GET', '/subrequest/failing-subrequest');
+
+        $response = $client->getResponse();
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
+
+        $this->assertEventCount(1);
+        $this->assertSame('outer', StubTransport::$events[0]->getTags()['sub_request'] ?? null);
+    }
+
     public function testGet404(): void
     {
         $client = static::createClient(['debug' => false]);
