@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 class MainController
@@ -80,6 +81,33 @@ class MainController
         $subRequest = $request->duplicate([], null, $path);
 
         return $this->kernel->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
+    }
+
+    public function subrequestWithFailingSubrequest(): Response
+    {
+        $request = $this->requestStack->getCurrentRequest();
+        \assert($request instanceof Request);
+
+        $subRequest = $request->duplicate([], null, ['_controller' => __CLASS__ . '::failingSubrequest']);
+
+        return $this->kernel->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
+    }
+
+    public function failingSubrequest(): Response
+    {
+        $this->sentry->configureScope(static function (IsolationScope $scope): void {
+            $scope->setTag('sub_request', 'outer');
+        });
+
+        try {
+            $this->kernel->handle(Request::create('/no-such-route'), HttpKernelInterface::SUB_REQUEST, false);
+        } catch (NotFoundHttpException $exception) {
+            // The router fails before a scope is pushed for the sub-request
+        }
+
+        $this->sentry->captureMessage('After the failed sub-request');
+
+        return new Response('Hello there');
     }
 
     public function responseData(): Response

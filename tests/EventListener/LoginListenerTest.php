@@ -17,10 +17,13 @@ use Sentry\State\GlobalScope;
 use Sentry\State\IsolationScope;
 use Sentry\UserDataBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\SwitchUserToken;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -337,6 +340,185 @@ final class LoginListenerTest extends TestCase
     }
 
     /**
+     * A lazy firewall starts the session when the token is first asked for.
+     */
+    public function testHandleKernelRequestEventReadsTheTokenOnceAnEventIsCapturedIfTheSessionIsNotStarted(): void
+    {
+        $scope = new IsolationScope();
+        $scope->setUser(UserDataBag::createFromUserIpAddress('127.0.0.1'));
+        $this->expectScope($scope);
+
+        $initializerCalls = new \ArrayObject();
+        $tokenStorage = new TokenStorage();
+        $tokenStorage->setInitializer(static function () use ($tokenStorage, $initializerCalls): void {
+            $initializerCalls->append(true);
+            $tokenStorage->setToken(version_compare(Kernel::VERSION, '5.4', '<')
+                ? new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())
+                : new AuthenticatedTokenStub(new UserWithIdentifierStub()));
+        });
+
+        $listener = new LoginListener($this->sentry, $tokenStorage);
+        $listener->handleKernelRequestEvent($this->createRequestEventWithPreviousSession(false));
+
+        $this->assertCount(0, $initializerCalls);
+
+        $event = (new GlobalScope())->merge($scope)->applyToEvent(Event::createEvent());
+
+        $this->assertCount(1, $initializerCalls);
+        $this->assertNotNull($event);
+        $this->assertEquals(UserDataBag::createFromArray(['id' => 'foo_user', 'ip_address' => '127.0.0.1']), $event->getUser());
+        $this->assertEquals(UserDataBag::createFromUserIpAddress('127.0.0.1'), $scope->getUser());
+    }
+
+    public function testHandleKernelRequestEventKeepsTheEventIfTheTokenCannotBeRead(): void
+    {
+        $scope = new IsolationScope();
+        $this->expectScope($scope);
+
+        $this->tokenStorage->expects($this->once())
+            ->method('getToken')
+            ->willThrowException(new \RuntimeException('The user provider is not available.'));
+
+        $this->listener->handleKernelRequestEvent($this->createRequestEventWithPreviousSession(false));
+
+        $event = (new GlobalScope())->merge($scope)->applyToEvent(Event::createEvent());
+
+        $this->assertNotNull($event);
+        $this->assertNull($event->getUser());
+    }
+
+    public function testHandleKernelRequestEventReadsTheTokenIfTheSessionIsStarted(): void
+    {
+        $scope = new IsolationScope();
+        $this->expectScope($scope);
+
+        $this->tokenStorage->expects($this->once())
+            ->method('getToken')
+            ->willReturn(version_compare(Kernel::VERSION, '5.4', '<')
+                ? new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())
+                : new AuthenticatedTokenStub(new UserWithIdentifierStub()));
+
+        $this->listener->handleKernelRequestEvent($this->createRequestEventWithPreviousSession(true));
+
+        $this->assertEquals(new UserDataBag('foo_user'), $scope->getUser());
+    }
+
+    /**
+     * @dataProvider authenticationTokenDataProvider
+     * @dataProvider authenticationTokenForSymfonyVersionLowerThan54DataProvider
+     */
+    public function testHandleKernelRequestEventIfTheSessionIsNotStarted(TokenInterface $token, ?UserDataBag $user, ?UserDataBag $expectedUser): void
+    {
+        $scope = new IsolationScope();
+        $this->expectScope($scope);
+
+        $this->tokenStorage->expects(null === $user ? $this->once() : $this->never())
+            ->method('getToken')
+            ->willReturn($token);
+
+        if (null !== $user) {
+            $scope->setUser($user);
+        }
+
+        $this->listener->handleKernelRequestEvent($this->createRequestEventWithPreviousSession(false));
+
+        $event = (new GlobalScope())->merge($scope)->applyToEvent(Event::createEvent());
+
+        $this->assertNotNull($event);
+        $this->assertEquals($expectedUser, $event->getUser());
+    }
+
+    public function testHandleKernelRequestEventDoesNothingIfTokenIsNotSetAndTheSessionIsNotStarted(): void
+    {
+        $scope = new IsolationScope();
+        $this->expectScope($scope);
+
+        $this->tokenStorage->expects($this->once())
+            ->method('getToken')
+            ->willReturn(null);
+
+        $this->listener->handleKernelRequestEvent($this->createRequestEventWithPreviousSession(false));
+
+        $event = (new GlobalScope())->merge($scope)->applyToEvent(Event::createEvent());
+
+        $this->assertNotNull($event);
+        $this->assertNull($event->getUser());
+    }
+
+    /**
+     * @dataProvider userInfoOptionDataProvider
+     */
+    public function testHandleKernelRequestEventRespectsUserInfoOptionIfTheSessionIsNotStarted(Options $options, ?UserDataBag $expectedUser): void
+    {
+        $scope = new IsolationScope();
+        $this->expectScope($scope, $options);
+
+        $this->tokenStorage->expects(null !== $expectedUser ? $this->once() : $this->never())
+            ->method('getToken')
+            ->willReturn(version_compare(Kernel::VERSION, '5.4', '<')
+                ? new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())
+                : new AuthenticatedTokenStub(new UserWithIdentifierStub()));
+
+        $this->listener->handleKernelRequestEvent($this->createRequestEventWithPreviousSession(false));
+
+        $event = (new GlobalScope())->merge($scope)->applyToEvent(Event::createEvent());
+
+        $this->assertNotNull($event);
+        $this->assertEquals($expectedUser, $event->getUser());
+    }
+
+    public function testHandleKernelRequestEventResolvesTheUserOnceTheSessionIsStarted(): void
+    {
+        $scope = new IsolationScope();
+        $scope->setUser(UserDataBag::createFromUserIpAddress('127.0.0.1'));
+        $this->expectScope($scope);
+
+        $this->tokenStorage->expects($this->exactly(2))
+            ->method('getToken')
+            ->willReturn(version_compare(Kernel::VERSION, '5.4', '<')
+                ? new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())
+                : new AuthenticatedTokenStub(new UserWithIdentifierStub()));
+
+        $event = $this->createRequestEventWithPreviousSession(false);
+        $session = $event->getRequest()->getSession();
+
+        $this->listener->handleKernelRequestEvent($event);
+
+        $this->assertEquals(UserDataBag::createFromUserIpAddress('127.0.0.1'), $scope->getUser());
+
+        $session->start();
+
+        $this->assertEquals(UserDataBag::createFromArray(['id' => 'foo_user', 'ip_address' => '127.0.0.1']), $scope->getUser());
+
+        $session->save();
+
+        $this->assertEquals(UserDataBag::createFromArray(['id' => 'foo_user', 'ip_address' => '127.0.0.1']), $scope->getUser());
+    }
+
+    /**
+     * @dataProvider userInfoOptionDataProvider
+     */
+    public function testHandleKernelRequestEventRespectsUserInfoOptionOnceTheSessionIsStarted(Options $options, ?UserDataBag $expectedUser): void
+    {
+        $scope = new IsolationScope();
+        $this->expectScope($scope, $options);
+
+        $this->tokenStorage->expects(null !== $expectedUser ? $this->once() : $this->never())
+            ->method('getToken')
+            ->willReturn(version_compare(Kernel::VERSION, '5.4', '<')
+                ? new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())
+                : new AuthenticatedTokenStub(new UserWithIdentifierStub()));
+
+        $event = $this->createRequestEventWithPreviousSession(false);
+
+        $this->listener->handleKernelRequestEvent($event);
+
+        $event->getRequest()->getSession()->start();
+
+        $this->assertEquals($expectedUser, $scope->getUser());
+    }
+
+    /**
      * @dataProvider userInfoOptionDataProvider
      */
     public function testHandleKernelRequestEventRespectsUserInfoOption(Options $options, ?UserDataBag $expectedUser): void
@@ -491,6 +673,42 @@ final class LoginListenerTest extends TestCase
         } else {
             $this->listener->handleAuthenticationSuccessEvent(new AuthenticationSuccessEvent(new AuthenticatedTokenStub(new UserWithIdentifierStub())));
         }
+    }
+
+    private function expectScope(IsolationScope $scope, ?Options $options = null): void
+    {
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->any())
+            ->method('getOptions')
+            ->willReturn($options ?? new Options());
+
+        $this->sentry->expects($this->any())
+            ->method('getClient')
+            ->willReturn($client);
+
+        $this->sentry->expects($this->once())
+            ->method('configureScope')
+            ->willReturnCallback(static function (callable $callback) use ($scope): void {
+                $callback($scope);
+            });
+    }
+
+    private function createRequestEventWithPreviousSession(bool $started): RequestEvent
+    {
+        $session = new Session(new MockArraySessionStorage());
+
+        if ($started) {
+            $session->start();
+        }
+
+        $request = new Request([], [], [], [$session->getName() => 'session_id']);
+        $request->setSession($session);
+
+        return new RequestEvent(
+            $this->createMock(HttpKernelInterface::class),
+            $request,
+            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
+        );
     }
 }
 

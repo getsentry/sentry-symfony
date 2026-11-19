@@ -155,6 +155,10 @@ final class SentryExtension extends ConfigurableExtension
             $options['traces_sampler'] = new Reference($options['traces_sampler']);
         }
 
+        if (\is_array($options) && \is_string($options['profiles_sampler'] ?? null)) {
+            $options['profiles_sampler'] = new Reference($options['profiles_sampler']);
+        }
+
         if (isset($options['before_send'])) {
             $options['before_send'] = new Reference($options['before_send']);
         }

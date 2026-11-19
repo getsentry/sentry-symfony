@@ -83,6 +83,18 @@ final class TracingRequestListener extends AbstractTracingRequestListener
     }
 
     /**
+     * The response of a sub-request belongs to the span of the sub-request, not to the transaction.
+     */
+    public function handleKernelResponseEvent(ResponseEvent $event): void
+    {
+        if (!$this->isMainRequest($event)) {
+            return;
+        }
+
+        parent::handleKernelResponseEvent($event);
+    }
+
+    /**
      * @param ResponseEvent $event
      */
     public function collectKernelResponseData(ResponseEvent $event): void

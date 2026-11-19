@@ -13,6 +13,8 @@ use Sentry\SentryBundle\EventListener\TracingSubRequestListener;
 use Sentry\SentryBundle\Sentry;
 use Sentry\Tracing\Span;
 use Sentry\Tracing\SpanStatus;
+use Sentry\Tracing\Transaction;
+use Sentry\Tracing\TransactionContext;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -240,19 +242,81 @@ final class TracingSubRequestListenerTest extends TestCase
      */
     public function testHandleKernelFinishRequestEvent(): void
     {
-        $span = new Span();
-
-        $this->sentry->expects($this->once())
-            ->method('getSpan')
-            ->willReturn($span);
+        $transaction = new Transaction(new TransactionContext());
+        $request = new Request();
+        $subRequestSpan = $this->startSubRequestSpan($transaction, $request);
 
         $this->listener->handleKernelFinishRequestEvent(new FinishRequestEvent(
             $this->createMock(HttpKernelInterface::class),
-            new Request(),
+            $request,
             HttpKernelInterface::SUB_REQUEST
         ));
 
-        $this->assertSame(microtime(true), $span->getEndTimestamp());
+        $this->assertSame(microtime(true), $subRequestSpan->getEndTimestamp());
+        $this->assertNull($transaction->getEndTimestamp());
+    }
+
+    /**
+     * A sub-request can fail before its span is started, e.g. if no route matches it. The current span is the
+     * transaction then, which must not be finished or get the status of the sub-request.
+     */
+    public function testSubRequestWithoutSpanDoesNotChangeTheCurrentSpan(): void
+    {
+        $transaction = new Transaction(new TransactionContext());
+
+        $this->sentry->method('getSpan')
+            ->willReturn($transaction);
+
+        $kernel = $this->createMock(HttpKernelInterface::class);
+        $request = new Request();
+
+        $this->listener->handleKernelResponseEvent(new ResponseEvent($kernel, $request, HttpKernelInterface::SUB_REQUEST, new Response('', 404)));
+        $this->listener->collectKernelResponseData(new ResponseEvent($kernel, $request, HttpKernelInterface::SUB_REQUEST, new Response('', 404)));
+        $this->listener->handleKernelFinishRequestEvent(new FinishRequestEvent($kernel, $request, HttpKernelInterface::SUB_REQUEST));
+
+        $this->assertNull($transaction->getEndTimestamp());
+        $this->assertNull($transaction->getStatus());
+        $this->assertSame([], $transaction->getData());
+    }
+
+    public function testNestedSubRequestsFinishTheirOwnSpans(): void
+    {
+        $transaction = new Transaction(new TransactionContext());
+        $kernel = $this->createMock(HttpKernelInterface::class);
+        $outerRequest = new Request();
+        $innerRequest = new Request();
+
+        $currentSpan = $transaction;
+
+        $this->sentry->method('getClient')
+            ->willReturn(new NoOpClient());
+        $this->sentry->method('getSpan')
+            ->willReturnCallback(static function () use (&$currentSpan): Span {
+                return $currentSpan;
+            });
+        $this->sentry->method('setSpan')
+            ->willReturnCallback(function (Span $span) use (&$currentSpan): Sentry {
+                $currentSpan = $span;
+
+                return $this->sentry;
+            });
+        $this->listener->handleKernelRequestEvent(new RequestEvent($kernel, $outerRequest, HttpKernelInterface::SUB_REQUEST));
+        $outerSpan = $currentSpan;
+
+        $this->listener->handleKernelRequestEvent(new RequestEvent($kernel, $innerRequest, HttpKernelInterface::SUB_REQUEST));
+        $innerSpan = $currentSpan;
+
+        $this->assertNotSame($outerSpan, $innerSpan);
+
+        $this->listener->handleKernelFinishRequestEvent(new FinishRequestEvent($kernel, $innerRequest, HttpKernelInterface::SUB_REQUEST));
+
+        $this->assertNotNull($innerSpan->getEndTimestamp());
+        $this->assertNull($outerSpan->getEndTimestamp());
+
+        $this->listener->handleKernelFinishRequestEvent(new FinishRequestEvent($kernel, $outerRequest, HttpKernelInterface::SUB_REQUEST));
+
+        $this->assertNotNull($outerSpan->getEndTimestamp());
+        $this->assertNull($transaction->getEndTimestamp());
     }
 
     public function testHandleKernelFinishRequestEventDoesNothingIfRequestTypeIsMasterRequest(): void
@@ -267,46 +331,33 @@ final class TracingSubRequestListenerTest extends TestCase
         ));
     }
 
-    public function testHandleKernelFinishRequestEventDoesNothingIfNoSpanIsSetOnScope(): void
-    {
-        $this->sentry->expects($this->once())
-            ->method('getSpan')
-            ->willReturn(null);
-
-        $this->listener->handleKernelFinishRequestEvent(new FinishRequestEvent(
-            $this->createMock(HttpKernelInterface::class),
-            new Request(),
-            HttpKernelInterface::SUB_REQUEST
-        ));
-    }
-
     public function testCollectKernelResponseData(): void
     {
         $client = $this->createMock(ClientInterface::class);
         $client->method('getOptions')
             ->willReturn(new Options(['data_collection' => []]));
 
-        $span = new Span();
-        $span->setSampled(true);
+        $parentSpan = new Span();
+        $parentSpan->setSampled(true);
 
         $this->sentry->method('getClient')
             ->willReturn($client);
 
-        $this->sentry->expects($this->once())
-            ->method('getSpan')
-            ->willReturn($span);
+        $request = new Request();
+        $span = $this->startSubRequestSpan($parentSpan, $request);
 
         $response = new Response('{"username":"jane","password":"secret"}', 200, ['Content-Type' => 'application/json']);
         $response->headers->setCookie(Cookie::create('theme', 'dark'));
 
         $this->listener->collectKernelResponseData(new ResponseEvent(
             $this->createMock(HttpKernelInterface::class),
-            new Request(),
+            $request,
             HttpKernelInterface::SUB_REQUEST,
             $response
         ));
 
         $data = $span->getData();
+        $this->assertArrayNotHasKey('http.response.body.data', $parentSpan->getData());
 
         $this->assertSame('application/json', $data['http.response.header.content-type'] ?? null);
         $this->assertSame(['theme=dark'], $data['http.response.header.set-cookie'] ?? null);
@@ -326,11 +377,10 @@ final class TracingSubRequestListenerTest extends TestCase
         ));
     }
 
-    public function testCollectKernelResponseDataDoesNothingIfNoSpanIsSetOnScope(): void
+    public function testCollectKernelResponseDataDoesNothingIfNoSpanWasStartedForTheSubRequest(): void
     {
-        $this->sentry->expects($this->once())
-            ->method('getSpan')
-            ->willReturn(null);
+        $this->sentry->expects($this->never())
+            ->method('getSpan');
 
         $this->sentry->expects($this->never())
             ->method('getClient');
@@ -345,28 +395,26 @@ final class TracingSubRequestListenerTest extends TestCase
 
     public function testHandleResponseRequestEvent(): void
     {
-        $span = new Span();
-
-        $this->sentry->expects($this->once())
-            ->method('getSpan')
-            ->willReturn($span);
+        $parentSpan = new Span();
+        $request = new Request();
+        $span = $this->startSubRequestSpan($parentSpan, $request);
 
         $this->listener->handleKernelResponseEvent(new ResponseEvent(
             $this->createMock(HttpKernelInterface::class),
-            new Request(),
+            $request,
             HttpKernelInterface::SUB_REQUEST,
             new Response()
         ));
 
         $this->assertSame(SpanStatus::ok(), $span->getStatus());
         $this->assertSame(200, $span->getData('http.response.status_code'));
+        $this->assertNull($parentSpan->getStatus());
     }
 
-    public function testHandleResponseRequestEventDoesNothingIfNoTransactionIsSetOnScope(): void
+    public function testHandleResponseRequestEventDoesNothingIfNoSpanWasStartedForTheSubRequest(): void
     {
-        $this->sentry->expects($this->once())
-            ->method('getSpan')
-            ->willReturn(null);
+        $this->sentry->expects($this->never())
+            ->method('getSpan');
 
         $this->listener->handleKernelResponseEvent(new ResponseEvent(
             $this->createMock(HttpKernelInterface::class),
@@ -374,5 +422,34 @@ final class TracingSubRequestListenerTest extends TestCase
             HttpKernelInterface::SUB_REQUEST,
             new Response()
         ));
+    }
+
+    /**
+     * Lets the listener start the span of a sub-request below the given span.
+     */
+    private function startSubRequestSpan(Span $parentSpan, Request $request): Span
+    {
+        $subRequestSpan = null;
+
+        $this->sentry->method('getClient')
+            ->willReturn(new NoOpClient());
+        $this->sentry->method('getSpan')
+            ->willReturn($parentSpan);
+        $this->sentry->method('setSpan')
+            ->willReturnCallback(function (Span $span) use (&$subRequestSpan): Sentry {
+                $subRequestSpan = $span;
+
+                return $this->sentry;
+            });
+
+        $this->listener->handleKernelRequestEvent(new RequestEvent(
+            $this->createMock(HttpKernelInterface::class),
+            $request,
+            HttpKernelInterface::SUB_REQUEST
+        ));
+
+        $this->assertInstanceOf(Span::class, $subRequestSpan);
+
+        return $subRequestSpan;
     }
 }
