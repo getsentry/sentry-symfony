@@ -796,6 +796,19 @@ final class TracingRequestListenerTest extends TestCase
         $this->assertSame(200, $transaction->getData('http.response.status_code'));
     }
 
+    public function testHandleResponseRequestEventDoesNothingForSubRequests(): void
+    {
+        $this->hub->expects($this->never())
+            ->method('getSpan');
+
+        $this->listener->handleKernelResponseEvent(new ResponseEvent(
+            $this->createMock(HttpKernelInterface::class),
+            new Request(),
+            HttpKernelInterface::SUB_REQUEST,
+            new Response('', 404)
+        ));
+    }
+
     public function testHandleResponseRequestEventDoesNothingIfNoTransactionIsSetOnHub(): void
     {
         $this->hub->expects($this->once())
