@@ -1,0 +1,126 @@
+# Deprecated APIs that are still used on purpose.
+# This file is maintained by hand, `--generate-baseline` only rewrites phpstan-baseline.neon.
+parameters:
+	ignoreErrors:
+		-
+			message: """
+				#^Fetching class constant class of deprecated class Sentry\\\\Monolog\\\\Handler\\:
+				since version 4\\.24\\. To be removed in version 5\\.0\\. Use \\{@see LogsHandler\\}
+				            for Sentry logs, \\{@see ExceptionToSentryIssueHandler\\} to send Monolog exceptions
+				            to Sentry issues, and \\{@see LogToSentryIssueHandler\\}
+				            to send Monolog log messages to Sentry issues\\.$#
+			"""
+			count: 1
+			path: src/DependencyInjection/Compiler/BufferFlushPass.php
+
+		-
+			message: """
+				#^Call to deprecated function Sentry\\\\metrics\\(\\)\\:
+				use `traceMetrics` instead$#
+			"""
+			count: 1
+			path: src/EventListener/TracingRequestListener.php
+
+		-
+			message: """
+				#^Call to deprecated method flush\\(\\) of class Sentry\\\\Metrics\\\\Metrics\\:
+				Metrics are no longer supported\\. Metrics API is a no\\-op and will be removed in 5\\.x\\.$#
+			"""
+			count: 1
+			path: src/EventListener/TracingRequestListener.php
+
+		-
+			message: """
+				#^Fetching deprecated class constant DEBUG of class Monolog\\\\Logger\\:
+				Use \\\\Monolog\\\\Level\\:\\:Debug$#
+			"""
+			count: 1
+			path: src/Monolog/LogsHandler.php
+
+		-
+			message: """
+				#^Fetching deprecated class constant INFO of class Monolog\\\\Logger\\:
+				Use \\\\Monolog\\\\Level\\:\\:Info$#
+			"""
+			count: 1
+			path: src/Monolog/LogsHandler.php
+
+		-
+			message: """
+				#^Fetching deprecated class constant ERROR of class Monolog\\\\Logger\\:
+				Use \\\\Monolog\\\\Level\\:\\:Error$#
+			"""
+			count: 2
+			path: src/Monolog/UncaughtExceptionHandler.php
+
+		-
+			message: """
+				#^Fetching deprecated class constant WARNING of class Monolog\\\\Logger\\:
+				Use \\\\Monolog\\\\Level\\:\\:Warning$#
+			"""
+			count: 1
+			path: src/Monolog/UncaughtExceptionHandler.php
+
+		-
+			message: """
+				#^Call to deprecated method expectDeprecation\\(\\) of class Sentry\\\\SentryBundle\\\\Tests\\\\Command\\\\SentryTestCommandTest\\:
+				https\\://github\\.com/sebastianbergmann/phpunit/issues/5062$#
+			"""
+			count: 1
+			path: tests/Command/SentryTestCommandTest.php
+
+		-
+			message: """
+				#^Fetching class constant class of deprecated class Sentry\\\\Monolog\\\\Handler\\:
+				since version 4\\.24\\. To be removed in version 5\\.0\\. Use \\{@see LogsHandler\\}
+				            for Sentry logs, \\{@see ExceptionToSentryIssueHandler\\} to send Monolog exceptions
+				            to Sentry issues, and \\{@see LogToSentryIssueHandler\\}
+				            to send Monolog log messages to Sentry issues\\.$#
+			"""
+			count: 5
+			path: tests/DependencyInjection/Compiler/BufferFlushPassTest.php
+
+		-
+			message: """
+				#^Fetching class constant class of deprecated class Symfony\\\\Component\\\\DependencyInjection\\\\Loader\\\\XmlFileLoader\\:
+				since Symfony 7\\.4, use another loader instead$#
+			"""
+			count: 1
+			path: tests/DependencyInjection/XmlSentryExtensionTest.php
+
+		-
+			message: """
+				#^Instantiation of deprecated class Symfony\\\\Component\\\\DependencyInjection\\\\Loader\\\\XmlFileLoader\\:
+				since Symfony 7\\.4, use another loader instead$#
+			"""
+			count: 1
+			path: tests/DependencyInjection/XmlSentryExtensionTest.php
+
+		-
+			message: "#^Call to deprecated method withConsecutive\\(\\) of class PHPUnit\\\\Framework\\\\MockObject\\\\Builder\\\\InvocationMocker\\.$#"
+			count: 1
+			path: tests/EventListener/MessengerListenerTest.php
+
+		-
+			message: """
+				#^Fetching deprecated class constant DEBUG of class Monolog\\\\Logger\\:
+				Use \\\\Monolog\\\\Level\\:\\:Debug$#
+			"""
+			count: 5
+			path: tests/Monolog/LogsHandlerTest.php
+
+		-
+			message: """
+				#^Fetching deprecated class constant WARNING of class Monolog\\\\Logger\\:
+				Use \\\\Monolog\\\\Level\\:\\:Warning$#
+			"""
+			count: 5
+			path: tests/Monolog/LogsHandlerTest.php
+
+		-
+			message: """
+				#^Call to deprecated method expectDeprecation\\(\\) of class Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverMiddlewareTest\\:
+				https\\://github\\.com/sebastianbergmann/phpunit/issues/5062$#
+			"""
+			count: 1
+			path: tests/Tracing/Doctrine/DBAL/TracingDriverMiddlewareTest.php
