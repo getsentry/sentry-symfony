@@ -1,5 +1,33 @@
 # CHANGELOG
 
+## 6.0.0-beta2
+
+The Sentry SDK team is happy to announce the second beta release of Sentry Symfony SDK v6.0.0.
+
+This is a pre-release of the next major version. The API can still change before the stable release, so we do not recommend it for production yet. To try it out, install the beta explicitly. The PHP SDK has to be listed as well, because Composer does not install pre-releases of a dependency on its own:
+
+```bash
+composer require "sentry/sentry-symfony:^6.0@beta" "sentry/sentry:^5.0@beta"
+```
+
+Please refer to the [UPGRADE-6.0.md](https://github.com/getsentry/sentry-symfony/blob/6.x/UPGRADE-6.0.md) guide for a complete list of breaking changes and how to migrate.
+
+### Features
+
+- Resolve the user lazily for logs and metrics when a lazy firewall is used. [(#1143)](https://github.com/getsentry/sentry-symfony/pull/1143)
+- Add the `profiles_sampler`, `profile_session_sample_rate`, `profile_lifecycle`, `metric_flush_threshold`, `max_breadth`, `send_client_reports` and `http_ssl_native_ca` options. [(#1124)](https://github.com/getsentry/sentry-symfony/pull/1124)
+
+### Bug fixes
+
+- Fix the session being started on every request to read the user when a lazy firewall is used, which locked the session until the response was sent. The user is now read when an event is captured. [(#1129)](https://github.com/getsentry/sentry-symfony/pull/1129)
+- Fix the scope of the parent request being popped when a sub-request fails before its own scope is pushed, e.g. if no route matches. [(#1126)](https://github.com/getsentry/sentry-symfony/pull/1126)
+- Fix the transaction being finished in the middle of the request when a sub-request fails before its span is started, e.g. if no route matches. [(#1125)](https://github.com/getsentry/sentry-symfony/pull/1125)
+
+### Misc
+
+- Exclude `AGENTS.md`, `CLAUDE.md` and `CONTRIBUTING.md` from the distributed package. [(#1140)](https://github.com/getsentry/sentry-symfony/pull/1140)
+- Bump `sentry-php` version to `5.0.0-beta2`. [(#1146)](https://github.com/getsentry/sentry-symfony/pull/1146)
+
 ## 6.0.0-beta1
 
 The Sentry SDK team is happy to announce the first beta release of Sentry Symfony SDK v6.0.0.
