@@ -64,13 +64,30 @@ final class LoginListener
         // start it, the token is read only once an event is captured
         if ($request->hasPreviousSession() && !$request->getSession()->isStarted()) {
             // the scope belongs to the runtime context of the request, which ends with it
-            $this->hub->configureScope(function (Scope $scope): void {
+            $session = $request->getSession();
+
+            $this->hub->configureScope(function (Scope $scope) use ($session): void {
                 $scope->addEventProcessor(function (Event $event): Event {
                     try {
                         return $this->addUserToEvent($event);
                     } catch (\Throwable $exception) {
                         return $event;
                     }
+                });
+
+                $tokenRead = false;
+
+                // logs and metrics get the user once something else started the session
+                $scope->setUserResolver(function () use ($session, &$tokenRead): ?UserDataBag {
+                    // the session is not started anymore once it is saved, but
+                    // reading the token again does not need it
+                    if (!$tokenRead && !$session->isStarted()) {
+                        return null;
+                    }
+
+                    $tokenRead = true;
+
+                    return $this->getUserFromToken();
                 });
             });
 
@@ -108,22 +125,42 @@ final class LoginListener
     {
         $user = $event->getUser();
 
-        if (null === $this->tokenStorage || (null !== $user && null !== $user->getId())) {
+        if (null !== $user && null !== $user->getId()) {
             return $event;
         }
 
-        if (!DataCollectionPolicy::fromHub($this->hub)->shouldCollectUserInfo()) {
-            return $event;
-        }
+        $tokenUser = $this->getUserFromToken();
 
-        $token = $this->tokenStorage->getToken();
-
-        if (null === $token || !$this->isTokenAuthenticated($token)) {
+        if (null === $tokenUser) {
             return $event;
         }
 
         // the user of the event can be the one of the scope, shared with the next events
         $user = null !== $user ? clone $user : new UserDataBag();
+        $user->setId($tokenUser->getId());
+
+        foreach ($tokenUser->getMetadata() as $name => $value) {
+            $user->setMetadata($name, $value);
+        }
+
+        $event->setUser($user);
+
+        return $event;
+    }
+
+    private function getUserFromToken(): ?UserDataBag
+    {
+        if (null === $this->tokenStorage || !DataCollectionPolicy::fromHub($this->hub)->shouldCollectUserInfo()) {
+            return null;
+        }
+
+        $token = $this->tokenStorage->getToken();
+
+        if (null === $token || !$this->isTokenAuthenticated($token)) {
+            return null;
+        }
+
+        $user = new UserDataBag();
         $user->setId($this->getUserIdentifier($token->getUser()));
 
         $impersonatorUser = $this->getImpersonatorUser($token);
@@ -132,9 +169,7 @@ final class LoginListener
             $user->setMetadata('impersonator_username', $impersonatorUser);
         }
 
-        $event->setUser($user);
-
-        return $event;
+        return $user;
     }
 
     private function updateUserContext(TokenInterface $token): void

@@ -466,6 +466,57 @@ final class LoginListenerTest extends TestCase
         $this->assertEquals($expectedUser, $event->getUser());
     }
 
+    public function testHandleKernelRequestEventResolvesTheUserOnceTheSessionIsStarted(): void
+    {
+        $scope = new Scope();
+        $scope->setUser(UserDataBag::createFromUserIpAddress('127.0.0.1'));
+        $this->expectScope($scope);
+
+        $this->tokenStorage->expects($this->exactly(2))
+            ->method('getToken')
+            ->willReturn(version_compare(Kernel::VERSION, '5.4', '<')
+                ? new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())
+                : new AuthenticatedTokenStub(new UserWithIdentifierStub()));
+
+        $event = $this->createRequestEventWithPreviousSession(false);
+        $session = $event->getRequest()->getSession();
+
+        $this->listener->handleKernelRequestEvent($event);
+
+        $this->assertEquals(UserDataBag::createFromUserIpAddress('127.0.0.1'), $scope->getUser());
+
+        $session->start();
+
+        $this->assertEquals(UserDataBag::createFromArray(['id' => 'foo_user', 'ip_address' => '127.0.0.1']), $scope->getUser());
+
+        $session->save();
+
+        $this->assertEquals(UserDataBag::createFromArray(['id' => 'foo_user', 'ip_address' => '127.0.0.1']), $scope->getUser());
+    }
+
+    /**
+     * @dataProvider userInfoOptionDataProvider
+     */
+    public function testHandleKernelRequestEventRespectsUserInfoOptionOnceTheSessionIsStarted(Options $options, ?UserDataBag $expectedUser): void
+    {
+        $scope = new Scope();
+        $this->expectScope($scope, $options);
+
+        $this->tokenStorage->expects(null !== $expectedUser ? $this->once() : $this->never())
+            ->method('getToken')
+            ->willReturn(version_compare(Kernel::VERSION, '5.4', '<')
+                ? new LegacyAuthenticatedTokenStub(new UserWithIdentifierStub())
+                : new AuthenticatedTokenStub(new UserWithIdentifierStub()));
+
+        $event = $this->createRequestEventWithPreviousSession(false);
+
+        $this->listener->handleKernelRequestEvent($event);
+
+        $event->getRequest()->getSession()->start();
+
+        $this->assertEquals($expectedUser, $scope->getUser());
+    }
+
     /**
      * @dataProvider userInfoOptionDataProvider
      */
