@@ -327,6 +327,31 @@ abstract class SentryExtensionTest extends TestCase
     }
 
     /**
+     * The firewall can answer the request itself (401, 403, login redirect) and its
+     * authenticators can query the database or write logs. All of that belongs to the
+     * transaction and to the incoming trace.
+     */
+    public function testTracingRequestListenerStartsTheTransactionBetweenTheRouterAndTheFirewall(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+        $tags = $container->getDefinition(TracingRequestListener::class)->getTag('kernel.event_listener');
+
+        $requestPriority = null;
+
+        foreach ($tags as $attributes) {
+            if (KernelEvents::REQUEST === ($attributes['event'] ?? null)) {
+                $requestPriority = $attributes['priority'];
+            }
+        }
+
+        $this->assertNotNull($requestPriority);
+        // Firewall runs at priority 8
+        $this->assertGreaterThan(8, $requestPriority);
+        // RouterListener runs at priority 32 and sets the route the transaction is named after
+        $this->assertLessThan(32, $requestPriority);
+    }
+
+    /**
      * The session listener can still add the session cookie to the response,
      * so the response data must be collected after it but before the streamed
      * response listener of Symfony < 7.0 sends the response.

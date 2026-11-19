@@ -64,6 +64,27 @@ class TracingEnd2EndTest extends WebTestCase
         $this->assertTracingEventCount(0);
     }
 
+    public function testTransactionCoversARequestRejectedAtTheFirewall(): void
+    {
+        $client = static::createClient(['debug' => false]);
+
+        $client->request('GET', '/tracing/firewall-rejected');
+
+        $response = $client->getResponse();
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(401, $response->getStatusCode());
+
+        $this->assertCount(1, StubTransport::$events, 'Wrong number of events captured');
+
+        $transaction = StubTransport::$events[0];
+
+        $this->assertSame('GET tracing_firewall_rejected', $transaction->getTransaction());
+        $this->assertSame('unauthenticated', $transaction->getContexts()['trace']['status'] ?? null);
+        $this->assertCount(1, $transaction->getSpans());
+        $this->assertSame('firewall.token_lookup', $transaction->getSpans()[0]->getOp());
+    }
+
     public function testSubRequestWithoutRouteDoesNotFinishTheTransaction(): void
     {
         $client = static::createClient(['debug' => false]);
