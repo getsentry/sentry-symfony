@@ -24,6 +24,7 @@ use Sentry\SentryBundle\EventListener\LoginListener;
 use Sentry\SentryBundle\EventListener\MessengerListener;
 use Sentry\SentryBundle\EventListener\RequestListener;
 use Sentry\SentryBundle\EventListener\RuntimeContextListener;
+use Sentry\SentryBundle\EventListener\SchedulerListener;
 use Sentry\SentryBundle\EventListener\SubRequestListener;
 use Sentry\SentryBundle\EventListener\TracingConsoleListener;
 use Sentry\SentryBundle\EventListener\TracingRequestListener;
@@ -46,6 +47,7 @@ use Symfony\Component\DependencyInjection\Compiler\ResolveParameterPlaceHoldersP
 use Symfony\Component\DependencyInjection\Compiler\ResolveTaggedIteratorArgumentPass;
 use Symfony\Component\DependencyInjection\Compiler\ValidateEnvPlaceholdersPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\EnvPlaceholderParameterBag;
 use Symfony\Component\DependencyInjection\Reference;
@@ -56,6 +58,9 @@ use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Scheduler\Event\FailureEvent;
+use Symfony\Component\Scheduler\Event\PostRunEvent;
+use Symfony\Component\Scheduler\Event\PreRunEvent;
 
 abstract class SentryExtensionTest extends TestCase
 {
@@ -199,6 +204,65 @@ abstract class SentryExtensionTest extends TestCase
         $container = $this->createContainerFromFixture('messenger_listener_disabled');
 
         $this->assertFalse($container->hasDefinition(MessengerListener::class));
+    }
+
+    public function testSchedulerListenerIsRemovedByDefault(): void
+    {
+        $container = $this->createContainerFromFixture('full');
+
+        $this->assertFalse($container->hasDefinition(SchedulerListener::class));
+    }
+
+    public function testSchedulerListener(): void
+    {
+        if (!class_exists(PreRunEvent::class)) {
+            $this->markTestSkipped('This test requires the "symfony/scheduler" Composer package (6.4 or newer) to be installed.');
+        }
+
+        $container = $this->createContainerFromFixture('scheduler_enabled');
+        $definition = $container->getDefinition(SchedulerListener::class);
+
+        $this->assertSame(SchedulerListener::class, $definition->getClass());
+        $this->assertEquals([
+            new Reference(HubInterface::class),
+            new Reference('messenger.senders_locator', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
+        ], $definition->getArguments());
+        $this->assertSame([
+            'kernel.event_listener' => [
+                [
+                    'event' => PreRunEvent::class,
+                    'method' => 'handlePreRunEvent',
+                ],
+                [
+                    'event' => WorkerMessageReceivedEvent::class,
+                    'method' => 'handleWorkerMessageReceivedEvent',
+                    'priority' => -1024,
+                ],
+                [
+                    'event' => PostRunEvent::class,
+                    'method' => 'handlePostRunEvent',
+                ],
+                [
+                    'event' => FailureEvent::class,
+                    'method' => 'handleFailureEvent',
+                ],
+            ],
+            'kernel.reset' => [
+                ['method' => 'reset'],
+            ],
+        ], $definition->getTags());
+    }
+
+    public function testSchedulerListenerThrowsIfSchedulerIsNotInstalled(): void
+    {
+        if (class_exists(PreRunEvent::class)) {
+            $this->markTestSkipped('This test requires the "symfony/scheduler" Composer package not to be installed.');
+        }
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Scheduler cron monitoring cannot be enabled because the symfony/scheduler Composer package (6.4 or newer) is not installed.');
+
+        $this->createContainerFromFixture('scheduler_enabled');
     }
 
     public function testRequestListener(): void
