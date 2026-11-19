@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## 5.17.0
+
+The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.17.0.
+
+### Features
+
+- Resolve the user lazily for logs and metrics when a lazy firewall is used. [(#1143)](https://github.com/getsentry/sentry-symfony/pull/1143)
+
+### Bug fixes
+
+- Fix the session being started on every request to read the user when a lazy firewall is used, which locked the session until the response was sent. The user is now read when an event is captured. [(#1129)](https://github.com/getsentry/sentry-symfony/pull/1129)
+- Fix the scope of the parent request being popped when a sub-request fails before its own scope is pushed, e.g. if no route matches. [(#1126)](https://github.com/getsentry/sentry-symfony/pull/1126)
+- Fix the transaction being finished in the middle of the request when a sub-request fails before its span is started, e.g. if no route matches. [(#1125)](https://github.com/getsentry/sentry-symfony/pull/1125)
+
+### Misc
+
+- Bump `sentry-php` version to `4.38.0`. [(#1143)](https://github.com/getsentry/sentry-symfony/pull/1143)
+
 ## 5.16.1
 
 The Sentry SDK team is happy to announce the immediate availability of Sentry Symfony SDK v5.16.1.
