@@ -404,8 +404,12 @@ abstract class SentryExtensionTest extends TestCase
             'traces_sample_rate' => 1,
             'traces_sampler' => new Reference('App\\Sentry\\Tracing\\TracesSampler'),
             'profiles_sample_rate' => 1,
+            'profiles_sampler' => new Reference('App\\Sentry\\Profiling\\ProfilesSampler'),
+            'profile_session_sample_rate' => 1,
+            'profile_lifecycle' => 'trace',
             'enable_logs' => true,
             'log_flush_threshold' => 2,
+            'metric_flush_threshold' => 3,
             'enable_metrics' => true,
             'attach_stacktrace' => true,
             'attach_metric_code_locations' => true,
@@ -439,6 +443,8 @@ abstract class SentryExtensionTest extends TestCase
             ],
             'error_types' => \E_ALL,
             'max_breadcrumbs' => 1,
+            'max_breadth' => 500,
+            'send_client_reports' => true,
             'before_breadcrumb' => new Reference('App\\Sentry\\BeforeBreadcrumbCallback'),
             'in_app_exclude' => [$container->getParameter('kernel.cache_dir')],
             'in_app_include' => [$container->getParameter('kernel.project_dir')],
@@ -483,6 +489,7 @@ abstract class SentryExtensionTest extends TestCase
             'http_timeout' => 10,
             'http_connect_timeout' => 15,
             'http_ssl_verify_peer' => true,
+            'http_ssl_native_ca' => true,
             'http_compression' => true,
             'capture_silenced_errors' => true,
             'max_request_body_size' => 'none',
@@ -623,8 +630,11 @@ abstract class SentryExtensionTest extends TestCase
         $container = $this->createContainerFromFixture($fixtureFile);
         $optionsDefinition = $container->getDefinition('sentry.client.options');
 
+        $options = $optionsDefinition->getArgument(0);
+
         $this->assertSame(Options::class, $optionsDefinition->getClass());
-        $this->assertSame($expectedResult, $optionsDefinition->getArgument(0)['dsn']);
+        $this->assertIsArray($options);
+        $this->assertSame($expectedResult, $options['dsn']);
     }
 
     /**

@@ -22,6 +22,10 @@ subrequest:
   path:  /subrequest
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::subrequest' }
 
+subrequest_failing_subrequest:
+  path:  /subrequest/failing-subrequest
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::subrequestWithFailingSubrequest' }
+
 response_data:
   path:  /response-data
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\MainController::responseData' }
@@ -73,6 +77,10 @@ tracing_not_found:
 tracing_status_code_in_ignored_range:
   path: /tracing/status-code-in-ignored-range
   defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\TracingController::statusCodeInIgnoredRange' }
+
+tracing_sub_request_without_route:
+  path: /tracing/sub-request-without-route
+  defaults: { _controller: 'Sentry\SentryBundle\Tests\End2End\App\Controller\SubRequestController::subRequestWithoutRoute' }
 
 tracing_cache_populate_string:
   path: /tracing/cache/populate-string

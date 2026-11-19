@@ -201,16 +201,6 @@ parameters:
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
 
 		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionForV4\\:\\:prepare\\(\\) has parameter \\$sql with no type specified\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
-
-		-
-			message: "#^Method Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionForV4\\:\\:query\\(\\) has parameter \\$args with no type specified\\.$#"
-			count: 1
-			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
-
-		-
 			message: "#^Parameter \\#1 \\$sql of method Doctrine\\\\DBAL\\\\Driver\\\\Connection\\:\\:query\\(\\) expects string, string\\|null given\\.$#"
 			count: 1
 			path: src/Tracing/Doctrine/DBAL/TracingDriverConnectionForV4.php
@@ -241,16 +231,6 @@ parameters:
 			path: src/EventListener/RuntimeContextListener.php
 
 		-
-			message: "#^Cannot access offset 'profiles_sample_rate' on mixed\\.$#"
-			count: 1
-			path: tests/DependencyInjection/ConfigurationTest.php
-
-		-
-			message: "#^Cannot access offset 'traces_sample_rate' on mixed\\.$#"
-			count: 1
-			path: tests/DependencyInjection/ConfigurationTest.php
-
-		-
 			message: "#^Function Symfony\\\\Component\\\\DependencyInjection\\\\Loader\\\\Configurator\\\\ref not found\\.$#"
 			count: 1
 			path: tests/DependencyInjection/Fixtures/php/release_option_fallback_to_env_var.php
@@ -259,11 +239,6 @@ parameters:
 			message: "#^Used function Symfony\\\\Component\\\\DependencyInjection\\\\Loader\\\\Configurator\\\\ref not found\\.$#"
 			count: 1
 			path: tests/DependencyInjection/Fixtures/php/release_option_fallback_to_env_var.php
-
-		-
-			message: "#^Cannot access offset 'dsn' on mixed\\.$#"
-			count: 1
-			path: tests/DependencyInjection/SentryExtensionTest.php
 
 		-
 			message: "#^Cannot access offset 'class_serializers' on mixed\\.$#"
@@ -292,7 +267,7 @@ parameters:
 
 		-
 			message: "#^Access to undefined constant Symfony\\\\Component\\\\HttpKernel\\\\HttpKernelInterface\\:\\:MASTER_REQUEST\\.$#"
-			count: 3
+			count: 4
 			path: tests/EventListener/LoginListenerTest.php
 
 		-
@@ -374,11 +349,6 @@ parameters:
 			message: "#^Parameter \\#1 \\$decoratedAdapter of method Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Cache\\\\AbstractTraceableCacheAdapterTest\\<TCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface,TDecoratedCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface\\>\\:\\:createCacheAdapter\\(\\) expects TDecoratedCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface, PHPUnit\\\\Framework\\\\MockObject\\\\MockObject&Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Cache\\\\ResettableCacheAdapterInterface given\\.$#"
 			count: 1
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
-
-		-
-			message: "#^Property Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionFactoryV4Test\\:\\:\\$databasePlatform is never read, only written\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverConnectionFactoryV4Test.php
 
 		-
 			message: "#^Parameter \\#1 \\$hubOrConnectionFactory of class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverMiddleware constructor expects Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionFactoryInterface\\|Sentry\\\\State\\\\HubInterface, null given\\.$#"

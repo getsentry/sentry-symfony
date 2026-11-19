@@ -30,6 +30,7 @@ final class ConfigurationTest extends TestCase
                 'integrations' => [],
                 'prefixes' => array_merge(['%kernel.project_dir%'], array_filter(explode(\PATH_SEPARATOR, get_include_path() ?: ''))),
                 'log_flush_threshold' => null,
+                'metric_flush_threshold' => null,
                 'enable_metrics' => true,
                 'environment' => '%kernel.environment%',
                 'release' => '%env(default::SENTRY_RELEASE)%',
@@ -155,6 +156,7 @@ final class ConfigurationTest extends TestCase
     {
         $config = $this->processConfiguration(['options' => ['traces_sample_rate' => $value]]);
 
+        $this->assertIsArray($config['options']);
         $this->assertSame($value, $config['options']['traces_sample_rate']);
     }
 
@@ -220,6 +222,7 @@ final class ConfigurationTest extends TestCase
     {
         $config = $this->processConfiguration(['options' => ['profiles_sample_rate' => $value]]);
 
+        $this->assertIsArray($config['options']);
         $this->assertSame($value, $config['options']['profiles_sample_rate']);
     }
 
@@ -282,6 +285,28 @@ final class ConfigurationTest extends TestCase
         $config = $this->processConfiguration(['options' => ['org_id' => 1]]);
 
         $this->assertSame(1, $config['options']['org_id']);
+    }
+
+    /**
+     * @dataProvider invalidProfilingOptionsDataProvider
+     *
+     * @param mixed $value
+     */
+    public function testInvalidProfilingOptions(string $option, $value, string $exceptionMessage): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage($exceptionMessage);
+
+        $this->processConfiguration(['options' => [$option => $value]]);
+    }
+
+    /**
+     * @return \Generator<mixed>
+     */
+    public static function invalidProfilingOptionsDataProvider(): \Generator
+    {
+        yield ['profile_lifecycle', 'request', 'The value "request" is not allowed for path "sentry.options.profile_lifecycle". Permissible values: "manual", "trace"'];
+        yield ['profile_session_sample_rate', 2, 'The value 2 is too big for path "sentry.options.profile_session_sample_rate". Should be less than or equal to 1'];
     }
 
     public function testLogFlushThresholdOption(): void

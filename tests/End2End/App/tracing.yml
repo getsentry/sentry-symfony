@@ -18,6 +18,13 @@ services:
     tags:
       - { name: controller.service_arguments }
 
+  Sentry\SentryBundle\Tests\End2End\App\Controller\SubRequestController:
+    arguments:
+      $hub: '@Sentry\State\HubInterface'
+      $httpKernel: '@http_kernel'
+    tags:
+      - { name: controller.service_arguments }
+
   Sentry\SentryBundle\Tests\End2End\App\Controller\TracingCacheController:
     arguments:
       $cache: '@cache.app'
