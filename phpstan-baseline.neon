@@ -267,7 +267,7 @@ parameters:
 
 		-
 			message: "#^Access to undefined constant Symfony\\\\Component\\\\HttpKernel\\\\HttpKernelInterface\\:\\:MASTER_REQUEST\\.$#"
-			count: 3
+			count: 4
 			path: tests/EventListener/LoginListenerTest.php
 
 		-

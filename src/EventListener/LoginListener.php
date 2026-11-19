@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sentry\SentryBundle\EventListener;
 
 use Sentry\DataCollection\DataCollectionPolicy;
+use Sentry\Event;
 use Sentry\State\HubInterface;
 use Sentry\State\Scope;
 use Sentry\UserDataBag;
@@ -56,6 +57,26 @@ final class LoginListener
             return;
         }
 
+        $request = $event->getRequest();
+
+        // with a lazy firewall, reading the token starts the session, which most
+        // handlers then lock for the rest of the request: when the request didn't
+        // start it, the token is read only once an event is captured
+        if ($request->hasPreviousSession() && !$request->getSession()->isStarted()) {
+            // the scope belongs to the runtime context of the request, which ends with it
+            $this->hub->configureScope(function (Scope $scope): void {
+                $scope->addEventProcessor(function (Event $event): Event {
+                    try {
+                        return $this->addUserToEvent($event);
+                    } catch (\Throwable $exception) {
+                        return $event;
+                    }
+                });
+            });
+
+            return;
+        }
+
         $token = $this->tokenStorage->getToken();
 
         if (null !== $token) {
@@ -81,6 +102,39 @@ final class LoginListener
     public function handleAuthenticationSuccessEvent(AuthenticationSuccessEvent $event): void
     {
         $this->updateUserContext($event->getAuthenticationToken());
+    }
+
+    private function addUserToEvent(Event $event): Event
+    {
+        $user = $event->getUser();
+
+        if (null === $this->tokenStorage || (null !== $user && null !== $user->getId())) {
+            return $event;
+        }
+
+        if (!DataCollectionPolicy::fromHub($this->hub)->shouldCollectUserInfo()) {
+            return $event;
+        }
+
+        $token = $this->tokenStorage->getToken();
+
+        if (null === $token || !$this->isTokenAuthenticated($token)) {
+            return $event;
+        }
+
+        // the user of the event can be the one of the scope, shared with the next events
+        $user = null !== $user ? clone $user : new UserDataBag();
+        $user->setId($this->getUserIdentifier($token->getUser()));
+
+        $impersonatorUser = $this->getImpersonatorUser($token);
+
+        if (null !== $impersonatorUser) {
+            $user->setMetadata('impersonator_username', $impersonatorUser);
+        }
+
+        $event->setUser($user);
+
+        return $event;
     }
 
     private function updateUserContext(TokenInterface $token): void
