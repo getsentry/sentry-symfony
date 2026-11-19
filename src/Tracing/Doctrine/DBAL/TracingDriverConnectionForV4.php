@@ -136,9 +136,12 @@ final class TracingDriverConnectionForV4 implements TracingDriverConnectionInter
      */
     public function exec(string $sql): int|string
     {
-        return $this->traceFunction(self::SPAN_OP_CONN_EXEC, $sql, function () use ($sql): int|string {
+        /** @var int|numeric-string $result */
+        $result = $this->traceFunction(self::SPAN_OP_CONN_EXEC, $sql, function () use ($sql): int|string {
             return $this->decoratedConnection->exec($sql);
         });
+
+        return $result;
     }
 
     /**
