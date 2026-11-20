@@ -23,6 +23,8 @@ final class RuntimeContextListener implements ResetInterface
     /**
      * Keep HubInterface as an explicit dependency so the container initializes
      * and configures the hub service before this listener handles requests.
+     *
+     * @phpstan-ignore-next-line The hub is only injected for its initialization side effect
      */
     public function __construct(HubInterface $hub)
     {
