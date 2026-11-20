@@ -346,11 +346,6 @@ parameters:
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
 
 		-
-			message: "#^Parameter \\#1 \\$hubOrConnectionFactory of class Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverMiddleware constructor expects Sentry\\\\SentryBundle\\\\Tracing\\\\Doctrine\\\\DBAL\\\\TracingDriverConnectionFactoryInterface\\|Sentry\\\\State\\\\HubInterface, null given\\.$#"
-			count: 1
-			path: tests/Tracing/Doctrine/DBAL/TracingDriverMiddlewareTest.php
-
-		-
 			message: "#^Parameter \\#1 \\$responses of method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableHttpClient\\:\\:stream\\(\\) expects iterable\\<\\(int\\|string\\), Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface\\>\\|Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface, stdClass given\\.$#"
 			count: 1
 			path: tests/Tracing/HttpClient/TraceableHttpClientTest.php

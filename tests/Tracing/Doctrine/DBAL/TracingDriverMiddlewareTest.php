@@ -28,6 +28,7 @@ final class TracingDriverMiddlewareTest extends DoctrineTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('The constructor requires either an instance of the "Sentry\\State\\HubInterface" interface or an instance of the "Sentry\\SentryBundle\\Tracing\\Doctrine\DBAL\\TracingDriverConnectionFactoryInterface" interface.');
 
+        // @phpstan-ignore-next-line The test passes an invalid argument on purpose
         new TracingDriverMiddleware(null);
     }
 
