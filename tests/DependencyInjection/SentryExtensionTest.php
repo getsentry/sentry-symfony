@@ -759,9 +759,11 @@ abstract class SentryExtensionTest extends TestCase
     {
         $container = $this->createContainerFromFixture($fixtureFile);
         $optionsDefinition = $container->getDefinition('sentry.client.options');
+        $options = $optionsDefinition->getArgument(0);
 
         $this->assertSame(Options::class, $optionsDefinition->getClass());
-        $this->assertSame($expectedRelease, $container->resolveEnvPlaceholders($optionsDefinition->getArgument(0)['release'], true));
+        $this->assertIsArray($options);
+        $this->assertSame($expectedRelease, $container->resolveEnvPlaceholders($options['release'], true));
     }
 
     public function releaseOptionDataProvider(): \Generator
