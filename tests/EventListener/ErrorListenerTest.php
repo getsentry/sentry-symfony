@@ -66,9 +66,18 @@ final class ErrorListenerTest extends TestCase
             new ExceptionEvent(
                 $this->createMock(HttpKernelInterface::class),
                 new Request(),
-                \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST,
+                $this->getMainRequestType(),
                 new \Exception()
             ),
         ];
+    }
+
+    private function getMainRequestType(): int
+    {
+        return (int) \constant(
+            \defined(HttpKernelInterface::class . '::MAIN_REQUEST')
+                ? HttpKernelInterface::class . '::MAIN_REQUEST'
+                : HttpKernelInterface::class . '::MASTER_REQUEST'
+        );
     }
 }
