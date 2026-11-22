@@ -59,7 +59,7 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
     /**
      * {@inheritdoc}
      *
-     * @param array<string, mixed> $options
+     * @param array<array-key, mixed> $options
      */
     public function request(string $method, string $url, array $options = []): ResponseInterface
     {
