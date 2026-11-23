@@ -221,11 +221,6 @@ parameters:
 			path: src/Twig/SentryExtension.php
 
 		-
-			message: "#^Constructor of class Sentry\\\\SentryBundle\\\\EventListener\\\\RuntimeContextListener has an unused parameter \\$hub\\.$#"
-			count: 1
-			path: src/EventListener/RuntimeContextListener.php
-
-		-
 			message: "#^Function Symfony\\\\Component\\\\DependencyInjection\\\\Loader\\\\Configurator\\\\ref not found\\.$#"
 			count: 1
 			path: tests/DependencyInjection/Fixtures/php/release_option_fallback_to_env_var.php
