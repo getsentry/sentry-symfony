@@ -423,6 +423,9 @@ abstract class AbstractTraceableCacheAdapterTest extends TestCase
             ->method('reset');
 
         $adapter = $this->createCacheAdapter($decoratedAdapter);
+
+        $this->assertInstanceOf(ResettableInterface::class, $adapter);
+
         $adapter->reset();
     }
 
