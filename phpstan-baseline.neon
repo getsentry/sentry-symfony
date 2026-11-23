@@ -41,11 +41,6 @@ parameters:
 			path: src/DependencyInjection/SentryExtension.php
 
 		-
-			message: "#^Cannot access offset 'excluded_commands' on mixed\\.$#"
-			count: 1
-			path: src/DependencyInjection/SentryExtension.php
-
-		-
 			message: "#^Cannot access offset 'http_client' on mixed\\.$#"
 			count: 1
 			path: src/DependencyInjection/SentryExtension.php

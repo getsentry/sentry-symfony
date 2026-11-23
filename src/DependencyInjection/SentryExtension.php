@@ -293,7 +293,10 @@ final class SentryExtension extends ConfigurableExtension
             return;
         }
 
-        $container->getDefinition(TracingConsoleListener::class)->replaceArgument(1, $config['console']['excluded_commands']);
+        /** @var array{excluded_commands: string[]} $consoleConfig */
+        $consoleConfig = $config['console'];
+
+        $container->getDefinition(TracingConsoleListener::class)->replaceArgument(1, $consoleConfig['excluded_commands']);
 
         foreach ([TracingRequestListener::class, TracingSubRequestListener::class, TracingConsoleListener::class] as $listener) {
             $container->getDefinition($listener)->setArgument('$enabled', $config['enabled']);
