@@ -58,10 +58,13 @@ abstract class AbstractTraceableHttpClient implements HttpClientInterface, Reset
 
     /**
      * {@inheritdoc}
+     *
+     * @param array<array-key, mixed> $options
      */
     public function request(string $method, string $url, array $options = []): ResponseInterface
     {
         $uri = new Uri($url);
+        /** @var array<array-key, mixed> $headers */
         $headers = $options['headers'] ?? [];
 
         $span = $this->hub->getSpan();
