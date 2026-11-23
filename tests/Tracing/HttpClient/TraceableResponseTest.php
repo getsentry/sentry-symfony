@@ -521,6 +521,7 @@ final class TraceableResponseTest extends TestCase
         $this->expectException(\TypeError::class);
         $this->expectExceptionMessage('"Sentry\\SentryBundle\\Tracing\\HttpClient\\TraceableHttpClient::stream()" expects parameter 1 to be an iterable of TraceableResponse objects, "stdClass" given.');
 
+        // @phpstan-ignore-next-line The test passes an invalid argument on purpose
         iterator_to_array(TraceableResponse::stream($this->client, [new \stdClass()], null));
     }
 
