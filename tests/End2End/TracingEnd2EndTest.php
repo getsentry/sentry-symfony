@@ -6,14 +6,8 @@ namespace Sentry\SentryBundle\Tests\End2End;
 
 use Sentry\Event;
 use Sentry\SentryBundle\Tests\End2End\App\KernelWithTracing;
-use Symfony\Bundle\FrameworkBundle\Client;
-use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
-
-if (!class_exists(KernelBrowser::class)) {
-    class_alias(Client::class, KernelBrowser::class);
-}
 
 /**
  * @runTestsInSeparateProcesses

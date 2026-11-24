@@ -231,11 +231,6 @@ parameters:
 			path: tests/DependencyInjection/SentryExtensionTest.php
 
 		-
-			message: "#^Class Symfony\\\\Bundle\\\\FrameworkBundle\\\\Client not found\\.$#"
-			count: 1
-			path: tests/End2End/TracingEnd2EndTest.php
-
-		-
 			message: "#^Access to undefined constant Symfony\\\\Component\\\\HttpKernel\\\\HttpKernelInterface\\:\\:MASTER_REQUEST\\.$#"
 			count: 4
 			path: tests/EventListener/LoginListenerTest.php
