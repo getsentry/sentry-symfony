@@ -1,0 +1,27 @@
+# getsentry/sentry-symfony e312047201b1e8004482144625760f6191130755
+
+rubric = "sdk"
+
+[[area]]
+paths = ["src/**"]
+families = ["server"]
+
+# composer.json declares the sentry/sentry range and PHP and Symfony versions every customer inherits.
+[[area]]
+paths = ["composer.json"]
+families = ["server"]
+shared_core = true
+
+[[kind]]
+paths = ["tests/**", "phpunit.xml"]
+kind = "tests"
+
+# .gitattributes does not export-ignore AUTHORS or the psalm files, so they are inside the
+# published Composer package.
+[[kind]]
+paths = ["scripts/**", "AUTHORS", "psalm.xml", "psalm-baseline.xml"]
+kind = "build-release"
+
+[[kind]]
+paths = [".php-cs-fixer.dist.php", "phpstan.neon", "phpstan-baseline.neon", "codecov.yml"]
+kind = "dev-tooling"
