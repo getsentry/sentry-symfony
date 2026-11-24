@@ -314,8 +314,3 @@ parameters:
 			message: "#^Parameter \\#1 \\$decoratedAdapter of method Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Cache\\\\AbstractTraceableCacheAdapterTest\\<TCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface,TDecoratedCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface\\>\\:\\:createCacheAdapter\\(\\) expects TDecoratedCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface, PHPUnit\\\\Framework\\\\MockObject\\\\MockObject&Sentry\\\\SentryBundle\\\\Tests\\\\Tracing\\\\Cache\\\\ResettableCacheAdapterInterface given\\.$#"
 			count: 1
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$responses of method Sentry\\\\SentryBundle\\\\Tracing\\\\HttpClient\\\\AbstractTraceableHttpClient\\:\\:stream\\(\\) expects iterable\\<\\(int\\|string\\), Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface\\>\\|Symfony\\\\Contracts\\\\HttpClient\\\\ResponseInterface, stdClass given\\.$#"
-			count: 1
-			path: tests/Tracing/HttpClient/TraceableHttpClientTest.php
