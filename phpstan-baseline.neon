@@ -206,11 +206,6 @@ parameters:
 			path: src/Tracing/HttpClient/TraceableResponseForV6.php
 
 		-
-			message: "#^Constructor of class Sentry\\\\SentryBundle\\\\Twig\\\\SentryExtension has an unused parameter \\$hub\\.$#"
-			count: 1
-			path: src/Twig/SentryExtension.php
-
-		-
 			message: "#^Function Symfony\\\\Component\\\\DependencyInjection\\\\Loader\\\\Configurator\\\\ref not found\\.$#"
 			count: 1
 			path: tests/DependencyInjection/Fixtures/php/release_option_fallback_to_env_var.php
