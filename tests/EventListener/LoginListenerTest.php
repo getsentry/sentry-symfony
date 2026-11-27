@@ -91,7 +91,7 @@ final class LoginListenerTest extends TestCase
         $this->listener->handleKernelRequestEvent(new RequestEvent(
             $this->createMock(HttpKernelInterface::class),
             new Request(),
-            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
+            $this->getMainRequestType()
         ));
 
         $event = $scope->applyToEvent(Event::createEvent());
@@ -334,7 +334,7 @@ final class LoginListenerTest extends TestCase
         $this->listener->handleKernelRequestEvent(new RequestEvent(
             $this->createMock(HttpKernelInterface::class),
             new Request(),
-            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
+            $this->getMainRequestType()
         ));
     }
 
@@ -548,7 +548,7 @@ final class LoginListenerTest extends TestCase
         $this->listener->handleKernelRequestEvent(new RequestEvent(
             $this->createMock(HttpKernelInterface::class),
             new Request(),
-            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
+            $this->getMainRequestType()
         ));
 
         $event = $scope->applyToEvent(Event::createEvent());
@@ -765,7 +765,16 @@ final class LoginListenerTest extends TestCase
         return new RequestEvent(
             $this->createMock(HttpKernelInterface::class),
             $request,
-            \defined(HttpKernelInterface::class . '::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST
+            $this->getMainRequestType()
+        );
+    }
+
+    private function getMainRequestType(): int
+    {
+        return (int) \constant(
+            \defined(HttpKernelInterface::class . '::MAIN_REQUEST')
+                ? HttpKernelInterface::class . '::MAIN_REQUEST'
+                : HttpKernelInterface::class . '::MASTER_REQUEST'
         );
     }
 }
