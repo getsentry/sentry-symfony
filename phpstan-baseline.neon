@@ -231,11 +231,6 @@ parameters:
 			path: tests/DependencyInjection/SentryExtensionTest.php
 
 		-
-			message: "#^Access to undefined constant Symfony\\\\Component\\\\HttpKernel\\\\HttpKernelInterface\\:\\:MASTER_REQUEST\\.$#"
-			count: 4
-			path: tests/EventListener/LoginListenerTest.php
-
-		-
 			message: "#^Call to function method_exists\\(\\) with \\$this\\(Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\AuthenticatedTokenStub\\) and 'setAuthenticated' will always evaluate to false\\.$#"
 			count: 1
 			path: tests/EventListener/LoginListenerTest.php
