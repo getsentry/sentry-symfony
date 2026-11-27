@@ -276,11 +276,6 @@ parameters:
 			path: tests/EventListener/TracingRequestListenerTest.php
 
 		-
-			message: "#^Access to undefined constant Symfony\\\\Component\\\\HttpKernel\\\\HttpKernelInterface\\:\\:MASTER_REQUEST\\.$#"
-			count: 3
-			path: tests/EventListener/TracingSubRequestListenerTest.php
-
-		-
 			message: "#^Call to an undefined method TCacheAdapter of Symfony\\\\Component\\\\Cache\\\\Adapter\\\\AdapterInterface\\:\\:delete\\(\\)\\.$#"
 			count: 2
 			path: tests/Tracing/Cache/AbstractTraceableCacheAdapterTest.php
