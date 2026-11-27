@@ -92,7 +92,11 @@ final class TraceableHttpClientTest extends TestCase
         $this->assertInstanceOf(AbstractTraceableResponse::class, $response);
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame('GET', $response->getInfo('http_method'));
-        $this->assertSame('https://username:password@www.example.com/test-page?foo=bar#baz', $response->getInfo('url'));
+        // Newer symfony/http-client versions move the user info of the URL into an Authorization header
+        $expectedUrl = isset($mockResponse->getRequestOptions()['normalized_headers']['authorization'])
+            ? 'https://www.example.com/test-page?foo=bar#baz'
+            : 'https://username:password@www.example.com/test-page?foo=bar#baz';
+        $this->assertSame($expectedUrl, $response->getInfo('url'));
         $this->assertSame([\sprintf('sentry-trace: %s', $spans[1]->toTraceparent())], $mockResponse->getRequestOptions()['normalized_headers']['sentry-trace']);
         $this->assertSame([\sprintf('baggage: %s', $transaction->toBaggage())], $mockResponse->getRequestOptions()['normalized_headers']['baggage']);
         $this->assertArrayNotHasKey('traceparent', $mockResponse->getRequestOptions()['normalized_headers']);
