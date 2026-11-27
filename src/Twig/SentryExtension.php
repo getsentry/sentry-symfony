@@ -15,6 +15,8 @@ final class SentryExtension extends AbstractExtension
 {
     /**
      * @param HubInterface $hub The current hub
+     *
+     * @phpstan-ignore-next-line The hub is no longer used but is kept for backward compatibility of the constructor
      */
     public function __construct(?HubInterface $hub = null)
     {
