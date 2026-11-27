@@ -84,6 +84,18 @@ services:
       - { name: kernel.event_listener, event: 'Symfony\Component\Messenger\Event\WorkerMessageHandledEvent', method: handleWorkerMessageHandledEvent, priority: 50 }
       - { name: kernel.event_listener, event: 'Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent', method: handleWorkerMessageReceivedEvent, priority: 50 }
 
+  Sentry\SentryBundle\EventListener\SchedulerListener:
+    arguments:
+      - '@Sentry\State\HubInterface'
+      - '@?messenger.senders_locator'
+    tags:
+      - { name: kernel.event_listener, event: 'Symfony\Component\Scheduler\Event\PreRunEvent', method: handlePreRunEvent }
+      # Run after the Scheduler dispatches PreRunEvent, and after the listeners of Schedule::before() on Symfony 8.2+
+      - { name: kernel.event_listener, event: 'Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent', method: handleWorkerMessageReceivedEvent, priority: -1024 }
+      - { name: kernel.event_listener, event: 'Symfony\Component\Scheduler\Event\PostRunEvent', method: handlePostRunEvent }
+      - { name: kernel.event_listener, event: 'Symfony\Component\Scheduler\Event\FailureEvent', method: handleFailureEvent }
+      - { name: kernel.reset, method: reset }
+
   Sentry\SentryBundle\EventListener\LoginListener:
     arguments:
       - '@Sentry\State\HubInterface'
