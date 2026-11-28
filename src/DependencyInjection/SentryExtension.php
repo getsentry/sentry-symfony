@@ -281,7 +281,10 @@ final class SentryExtension extends ConfigurableExtension
      */
     private function registerTracingConfiguration(ContainerBuilder $container, array $config): void
     {
-        $container->setParameter('sentry.tracing.enabled', $config['enabled']);
+        /** @var bool|string $tracingEnabled */
+        $tracingEnabled = $config['enabled'];
+
+        $container->setParameter('sentry.tracing.enabled', $tracingEnabled);
 
         // If an env placeholder is used here, it will resolve to true. Only an explicit
         // 'false' will remove the definition
