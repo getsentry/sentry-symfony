@@ -221,11 +221,6 @@ parameters:
 			path: tests/DependencyInjection/SentryExtensionTest.php
 
 		-
-			message: "#^Parameter \\#2 \\$array of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertArrayHasKey\\(\\) expects array\\|ArrayAccess, mixed given\\.$#"
-			count: 1
-			path: tests/DependencyInjection/SentryExtensionTest.php
-
-		-
 			message: "#^Call to function method_exists\\(\\) with \\$this\\(Sentry\\\\SentryBundle\\\\Tests\\\\EventListener\\\\AuthenticatedTokenStub\\) and 'setAuthenticated' will always evaluate to false\\.$#"
 			count: 1
 			path: tests/EventListener/LoginListenerTest.php
