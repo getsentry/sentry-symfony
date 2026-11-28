@@ -591,6 +591,7 @@ abstract class SentryExtensionTest extends TestCase
         $optionsDefinition = $container->getDefinition('sentry.client.options');
         $classSerializers = $optionsDefinition->getArgument(0)['class_serializers'];
 
+        $this->assertIsArray($classSerializers);
         $this->assertArrayHasKey(InputInterface::class, $classSerializers);
         $this->assertEquals(new Reference(ConsoleInputSerializer::class), $classSerializers[InputInterface::class]);
     }
