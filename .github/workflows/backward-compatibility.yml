@@ -1,0 +1,62 @@
+name: Backward compatibility
+
+on:
+  pull_request:
+    # `edited` re-evaluates the job when the base branch changes, `labeled` and `unlabeled`
+    # when the opt-out label changes.
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - edited
+      - labeled
+      - unlabeled
+
+permissions:
+  contents: read
+
+env:
+  ROAVE_BC_CHECK_VERSION: 8.27.0
+  # Keep Composer's malware blocking, but don't block packages with security advisories
+  COMPOSER_POLICY_MALWARE_BLOCK: '1'
+  COMPOSER_POLICY_ADVISORIES_BLOCK: '0'
+
+# Cancel in progress workflows on pull_requests.
+# https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-a-fallback-value
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  roave-bc-check:
+    name: Roave BC Check
+    runs-on: ubuntu-latest
+    # Only pull requests into `master` are checked, so work on a new major branch is not flagged.
+    # Add the `breaking change` label to a pull request to skip the check for an intentional break,
+    # for example when merging a new major branch.
+    if: github.base_ref == 'master' && !contains(github.event.pull_request.labels.*.name, 'breaking change')
+    steps:
+      # The checked out commit is the merge of the pull request into its base branch,
+      # so a depth of 2 makes the base branch available as `HEAD^1`.
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+        with:
+          fetch-depth: 2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@728c6c6b8cf02c2e48117716a91ee48313958a19 # v2
+        with:
+          php-version: '8.5'
+          coverage: none
+
+      - name: Install Roave BC Check
+        run: composer global require --no-progress --no-interaction "roave/backward-compatibility-check:${ROAVE_BC_CHECK_VERSION}"
+
+      # Development dependencies are needed to resolve the parent classes of optional
+      # integrations such as Twig, Monolog and Doctrine DBAL.
+      - name: Run script
+        run: |
+          "$(composer global config bin-dir --absolute)/roave-backward-compatibility-check" \
+            --from="HEAD^1" \
+            --install-development-dependencies \
+            --format=github-actions
